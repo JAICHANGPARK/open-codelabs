@@ -54,6 +54,7 @@ pub struct Attendee {
     pub codelab_id: String,
     pub name: String,
     pub code: String,
+    pub current_step: i32,
     pub created_at: Option<chrono::NaiveDateTime>,
 }
 
