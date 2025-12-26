@@ -316,6 +316,7 @@ pub async fn delete_codelab(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+    tracing::debug!("Attempting to delete codelab: {}", id);
     let mut tx = state
         .pool
         .begin()

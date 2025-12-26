@@ -35,7 +35,8 @@
         "codelab_author": "Author",
         "placeholder_title": "e.g., Intro to SvelteKit",
         "placeholder_desc": "What will they learn?",
-        "placeholder_author": "Your Name"
+        "placeholder_author": "Your Name",
+        "confirm_delete": "Are you sure you want to delete this codelab? This action cannot be undone."
     },
     "editor": {
         "edit": "Edit",

@@ -81,7 +81,7 @@
             codelabs = codelabs.filter((c) => c.id !== id);
         } catch (e) {
             console.error(e);
-            alert("Delete failed");
+            alert("Delete failed: " + e);
         }
     }
 

@@ -35,7 +35,8 @@
         "codelab_author": "著者",
         "placeholder_title": "例：SvelteKit入門",
         "placeholder_desc": "何を学びますか？",
-        "placeholder_author": "お名前"
+        "placeholder_author": "お名前",
+        "confirm_delete": "このコードラボを削除してもよろしいですか？この操作は取り消せません。"
     },
     "editor": {
         "edit": "編集",

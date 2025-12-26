@@ -35,7 +35,8 @@
         "codelab_author": "작성자",
         "placeholder_title": "예: SvelteKit 입문",
         "placeholder_desc": "무엇을 배게 되나요?",
-        "placeholder_author": "이름"
+        "placeholder_author": "이름",
+        "confirm_delete": "이 코드랩을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
     },
     "editor": {
         "edit": "편집",
