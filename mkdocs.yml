@@ -107,3 +107,8 @@ extra:
       link: https://github.com/JAICHANGPARK/open-codelabs
   version:
     provider: mike
+
+validation:
+  omitted_files: warn
+  absolute_links: ignore
+  unrecognized_links: ignore
