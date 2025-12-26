@@ -50,7 +50,9 @@
         "add_first_step": "添加第一个步骤",
         "step_navigation": "代码实验室步骤",
         "attendee_access": "参与者入口",
-        "view_live": "查看实时页面"
+        "view_live": "查看实时页面",
+        "public_chat": "公共聊天",
+        "direct_messages": "私信"
     },
     "login": {
         "title": "协调员登录",
@@ -61,5 +63,10 @@
         "connecting": "正在连接...",
         "error_fields": "请填写所有字段",
         "error_credentials": "ID 或密码无效"
+    },
+    "home": {
+        "subtitle": "面向开发者的互动式动手实践学习平台",
+        "facilitator_desc": "创建和管理您自己的代码实验室，跟踪参与者进度，并提供实时帮助。",
+        "attendee_desc": "加入可用会话，按照分步说明操作，并学习新技术。"
     }
 }
