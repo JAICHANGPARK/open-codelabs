@@ -50,7 +50,9 @@
         "add_first_step": "첫 단계 추가",
         "step_navigation": "코드랩 단계",
         "attendee_access": "참가자 접속",
-        "view_live": "라이브 보기"
+        "view_live": "라이브 보기",
+        "public_chat": "전체 채팅",
+        "direct_messages": "1:1 메시지"
     },
     "login": {
         "title": "퍼실리테이터 로그인",
