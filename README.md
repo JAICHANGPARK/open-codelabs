@@ -118,5 +118,34 @@ podman-compose up --build
 
 ---
 
+## 📚 문서
+
+완전한 문서는 GitHub Pages에서 확인하세요:
+
+**[📖 Open Codelabs 문서 보기](https://JAICHANGPARK.github.io/open-codelabs/)**
+
+### 주요 문서
+
+- [빠른 시작](https://JAICHANGPARK.github.io/open-codelabs/getting-started/quickstart/) - 5분 안에 시작하기
+- [설치 가이드](https://JAICHANGPARK.github.io/open-codelabs/getting-started/installation/) - 상세 설치 방법
+- [API 레퍼런스](https://JAICHANGPARK.github.io/open-codelabs/specification/api-reference/) - REST API 문서
+- [기여 가이드](https://JAICHANGPARK.github.io/open-codelabs/contributing/guide/) - 프로젝트 기여 방법
+- [FAQ](https://JAICHANGPARK.github.io/open-codelabs/faq/) - 자주 묻는 질문
+
+### 로컬에서 문서 보기
+
+```bash
+# MkDocs 설치
+pip install -r requirements.txt
+
+# 문서 서버 실행
+mkdocs serve
+
+# http://localhost:8000 에서 확인
+```
+
+---
+
 ## 라이선스
-이 프로젝트는 [MIT License](LICENSE)를 따릅니다.
+
+이 프로젝트는 [Apache License 2.0](LICENSE)를 따릅니다.
