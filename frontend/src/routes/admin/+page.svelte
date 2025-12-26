@@ -5,6 +5,7 @@
         listCodelabs,
         createCodelab,
         importCodelab,
+        deleteCodelab,
         type Codelab,
     } from "$lib/api";
     import {
@@ -15,6 +16,7 @@
         LayoutDashboard,
         Download,
         FileUp,
+        Trash2,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
 
@@ -60,6 +62,15 @@
                 loading = false;
                 target.value = "";
             }
+        }
+    async function handleDelete(id: string) {
+        if (!confirm($t("dashboard.confirm_delete") || "Are you sure you want to delete this codelab?")) return;
+        try {
+            await deleteCodelab(id);
+            codelabs = codelabs.filter(c => c.id !== id);
+        } catch (e) {
+            console.error(e);
+            alert("Delete failed");
         }
     }
 </script>
@@ -156,6 +167,15 @@
                                     <Plus size={16} />
                                 </div>
                             </div>
+
+                            <button
+                                on:click|preventDefault={() =>
+                                    handleDelete(codelab.id)}
+                                class="absolute top-4 right-4 p-2 text-[#BDC1C6] hover:text-[#EA4335] hover:bg-[#FEECEB] rounded-full transition-all opacity-0 group-hover:opacity-100 z-10"
+                                title={$t("common.delete") || "Delete"}
+                            >
+                                <Trash2 size={18} />
+                            </button>
 
                             <h3
                                 class="text-xl font-bold text-[#202124] group-hover:text-[#4285F4] transition-colors mb-3 line-clamp-1"

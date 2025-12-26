@@ -5,7 +5,10 @@ use axum::{
     http::{HeaderMap, StatusCode},
     Json,
 };
+use serde_json;
+use sqlx;
 use std::sync::Arc;
+use uuid;
 
 pub async fn register_attendee(
     Path(id): Path<String>,

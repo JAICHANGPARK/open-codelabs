@@ -11,6 +11,7 @@
         resolveHelpRequest,
         getWsUrl,
         getChatHistory,
+        uploadImage,
         type Codelab,
         type Step,
         type Attendee,
@@ -20,6 +21,9 @@
     // @ts-ignore
     import QRCode from "svelte-qrcode";
     import { marked } from "marked";
+    import { markedHighlight } from "marked-highlight";
+    import hljs from "highlight.js";
+    import "highlight.js/styles/github.css";
     import DOMPurify from "dompurify";
     import {
         ChevronLeft,
@@ -73,6 +77,20 @@
     let dmMessage = $state("");
 
     onMount(async () => {
+        // Configure marked with highlight.js
+        marked.use(
+            markedHighlight({
+                emptyLangClass: "hljs",
+                langPrefix: "hljs language-",
+                highlight(code, lang) {
+                    const language = hljs.getLanguage(lang)
+                        ? lang
+                        : "plaintext";
+                    return hljs.highlight(code, { language }).value;
+                },
+            }),
+        );
+
         try {
             const data = await getCodelab(id);
             codelab = data[0];
@@ -357,14 +375,44 @@
         }, 0);
     }
 
-    function handlePaste(event: ClipboardEvent) {
+    async function handlePaste(event: ClipboardEvent) {
         const items = event.clipboardData?.items;
         if (!items) return;
 
         for (const item of items) {
             if (item.type.indexOf("image") !== -1) {
-                insertMarkdown("image");
-                event.preventDefault();
+                const file = item.getAsFile();
+                if (file) {
+                    event.preventDefault();
+                    try {
+                        const { url } = await uploadImage(file);
+
+                        const textarea = document.querySelector("textarea");
+                        if (!textarea) return;
+
+                        const start = textarea.selectionStart;
+                        const end = textarea.selectionEnd;
+                        const text = steps[activeStepIndex].content_markdown;
+                        const replacement = `![image](${url})`;
+
+                        steps[activeStepIndex].content_markdown =
+                            text.substring(0, start) +
+                            replacement +
+                            text.substring(end);
+
+                        setTimeout(() => {
+                            textarea.focus();
+                            const newCursorPos = start + replacement.length;
+                            textarea.setSelectionRange(
+                                newCursorPos,
+                                newCursorPos,
+                            );
+                        }, 0);
+                    } catch (e) {
+                        console.error("Upload failed", e);
+                        alert("Image upload failed");
+                    }
+                }
             }
         }
     }
@@ -964,17 +1012,24 @@
         background-color: #f8f9fa;
         border: 1px solid #e8eaed;
         border-radius: 8px;
-        padding: 20px;
-        margin: 20px 0;
+        padding: 24px;
+        margin: 24px 0;
         overflow-x: auto;
     }
-    :global(.markdown-body code) {
-        font-family: "Google Sans Mono", "JetBrains Mono", monospace;
+    :global(.markdown-body code:not(pre code)) {
+        font-family: inherit;
         color: #c5221f;
         background-color: #fce8e6;
         padding: 2px 5px;
         border-radius: 4px;
         font-size: 0.9em;
+    }
+    :global(.markdown-body pre code) {
+        font-family: "JetBrains Mono", "Google Sans Mono", monospace;
+        background-color: transparent;
+        padding: 0;
+        color: inherit;
+        font-size: 0.95rem;
     }
     :global(.markdown-body h2) {
         font-size: 1.4rem;

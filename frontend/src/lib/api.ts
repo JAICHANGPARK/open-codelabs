@@ -48,13 +48,20 @@ export async function updateCodelab(id: string, payload: { title: string; descri
     return res.json();
 }
 
-export async function saveSteps(id: string, steps: { title: string; content_markdown: string }[]): Promise<void> {
-    const res = await fetch(`${API_URL}/codelabs/${id}/steps`, {
+export async function saveSteps(codelabId: string, steps: { title: string, content_markdown: string }[]): Promise<void> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/steps`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ steps }),
+        body: JSON.stringify({ steps })
     });
-    if (!res.ok) throw new Error('Failed to save steps');
+    if (!res.ok) throw new Error('Failed to update steps');
+}
+
+export async function deleteCodelab(codelabId: string): Promise<void> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}`, {
+        method: 'DELETE'
+    });
+    if (!res.ok) throw new Error('Failed to delete codelab');
 }
 
 export async function login(admin_id: string, admin_pw: string): Promise<{ token: string }> {
@@ -162,6 +169,17 @@ export async function getAttendees(codelabId: string): Promise<Attendee[]> {
 export async function getChatHistory(codelabId: string): Promise<ChatMessage[]> {
     const res = await fetch(`${API_URL}/codelabs/${codelabId}/chat`);
     if (!res.ok) throw new Error('Failed to fetch chat history');
+    return res.json();
+}
+
+export async function uploadImage(file: File): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_URL}/upload/image`, {
+        method: 'POST',
+        body: formData,
+    });
+    if (!res.ok) throw new Error('Upload failed');
     return res.json();
 }
 
