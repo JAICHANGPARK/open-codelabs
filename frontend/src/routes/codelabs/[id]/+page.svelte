@@ -8,6 +8,7 @@
         requestHelp,
         getWsUrl,
         getChatHistory,
+        submitFeedback,
         type Codelab,
         type Step,
         type Attendee,
@@ -29,6 +30,7 @@
         Send,
         HelpCircle,
         AlertCircle,
+        Star,
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
 
@@ -42,6 +44,13 @@
     let isFinished = $state(false);
 
     let attendee = $state<Attendee | null>(null);
+
+    // Feedback State
+    let feedbackDifficulty = $state(3);
+    let feedbackSatisfaction = $state(5);
+    let feedbackComment = $state("");
+    let feedbackSubmitted = $state(false);
+    let feedbackSubmitting = $state(false);
     let chatMessage = $state("");
     let messages = $state<
         {
@@ -254,6 +263,24 @@
             alert("Help request sent to facilitator!");
         } catch (e) {
             alert("Failed to send help request.");
+        }
+    }
+
+    async function handleFeedbackSubmit() {
+        if (feedbackSubmitting) return;
+        feedbackSubmitting = true;
+        try {
+            await submitFeedback(id, {
+                difficulty: feedbackDifficulty,
+                satisfaction: feedbackSatisfaction,
+                comments: feedbackComment,
+            });
+            feedbackSubmitted = true;
+        } catch (e) {
+            console.error("Feedback error", e);
+            alert("Failed to submit feedback");
+        } finally {
+            feedbackSubmitting = false;
         }
     }
 
@@ -471,10 +498,105 @@
                             >. You've successfully finished all the steps in
                             this workshop.
                         </p>
+
+                        {#if !feedbackSubmitted}
+                            <div
+                                class="max-w-md w-full bg-white border border-[#E8EAED] rounded-xl p-6 mb-8 text-left shadow-sm"
+                            >
+                                <h3
+                                    class="font-bold text-lg mb-4 text-[#202124]"
+                                >
+                                    How was your experience?
+                                </h3>
+
+                                <div class="mb-4">
+                                    <label
+                                        class="block text-sm font-bold text-[#5F6368] mb-2"
+                                        >Satisfaction</label
+                                    >
+                                    <div class="flex gap-2">
+                                        {#each [1, 2, 3, 4, 5] as s}
+                                            <button
+                                                onclick={() =>
+                                                    (feedbackSatisfaction = s)}
+                                                class="p-1 rounded-lg transition-all hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                            >
+                                                <Star
+                                                    size={28}
+                                                    fill={feedbackSatisfaction >=
+                                                    s
+                                                        ? "#F9AB00"
+                                                        : "none"}
+                                                    class={feedbackSatisfaction >=
+                                                    s
+                                                        ? "text-[#F9AB00]"
+                                                        : "text-[#BDC1C6]"}
+                                                />
+                                            </button>
+                                        {/each}
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label
+                                        class="block text-sm font-bold text-[#5F6368] mb-2"
+                                        >Difficulty</label
+                                    >
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="5"
+                                        step="1"
+                                        bind:value={feedbackDifficulty}
+                                        class="w-full accent-[#4285F4] h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                    />
+                                    <div
+                                        class="flex justify-between text-xs text-[#9AA0A6] mt-2 font-medium"
+                                    >
+                                        <span>Too Easy</span>
+                                        <span>Just Right</span>
+                                        <span>Too Hard</span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-6">
+                                    <label
+                                        class="block text-sm font-bold text-[#5F6368] mb-2"
+                                        >Comments (Optional)</label
+                                    >
+                                    <textarea
+                                        bind:value={feedbackComment}
+                                        class="w-full border border-[#DADCE0] rounded-lg p-3 text-sm focus:border-[#4285F4] outline-none transition-colors"
+                                        rows="3"
+                                        placeholder="Any additional feedback?"
+                                    ></textarea>
+                                </div>
+
+                                <button
+                                    onclick={handleFeedbackSubmit}
+                                    disabled={feedbackSubmitting}
+                                    class="w-full bg-[#4285F4] text-white py-3 rounded-full font-bold hover:bg-[#1A73E8] disabled:opacity-50 transition-all shadow-md active:scale-95"
+                                >
+                                    {feedbackSubmitting
+                                        ? "Submitting..."
+                                        : "Submit Feedback"}
+                                </button>
+                            </div>
+                        {:else}
+                            <div
+                                class="bg-[#E6F4EA] text-[#137333] px-8 py-6 rounded-2xl mb-12 flex flex-col items-center gap-2 border border-[#CEEAD6]"
+                            >
+                                <CheckCircle2 size={32} />
+                                <span class="font-bold text-lg"
+                                    >Thank you for your feedback!</span
+                                >
+                            </div>
+                        {/if}
+
                         <div class="flex flex-wrap justify-center gap-4">
                             <a
                                 href="/"
-                                class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-8 py-3 rounded-full font-bold shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                                class="bg-white border border-[#E8EAED] text-[#4285F4] hover:bg-[#F8F9FA] px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                             >
                                 <Home size={20} />
                                 Back to Home
