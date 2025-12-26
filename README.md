@@ -91,14 +91,30 @@ bun install
 bun run dev
 ```
 
-### 3. 세션 공개하기 (ngrok 활용)
+### 3. 세션 공개하기 (ngrok 또는 bore 활용)
 행사나 워크샵 환경에서 로컬 장비를 서버로 사용할 때 유용합니다.
 
+#### ngrok 사용 (기본)
 ```bash
 chmod +x run-public.sh
-./run-public.sh
+./run-public.sh --ngrok
 ```
-실행 후 터미널에 표시되는 `ngrok` URL(https://...ngrok-free.app)을 참가자들에게 공유하세요.
+
+#### bore 사용 (Rust 기반 대안)
+[bore](https://github.com/ekzhang/bore)가 설치되어 있어야 합니다 (`cargo install bore-cli`).
+```bash
+chmod +x run-public.sh
+./run-public.sh --bore
+```
+
+### 4. Podman 사용자 가이드
+Docker 대신 [Podman](https://podman.io/)을 사용하는 경우, `podman-compose`가 설치되어 있어야 합니다. `run-public.sh` 스크립트는 자동으로 `podman-compose`를 감지하여 실행합니다.
+
+직접 실행하려면:
+```bash
+podman-compose up --build
+```
+---
 
 ---
 
