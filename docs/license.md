@@ -5,7 +5,7 @@ Open Codelabs는 Apache License 2.0 하에 배포됩니다.
 ## Apache License 2.0
 
 ```
-Copyright 2024 AntiGravity Team
+Copyright 2025 JAICHANGPARK
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -72,9 +72,9 @@ Open Codelabs를 상업적으로 사용하실 수 있습니다:
 1. **라이선스 고지**
    ```
    This product includes Open Codelabs software
-   developed by AntiGravity Team.
+   developed by JAICHANGPARK
 
-   Copyright 2024 AntiGravity Team
+   Copyright 2025 JAICHANGPARK
 
    Licensed under the Apache License, Version 2.0
    ```
