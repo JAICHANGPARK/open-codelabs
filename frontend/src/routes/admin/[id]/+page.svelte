@@ -1112,6 +1112,147 @@
                                         </div>
                                     </div>
                                 </div>
+                            {:else if mode === "feedback"}
+                                <div
+                                    class="bg-white rounded-2xl border border-[#E8EAED] shadow-sm overflow-hidden min-h-[70vh] flex flex-col"
+                                    in:fade
+                                >
+                                    <div
+                                        class="p-8 border-b border-[#F1F3F4] bg-[#F8F9FA]/30 grid grid-cols-1 md:grid-cols-3 gap-8"
+                                    >
+                                        <div
+                                            class="bg-white p-4 rounded-xl border border-[#E8EAED] shadow-sm"
+                                        >
+                                            <p
+                                                class="text-xs text-[#5F6368] font-bold uppercase tracking-wider mb-2"
+                                            >
+                                                Avg Satisfaction
+                                            </p>
+                                            <div
+                                                class="text-3xl font-bold text-[#1E8E3E]"
+                                            >
+                                                {feedbacks.length > 0
+                                                    ? (
+                                                          feedbacks.reduce(
+                                                              (acc, f) =>
+                                                                  acc +
+                                                                  f.satisfaction,
+                                                              0,
+                                                          ) / feedbacks.length
+                                                      ).toFixed(1)
+                                                    : "N/A"}<span
+                                                    class="text-base text-[#5F6368] font-normal"
+                                                    >/5</span
+                                                >
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="bg-white p-4 rounded-xl border border-[#E8EAED] shadow-sm"
+                                        >
+                                            <p
+                                                class="text-xs text-[#5F6368] font-bold uppercase tracking-wider mb-2"
+                                            >
+                                                Avg Difficulty
+                                            </p>
+                                            <div
+                                                class="text-3xl font-bold text-[#F9AB00]"
+                                            >
+                                                {feedbacks.length > 0
+                                                    ? (
+                                                          feedbacks.reduce(
+                                                              (acc, f) =>
+                                                                  acc +
+                                                                  f.difficulty,
+                                                              0,
+                                                          ) / feedbacks.length
+                                                      ).toFixed(1)
+                                                    : "N/A"}<span
+                                                    class="text-base text-[#5F6368] font-normal"
+                                                    >/5</span
+                                                >
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="bg-white p-4 rounded-xl border border-[#E8EAED] shadow-sm"
+                                        >
+                                            <p
+                                                class="text-xs text-[#5F6368] font-bold uppercase tracking-wider mb-2"
+                                            >
+                                                Total Responses
+                                            </p>
+                                            <div
+                                                class="text-3xl font-bold text-[#4285F4]"
+                                            >
+                                                {feedbacks.length}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div
+                                        class="flex-1 p-8 overflow-y-auto space-y-4"
+                                    >
+                                        {#each feedbacks as f}
+                                            <div
+                                                class="p-6 bg-white border border-[#E8EAED] rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                                            >
+                                                <div
+                                                    class="flex justify-between items-start mb-4"
+                                                >
+                                                    <div class="flex gap-4">
+                                                        <div
+                                                            class="bg-[#E6F4EA] text-[#137333] px-3 py-1 rounded-full text-xs font-bold"
+                                                        >
+                                                            Satisfaction: {f.satisfaction}/5
+                                                        </div>
+                                                        <div
+                                                            class="bg-[#FEF7E0] text-[#B06000] px-3 py-1 rounded-full text-xs font-bold"
+                                                        >
+                                                            Difficulty: {f.difficulty}/5
+                                                        </div>
+                                                    </div>
+                                                    <span
+                                                        class="text-xs text-[#5F6368]"
+                                                    >
+                                                        {f.created_at
+                                                            ? new Date(
+                                                                  f.created_at,
+                                                              ).toLocaleString()
+                                                            : ""}
+                                                    </span>
+                                                </div>
+                                                {#if f.comments}
+                                                    <p
+                                                        class="text-[#3C4043] text-sm leading-relaxed bg-[#F8F9FA] p-4 rounded-lg"
+                                                    >
+                                                        "{f.comments}"
+                                                    </p>
+                                                {:else}
+                                                    <p
+                                                        class="text-[#9AA0A6] text-sm italic"
+                                                    >
+                                                        No comments provided
+                                                    </p>
+                                                {/if}
+                                            </div>
+                                        {:else}
+                                            <div
+                                                class="text-center py-20 text-[#5F6368]"
+                                            >
+                                                <MessageSquare
+                                                    size={48}
+                                                    class="mx-auto mb-4 opacity-20"
+                                                />
+                                                <p class="text-lg font-medium">
+                                                    No feedback yet
+                                                </p>
+                                                <p class="text-sm opacity-70">
+                                                    Wait for attendees to finish
+                                                    the codelab.
+                                                </p>
+                                            </div>
+                                        {/each}
+                                    </div>
+                                </div>
                             {/if}
                         </div>
                     </div>
