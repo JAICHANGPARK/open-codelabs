@@ -22,10 +22,10 @@
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
 
-    let codelabs: Codelab[] = [];
-    let loading = true;
-    let showCreateModal = false;
-    let newCodelab = { title: "", description: "", author: "" };
+    let codelabs: Codelab[] = $state([]);
+    let loading = $state(true);
+    let showCreateModal = $state(false);
+    let newCodelab = $state({ title: "", description: "", author: "" });
     let copyTarget: string | null = $state(null);
 
     onMount(async () => {

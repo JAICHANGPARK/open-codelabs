@@ -4,7 +4,7 @@
     import { LayoutDashboard, BookOpen } from "lucide-svelte";
     import { t } from "svelte-i18n";
 
-    let visible = false;
+    let visible = $state(false);
     onMount(() => {
         visible = true;
     });

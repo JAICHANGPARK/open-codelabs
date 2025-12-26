@@ -5,10 +5,10 @@
     import { fade, fly } from "svelte/transition";
     import { t } from "svelte-i18n";
 
-    let admin_id = "";
-    let admin_pw = "";
-    let error = "";
-    let loading = false;
+    let admin_id = $state("");
+    let admin_pw = $state("");
+    let error = $state("");
+    let loading = $state(false);
 
     async function handleLogin() {
         if (!admin_id || !admin_pw) {

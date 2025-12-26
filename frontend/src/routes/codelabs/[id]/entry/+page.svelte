@@ -8,12 +8,12 @@
     import { t } from "svelte-i18n";
 
     let id = page.params.id as string;
-    let codelab: Codelab | null = null;
-    let name = "";
-    let code = "";
-    let loading = true;
-    let submitting = false;
-    let error = "";
+    let codelab = $state<Codelab | null>(null);
+    let name = $state("");
+    let code = $state("");
+    let loading = $state(true);
+    let submitting = $state(false);
+    let error = $state("");
 
     onMount(async () => {
         try {

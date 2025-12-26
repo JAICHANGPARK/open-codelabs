@@ -12,9 +12,9 @@
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
 
-    let codelabs: Codelab[] = [];
-    let loading = true;
-    let searchQuery = "";
+    let codelabs: Codelab[] = $state([]);
+    let loading = $state(true);
+    let searchQuery = $state("");
 
     onMount(async () => {
         try {

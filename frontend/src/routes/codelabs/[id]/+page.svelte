@@ -33,24 +33,26 @@
     import { t } from "svelte-i18n";
 
     let id = page.params.id as string;
-    let codelab: Codelab | null = null;
-    let steps: Step[] = [];
-    let loading = true;
-    let currentStepIndex = 0;
-    let showSidebar = true;
-    let showChat = false;
-    let isFinished = false;
+    let codelab = $state<Codelab | null>(null);
+    let steps = $state<Step[]>([]);
+    let loading = $state(true);
+    let currentStepIndex = $state(0);
+    let showSidebar = $state(true);
+    let showChat = $state(false);
+    let isFinished = $state(false);
 
-    let attendee: Attendee | null = null;
-    let chatMessage = "";
-    let messages: {
-        sender: string;
-        text: string;
-        time: string;
-        self?: boolean;
-    }[] = [];
-    let ws: WebSocket | null = null;
-    let helpSent = false;
+    let attendee = $state<Attendee | null>(null);
+    let chatMessage = $state("");
+    let messages = $state<
+        {
+            sender: string;
+            text: string;
+            time: string;
+            self?: boolean;
+        }[]
+    >([]);
+    let ws = $state<WebSocket | null>(null);
+    let helpSent = $state(false);
 
     onMount(async () => {
         // Check for registration
