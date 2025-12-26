@@ -133,6 +133,19 @@ async fn handle_socket(socket: WebSocket, codelab_id: String, state: Arc<AppStat
                         }
                     }
                     Some("step_progress") => {
+                        // Persist to DB
+                        if let (Some(attendee_id), Some(step_number)) = (
+                            val.get("attendee_id").and_then(|v| v.as_str()),
+                            val.get("step_number").and_then(|v| v.as_i64()),
+                        ) {
+                            let _ =
+                                sqlx::query("UPDATE attendees SET current_step = ? WHERE id = ?")
+                                    .bind(step_number as i32)
+                                    .bind(attendee_id)
+                                    .execute(&state_clone.pool)
+                                    .await;
+                        }
+
                         // Broadcast step progress to facilitators
                         let _ = tx_broadcast.send(text.to_string());
                     }
