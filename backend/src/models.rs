@@ -90,12 +90,14 @@ pub struct CreateFeedback {
     pub difficulty: String,
     pub satisfaction: String,
     pub comment: Option<String>,
+    pub attendee_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct Feedback {
     pub id: String,
     pub codelab_id: String,
+    pub attendee_id: Option<String>,
     pub difficulty: String,
     pub satisfaction: String,
     pub comment: Option<String>,

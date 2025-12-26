@@ -2,6 +2,7 @@
     import { onMount, untrack } from "svelte";
     import { fade, slide, fly } from "svelte/transition";
     import { page } from "$app/state";
+    import { goto } from "$app/navigation";
     import {
         getCodelab,
         saveSteps,
@@ -28,6 +29,7 @@
     import hljs from "highlight.js";
     import "highlight.js/styles/github.css";
     import DOMPurify from "dompurify";
+    // ... icons imports ...
     import {
         ChevronLeft,
         Save,
@@ -57,7 +59,17 @@
 
     let id = page.params.id as string;
     let activeStepIndex = $state(0);
-    let mode = $state<"edit" | "preview" | "live" | "feedback">("edit");
+
+    // Initialize mode from URL or default to 'edit'
+    let initialMode = page.url.searchParams.get("mode");
+    let mode = $state<"edit" | "preview" | "live" | "feedback">(
+        initialMode === "preview" ||
+            initialMode === "live" ||
+            initialMode === "feedback"
+            ? initialMode
+            : "edit",
+    );
+
     let isSaving = $state(false);
     let codelab = $state<Codelab | null>(null);
     let steps = $state<Step[]>([]);
@@ -89,6 +101,22 @@
             ? messages.filter((m) => m.type === "chat")
             : messages.filter((m) => m.type === "dm"),
     );
+
+    // Sync mode to URL and load data
+    $effect(() => {
+        const url = new URL(window.location.href);
+        if (url.searchParams.get("mode") !== mode) {
+            url.searchParams.set("mode", mode);
+            window.history.replaceState({}, "", url);
+        }
+
+        if (mode === "feedback") {
+            loadFeedback();
+        } else if (mode === "live") {
+            refreshLiveData();
+            scrollToBottom();
+        }
+    });
 
     onMount(async () => {
         // Configure marked with highlight.js

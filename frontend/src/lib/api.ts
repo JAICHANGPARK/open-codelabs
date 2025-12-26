@@ -195,11 +195,12 @@ export interface Feedback {
     created_at?: string;
 }
 
-export async function submitFeedback(codelabId: string, payload: { difficulty: number; satisfaction: number; comments: string }): Promise<void> {
+export async function submitFeedback(codelabId: string, payload: { difficulty: number; satisfaction: number; comments: string; attendee_id: string }): Promise<void> {
     const body = {
         difficulty: payload.difficulty.toString(),
         satisfaction: payload.satisfaction.toString(),
-        comment: payload.comments
+        comment: payload.comments,
+        attendee_id: payload.attendee_id
     };
 
     const res = await fetch(`${API_URL}/codelabs/${codelabId}/feedback`, {
@@ -207,6 +208,7 @@ export async function submitFeedback(codelabId: string, payload: { difficulty: n
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
     });
+    if (res.status === 409) throw new Error('ALREADY_SUBMITTED');
     if (!res.ok) throw new Error('Feedback submission failed');
 }
 
