@@ -247,15 +247,18 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    $: currentStep = steps[currentStepIndex];
+    let currentStep = $derived(steps[currentStepIndex]);
     // @ts-ignore
-    $: renderedContent = currentStep
-        ? (DOMPurify.sanitize(
-              marked.parse(currentStep.content_markdown) as string,
-          ) as string)
-        : "";
-    $: progressPercent =
-        steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0;
+    let renderedContent = $derived(
+        currentStep
+            ? (DOMPurify.sanitize(
+                  marked.parse(currentStep.content_markdown) as string,
+              ) as string)
+            : "",
+    );
+    let progressPercent = $derived(
+        steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0,
+    );
 </script>
 
 <div
@@ -267,7 +270,7 @@
     >
         <div class="flex items-center gap-4">
             <button
-                on:click={() => (showSidebar = !showSidebar)}
+                onclick={() => (showSidebar = !showSidebar)}
                 class="p-2 hover:bg-[#F1F3F4] rounded-full lg:hidden transition-colors"
                 aria-label="Toggle sidebar"
             >
@@ -300,7 +303,7 @@
             </div>
 
             <button
-                on:click={() => (showChat = !showChat)}
+                onclick={() => (showChat = !showChat)}
                 class="p-2 hover:bg-[#F1F3F4] rounded-full relative transition-colors"
                 title="Open Chat"
             >
@@ -342,7 +345,7 @@
             <nav class="p-4 space-y-1">
                 {#each steps as step, i}
                     <button
-                        on:click={() => {
+                        onclick={() => {
                             isFinished = false;
                             jumpToStep(i);
                         }}
@@ -367,7 +370,7 @@
 
         {#if showSidebar}
             <button
-                on:click={() => (showSidebar = false)}
+                onclick={() => (showSidebar = false)}
                 aria-label="Close sidebar"
                 class="fixed inset-0 bg-[#3C4043]/40 backdrop-blur-[2px] z-10 lg:hidden transition-opacity"
                 transition:fade={{ duration: 200 }}
@@ -448,7 +451,7 @@
             <!-- Floating Help Button -->
             {#if !isFinished && !loading}
                 <button
-                    on:click={handleRequestHelp}
+                    onclick={handleRequestHelp}
                     disabled={helpSent}
                     class="fixed bottom-24 right-8 p-4 bg-white border border-[#E8EAED] text-[#EA4335] rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 group z-20 flex items-center gap-2"
                 >
@@ -483,7 +486,7 @@
                         <MessageSquare size={18} /> Live Chat
                     </h3>
                     <button
-                        on:click={() => (showChat = false)}
+                        onclick={() => (showChat = false)}
                         class="p-1 hover:bg-[#E8EAED] rounded-full"
                     >
                         <X size={18} />
@@ -531,7 +534,13 @@
                 </div>
 
                 <div class="p-4 border-t border-[#E8EAED] bg-white">
-                    <form on:submit|preventDefault={sendChat} class="relative">
+                    <form
+                        onsubmit={(e) => {
+                            e.preventDefault();
+                            sendChat();
+                        }}
+                        class="relative"
+                    >
                         <input
                             type="text"
                             bind:value={chatMessage}
@@ -556,7 +565,7 @@
     >
         <div class="max-w-3xl w-full flex justify-between items-center">
             <button
-                on:click={prevStep}
+                onclick={prevStep}
                 disabled={currentStepIndex === 0 || isFinished}
                 class="flex items-center gap-2 px-6 py-2 rounded-full font-bold transition-all {currentStepIndex ===
                     0 || isFinished
@@ -573,7 +582,7 @@
             </div>
             {#if currentStepIndex === steps.length - 1 && !isFinished}
                 <button
-                    on:click={finishCodelab}
+                    onclick={finishCodelab}
                     class="bg-[#1E8E3E] hover:bg-[#178037] text-white px-10 py-2.5 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                 >
                     Finish
@@ -582,7 +591,7 @@
                 <div class="w-[100px]"></div>
             {:else}
                 <button
-                    on:click={nextStep}
+                    onclick={nextStep}
                     class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-10 py-2.5 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                 >
                     Next

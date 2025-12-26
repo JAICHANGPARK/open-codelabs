@@ -26,10 +26,12 @@
         }
     });
 
-    $: filteredCodelabs = codelabs.filter(
-        (c) =>
-            c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            c.description.toLowerCase().includes(searchQuery.toLowerCase()),
+    let filteredCodelabs = $derived(
+        codelabs.filter(
+            (c) =>
+                c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                c.description.toLowerCase().includes(searchQuery.toLowerCase()),
+        ),
     );
 </script>
 
@@ -99,7 +101,7 @@
                     different keyword or check back later!
                 </p>
                 <button
-                    on:click={() => (searchQuery = "")}
+                    onclick={() => (searchQuery = "")}
                     class="mt-8 text-[#34A853] font-bold hover:underline"
                 >
                     Clear Search

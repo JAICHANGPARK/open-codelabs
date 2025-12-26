@@ -74,7 +74,7 @@
                                 bind:value={admin_id}
                                 placeholder="Enter admin ID"
                                 class="w-full bg-[#FAFBFF] border-2 border-[#F1F3F4] rounded-2xl pl-12 pr-4 py-4 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] font-medium"
-                                on:keydown={(e) =>
+                                onkeydown={(e) =>
                                     e.key === "Enter" && handleLogin()}
                             />
                         </div>
@@ -98,7 +98,7 @@
                                 bind:value={admin_pw}
                                 placeholder="••••••••"
                                 class="w-full bg-[#FAFBFF] border-2 border-[#F1F3F4] rounded-2xl pl-12 pr-4 py-4 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] font-medium"
-                                on:keydown={(e) =>
+                                onkeydown={(e) =>
                                     e.key === "Enter" && handleLogin()}
                             />
                         </div>
@@ -106,7 +106,7 @@
                 </div>
 
                 <button
-                    on:click={handleLogin}
+                    onclick={handleLogin}
                     disabled={loading}
                     class="w-full bg-[#4285F4] hover:bg-[#1A73E8] text-white font-bold py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 text-lg"
                 >

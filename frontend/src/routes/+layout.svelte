@@ -7,6 +7,7 @@
     import "../app.css";
     import { Languages, LogOut } from "lucide-svelte";
 
+    let { children } = $props();
     let i18nLoaded = $state(false);
 
     onMount(async () => {
@@ -89,7 +90,7 @@
 </svelte:head>
 
 {#if i18nLoaded}
-    <slot />
+    {@render children()}
 
     <!-- Language Selector Floating Dial -->
     <div
@@ -107,7 +108,7 @@
             >
                 {#each availableLocales as loc}
                     <button
-                        on:click={() => changeLanguage(loc.code)}
+                        onclick={() => changeLanguage(loc.code)}
                         class="w-full text-left px-4 py-3 text-sm font-bold hover:bg-[#F8F9FA] transition-colors {loc.code ===
                         $locale
                             ? 'text-[#4285F4] bg-[#E8F0FE]'
@@ -122,7 +123,7 @@
         <!-- Logout button if in admin -->
         {#if page.url.pathname.startsWith("/admin")}
             <button
-                on:click={handleLogout}
+                onclick={handleLogout}
                 class="w-12 h-12 bg-white border border-[#E8EAED] rounded-full shadow-lg flex items-center justify-center text-[#5F6368] hover:text-red-500 hover:border-red-500 transition-all"
                 title={$t("common.logout")}
             >

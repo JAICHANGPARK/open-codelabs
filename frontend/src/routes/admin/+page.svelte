@@ -63,11 +63,19 @@
                 target.value = "";
             }
         }
+    }
+
     async function handleDelete(id: string) {
-        if (!confirm($t("dashboard.confirm_delete") || "Are you sure you want to delete this codelab?")) return;
+        if (
+            !confirm(
+                $t("dashboard.confirm_delete") ||
+                    "Are you sure you want to delete this codelab?",
+            )
+        )
+            return;
         try {
             await deleteCodelab(id);
-            codelabs = codelabs.filter(c => c.id !== id);
+            codelabs = codelabs.filter((c) => c.id !== id);
         } catch (e) {
             console.error(e);
             alert("Delete failed");
@@ -100,18 +108,18 @@
                     type="file"
                     accept=".zip"
                     bind:this={fileInput}
-                    on:change={handleImport}
+                    onchange={handleImport}
                     class="hidden"
                 />
                 <button
-                    on:click={() => fileInput.click()}
+                    onclick={() => fileInput.click()}
                     class="bg-white hover:bg-[#F8F9FA] text-[#5F6368] px-6 py-2.5 rounded-full flex items-center gap-2 transition-all border border-[#DADCE0] font-bold"
                 >
                     <FileUp size={20} />
                     {$t("common.import")}
                 </button>
                 <button
-                    on:click={() => (showCreateModal = true)}
+                    onclick={() => (showCreateModal = true)}
                     class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-6 py-2.5 rounded-full flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-bold"
                 >
                     <Plus size={20} />
@@ -143,7 +151,7 @@
                     {$t("dashboard.get_started")}
                 </p>
                 <button
-                    on:click={() => (showCreateModal = true)}
+                    onclick={() => (showCreateModal = true)}
                     class="mt-8 text-[#4285F4] font-bold hover:text-[#1A73E8] flex items-center gap-2 mx-auto px-6 py-2 rounded-full border border-[#DADCE0] hover:bg-[#E8F0FE] transition-all"
                 >
                     {$t("dashboard.create_first")}
@@ -169,8 +177,10 @@
                             </div>
 
                             <button
-                                on:click|preventDefault={() =>
-                                    handleDelete(codelab.id)}
+                                onclick={(e) => {
+                                    e.preventDefault();
+                                    handleDelete(codelab.id);
+                                }}
                                 class="absolute top-4 right-4 p-2 text-[#BDC1C6] hover:text-[#EA4335] hover:bg-[#FEECEB] rounded-full transition-all opacity-0 group-hover:opacity-100 z-10"
                                 title={$t("common.delete") || "Delete"}
                             >
@@ -279,13 +289,13 @@
 
             <div class="px-8 pb-8 flex justify-end gap-4">
                 <button
-                    on:click={() => (showCreateModal = false)}
+                    onclick={() => (showCreateModal = false)}
                     class="px-6 py-2.5 text-[#5F6368] font-bold hover:bg-[#F8F9FA] rounded-full transition-all"
                 >
                     {$t("common.cancel")}
                 </button>
                 <button
-                    on:click={handleCreate}
+                    onclick={handleCreate}
                     class="px-8 py-2.5 bg-[#4285F4] text-white rounded-full font-bold hover:bg-[#1A73E8] shadow-md transition-all active:scale-95"
                 >
                     {$t("common.create")}

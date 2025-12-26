@@ -89,7 +89,10 @@
                 </div>
 
                 <form
-                    on:submit|preventDefault={handleSubmit}
+                    onsubmit={(e) => {
+                        e.preventDefault();
+                        handleSubmit();
+                    }}
                     class="p-8 pt-4 space-y-6"
                 >
                     {#if error}

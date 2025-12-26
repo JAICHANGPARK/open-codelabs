@@ -52,13 +52,13 @@
     import { t } from "svelte-i18n";
 
     let id = page.params.id as string;
-    let codelab = $state<Codelab | null>(null);
-    let steps = $state<Step[]>([]);
-    let loading = $state(true);
     let activeStepIndex = $state(0);
     let mode = $state<"edit" | "preview" | "live">("edit");
     let isSaving = $state(false);
+    let codelab = $state<Codelab | null>(null);
+    let steps = $state<Step[]>([]);
     let saveSuccess = $state(false);
+    let loading = $state(true);
     let copySuccess = $state(false);
 
     let attendees = $state<Attendee[]>([]);
@@ -512,7 +512,7 @@
             </div>
             <div class="flex items-center gap-4">
                 <button
-                    on:click={handleExport}
+                    onclick={handleExport}
                     class="p-2.5 text-[#5F6368] hover:text-[#4285F4] hover:bg-[#E8F0FE] rounded-full transition-all"
                     title="Export Codelab"
                 >
@@ -522,7 +522,7 @@
                     class="flex bg-[#F1F3F4] p-1 rounded-full border border-[#E8EAED]"
                 >
                     <button
-                        on:click={() => (mode = "edit")}
+                        onclick={() => (mode = "edit")}
                         class="px-5 py-1.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all {mode ===
                         'edit'
                             ? 'bg-white shadow-sm text-[#4285F4]'
@@ -531,7 +531,7 @@
                         <Edit3 size={16} /> Edit
                     </button>
                     <button
-                        on:click={() => (mode = "preview")}
+                        onclick={() => (mode = "preview")}
                         class="px-5 py-1.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all {mode ===
                         'preview'
                             ? 'bg-white shadow-sm text-[#4285F4]'
@@ -540,7 +540,7 @@
                         <Eye size={16} /> Preview
                     </button>
                     <button
-                        on:click={() => (mode = "live")}
+                        onclick={() => (mode = "live")}
                         class="px-5 py-1.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all {mode ===
                         'live'
                             ? 'bg-white shadow-sm text-[#4285F4]'
@@ -554,7 +554,7 @@
                     </button>
                 </div>
                 <button
-                    on:click={handleSave}
+                    onclick={handleSave}
                     disabled={isSaving}
                     class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-6 py-2.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 {saveSuccess
                         ? 'bg-[#1E8E3E]'
@@ -600,7 +600,7 @@
                             >{$t("editor.step_navigation")}</span
                         >
                         <button
-                            on:click={addStep}
+                            onclick={addStep}
                             class="text-[#4285F4] hover:bg-[#E8F0FE] p-1.5 rounded-full transition-colors"
                             title={$t("editor.add_step")}
                         >
@@ -611,7 +611,7 @@
                         {#each steps as step, i}
                             <div class="group relative">
                                 <button
-                                    on:click={() => (activeStepIndex = i)}
+                                    onclick={() => (activeStepIndex = i)}
                                     class="w-full text-left px-5 py-4 hover:bg-[#F8F9FA] transition-all flex items-start gap-4 border-l-4 {activeStepIndex ===
                                     i
                                         ? 'border-[#4285F4] bg-[#E8F0FE]/30'
@@ -633,7 +633,7 @@
                                     >
                                 </button>
                                 <button
-                                    on:click={() => removeStep(i)}
+                                    onclick={() => removeStep(i)}
                                     class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#BDC1C6] hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
                                     title="Delete Step"
                                 >
@@ -667,7 +667,7 @@
                                 class="flex-1 text-[10px] text-[#5F6368] font-mono outline-none bg-transparent overflow-hidden text-ellipsis"
                             />
                             <button
-                                on:click={copyUrl}
+                                onclick={copyUrl}
                                 class="p-2 hover:bg-[#F1F3F4] rounded-lg transition-colors {copySuccess
                                     ? 'text-[#1E8E3E]'
                                     : 'text-[#4285F4]'}"
@@ -707,19 +707,18 @@
                                     class="flex items-center gap-2 mb-4 p-2 bg-[#F8F9FA] rounded-xl border border-[#E8EAED]"
                                 >
                                     <button
-                                        on:click={() => insertMarkdown("h1")}
+                                        onclick={() => insertMarkdown("h1")}
                                         class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
                                         title="Heading"
                                         ><Heading1 size={20} /></button
                                     >
                                     <button
-                                        on:click={() => insertMarkdown("bold")}
+                                        onclick={() => insertMarkdown("bold")}
                                         class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
                                         title="Bold"><Bold size={20} /></button
                                     >
                                     <button
-                                        on:click={() =>
-                                            insertMarkdown("italic")}
+                                        onclick={() => insertMarkdown("italic")}
                                         class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
                                         title="Italic"
                                         ><Italic size={20} /></button
@@ -728,18 +727,18 @@
                                         class="w-px h-6 bg-[#DADCE0] mx-1"
                                     ></div>
                                     <button
-                                        on:click={() => insertMarkdown("list")}
+                                        onclick={() => insertMarkdown("list")}
                                         class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
                                         title="List"><List size={20} /></button
                                     >
                                     <button
-                                        on:click={() => insertMarkdown("code")}
+                                        onclick={() => insertMarkdown("code")}
                                         class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
                                         title="Code Block"
                                         ><Code size={20} /></button
                                     >
                                     <button
-                                        on:click={() => insertMarkdown("image")}
+                                        onclick={() => insertMarkdown("image")}
                                         class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
                                         title="Image"
                                         ><ImageIcon size={20} /></button
@@ -749,7 +748,7 @@
                                     bind:value={
                                         steps[activeStepIndex].content_markdown
                                     }
-                                    on:paste={handlePaste}
+                                    onpaste={handlePaste}
                                     class="w-full flex-1 min-h-[50vh] outline-none text-[#3C4043] font-mono text-base leading-relaxed resize-none bg-transparent"
                                     placeholder="Write your markdown here..."
                                 ></textarea>
@@ -804,7 +803,7 @@
                                                             </p>
                                                         </div>
                                                         <button
-                                                            on:click={() =>
+                                                            onclick={() =>
                                                                 handleResolveHelp(
                                                                     hr.id,
                                                                 )}
@@ -869,7 +868,7 @@
                                                             </div>
                                                         </div>
                                                         <button
-                                                            on:click={() =>
+                                                            onclick={() =>
                                                                 (dmTarget =
                                                                     attendee)}
                                                             class="p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-lg opacity-0 group-hover:opacity-100 transition-all"
@@ -921,7 +920,10 @@
                                             class="p-4 border-t border-[#E8EAED]"
                                         >
                                             <form
-                                                on:submit|preventDefault={sendBroadcast}
+                                                onsubmit={(e) => {
+                                                    e.preventDefault();
+                                                    sendBroadcast();
+                                                }}
                                                 class="relative"
                                             >
                                                 <input
@@ -938,7 +940,7 @@
                                                     {#if dmTarget}
                                                         <button
                                                             type="button"
-                                                            on:click={sendDM}
+                                                            onclick={sendDM}
                                                             class="p-2 bg-[#4285F4] text-white rounded-lg hover:bg-[#1A73E8] transition-all"
                                                             title="Send DM"
                                                         >
@@ -946,7 +948,7 @@
                                                         </button>
                                                         <button
                                                             type="button"
-                                                            on:click={() =>
+                                                            onclick={() =>
                                                                 (dmTarget =
                                                                     null)}
                                                             class="p-2 text-[#5F6368] hover:bg-[#E8EAED] rounded-lg"
@@ -990,7 +992,7 @@
                             {$t("editor.empty_desc")}
                         </p>
                         <button
-                            on:click={addStep}
+                            onclick={addStep}
                             class="bg-[#4285F4] text-white px-10 py-3 rounded-full font-bold flex items-center gap-2 mx-auto shadow-md hover:shadow-lg transition-all active:scale-95"
                         >
                             <Plus size={20} />
