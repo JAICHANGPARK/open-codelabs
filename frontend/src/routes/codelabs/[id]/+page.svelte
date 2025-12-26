@@ -510,9 +510,9 @@
                                 </h3>
 
                                 <div class="mb-4">
-                                    <label
+                                    <span
                                         class="block text-sm font-bold text-[#5F6368] mb-2"
-                                        >Satisfaction</label
+                                        >Satisfaction</span
                                     >
                                     <div class="flex gap-2">
                                         {#each [1, 2, 3, 4, 5] as s}
@@ -539,10 +539,12 @@
 
                                 <div class="mb-4">
                                     <label
+                                        for="difficulty-slider"
                                         class="block text-sm font-bold text-[#5F6368] mb-2"
                                         >Difficulty</label
                                     >
                                     <input
+                                        id="difficulty-slider"
                                         type="range"
                                         min="1"
                                         max="5"
@@ -561,10 +563,12 @@
 
                                 <div class="mb-6">
                                     <label
+                                        for="feedback-comments"
                                         class="block text-sm font-bold text-[#5F6368] mb-2"
                                         >Comments (Optional)</label
                                     >
                                     <textarea
+                                        id="feedback-comments"
                                         bind:value={feedbackComment}
                                         class="w-full border border-[#DADCE0] rounded-lg p-3 text-sm focus:border-[#4285F4] outline-none transition-colors"
                                         rows="3"

@@ -1085,19 +1085,25 @@
                                                             To: {dmTarget.name}
                                                         </span>
                                                     {/if}
-                                                    <input
-                                                        type="text"
-                                                        bind:value={
-                                                            chatTab === "public"
-                                                                ? chatMessage
-                                                                : dmMessage
-                                                        }
-                                                        placeholder={chatTab ===
-                                                        "public"
-                                                            ? "Broadcast to all..."
-                                                            : "Type a message..."}
-                                                        class="flex-1 pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] text-sm"
-                                                    />
+                                                    {#if chatTab === "public"}
+                                                        <input
+                                                            type="text"
+                                                            bind:value={
+                                                                chatMessage
+                                                            }
+                                                            placeholder="Broadcast to all..."
+                                                            class="flex-1 pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] text-sm"
+                                                        />
+                                                    {:else}
+                                                        <input
+                                                            type="text"
+                                                            bind:value={
+                                                                dmMessage
+                                                            }
+                                                            placeholder="Type a message..."
+                                                            class="flex-1 pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] text-sm"
+                                                        />
+                                                    {/if}
                                                     <button
                                                         type="submit"
                                                         class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-lg transition-all"

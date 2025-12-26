@@ -14,7 +14,6 @@ pub async fn upload_image(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
     {
-        let file_name = field.file_name().unwrap_or("image.png").to_string();
         let data = field
             .bytes()
             .await
