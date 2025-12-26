@@ -1,2 +1,29 @@
+# OS
 .DS_Store
+Thumbs.db
+
+# Backend (Rust)
+backend/target/
 backend/.env
+backend/data/*.db
+backend/data/*.db-journal
+backend/data/*.db-shm
+backend/data/*.db-wal
+
+# Frontend (Node/Bun/SvelteKit)
+frontend/node_modules/
+frontend/.svelte-kit/
+frontend/build/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+frontend/bun.lockb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker
+.docker/
