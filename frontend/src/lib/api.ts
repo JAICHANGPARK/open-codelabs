@@ -189,17 +189,23 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
 export interface Feedback {
     id: string;
     codelab_id: string;
-    difficulty: number;
-    satisfaction: number;
-    comments?: string;
+    difficulty: string;
+    satisfaction: string;
+    comment?: string;
     created_at?: string;
 }
 
 export async function submitFeedback(codelabId: string, payload: { difficulty: number; satisfaction: number; comments: string }): Promise<void> {
+    const body = {
+        difficulty: payload.difficulty.toString(),
+        satisfaction: payload.satisfaction.toString(),
+        comment: payload.comments
+    };
+
     const res = await fetch(`${API_URL}/codelabs/${codelabId}/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(body),
     });
     if (!res.ok) throw new Error('Feedback submission failed');
 }
