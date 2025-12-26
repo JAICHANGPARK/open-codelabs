@@ -49,10 +49,19 @@
             text: string;
             time: string;
             self?: boolean;
+            type: "chat" | "dm";
         }[]
     >([]);
     let ws = $state<WebSocket | null>(null);
     let helpSent = $state(false);
+    let chatTab = $state<"public" | "direct">("public");
+    let hasNewDm = $state(false);
+
+    let filteredMessages = $derived(
+        chatTab === "public"
+            ? messages.filter((m) => m.type === "chat")
+            : messages.filter((m) => m.type === "dm"),
+    );
 
     onMount(async () => {
         // Check for registration
@@ -108,6 +117,7 @@
                             text: msg.message,
                             time: timeStr,
                             self: msg.sender_name === attendee?.name,
+                            type: "chat",
                         };
                     } else {
                         // DM for or from me
@@ -119,6 +129,7 @@
                             text: msg.message,
                             time: timeStr,
                             self: isSelf,
+                            type: "dm",
                         };
                     }
                 });
@@ -155,6 +166,7 @@
                             text: data.message,
                             time: data.timestamp,
                             self: data.sender === attendee?.name,
+                            type: "chat",
                         },
                     ];
                     // Scroll to bottom of chat
@@ -174,8 +186,12 @@
                             text: data.message,
                             time: data.timestamp,
                             self: false,
+                            type: "dm",
                         },
                     ];
+                    if (chatTab !== "direct") {
+                        hasNewDm = true;
+                    }
                     showChat = true; // Auto-open chat for DM
                 } else if (data.type === "help_resolved") {
                     helpSent = false;
@@ -491,47 +507,91 @@
                 transition:fly={{ x: 320, duration: 300 }}
                 class="fixed inset-y-0 right-0 z-40 w-80 bg-white border-l border-[#E8EAED] flex flex-col pt-16 lg:pt-0"
             >
-                <div
-                    class="p-4 border-b border-[#E8EAED] flex items-center justify-between bg-[#F8F9FA]"
-                >
-                    <h3
-                        class="font-bold text-[#3C4043] flex items-center gap-2"
-                    >
-                        <MessageSquare size={18} /> Live Chat
-                    </h3>
-                    <button
-                        onclick={() => (showChat = false)}
-                        class="p-1 hover:bg-[#E8EAED] rounded-full"
-                    >
-                        <X size={18} />
-                    </button>
+                <div class="border-b border-[#E8EAED] bg-[#F8F9FA]">
+                    <div class="p-4 flex items-center justify-between pb-2">
+                        <h3
+                            class="font-bold text-[#3C4043] flex items-center gap-2"
+                        >
+                            <MessageSquare size={18} />
+                            {chatTab === "public"
+                                ? $t("editor.public_chat")
+                                : $t("editor.direct_messages")}
+                        </h3>
+                        <button
+                            onclick={() => (showChat = false)}
+                            class="p-1 hover:bg-[#E8EAED] rounded-full"
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    <div class="flex px-4 pb-2 gap-4">
+                        <button
+                            onclick={() => (chatTab = "public")}
+                            class="pb-2 text-sm font-bold transition-all relative {chatTab ===
+                            'public'
+                                ? 'text-[#4285F4] border-b-2 border-[#4285F4]'
+                                : 'text-[#5F6368] hover:text-[#3C4043]'}"
+                        >
+                            {$t("editor.public_chat")}
+                        </button>
+                        <button
+                            onclick={() => {
+                                chatTab = "direct";
+                                hasNewDm = false;
+                            }}
+                            class="pb-2 text-sm font-bold transition-all relative {chatTab ===
+                            'direct'
+                                ? 'text-[#4285F4] border-b-2 border-[#4285F4]'
+                                : 'text-[#5F6368] hover:text-[#3C4043]'}"
+                        >
+                            {$t("editor.direct_messages")}
+                            {#if hasNewDm}
+                                <span
+                                    class="absolute -top-1 -right-2 w-2 h-2 bg-red-500 rounded-full border border-white"
+                                ></span>
+                            {/if}
+                        </button>
+                    </div>
                 </div>
 
                 <div
                     id="chat-messages"
                     class="flex-1 overflow-y-auto p-4 space-y-4"
                 >
-                    {#each messages as msg}
+                    {#each filteredMessages as msg}
                         <div
                             class="flex flex-col {msg.self
                                 ? 'items-end'
                                 : 'items-start'}"
                         >
-                            <span
-                                class="text-[10px] text-[#5F6368] font-bold mb-1 ml-1 mr-1 uppercase tracking-tight"
-                            >
-                                {msg.sender} &bull; {msg.time}
-                            </span>
+                            {#if chatTab === "public"}
+                                <span
+                                    class="text-[10px] text-[#5F6368] font-bold mb-1 ml-1 mr-1 uppercase tracking-tight"
+                                >
+                                    {msg.sender} &bull; {msg.time}
+                                </span>
+                            {:else}
+                                <span
+                                    class="text-[10px] text-[#5F6368] font-bold mb-1 ml-1 mr-1 uppercase tracking-tight {msg.self
+                                        ? ''
+                                        : 'text-[#D93025]'}"
+                                >
+                                    {msg.sender} &bull; {msg.time}
+                                </span>
+                            {/if}
                             <div
                                 class="max-w-[90%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm {msg.self
                                     ? 'bg-[#4285F4] text-white rounded-tr-none'
-                                    : 'bg-[#F1F3F4] text-[#3C4043] rounded-tl-none'}"
+                                    : msg.type === 'dm'
+                                      ? 'bg-[#FEEFC3] text-[#3C4043] rounded-tl-none border border-[#FAD2CF]'
+                                      : 'bg-[#F1F3F4] text-[#3C4043] rounded-tl-none'}"
                             >
                                 {msg.text}
                             </div>
                         </div>
                     {/each}
-                    {#if messages.length === 0}
+                    {#if filteredMessages.length === 0}
                         <div
                             class="flex flex-col items-center justify-center h-full text-center text-[#9AA0A6] px-6"
                         >
@@ -541,7 +601,9 @@
                                 <MessageSquare size={20} />
                             </div>
                             <p class="text-xs font-medium">
-                                No messages yet. Say hi to other participants!
+                                {chatTab === "public"
+                                    ? "No public messages yet. Say hi!"
+                                    : "No direct messages from the facilitator yet."}
                             </p>
                         </div>
                     {/if}
