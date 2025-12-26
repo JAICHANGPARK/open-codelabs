@@ -1142,7 +1142,9 @@
                                                           feedbacks.reduce(
                                                               (acc, f) =>
                                                                   acc +
-                                                                  f.satisfaction,
+                                                                  parseInt(
+                                                                      f.satisfaction,
+                                                                  ),
                                                               0,
                                                           ) / feedbacks.length
                                                       ).toFixed(1)
@@ -1168,7 +1170,9 @@
                                                           feedbacks.reduce(
                                                               (acc, f) =>
                                                                   acc +
-                                                                  f.difficulty,
+                                                                  parseInt(
+                                                                      f.difficulty,
+                                                                  ),
                                                               0,
                                                           ) / feedbacks.length
                                                       ).toFixed(1)
@@ -1226,11 +1230,11 @@
                                                             : ""}
                                                     </span>
                                                 </div>
-                                                {#if f.comments}
+                                                {#if f.comment}
                                                     <p
                                                         class="text-[#3C4043] text-sm leading-relaxed bg-[#F8F9FA] p-4 rounded-lg"
                                                     >
-                                                        "{f.comments}"
+                                                        "{f.comment}"
                                                     </p>
                                                 {:else}
                                                     <p
