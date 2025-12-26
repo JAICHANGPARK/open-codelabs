@@ -1,0 +1,5 @@
+   Compiling backend v0.1.0 (/Users/jaichang/Documents/GitHub/open-codelabs/backend)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.02s
+     Running `target/debug/backend`
+[2m2025-12-26T15:28:42.882719Z[0m [34mDEBUG[0m [2mbackend[0m[2m:[0m listening on 0.0.0.0:8080
+Error: Address already in use (os error 48)
