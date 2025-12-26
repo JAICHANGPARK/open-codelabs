@@ -6,8 +6,13 @@
         getCodelab,
         saveSteps,
         exportCodelab,
+        getAttendees,
+        getHelpRequests,
+        getWsUrl,
         type Codelab,
         type Step,
+        type Attendee,
+        type HelpRequest,
     } from "$lib/api";
     // @ts-ignore
     import QRCode from "svelte-qrcode";
@@ -29,6 +34,10 @@
         Italic,
         List,
         Heading1,
+        Users,
+        Bell,
+        MessageSquare,
+        Send,
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
 
@@ -37,21 +46,94 @@
     let steps: Step[] = [];
     let loading = true;
     let activeStepIndex = 0;
-    let mode: "edit" | "preview" = "edit";
+    let mode: "edit" | "preview" | "live" = "edit";
     let isSaving = false;
     let saveSuccess = false;
+
+    let attendees: Attendee[] = [];
+    let helpRequests: HelpRequest[] = [];
+    let ws: WebSocket | null = null;
+    let chatMessage = "";
+    let messages: {
+        sender: string;
+        text: string;
+        time: string;
+        self?: boolean;
+    }[] = [];
 
     onMount(async () => {
         try {
             const data = await getCodelab(id);
             codelab = data[0];
             steps = data[1];
+
+            // Initial fetch of live data
+            await refreshLiveData();
+            initWebSocket();
         } catch (e) {
             console.error(e);
         } finally {
             loading = false;
         }
     });
+
+    async function refreshLiveData() {
+        try {
+            const [att, help] = await Promise.all([
+                getAttendees(id),
+                getHelpRequests(id),
+            ]);
+            attendees = att;
+            helpRequests = help;
+        } catch (e) {
+            console.error("Failed to refresh live data:", e);
+        }
+    }
+
+    function initWebSocket() {
+        const wsUrl = getWsUrl(id);
+        ws = new WebSocket(wsUrl);
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === "chat") {
+                    messages = [
+                        ...messages,
+                        {
+                            sender: data.sender,
+                            text: data.message,
+                            time: data.timestamp,
+                            self: false, // In facilitator view, all are others or labeled differently
+                        },
+                    ];
+                } else if (data.type === "help_request") {
+                    refreshLiveData();
+                }
+            } catch (e) {
+                console.error("WS error:", e);
+            }
+        };
+
+        ws.onclose = () => {
+            setTimeout(initWebSocket, 3000);
+        };
+    }
+
+    function sendBroadcast() {
+        if (!chatMessage.trim() || !ws) return;
+        const msg = {
+            type: "chat",
+            sender: "Facilitator",
+            message: chatMessage.trim(),
+            timestamp: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+            }),
+        };
+        ws.send(JSON.stringify(msg));
+        chatMessage = "";
+    }
 
     function addStep() {
         const newStep: Step = {
@@ -235,6 +317,19 @@
                     >
                         <Eye size={16} /> Preview
                     </button>
+                    <button
+                        on:click={() => (mode = "live")}
+                        class="px-5 py-1.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all {mode ===
+                        'live'
+                            ? 'bg-white shadow-sm text-[#4285F4]'
+                            : 'text-[#5F6368] hover:text-[#202124]'}"
+                    >
+                        <Users size={16} /> Live Status
+                        {#if helpRequests.length > 0}
+                            <span class="w-2 h-2 bg-[#EA4335] rounded-full"
+                            ></span>
+                        {/if}
+                    </button>
                 </div>
                 <button
                     on:click={handleSave}
@@ -406,13 +501,165 @@
                                     class="w-full flex-1 min-h-[50vh] outline-none text-[#3C4043] font-mono text-base leading-relaxed resize-none bg-transparent"
                                     placeholder="Write your markdown here..."
                                 ></textarea>
-                            {:else}
+                            {:else if mode === "live"}
                                 <div
-                                    class="prose max-w-none text-[#3C4043]"
+                                    class="grid grid-cols-2 gap-8 h-full"
                                     in:fade
                                 >
-                                    <div class="markdown-body">
-                                        {@html renderedContent}
+                                    <!-- Left: Activity & Help -->
+                                    <div class="space-y-6 flex flex-col h-full">
+                                        <div
+                                            class="bg-white border border-[#E8EAED] rounded-2xl overflow-hidden shadow-sm flex flex-col"
+                                        >
+                                            <div
+                                                class="p-4 bg-red-50 border-b border-red-100 flex items-center gap-2"
+                                            >
+                                                <Bell
+                                                    size={18}
+                                                    class="text-[#EA4335]"
+                                                />
+                                                <h3
+                                                    class="font-bold text-[#EA4335]"
+                                                >
+                                                    Help Requests ({helpRequests.length})
+                                                </h3>
+                                            </div>
+                                            <div
+                                                class="p-4 space-y-3 max-h-60 overflow-y-auto"
+                                            >
+                                                {#each helpRequests as hr}
+                                                    <div
+                                                        class="p-3 bg-red-50/50 rounded-xl border border-red-100 flex justify-between items-center"
+                                                        in:slide
+                                                    >
+                                                        <div>
+                                                            <p
+                                                                class="font-bold text-[#202124] text-sm"
+                                                            >
+                                                                {hr.attendee_name}
+                                                            </p>
+                                                            <p
+                                                                class="text-xs text-[#EA4335]"
+                                                            >
+                                                                Stuck on Step {hr.step_number}
+                                                            </p>
+                                                        </div>
+                                                        <button
+                                                            class="text-xs font-bold text-white bg-[#EA4335] px-3 py-1.5 rounded-full"
+                                                            >Resolve</button
+                                                        >
+                                                    </div>
+                                                {:else}
+                                                    <p
+                                                        class="text-center py-6 text-[#9AA0A6] text-sm"
+                                                    >
+                                                        No pending help requests
+                                                    </p>
+                                                {/each}
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            class="flex-1 bg-white border border-[#E8EAED] rounded-2xl overflow-hidden shadow-sm flex flex-col"
+                                        >
+                                            <div
+                                                class="p-4 bg-[#F8F9FA] border-b border-[#E8EAED] flex items-center gap-2"
+                                            >
+                                                <Users
+                                                    size={18}
+                                                    class="text-[#4285F4]"
+                                                />
+                                                <h3
+                                                    class="font-bold text-[#3C4043]"
+                                                >
+                                                    Active Attendees ({attendees.length})
+                                                </h3>
+                                            </div>
+                                            <div
+                                                class="p-4 space-y-2 overflow-y-auto"
+                                            >
+                                                {#each attendees as attendee}
+                                                    <div
+                                                        class="flex items-center gap-3 p-2 hover:bg-[#F8F9FA] rounded-lg transition-colors"
+                                                    >
+                                                        <div
+                                                            class="w-8 h-8 rounded-full bg-[#E8EAED] flex items-center justify-center text-[#5F6368] text-xs font-bold uppercase"
+                                                        >
+                                                            {attendee.name.charAt(
+                                                                0,
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <p
+                                                                class="text-sm font-bold text-[#202124]"
+                                                            >
+                                                                {attendee.name}
+                                                            </p>
+                                                            <p
+                                                                class="text-[10px] text-[#9AA0A6]"
+                                                            >
+                                                                Code: {attendee.code}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                {/each}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Right: Live Chat -->
+                                    <div
+                                        class="bg-white border border-[#E8EAED] rounded-2xl overflow-hidden shadow-sm flex flex-col h-full"
+                                    >
+                                        <div
+                                            class="p-4 bg-[#4285F4] text-white flex items-center gap-2"
+                                        >
+                                            <MessageSquare size={18} />
+                                            <h3 class="font-bold">
+                                                Chat Broadcast
+                                            </h3>
+                                        </div>
+                                        <div
+                                            class="flex-1 p-4 space-y-4 overflow-y-auto bg-[#F8F9FA]"
+                                        >
+                                            {#each messages as msg}
+                                                <div class="flex flex-col">
+                                                    <span
+                                                        class="text-[10px] text-[#5F6368] font-bold mb-1 ml-1 uppercase"
+                                                        >{msg.sender} &bull; {msg.time}</span
+                                                    >
+                                                    <div
+                                                        class="px-4 py-2 rounded-2xl text-sm {msg.sender ===
+                                                        'Facilitator'
+                                                            ? 'bg-[#4285F4] text-white'
+                                                            : 'bg-white border border-[#E8EAED] text-[#3C4043] shadow-sm'}"
+                                                    >
+                                                        {msg.text}
+                                                    </div>
+                                                </div>
+                                            {/each}
+                                        </div>
+                                        <div
+                                            class="p-4 border-t border-[#E8EAED]"
+                                        >
+                                            <form
+                                                on:submit|preventDefault={sendBroadcast}
+                                                class="relative"
+                                            >
+                                                <input
+                                                    type="text"
+                                                    bind:value={chatMessage}
+                                                    placeholder="Broadcast to all attendees..."
+                                                    class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] text-sm"
+                                                />
+                                                <button
+                                                    type="submit"
+                                                    class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#4285F4] hover:text-white rounded-lg transition-all"
+                                                >
+                                                    <Send size={18} />
+                                                </button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
                             {/if}

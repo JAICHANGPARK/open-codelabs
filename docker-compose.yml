@@ -5,6 +5,8 @@ services:
       - "8080:8080"
     environment:
       - DATABASE_URL=sqlite:/app/data/sqlite.db?mode=rwc
+      - ADMIN_ID=admin
+      - ADMIN_PW=admin123
     volumes:
       - ./backend/data:/app/data
 

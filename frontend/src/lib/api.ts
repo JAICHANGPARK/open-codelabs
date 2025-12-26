@@ -90,3 +90,58 @@ export async function importCodelab(file: File): Promise<Codelab> {
     if (!res.ok) throw new Error('Import failed');
     return res.json();
 }
+
+export interface Attendee {
+    id: string;
+    codelab_id: string;
+    name: string;
+    code: string;
+}
+
+export interface HelpRequest {
+    id: string;
+    codelab_id: string;
+    attendee_id: string;
+    attendee_name: string;
+    step_number: number;
+    status: string;
+}
+
+export async function registerAttendee(codelabId: string, name: string, code: string): Promise<Attendee> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, code }),
+    });
+    if (!res.ok) throw new Error('Registration failed');
+    return res.json();
+}
+
+export async function requestHelp(codelabId: string, attendeeId: string, stepNumber: number): Promise<void> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/help`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Attendee-ID': attendeeId
+        },
+        body: JSON.stringify({ step_number: stepNumber }),
+    });
+    if (!res.ok) throw new Error('Help request failed');
+}
+
+export async function getHelpRequests(codelabId: string): Promise<HelpRequest[]> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/help`);
+    if (!res.ok) throw new Error('Failed to fetch help requests');
+    return res.json();
+}
+
+export async function getAttendees(codelabId: string): Promise<Attendee[]> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/attendees`);
+    if (!res.ok) throw new Error('Failed to fetch attendees');
+    return res.json();
+}
+
+export function getWsUrl(codelabId: string): string {
+    const url = new URL(API_URL.replace('http', 'ws'));
+    return `${url.protocol}//${url.host}/api/ws/${codelabId}`;
+}

@@ -1,8 +1,16 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, onDestroy } from "svelte";
     import { fade, slide, fly } from "svelte/transition";
     import { page } from "$app/state";
-    import { getCodelab, type Codelab, type Step } from "$lib/api";
+    import { goto } from "$app/navigation";
+    import {
+        getCodelab,
+        requestHelp,
+        getWsUrl,
+        type Codelab,
+        type Step,
+        type Attendee,
+    } from "$lib/api";
     import { loadProgress, saveProgress } from "$lib/Progress";
     import { marked } from "marked";
     import DOMPurify from "dompurify";
@@ -15,7 +23,12 @@
         User,
         CheckCircle2,
         Home,
+        MessageSquare,
+        Send,
+        HelpCircle,
+        AlertCircle,
     } from "lucide-svelte";
+    import { t } from "svelte-i18n";
 
     let id = page.params.id as string;
     let codelab: Codelab | null = null;
@@ -23,21 +36,114 @@
     let loading = true;
     let currentStepIndex = 0;
     let showSidebar = true;
+    let showChat = false;
     let isFinished = false;
 
+    let attendee: Attendee | null = null;
+    let chatMessage = "";
+    let messages: {
+        sender: string;
+        text: string;
+        time: string;
+        self?: boolean;
+    }[] = [];
+    let ws: WebSocket | null = null;
+    let helpSent = false;
+
     onMount(async () => {
+        // Check for registration
+        const savedAttendee = localStorage.getItem(`attendee_${id}`);
+        if (!savedAttendee) {
+            goto(`/codelabs/${id}/entry`);
+            return;
+        }
+        attendee = JSON.parse(savedAttendee);
+
         try {
             const data = await getCodelab(id);
             codelab = data[0];
             steps = data[1];
             currentStepIndex = loadProgress(id);
             if (currentStepIndex >= steps.length) currentStepIndex = 0;
+
+            initWebSocket();
         } catch (e) {
             console.error(e);
         } finally {
             loading = false;
         }
     });
+
+    onDestroy(() => {
+        if (ws) ws.close();
+    });
+
+    function initWebSocket() {
+        const wsUrl = getWsUrl(id);
+        ws = new WebSocket(wsUrl);
+
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === "chat") {
+                    messages = [
+                        ...messages,
+                        {
+                            sender: data.sender,
+                            text: data.message,
+                            time: data.timestamp,
+                            self: data.sender === attendee?.name,
+                        },
+                    ];
+                    // Scroll to bottom of chat
+                    setTimeout(() => {
+                        const chatContainer =
+                            document.getElementById("chat-messages");
+                        if (chatContainer)
+                            chatContainer.scrollTop =
+                                chatContainer.scrollHeight;
+                    }, 50);
+                }
+            } catch (e) {
+                console.error("WS Message error:", e);
+            }
+        };
+
+        ws.onclose = () => {
+            console.log("WS closed, retrying...");
+            setTimeout(initWebSocket, 3000);
+        };
+    }
+
+    function sendChat() {
+        if (!chatMessage.trim() || !ws || !attendee) return;
+
+        const msg = {
+            type: "chat",
+            sender: attendee.name,
+            message: chatMessage.trim(),
+            timestamp: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+            }),
+        };
+
+        ws.send(JSON.stringify(msg));
+        chatMessage = "";
+    }
+
+    async function handleRequestHelp() {
+        if (!attendee || helpSent) return;
+
+        try {
+            await requestHelp(id, attendee.id, currentStepIndex + 1);
+            helpSent = true;
+            setTimeout(() => (helpSent = false), 30000); // Prevent spamming
+            alert("Help request sent to facilitator!");
+        } catch (e) {
+            alert("Failed to send help request.");
+        }
+    }
 
     function nextStep() {
         if (currentStepIndex < steps.length - 1) {
@@ -111,15 +217,33 @@
             </h2>
         </div>
 
-        <div class="flex items-center gap-6">
+        <div class="flex items-center gap-4">
             <div
                 class="hidden sm:flex items-center gap-2 text-[#5F6368] text-[11px] font-bold uppercase tracking-wider"
             >
                 <Clock size={14} />
                 <span>{steps.length * 5} mins remaining</span>
             </div>
+
+            <button
+                on:click={() => (showChat = !showChat)}
+                class="p-2 hover:bg-[#F1F3F4] rounded-full relative transition-colors"
+                title="Open Chat"
+            >
+                <MessageSquare
+                    size={20}
+                    class={showChat ? "text-[#4285F4]" : "text-[#5F6368]"}
+                />
+                {#if !showChat && messages.length > 0}
+                    <span
+                        class="absolute top-1 right-1 w-2 h-2 bg-[#EA4335] rounded-full border-2 border-white"
+                    ></span>
+                {/if}
+            </button>
+
             <div
-                class="w-8 h-8 rounded-full bg-[#E8EAED] flex items-center justify-center text-[#5F6368]"
+                class="w-8 h-8 rounded-full bg-[#E8EAED] flex items-center justify-center text-[#5F6368] border-2 border-white shadow-sm"
+                title={attendee?.name}
             >
                 <User size={18} />
             </div>
@@ -246,7 +370,110 @@
                     </div>
                 {/if}
             </div>
+
+            <!-- Floating Help Button -->
+            {#if !isFinished && !loading}
+                <button
+                    on:click={handleRequestHelp}
+                    disabled={helpSent}
+                    class="fixed bottom-24 right-8 p-4 bg-white border border-[#E8EAED] text-[#EA4335] rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 group z-20 flex items-center gap-2"
+                >
+                    <div
+                        class="bg-[#EA4335]/10 p-2 rounded-full group-hover:bg-[#EA4335] group-hover:text-white transition-colors"
+                    >
+                        <HelpCircle size={24} />
+                    </div>
+                    {#if helpSent}
+                        <span class="pr-2 text-sm font-bold"
+                            >Help Requested</span
+                        >
+                    {:else}
+                        <span class="pr-2 text-sm font-bold">Request Help</span>
+                    {/if}
+                </button>
+            {/if}
         </main>
+
+        <!-- Chat Sidebar -->
+        {#if showChat}
+            <aside
+                transition:fly={{ x: 320, duration: 300 }}
+                class="fixed inset-y-0 right-0 z-40 w-80 bg-white border-l border-[#E8EAED] flex flex-col pt-16 lg:pt-0"
+            >
+                <div
+                    class="p-4 border-b border-[#E8EAED] flex items-center justify-between bg-[#F8F9FA]"
+                >
+                    <h3
+                        class="font-bold text-[#3C4043] flex items-center gap-2"
+                    >
+                        <MessageSquare size={18} /> Live Chat
+                    </h3>
+                    <button
+                        on:click={() => (showChat = false)}
+                        class="p-1 hover:bg-[#E8EAED] rounded-full"
+                    >
+                        <X size={18} />
+                    </button>
+                </div>
+
+                <div
+                    id="chat-messages"
+                    class="flex-1 overflow-y-auto p-4 space-y-4"
+                >
+                    {#each messages as msg}
+                        <div
+                            class="flex flex-col {msg.self
+                                ? 'items-end'
+                                : 'items-start'}"
+                        >
+                            <span
+                                class="text-[10px] text-[#5F6368] font-bold mb-1 ml-1 mr-1 uppercase tracking-tight"
+                            >
+                                {msg.sender} &bull; {msg.time}
+                            </span>
+                            <div
+                                class="max-w-[90%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm {msg.self
+                                    ? 'bg-[#4285F4] text-white rounded-tr-none'
+                                    : 'bg-[#F1F3F4] text-[#3C4043] rounded-tl-none'}"
+                            >
+                                {msg.text}
+                            </div>
+                        </div>
+                    {/each}
+                    {#if messages.length === 0}
+                        <div
+                            class="flex flex-col items-center justify-center h-full text-center text-[#9AA0A6] px-6"
+                        >
+                            <div
+                                class="w-12 h-12 bg-[#F1F3F4] rounded-full flex items-center justify-center mb-4"
+                            >
+                                <MessageSquare size={20} />
+                            </div>
+                            <p class="text-xs font-medium">
+                                No messages yet. Say hi to other participants!
+                            </p>
+                        </div>
+                    {/if}
+                </div>
+
+                <div class="p-4 border-t border-[#E8EAED] bg-white">
+                    <form on:submit|preventDefault={sendChat} class="relative">
+                        <input
+                            type="text"
+                            bind:value={chatMessage}
+                            placeholder="Type a message..."
+                            class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm"
+                        />
+                        <button
+                            type="submit"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#4285F4] hover:text-white rounded-lg transition-all"
+                        >
+                            <Send size={18} />
+                        </button>
+                    </form>
+                </div>
+            </aside>
+        {/if}
     </div>
 
     <!-- Footer Navigation -->

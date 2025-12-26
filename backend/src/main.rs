@@ -1,15 +1,22 @@
 use axum::{
-    extract::{Path, State},
+    extract::{
+        ws::{Message, WebSocket, WebSocketUpgrade},
+        Path, State,
+    },
     http::{header, HeaderMap, StatusCode},
     response::IntoResponse,
     routing::{get, post, put},
     Json, Router,
 };
 use axum_extra::extract::Multipart;
+use dashmap::DashMap;
+use futures_util::{sink::SinkExt, stream::StreamExt};
 use serde::{Deserialize, Serialize};
 use sqlx::sqlite::SqlitePool;
 use std::io::{Cursor, Read, Write};
 use std::net::SocketAddr;
+use std::sync::Arc;
+use tokio::sync::broadcast;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -54,10 +61,50 @@ struct CreateStep {
     content_markdown: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct RegistrationPayload {
+    name: String,
+    code: String,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+struct Attendee {
+    id: String,
+    codelab_id: String,
+    name: String,
+    code: String,
+    created_at: Option<chrono::NaiveDateTime>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct HelpRequestPayload {
+    step_number: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+struct HelpRequest {
+    id: String,
+    codelab_id: String,
+    attendee_id: String,
+    attendee_name: String,
+    step_number: i32,
+    status: String,
+    created_at: Option<chrono::NaiveDateTime>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct ChatMessage {
+    sender: String,
+    message: String,
+    timestamp: String,
+}
+
 struct AppState {
     pool: SqlitePool,
     admin_id: String,
     admin_pw: String,
+    // Map of codelab_id -> broadcast sender
+    channels: Arc<DashMap<String, broadcast::Sender<String>>>,
 }
 
 use tower_http::services::ServeDir;
@@ -84,10 +131,11 @@ async fn main() -> anyhow::Result<()> {
     let admin_id = std::env::var("ADMIN_ID").expect("ADMIN_ID must be set");
     let admin_pw = std::env::var("ADMIN_PW").expect("ADMIN_PW must be set");
 
-    let state = std::sync::Arc::new(AppState {
+    let state = Arc::new(AppState {
         pool,
         admin_id,
         admin_pw,
+        channels: Arc::new(DashMap::new()),
     });
 
     // Build our application with routes
@@ -101,6 +149,13 @@ async fn main() -> anyhow::Result<()> {
         .route("/api/codelabs/:id/steps", put(update_codelab_steps))
         .route("/api/codelabs/:id/export", get(export_codelab))
         .route("/api/codelabs/import", post(import_codelab))
+        .route("/api/codelabs/:id/register", post(register_attendee))
+        .route("/api/codelabs/:id/attendees", get(get_attendees))
+        .route(
+            "/api/codelabs/:id/help",
+            post(request_help).get(get_help_requests),
+        )
+        .route("/api/ws/:id", get(ws_handler))
         .nest_service("/assets", ServeDir::new("static/assets"))
         .fallback_service(ServeDir::new("static"))
         .layer(tower_http::cors::CorsLayer::permissive())
@@ -409,4 +464,147 @@ async fn import_codelab(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     Ok(Json(codelab))
+}
+
+async fn register_attendee(
+    Path(id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<RegistrationPayload>,
+) -> Result<Json<Attendee>, (StatusCode, String)> {
+    let attendee_id = uuid::Uuid::new_v4().to_string();
+
+    sqlx::query("INSERT INTO attendees (id, codelab_id, name, code) VALUES (?, ?, ?, ?)")
+        .bind(&attendee_id)
+        .bind(&id)
+        .bind(&payload.name)
+        .bind(&payload.code)
+        .execute(&state.pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let attendee = sqlx::query_as::<_, Attendee>("SELECT * FROM attendees WHERE id = ?")
+        .bind(&attendee_id)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    Ok(Json(attendee))
+}
+
+async fn get_attendees(
+    Path(id): Path<String>,
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<Vec<Attendee>>, (StatusCode, String)> {
+    let attendees = sqlx::query_as::<_, Attendee>(
+        "SELECT * FROM attendees WHERE codelab_id = ? ORDER BY created_at DESC",
+    )
+    .bind(&id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    Ok(Json(attendees))
+}
+
+async fn request_help(
+    Path(id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+    Json(payload): Json<HelpRequestPayload>,
+) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+    let attendee_id = headers
+        .get("X-Attendee-ID")
+        .and_then(|h| h.to_str().ok())
+        .ok_or((StatusCode::UNAUTHORIZED, "Missing Attendee ID".to_string()))?;
+
+    let help_id = uuid::Uuid::new_v4().to_string();
+
+    sqlx::query(
+        "INSERT INTO help_requests (id, codelab_id, attendee_id, step_number) VALUES (?, ?, ?, ?)",
+    )
+    .bind(&help_id)
+    .bind(&id)
+    .bind(attendee_id)
+    .bind(payload.step_number)
+    .execute(&state.pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    // Notify via WebSocket if possible
+    if let Some(res) = state.channels.get(&id) {
+        let msg = serde_json::json!({
+            "type": "help_request",
+            "attendee_id": attendee_id,
+            "step_number": payload.step_number
+        })
+        .to_string();
+        let _ = res.send(msg);
+    }
+
+    Ok(Json(serde_json::json!({ "status": "ok" })))
+}
+
+async fn get_help_requests(
+    Path(id): Path<String>,
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<Vec<HelpRequest>>, (StatusCode, String)> {
+    let requests = sqlx::query_as::<_, HelpRequest>(
+        "SELECT hr.*, a.name as attendee_name FROM help_requests hr 
+         JOIN attendees a ON hr.attendee_id = a.id 
+         WHERE hr.codelab_id = ? AND hr.status = 'pending' 
+         ORDER BY hr.created_at DESC",
+    )
+    .bind(&id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    Ok(Json(requests))
+}
+
+async fn ws_handler(
+    Path(id): Path<String>,
+    ws: WebSocketUpgrade,
+    State(state): State<Arc<AppState>>,
+) -> impl IntoResponse {
+    ws.on_upgrade(move |socket| handle_socket(socket, id, state))
+}
+
+async fn handle_socket(socket: WebSocket, codelab_id: String, state: Arc<AppState>) {
+    let tx = state
+        .channels
+        .entry(codelab_id.clone())
+        .or_insert_with(|| {
+            let (tx, _) = broadcast::channel(100);
+            tx
+        })
+        .clone();
+
+    let mut rx = tx.subscribe();
+    let (mut sender, mut receiver) = socket.split();
+
+    let mut send_task = tokio::spawn(async move {
+        while let Ok(msg) = rx.recv().await {
+            if sender.send(Message::Text(msg.into())).await.is_err() {
+                break;
+            }
+        }
+    });
+
+    let tx_clone = tx.clone();
+    let mut recv_task = tokio::spawn(async move {
+        while let Some(Ok(Message::Text(text))) = receiver.next().await {
+            // Echo or broadcast chat messages
+            if let Ok(val) = serde_json::from_str::<serde_json::Value>(&text) {
+                if val.get("type").and_then(|t| t.as_str()) == Some("chat") {
+                    let _ = tx_clone.send(text.to_string());
+                }
+            }
+        }
+    });
+
+    tokio::select! {
+        _ = (&mut send_task) => recv_task.abort(),
+        _ = (&mut recv_task) => send_task.abort(),
+    };
 }
