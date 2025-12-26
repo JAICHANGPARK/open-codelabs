@@ -21,3 +21,4 @@ tempfile = "3.10"
 axum-extra = { version = "0.9", features = ["multipart"] }
 dashmap = "6.0"
 futures-util = "0.3"
+image = "0.25.9"
