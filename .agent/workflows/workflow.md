@@ -1,8 +1,8 @@
 ---
-description: Building AntiGravity Hands-on System
+description: Building Open-Codelabs: Hands-on System
 ---
 
-# Workflow: Building AntiGravity Hands-on System
+# Workflow: Building Open-Codelabs: Hands-on System
 
 ## Phase 1: Project Scaffolding
 1. **Backend Initialization**:

@@ -26,7 +26,7 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
-echo "🚀 Starting AntiGravity Hands-on System using $CONTAINER_ENGINE..."
+echo "🚀 Starting Open Codelabs Hands-on System using $CONTAINER_ENGINE..."
 
 # Start containers in background
 if [ "$CONTAINER_ENGINE" == "podman" ]; then

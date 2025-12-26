@@ -51,7 +51,7 @@ chmod +x run-public.sh
 출력 예시:
 
 ```
-🚀 Starting AntiGravity Hands-on System using docker...
+🚀 Starting Open-Codelabs: Hands-on System using docker...
 ✅ Containers are up!
 🌐 Starting ngrok tunnel on port 5173...
 ------------------------------------------------
@@ -141,7 +141,7 @@ while [[ "$#" -gt 0 ]]; do
     esac
 done
 
-echo "🚀 Starting AntiGravity Hands-on System using $CONTAINER_ENGINE..."
+echo "🚀 Starting Open-Codelabs Hands-on System using $CONTAINER_ENGINE..."
 
 # Start containers in background
 if [ "$CONTAINER_ENGINE" == "podman" ]; then

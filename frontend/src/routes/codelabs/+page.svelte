@@ -51,7 +51,9 @@
                     </div>
                     <div>
                         <h1 class="text-2xl font-bold text-[#202124]">
-                            AntiGravity <span class="text-[#34A853]">Dojo</span>
+                            Open-Codelabs <span class="text-[#34A853]"
+                                >Dojo</span
+                            >
                         </h1>
                         <p
                             class="text-xs text-[#5F6368] font-bold uppercase tracking-widest"
@@ -155,6 +157,6 @@
     </main>
 
     <footer class="py-12 text-center text-[#9AA0A6] text-sm font-medium">
-        <p>&copy; 2025 AntiGravity Dojo &bull; Built for Learning</p>
+        <p>&copy; 2025 JAICHANGPARK &bull; Built for Learning</p>
     </footer>
 </div>

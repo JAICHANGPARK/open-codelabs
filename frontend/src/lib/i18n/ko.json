@@ -1,6 +1,6 @@
 {
     "common": {
-        "title": "AntiGravity 코드랩",
+        "title": "Open-Codelabs 코드랩",
         "description": "대화형 학습 경험",
         "facilitator": "퍼실리테이터",
         "attendee": "참가자",
@@ -57,7 +57,7 @@
     },
     "login": {
         "title": "퍼실리테이터 로그인",
-        "subtitle": "AntiGravity 대시보드에 접속하세요",
+        "subtitle": "대시보드에 접속하세요",
         "admin_id": "관리자 ID",
         "password": "비밀번호",
         "sign_in": "로그인",

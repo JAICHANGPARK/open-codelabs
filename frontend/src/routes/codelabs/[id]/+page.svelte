@@ -418,7 +418,7 @@
                     A
                 </div>
                 <h1 class="font-bold text-lg hidden sm:block text-[#5F6368]">
-                    AntiGravity
+                    Open-Codelabs
                 </h1>
             </div>
         </div>

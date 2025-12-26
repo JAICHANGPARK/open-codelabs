@@ -171,7 +171,7 @@
             </div>
 
             <p class="mt-8 text-center text-xs text-[#9AA0A6] font-medium">
-                Powered by AntiGravity Dojo
+                Powered by Open Codelabs
             </p>
         </div>
     {:else}

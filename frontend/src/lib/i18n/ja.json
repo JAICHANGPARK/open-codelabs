@@ -1,6 +1,6 @@
 {
     "common": {
-        "title": "AntiGravity コードラボ",
+        "title": "Open-Codelabs コードラボ",
         "description": "インタラクティブな学習体験",
         "facilitator": "ファシリテーター",
         "attendee": "参加者",
@@ -57,7 +57,7 @@
     },
     "login": {
         "title": "ファシリテーターログイン",
-        "subtitle": "AntiGravityダッシュボードにアクセス",
+        "subtitle": "ダッシュボードにアクセス",
         "admin_id": "管理者ID",
         "password": "パスワード",
         "sign_in": "サインイン",

@@ -2,7 +2,7 @@
 trigger: always_on
 ---
 
-# Project Rules: AntiGravity Hands-on System
+# Project Rules: Open-Codelabs: Hands-on System
 
 ## Technology Stack
 - **Frontend**: SvelteKit (using Bun as runtime/package manager)

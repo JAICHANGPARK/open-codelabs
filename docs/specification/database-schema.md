@@ -82,7 +82,7 @@ VALUES (
     'codelab_01234567-89ab-cdef-0123-456789abcdef',
     'Rust로 REST API 만들기',
     'Axum 프레임워크로 RESTful API 서버 구축',
-    'AntiGravity Team'
+    '홍길동'
 );
 ```
 

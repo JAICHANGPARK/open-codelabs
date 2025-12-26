@@ -1,6 +1,6 @@
 {
     "common": {
-        "title": "AntiGravity Codelabs",
+        "title": "Open-Codelabs",
         "description": "Interactive learning experience",
         "facilitator": "Facilitator",
         "attendee": "Attendee",
@@ -57,7 +57,7 @@
     },
     "login": {
         "title": "Facilitator Login",
-        "subtitle": "Access your AntiGravity Dashboard",
+        "subtitle": "Access your Dashboard",
         "admin_id": "Admin ID",
         "password": "Password",
         "sign_in": "Sign In",

@@ -53,7 +53,7 @@ https://your-domain.com/api
     "id": "codelab_01234567-89ab-cdef-0123-456789abcdef",
     "title": "Rust로 REST API 만들기",
     "description": "Axum 프레임워크로 RESTful API 서버 구축",
-    "author": "AntiGravity Team",
+    "author": "홍길동",
     "created_at": "2024-12-27T10:00:00"
   }
 ]
@@ -73,7 +73,7 @@ https://your-domain.com/api
     "id": "codelab_xxx",
     "title": "Rust로 REST API 만들기",
     "description": "Axum 프레임워크로 RESTful API 서버 구축",
-    "author": "AntiGravity Team",
+    "author": "홍길동",
     "created_at": "2024-12-27T10:00:00"
   },
   [

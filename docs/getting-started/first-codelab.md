@@ -25,7 +25,7 @@ Codelab은 단계별 학습 가이드입니다. 각 Codelab은:
 ```
 제목: Rust로 REST API 만들기
 설명: Axum 프레임워크를 사용하여 RESTful API 서버를 만들어봅시다
-작성자: AntiGravity Team
+작성자: 홍길동
 ```
 
 !!! tip "좋은 제목 작성하기"
