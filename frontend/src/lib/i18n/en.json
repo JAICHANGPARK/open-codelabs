@@ -61,5 +61,10 @@
         "connecting": "Connecting...",
         "error_fields": "Please fill in all fields",
         "error_credentials": "Invalid ID or Password"
+    },
+    "home": {
+        "subtitle": "Interactive hands-on learning platform for developers",
+        "facilitator_desc": "Create and manage your own codelabs, track attendee progress, and provide real-time help.",
+        "attendee_desc": "Join available sessions, follow step-by-step instructions, and learn new technologies."
     }
 }
