@@ -84,3 +84,20 @@ pub struct ChatMessageRow {
     pub target_id: Option<String>,
     pub created_at: Option<chrono::NaiveDateTime>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateFeedback {
+    pub difficulty: String,
+    pub satisfaction: String,
+    pub comment: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct Feedback {
+    pub id: String,
+    pub codelab_id: String,
+    pub difficulty: String,
+    pub satisfaction: String,
+    pub comment: Option<String>,
+    pub created_at: Option<chrono::NaiveDateTime>,
+}
