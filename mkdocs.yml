@@ -104,6 +104,6 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/jaichang/open-codelabs
+      link: https://github.com/JAICHANGPARK/open-codelabs
   version:
     provider: mike
