@@ -1,0 +1,109 @@
+site_name: AntiGravity Hands-on System (Open Codelabs)
+site_description: Google Codelab 스타일의 핸즈온 세션 플랫폼
+site_author: AntiGravity Team
+site_url: https://github.com/yourusername/open-codelabs
+
+repo_name: open-codelabs
+repo_url: https://github.com/yourusername/open-codelabs
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: ko
+  palette:
+    # Light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: 다크 모드로 전환
+    # Dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: 라이트 모드로 전환
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+
+plugins:
+  - search:
+      lang: ko
+  - git-revision-date-localized:
+      enable_creation_date: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - 홈: index.md
+  - 시작하기:
+      - 빠른 시작: getting-started/quickstart.md
+      - 설치 가이드: getting-started/installation.md
+      - 첫 번째 Codelab 만들기: getting-started/first-codelab.md
+  - Self-Hosting:
+      - Docker로 배포하기: self-hosting/docker.md
+      - 로컬 개발 환경: self-hosting/local-development.md
+      - 공개 배포 (ngrok/bore): self-hosting/public-deployment.md
+      - 환경 변수 설정: self-hosting/environment.md
+  - 프로젝트 명세:
+      - 개요: specification/overview.md
+      - 기능 명세: specification/features.md
+      - 데이터베이스 스키마: specification/database-schema.md
+      - API 레퍼런스: specification/api-reference.md
+  - 아키텍처:
+      - 시스템 아키텍처: architecture/system-architecture.md
+      - 백엔드 구조: architecture/backend.md
+      - 프론트엔드 구조: architecture/frontend.md
+      - 실시간 통신 (WebSocket): architecture/websocket.md
+  - 코드 가이드:
+      - 백엔드 코드 예제: code-guide/backend-examples.md
+      - 프론트엔드 코드 예제: code-guide/frontend-examples.md
+      - 데이터 모델: code-guide/data-models.md
+      - API 사용 예제: code-guide/api-usage.md
+  - 기여하기:
+      - 기여 가이드: contributing/guide.md
+      - 개발 워크플로우: contributing/workflow.md
+      - 코드 스타일: contributing/code-style.md
+  - FAQ: faq.md
+  - 라이선스: license.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/yourusername/open-codelabs
+  version:
+    provider: mike
