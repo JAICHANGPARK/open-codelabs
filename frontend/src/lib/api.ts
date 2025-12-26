@@ -189,13 +189,13 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
 export interface Feedback {
     id: string;
     codelab_id: string;
-    difficulty: string;
-    satisfaction: string;
-    comment: string;
+    difficulty: number;
+    satisfaction: number;
+    comments?: string;
     created_at?: string;
 }
 
-export async function submitFeedback(codelabId: string, payload: { difficulty: string; satisfaction: string; comment: string }): Promise<void> {
+export async function submitFeedback(codelabId: string, payload: { difficulty: number; satisfaction: number; comments: string }): Promise<void> {
     const res = await fetch(`${API_URL}/codelabs/${codelabId}/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
