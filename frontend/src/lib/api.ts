@@ -186,6 +186,30 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
     return res.json();
 }
 
+export interface Feedback {
+    id: string;
+    codelab_id: string;
+    difficulty: string;
+    satisfaction: string;
+    comment: string;
+    created_at?: string;
+}
+
+export async function submitFeedback(codelabId: string, payload: { difficulty: string; satisfaction: string; comment: string }): Promise<void> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Feedback submission failed');
+}
+
+export async function getFeedback(codelabId: string): Promise<Feedback[]> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/feedback`);
+    if (!res.ok) throw new Error('Failed to fetch feedback');
+    return res.json();
+}
+
 export function getWsUrl(codelabId: string): string {
     const url = new URL(API_URL.replace('http', 'ws'));
     return `${url.protocol}//${url.host}/api/ws/${codelabId}`;

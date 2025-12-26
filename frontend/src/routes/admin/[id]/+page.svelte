@@ -13,11 +13,13 @@
         getChatHistory,
         ASSET_URL,
         uploadImage,
+        getFeedback,
         type Codelab,
         type Step,
         type Attendee,
         type HelpRequest,
         type ChatMessage,
+        type Feedback,
     } from "$lib/api";
     // @ts-ignore
     import QRCode from "svelte-qrcode";
@@ -49,12 +51,13 @@
         Copy,
         Check,
         X,
+        FileText,
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
 
     let id = page.params.id as string;
     let activeStepIndex = $state(0);
-    let mode = $state<"edit" | "preview" | "live">("edit");
+    let mode = $state<"edit" | "preview" | "live" | "feedback">("edit");
     let isSaving = $state(false);
     let codelab = $state<Codelab | null>(null);
     let steps = $state<Step[]>([]);
@@ -64,6 +67,7 @@
 
     let attendees = $state<Attendee[]>([]);
     let helpRequests = $state<HelpRequest[]>([]);
+    let feedbacks = $state<Feedback[]>([]); // Feedback
     let ws = $state<WebSocket | null>(null);
     let chatMessage = $state("");
     let messages = $state<
@@ -72,10 +76,19 @@
             text: string;
             time: string;
             self?: boolean;
+            type: "chat" | "dm";
         }[]
     >([]);
+    let chatTab = $state<"public" | "direct">("public");
     let dmTarget = $state<Attendee | null>(null);
     let dmMessage = $state("");
+    let fileInput: HTMLInputElement; // File input ref
+
+    let filteredMessages = $derived(
+        chatTab === "public"
+            ? messages.filter((m) => m.type === "chat")
+            : messages.filter((m) => m.type === "dm"),
+    );
 
     onMount(async () => {
         // Configure marked with highlight.js
@@ -108,6 +121,14 @@
         }
     });
 
+    async function loadFeedback() {
+        try {
+            feedbacks = await getFeedback(id);
+        } catch (e) {
+            console.error("Failed to load feedback", e);
+        }
+    }
+
     async function loadChatHistory() {
         try {
             const history = await getChatHistory(id);
@@ -125,6 +146,7 @@
                         text: msg.message,
                         time: timeStr,
                         self: msg.sender_name === "Facilitator",
+                        type: "chat",
                     };
                 } else {
                     // DM
@@ -137,6 +159,7 @@
                             text: msg.message,
                             time: timeStr,
                             self: true,
+                            type: "dm",
                         };
                     } else {
                         return {
@@ -144,6 +167,7 @@
                             text: msg.message,
                             time: timeStr,
                             self: false,
+                            type: "dm",
                         };
                     }
                 }
@@ -173,6 +197,14 @@
         }
     }
 
+    function scrollToBottom() {
+        setTimeout(() => {
+            const chatContainer = document.getElementById("chat-messages");
+            if (chatContainer)
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+        }, 100);
+    }
+
     function initWebSocket() {
         const wsUrl = getWsUrl(id);
         const newWs = new WebSocket(wsUrl);
@@ -193,8 +225,10 @@
                             text: data.message,
                             time: data.timestamp,
                             self: data.sender === "Facilitator",
+                            type: "chat",
                         },
                     ];
+                    if (chatTab === "public") scrollToBottom();
                 } else if (data.type === "dm") {
                     messages = [
                         ...messages,
@@ -203,8 +237,10 @@
                             text: data.message,
                             time: data.timestamp,
                             self: false,
+                            type: "dm",
                         },
                     ];
+                    if (chatTab === "direct") scrollToBottom();
                 } else if (
                     data.type === "help_request" ||
                     data.type === "help_resolved"
@@ -265,11 +301,13 @@
                 text: dmMessage.trim(),
                 time: msg.timestamp,
                 self: true,
+                type: "dm",
             },
         ];
 
         dmMessage = "";
         dmTarget = null;
+        scrollToBottom();
     }
 
     async function handleResolveHelp(helpId: string) {
@@ -333,6 +371,12 @@
     function insertMarkdown(type: string) {
         if (mode !== "edit" || !steps[activeStepIndex]) return;
 
+        // Handle image special case
+        if (type === "image") {
+            fileInput?.click();
+            return;
+        }
+
         const textarea = document.querySelector("textarea");
         if (!textarea) return;
 
@@ -357,10 +401,6 @@
                 replacement = `\n\`\`\`javascript\n${selected || "// code here"}\n\`\`\`\n`;
                 cursorOffset = selected ? 0 : 15;
                 break;
-            case "image":
-                replacement = `![description](https://via.placeholder.com/600x400)`;
-                cursorOffset = 2;
-                break;
             case "h1":
                 replacement = `# ${selected || "Heading"}`;
                 cursorOffset = 0;
@@ -382,6 +422,40 @@
         }, 0);
     }
 
+    async function handleFileSelect(e: Event) {
+        const input = e.target as HTMLInputElement;
+        if (input.files && input.files[0]) {
+            await uploadAndInsertImage(input.files[0]);
+        }
+        input.value = ""; // reset
+    }
+
+    async function uploadAndInsertImage(file: File) {
+        try {
+            const { url } = await uploadImage(file);
+            const textarea = document.querySelector("textarea");
+            if (!textarea) return;
+
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const text = steps[activeStepIndex].content_markdown;
+            const fullUrl = url.startsWith("http") ? url : `${ASSET_URL}${url}`;
+            const replacement = `![image](${fullUrl})`;
+
+            steps[activeStepIndex].content_markdown =
+                text.substring(0, start) + replacement + text.substring(end);
+
+            setTimeout(() => {
+                textarea.focus();
+                const newCursorPos = start + replacement.length;
+                textarea.setSelectionRange(newCursorPos, newCursorPos);
+            }, 0);
+        } catch (e) {
+            console.error(e);
+            alert("Image upload failed");
+        }
+    }
+
     async function handlePaste(event: ClipboardEvent) {
         const items = event.clipboardData?.items;
         if (!items) return;
@@ -391,38 +465,25 @@
                 const file = item.getAsFile();
                 if (file) {
                     event.preventDefault();
-                    try {
-                        const { url } = await uploadImage(file);
-
-                        const textarea = document.querySelector("textarea");
-                        if (!textarea) return;
-
-                        const start = textarea.selectionStart;
-                        const end = textarea.selectionEnd;
-                        const text = steps[activeStepIndex].content_markdown;
-                        const fullUrl = url.startsWith("http")
-                            ? url
-                            : `${ASSET_URL}${url}`;
-                        const replacement = `![image](${fullUrl})`;
-
-                        steps[activeStepIndex].content_markdown =
-                            text.substring(0, start) +
-                            replacement +
-                            text.substring(end);
-
-                        setTimeout(() => {
-                            textarea.focus();
-                            const newCursorPos = start + replacement.length;
-                            textarea.setSelectionRange(
-                                newCursorPos,
-                                newCursorPos,
-                            );
-                        }, 0);
-                    } catch (e) {
-                        console.error("Upload failed", e);
-                        alert("Image upload failed");
-                    }
+                    await uploadAndInsertImage(file);
                 }
+            }
+        }
+    }
+
+    function handleKeydown(e: KeyboardEvent) {
+        if (mode !== "edit") return;
+
+        if (e.metaKey || e.ctrlKey) {
+            switch (e.key.toLowerCase()) {
+                case "b":
+                    e.preventDefault();
+                    insertMarkdown("bold");
+                    break;
+                case "i":
+                    e.preventDefault();
+                    insertMarkdown("italic");
+                    break;
             }
         }
     }
@@ -570,6 +631,15 @@
                             <span class="w-2 h-2 bg-[#EA4335] rounded-full"
                             ></span>
                         {/if}
+                    </button>
+                    <button
+                        onclick={() => (mode = "feedback")}
+                        class="px-5 py-1.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all {mode ===
+                        'feedback'
+                            ? 'bg-white shadow-sm text-[#4285F4]'
+                            : 'text-[#5F6368] hover:text-[#202124]'}"
+                    >
+                        <MessageSquare size={16} /> Feedback
                     </button>
                 </div>
                 <button
@@ -763,10 +833,18 @@
                                         ><ImageIcon size={20} /></button
                                     >
                                 </div>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    class="hidden"
+                                    bind:this={fileInput}
+                                    onchange={handleFileSelect}
+                                />
                                 <textarea
                                     bind:value={
                                         steps[activeStepIndex].content_markdown
                                     }
+                                    onkeydown={handleKeydown}
                                     onpaste={handlePaste}
                                     class="w-full flex-1 min-h-[50vh] outline-none text-[#3C4043] font-mono text-base leading-relaxed resize-none bg-transparent"
                                     placeholder="Write your markdown here..."
@@ -912,82 +990,123 @@
                                         class="bg-white border border-[#E8EAED] rounded-2xl overflow-hidden shadow-sm flex flex-col h-full min-h-[600px]"
                                     >
                                         <div
-                                            class="p-4 bg-[#4285F4] text-white flex items-center gap-2"
+                                            class="flex border-b border-[#E8EAED]"
                                         >
-                                            <MessageSquare size={18} />
-                                            <h3 class="font-bold">
-                                                Chat Broadcast
-                                            </h3>
+                                            <button
+                                                onclick={() =>
+                                                    (chatTab = "public")}
+                                                class="flex-1 py-3 text-sm font-bold transition-all flex justify-center items-center gap-2 {chatTab ===
+                                                'public'
+                                                    ? 'text-[#4285F4] border-b-2 border-[#4285F4] bg-[#F8F9FA]'
+                                                    : 'text-[#5F6368] hover:bg-[#F1F3F4]'}"
+                                            >
+                                                <Users size={16} /> Public Chat
+                                            </button>
+                                            <button
+                                                onclick={() =>
+                                                    (chatTab = "direct")}
+                                                class="flex-1 py-3 text-sm font-bold transition-all flex justify-center items-center gap-2 {chatTab ===
+                                                'direct'
+                                                    ? 'text-[#4285F4] border-b-2 border-[#4285F4] bg-[#F8F9FA]'
+                                                    : 'text-[#5F6368] hover:bg-[#F1F3F4]'}"
+                                            >
+                                                <MessageSquare size={16} /> Direct
+                                                Messages
+                                            </button>
                                         </div>
+
                                         <div
                                             class="flex-1 p-4 space-y-4 overflow-y-auto bg-[#F8F9FA]"
+                                            id="chat-messages"
                                         >
-                                            {#each messages as msg}
-                                                <div class="flex flex-col">
+                                            {#each filteredMessages as msg}
+                                                <div
+                                                    class="flex flex-col {msg.self
+                                                        ? 'items-end'
+                                                        : 'items-start'}"
+                                                >
                                                     <span
-                                                        class="text-[10px] text-[#5F6368] font-bold mb-1 ml-1 uppercase"
+                                                        class="text-[10px] text-[#5F6368] font-bold mb-1 mx-1 uppercase"
                                                         >{msg.sender} &bull; {msg.time}</span
                                                     >
                                                     <div
-                                                        class="px-4 py-2 rounded-2xl text-sm {msg.sender ===
-                                                        'Facilitator'
-                                                            ? 'bg-[#4285F4] text-white'
-                                                            : 'bg-white border border-[#E8EAED] text-[#3C4043] shadow-sm'}"
+                                                        class="px-4 py-2 rounded-2xl text-sm max-w-[85%] whitespace-pre-wrap break-words {msg.self
+                                                            ? 'bg-[#4285F4] text-white rounded-tr-none'
+                                                            : 'bg-white border border-[#E8EAED] text-[#3C4043] shadow-sm rounded-tl-none'}"
                                                     >
                                                         {msg.text}
                                                     </div>
                                                 </div>
                                             {/each}
+                                            {#if filteredMessages.length === 0}
+                                                <div
+                                                    class="h-full flex flex-col items-center justify-center text-[#9AA0A6]"
+                                                >
+                                                    <MessageSquare
+                                                        size={32}
+                                                        class="mb-2 opacity-50"
+                                                    />
+                                                    <p class="text-sm">
+                                                        No messages yet
+                                                    </p>
+                                                </div>
+                                            {/if}
                                         </div>
+
                                         <div
-                                            class="p-4 border-t border-[#E8EAED]"
+                                            class="p-4 border-t border-[#E8EAED] bg-white"
                                         >
                                             <form
                                                 onsubmit={(e) => {
                                                     e.preventDefault();
-                                                    sendBroadcast();
+                                                    if (chatTab === "public") {
+                                                        sendBroadcast();
+                                                    } else {
+                                                        sendDM();
+                                                    }
                                                 }}
                                                 class="relative"
                                             >
-                                                <input
-                                                    type="text"
-                                                    bind:value={chatMessage}
-                                                    placeholder={dmTarget
-                                                        ? `Message to ${dmTarget.name}...`
-                                                        : "Broadcast to all attendees..."}
-                                                    class="w-full pl-4 pr-24 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] text-sm"
-                                                />
+                                                {#if chatTab === "direct" && !dmTarget}
+                                                    <div
+                                                        class="absolute inset-0 bg-white/80 z-10 flex items-center justify-center text-sm text-[#5F6368] font-bold"
+                                                    >
+                                                        Select an attendee to
+                                                        message
+                                                    </div>
+                                                {/if}
                                                 <div
-                                                    class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1"
+                                                    class="flex items-center gap-2"
                                                 >
-                                                    {#if dmTarget}
-                                                        <button
-                                                            type="button"
-                                                            onclick={sendDM}
-                                                            class="p-2 bg-[#4285F4] text-white rounded-lg hover:bg-[#1A73E8] transition-all"
-                                                            title="Send DM"
+                                                    {#if chatTab === "direct" && dmTarget}
+                                                        <span
+                                                            class="bg-[#E8F0FE] text-[#1967D2] px-2 py-1 rounded text-xs font-bold whitespace-nowrap"
                                                         >
-                                                            <Send size={18} />
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onclick={() =>
-                                                                (dmTarget =
-                                                                    null)}
-                                                            class="p-2 text-[#5F6368] hover:bg-[#E8EAED] rounded-lg"
-                                                            title="Cancel DM"
-                                                        >
-                                                            <X size={18} />
-                                                        </button>
-                                                    {:else}
-                                                        <button
-                                                            type="submit"
-                                                            class="p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-lg transition-all"
-                                                            title="Broadcast"
-                                                        >
-                                                            <Send size={18} />
-                                                        </button>
+                                                            To: {dmTarget.name}
+                                                        </span>
                                                     {/if}
+                                                    <input
+                                                        type="text"
+                                                        bind:value={
+                                                            chatTab === "public"
+                                                                ? chatMessage
+                                                                : dmMessage
+                                                        }
+                                                        placeholder={chatTab ===
+                                                        "public"
+                                                            ? "Broadcast to all..."
+                                                            : "Type a message..."}
+                                                        class="flex-1 pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] text-sm"
+                                                    />
+                                                    <button
+                                                        type="submit"
+                                                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-lg transition-all"
+                                                        disabled={chatTab ===
+                                                            "direct" &&
+                                                            !dmTarget}
+                                                    >
+                                                        <Send size={18} />
+                                                    </button>
                                                 </div>
                                             </form>
                                         </div>

@@ -21,6 +21,7 @@ use crate::handlers::{
         create_codelab, delete_codelab, export_codelab, get_chat_history, get_codelab,
         import_codelab, list_codelabs, update_codelab_info, update_codelab_steps,
     },
+    feedback::{get_feedback, submit_feedback},
     upload::upload_image,
     websocket::ws_handler,
 };
@@ -78,6 +79,10 @@ async fn main() -> anyhow::Result<()> {
         .route(
             "/api/codelabs/:id/help/:help_id/resolve",
             post(resolve_help_request),
+        )
+        .route(
+            "/api/codelabs/:id/feedback",
+            post(submit_feedback).get(get_feedback),
         )
         .route("/api/codelabs/:id/chat", get(get_chat_history))
         .route("/api/upload/image", post(upload_image))
