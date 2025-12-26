@@ -1,10 +1,10 @@
-site_name: AntiGravity Hands-on System (Open Codelabs)
+site_name: Hands-on System (Open Codelabs)
 site_description: Google Codelab 스타일의 핸즈온 세션 플랫폼
-site_author: AntiGravity Team
-site_url: https://github.com/yourusername/open-codelabs
+site_author: JAICHANGPARK, 박제창
+site_url: https://JAICHANGPARK.github.io/open-codelabs/
 
-repo_name: open-codelabs
-repo_url: https://github.com/yourusername/open-codelabs
+repo_name: JAICHANGPARK/open-codelabs
+repo_url: https://github.com/JAICHANGPARK/open-codelabs
 edit_uri: edit/main/docs/
 
 theme:
@@ -104,6 +104,6 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/yourusername/open-codelabs
+      link: https://github.com/jaichang/open-codelabs
   version:
     provider: mike
