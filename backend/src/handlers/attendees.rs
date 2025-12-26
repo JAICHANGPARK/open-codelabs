@@ -29,14 +29,16 @@ pub async fn register_attendee(
 
     let attendee_id = uuid::Uuid::new_v4().to_string();
 
-    sqlx::query("INSERT INTO attendees (id, codelab_id, name, code) VALUES (?, ?, ?, ?)")
-        .bind(&attendee_id)
-        .bind(&id)
-        .bind(&payload.name)
-        .bind(&payload.code)
-        .execute(&state.pool)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    sqlx::query(
+        "INSERT INTO attendees (id, codelab_id, name, code, current_step) VALUES (?, ?, ?, ?, 1)",
+    )
+    .bind(&attendee_id)
+    .bind(&id)
+    .bind(&payload.name)
+    .bind(&payload.code)
+    .execute(&state.pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     let attendee = sqlx::query_as::<_, Attendee>("SELECT * FROM attendees WHERE id = ?")
         .bind(&attendee_id)
