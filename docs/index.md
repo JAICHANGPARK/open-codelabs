@@ -1,11 +1,11 @@
-# AntiGravity Hands-on System (Open Codelabs)
+# Open Codelabs (Hands-on System)
 
 [![Rust](https://img.shields.io/badge/rust-v1.75+-orange.svg)](https://www.rust-lang.org/)
 [![Svelte](https://img.shields.io/badge/svelte-v5-ff3e00.svg)](https://svelte.dev/)
 [![Bun](https://img.shields.io/badge/bun-v1.0+-black.svg)](https://bun.sh/)
 [![Docker](https://img.shields.io/badge/docker-blue.svg)](https://www.docker.com/)
 
-**AntiGravity Hands-on System**은 Google Codelab 스타일의 핸즈온 세션을 손쉽게 운영할 수 있도록 설계된 오픈 소스 Codelab 플랫폼입니다.
+**Open-Codelabs: Hands-on System**은 Codelab 스타일의 핸즈온 세션을 손쉽게 운영할 수 있도록 설계된 오픈 소스 Codelab 플랫폼입니다.
 
 ## 🎯 프로젝트 개요
 
