@@ -1,14 +1,22 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { fade, slide, fly } from "svelte/transition";
-    import { listCodelabs, createCodelab, type Codelab } from "$lib/api";
+    import {
+        listCodelabs,
+        createCodelab,
+        importCodelab,
+        type Codelab,
+    } from "$lib/api";
     import {
         Plus,
         BookOpen,
         User,
         Clock,
         LayoutDashboard,
+        Download,
+        FileUp,
     } from "lucide-svelte";
+    import { t, locale } from "svelte-i18n";
 
     let codelabs: Codelab[] = [];
     let loading = true;
@@ -36,6 +44,24 @@
             console.error(e);
         }
     }
+
+    let fileInput: HTMLInputElement;
+
+    async function handleImport(event: Event) {
+        const target = event.target as HTMLInputElement;
+        if (target.files && target.files.length > 0) {
+            loading = true;
+            try {
+                const imported = await importCodelab(target.files[0]);
+                codelabs = [imported, ...codelabs];
+            } catch (e) {
+                alert("Import failed: " + e);
+            } finally {
+                loading = false;
+                target.value = "";
+            }
+        }
+    }
 </script>
 
 <div class="min-h-screen bg-[#F8F9FA]">
@@ -51,20 +77,36 @@
                         <LayoutDashboard size={24} />
                     </div>
                     <h1 class="text-3xl font-bold text-[#202124]">
-                        Facilitator Dashboard
+                        {$t("dashboard.title")}
                     </h1>
                 </div>
                 <p class="text-[#5F6368] text-lg">
-                    Manage your codelabs and track participant progress
+                    {$t("dashboard.subtitle")}
                 </p>
             </div>
-            <button
-                on:click={() => (showCreateModal = true)}
-                class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-6 py-2.5 rounded-full flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-bold"
-            >
-                <Plus size={20} />
-                New Codelab
-            </button>
+            <div class="flex items-center gap-4">
+                <input
+                    type="file"
+                    accept=".zip"
+                    bind:this={fileInput}
+                    on:change={handleImport}
+                    class="hidden"
+                />
+                <button
+                    on:click={() => fileInput.click()}
+                    class="bg-white hover:bg-[#F8F9FA] text-[#5F6368] px-6 py-2.5 rounded-full flex items-center gap-2 transition-all border border-[#DADCE0] font-bold"
+                >
+                    <FileUp size={20} />
+                    {$t("common.import")}
+                </button>
+                <button
+                    on:click={() => (showCreateModal = true)}
+                    class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-6 py-2.5 rounded-full flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-bold"
+                >
+                    <Plus size={20} />
+                    {$t("dashboard.new_codelab")}
+                </button>
+            </div>
         </header>
 
         {#if loading}
@@ -84,16 +126,17 @@
                     <BookOpen size={40} class="text-[#BDC1C6]" />
                 </div>
                 <h3 class="text-xl font-bold text-[#202124]">
-                    No codelabs yet
+                    {$t("dashboard.no_codelabs")}
                 </h3>
                 <p class="text-[#5F6368] mt-2 text-lg">
-                    Get started by creating your first hands-on material.
+                    {$t("dashboard.get_started")}
                 </p>
                 <button
                     on:click={() => (showCreateModal = true)}
                     class="mt-8 text-[#4285F4] font-bold hover:text-[#1A73E8] flex items-center gap-2 mx-auto px-6 py-2 rounded-full border border-[#DADCE0] hover:bg-[#E8F0FE] transition-all"
                 >
-                    Create your first codelab <Plus size={18} />
+                    {$t("dashboard.create_first")}
+                    <Plus size={18} />
                 </button>
             </div>
         {:else}
@@ -143,7 +186,7 @@
                                     <Clock size={14} />
                                     {new Date(
                                         codelab.created_at || "",
-                                    ).toLocaleDateString()}
+                                    ).toLocaleDateString($locale || "en")}
                                 </div>
                             </div>
                         </a>
@@ -164,8 +207,10 @@
             in:fly={{ y: 40, duration: 400 }}
         >
             <div class="bg-[#4285F4] p-8 text-white">
-                <h2 class="text-2xl font-bold mb-2">Create New Codelab</h2>
-                <p class="opacity-80">Design your next learning experience</p>
+                <h2 class="text-2xl font-bold mb-2">
+                    {$t("dashboard.create_new_title")}
+                </h2>
+                <p class="opacity-80">{$t("dashboard.design_experience")}</p>
             </div>
 
             <div class="p-8 space-y-6">
@@ -173,13 +218,13 @@
                     <label
                         for="new-title"
                         class="block text-sm font-bold text-[#5F6368] mb-2 uppercase tracking-wide"
-                        >Title</label
+                        >{$t("dashboard.codelab_title")}</label
                     >
                     <input
                         id="new-title"
                         type="text"
                         bind:value={newCodelab.title}
-                        placeholder="e.g., Intro to SvelteKit"
+                        placeholder={$t("dashboard.placeholder_title")}
                         class="w-full border-2 border-[#F1F3F4] rounded-xl px-4 py-3 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6]"
                     />
                 </div>
@@ -187,12 +232,12 @@
                     <label
                         for="new-desc"
                         class="block text-sm font-bold text-[#5F6368] mb-2 uppercase tracking-wide"
-                        >Description</label
+                        >{$t("dashboard.codelab_desc")}</label
                     >
                     <textarea
                         id="new-desc"
                         bind:value={newCodelab.description}
-                        placeholder="What will they learn?"
+                        placeholder={$t("dashboard.placeholder_desc")}
                         class="w-full border-2 border-[#F1F3F4] rounded-xl px-4 py-3 focus:border-[#4285F4] outline-none h-32 resize-none transition-all placeholder-[#BDC1C6]"
                     ></textarea>
                 </div>
@@ -200,13 +245,13 @@
                     <label
                         for="new-author"
                         class="block text-sm font-bold text-[#5F6368] mb-2 uppercase tracking-wide"
-                        >Author</label
+                        >{$t("dashboard.codelab_author")}</label
                     >
                     <input
                         id="new-author"
                         type="text"
                         bind:value={newCodelab.author}
-                        placeholder="Your Name"
+                        placeholder={$t("dashboard.placeholder_author")}
                         class="w-full border-2 border-[#F1F3F4] rounded-xl px-4 py-3 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6]"
                     />
                 </div>
@@ -217,13 +262,13 @@
                     on:click={() => (showCreateModal = false)}
                     class="px-6 py-2.5 text-[#5F6368] font-bold hover:bg-[#F8F9FA] rounded-full transition-all"
                 >
-                    Cancel
+                    {$t("common.cancel")}
                 </button>
                 <button
                     on:click={handleCreate}
                     class="px-8 py-2.5 bg-[#4285F4] text-white rounded-full font-bold hover:bg-[#1A73E8] shadow-md transition-all active:scale-95"
                 >
-                    Create Codelab
+                    {$t("common.create")}
                 </button>
             </div>
         </div>

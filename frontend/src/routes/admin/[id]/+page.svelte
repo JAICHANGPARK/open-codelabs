@@ -2,7 +2,13 @@
     import { onMount } from "svelte";
     import { fade, slide, fly } from "svelte/transition";
     import { page } from "$app/state";
-    import { getCodelab, type Codelab, type Step } from "$lib/api";
+    import {
+        getCodelab,
+        saveSteps,
+        exportCodelab,
+        type Codelab,
+        type Step,
+    } from "$lib/api";
     // @ts-ignore
     import QRCode from "svelte-qrcode";
     import { marked } from "marked";
@@ -16,7 +22,15 @@
         Edit3,
         ExternalLink,
         CheckCircle2,
+        Download,
+        Code,
+        Image as ImageIcon,
+        Bold,
+        Italic,
+        List,
+        Heading1,
     } from "lucide-svelte";
+    import { t } from "svelte-i18n";
 
     let id = page.params.id as string;
     let codelab: Codelab | null = null;
@@ -44,21 +58,105 @@
             id: "",
             codelab_id: id,
             step_number: steps.length + 1,
-            title: "New Step",
-            content_markdown: "# New Step Content\n\nStart writing here...",
+            title: $t("editor.untitled_step"),
+            content_markdown: `# ${$t("editor.untitled_step")}\n\nStart writing here...`,
         };
         steps = [...steps, newStep];
         activeStepIndex = steps.length - 1;
     }
 
     async function handleSave() {
+        if (isSaving) return;
         isSaving = true;
-        // Mocking save for now
-        setTimeout(() => {
-            isSaving = false;
+        try {
+            await saveSteps(
+                id,
+                steps.map((s) => ({
+                    title: s.title,
+                    content_markdown: s.content_markdown,
+                })),
+            );
             saveSuccess = true;
             setTimeout(() => (saveSuccess = false), 3000);
-        }, 1000);
+        } catch (e) {
+            alert("Save failed: " + e);
+        } finally {
+            isSaving = false;
+        }
+    }
+
+    async function handleExport() {
+        try {
+            await exportCodelab(id);
+        } catch (e) {
+            alert("Export failed: " + e);
+        }
+    }
+
+    function insertMarkdown(type: string) {
+        if (mode !== "edit" || !steps[activeStepIndex]) return;
+
+        const textarea = document.querySelector("textarea");
+        if (!textarea) return;
+
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = steps[activeStepIndex].content_markdown;
+        const selected = text.substring(start, end);
+
+        let replacement = "";
+        let cursorOffset = 0;
+
+        switch (type) {
+            case "bold":
+                replacement = `**${selected || "bold text"}**`;
+                cursorOffset = selected ? 0 : 2;
+                break;
+            case "italic":
+                replacement = `*${selected || "italic text"}*`;
+                cursorOffset = selected ? 0 : 1;
+                break;
+            case "code":
+                replacement = `\n\`\`\`javascript\n${selected || "// code here"}\n\`\`\`\n`;
+                cursorOffset = selected ? 0 : 15;
+                break;
+            case "image":
+                replacement = `![description](https://via.placeholder.com/600x400)`;
+                cursorOffset = 2;
+                break;
+            case "h1":
+                replacement = `# ${selected || "Heading"}`;
+                cursorOffset = 0;
+                break;
+            case "list":
+                replacement = `\n- ${selected || "list item"}`;
+                cursorOffset = 0;
+                break;
+        }
+
+        steps[activeStepIndex].content_markdown =
+            text.substring(0, start) + replacement + text.substring(end);
+
+        // Refocus and set cursor
+        setTimeout(() => {
+            textarea.focus();
+            const newCursorPos = start + replacement.length - cursorOffset;
+            textarea.setSelectionRange(newCursorPos, newCursorPos);
+        }, 0);
+    }
+
+    function handlePaste(event: ClipboardEvent) {
+        const items = event.clipboardData?.items;
+        if (!items) return;
+
+        for (const item of items) {
+            if (item.type.indexOf("image") !== -1) {
+                // For now, we just insert a placeholder or hint that image upload will be here
+                // A full implementation would upload to a server and get a URL
+                insertMarkdown("image");
+                event.preventDefault();
+            }
+        }
     }
 
     $: currentStep = steps[activeStepIndex];
@@ -97,18 +195,25 @@
                                 href="/codelabs/{id}"
                                 target="_blank"
                                 class="text-[#4285F4] hover:text-[#1A73E8]"
-                                title="View live"
+                                title={$t("editor.view_live")}
                             >
                                 <ExternalLink size={16} />
                             </a>
                         </h1>
                         <p class="text-xs text-[#5F6368] font-medium mt-0.5">
-                            ID: {id} &bull; Facilitator Mode
+                            ID: {id} &bull; {$t("common.facilitator")} Mode
                         </p>
                     {/if}
                 </div>
             </div>
             <div class="flex items-center gap-4">
+                <button
+                    on:click={handleExport}
+                    class="p-2.5 text-[#5F6368] hover:text-[#4285F4] hover:bg-[#E8F0FE] rounded-full transition-all"
+                    title="Export Codelab"
+                >
+                    <Download size={24} />
+                </button>
                 <div
                     class="flex bg-[#F1F3F4] p-1 rounded-full border border-[#E8EAED]"
                 >
@@ -147,7 +252,9 @@
                     {:else}
                         <Save size={18} />
                     {/if}
-                    {saveSuccess ? "Saved" : "Save Content"}
+                    {saveSuccess
+                        ? $t("editor.saved")
+                        : $t("editor.save_content")}
                 </button>
             </div>
         </div>
@@ -173,12 +280,12 @@
                     >
                         <span
                             class="text-xs font-bold text-[#5F6368] uppercase tracking-widest"
-                            >Codelab Steps</span
+                            >{$t("editor.step_navigation")}</span
                         >
                         <button
                             on:click={addStep}
                             class="text-[#4285F4] hover:bg-[#E8F0FE] p-1.5 rounded-full transition-colors"
-                            title="Add new step"
+                            title={$t("editor.add_step")}
                         >
                             <Plus size={18} />
                         </button>
@@ -224,7 +331,7 @@
                         <p
                             class="text-[11px] text-[#5F6368] text-center uppercase tracking-widest font-bold"
                         >
-                            Attendee Access
+                            {$t("editor.attendee_access")}
                         </p>
                     </div>
                 </div>
@@ -247,13 +354,56 @@
                             />
                         </div>
 
-                        <div class="flex-1 p-8">
+                        <div class="flex-1 p-8 flex flex-col">
                             {#if mode === "edit"}
+                                <div
+                                    class="flex items-center gap-2 mb-4 p-2 bg-[#F8F9FA] rounded-xl border border-[#E8EAED]"
+                                >
+                                    <button
+                                        on:click={() => insertMarkdown("h1")}
+                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        title="Heading"
+                                        ><Heading1 size={20} /></button
+                                    >
+                                    <button
+                                        on:click={() => insertMarkdown("bold")}
+                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        title="Bold"><Bold size={20} /></button
+                                    >
+                                    <button
+                                        on:click={() =>
+                                            insertMarkdown("italic")}
+                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        title="Italic"
+                                        ><Italic size={20} /></button
+                                    >
+                                    <div
+                                        class="w-px h-6 bg-[#DADCE0] mx-1"
+                                    ></div>
+                                    <button
+                                        on:click={() => insertMarkdown("list")}
+                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        title="List"><List size={20} /></button
+                                    >
+                                    <button
+                                        on:click={() => insertMarkdown("code")}
+                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        title="Code Block"
+                                        ><Code size={20} /></button
+                                    >
+                                    <button
+                                        on:click={() => insertMarkdown("image")}
+                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        title="Image"
+                                        ><ImageIcon size={20} /></button
+                                    >
+                                </div>
                                 <textarea
                                     bind:value={
                                         steps[activeStepIndex].content_markdown
                                     }
-                                    class="w-full h-full min-h-[50vh] outline-none text-[#3C4043] font-mono text-base leading-relaxed resize-none bg-transparent"
+                                    on:paste={handlePaste}
+                                    class="w-full flex-1 min-h-[50vh] outline-none text-[#3C4043] font-mono text-base leading-relaxed resize-none bg-transparent"
                                     placeholder="Write your markdown here..."
                                 ></textarea>
                             {:else}
@@ -279,19 +429,19 @@
                             <Plus size={40} class="text-[#BDC1C6]" />
                         </div>
                         <h3 class="text-2xl font-bold text-[#202124] mb-3">
-                            Empty Codelab
+                            {$t("editor.empty_codelab")}
                         </h3>
                         <p
                             class="text-[#5F6368] text-lg mb-10 max-w-sm mx-auto"
                         >
-                            Bring your workshop to life by adding your first
-                            educational step.
+                            {$t("editor.empty_desc")}
                         </p>
                         <button
                             on:click={addStep}
                             class="bg-[#4285F4] text-white px-10 py-3 rounded-full font-bold flex items-center gap-2 mx-auto shadow-md hover:shadow-lg transition-all active:scale-95"
                         >
-                            <Plus size={20} /> Add First Step
+                            <Plus size={20} />
+                            {$t("editor.add_first_step")}
                         </button>
                     </div>
                 {/if}

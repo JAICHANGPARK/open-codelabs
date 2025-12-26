@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { fade, fly } from "svelte/transition";
     import { LayoutDashboard, BookOpen } from "lucide-svelte";
+    import { t } from "svelte-i18n";
 
     let visible = false;
     onMount(() => {
@@ -20,8 +21,7 @@
                 AntiGravity <span class="text-[#4285F4]">Dojo</span>
             </h1>
             <p class="text-xl text-[#5F6368] mb-12">
-                A premium, Google-style hands-on platform for codelabs and
-                workshops.
+                {$t("home.subtitle")}
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
@@ -38,11 +38,10 @@
                         />
                     </div>
                     <h3 class="text-xl font-bold text-[#3C4043] mb-2">
-                        Facilitator
+                        {$t("common.facilitator")}
                     </h3>
                     <p class="text-[#5F6368] text-sm">
-                        Create and manage your codelabs, monitor progress, and
-                        share access.
+                        {$t("home.facilitator_desc")}
                     </p>
                 </a>
 
@@ -59,11 +58,10 @@
                         />
                     </div>
                     <h3 class="text-xl font-bold text-[#3C4043] mb-2">
-                        Attendee
+                        {$t("common.attendee")}
                     </h3>
                     <p class="text-[#5F6368] text-sm">
-                        Join a codelab and follow the steps in a polished,
-                        responsive viewer.
+                        {$t("home.attendee_desc")}
                     </p>
                 </a>
             </div>

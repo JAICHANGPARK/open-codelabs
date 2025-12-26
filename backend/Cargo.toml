@@ -16,3 +16,6 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.1", features = ["v4", "serde"] }
+zip = "2.0"
+tempfile = "3.10"
+axum-extra = { version = "0.9", features = ["multipart"] }

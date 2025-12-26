@@ -32,6 +32,7 @@
 		"dompurify": "^3.3.1",
 		"lucide-svelte": "^0.562.0",
 		"marked": "^17.0.1",
+		"svelte-i18n": "^4.0.1",
 		"svelte-qrcode": "^1.0.1"
 	}
 }
