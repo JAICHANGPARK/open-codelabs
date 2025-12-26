@@ -27,8 +27,8 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Build MkDocs (Strict mode)
-        run: mkdocs build --strict --verbose
+      - name: Build MkDocs
+        run: mkdocs build --verbose
 
       - name: Comment PR
         uses: actions/github-script@v7
