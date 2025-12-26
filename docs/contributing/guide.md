@@ -8,7 +8,7 @@ Open Codelabs 프로젝트에 기여해주셔서 감사합니다! 이 가이드�
 
 버그를 발견하셨나요?
 
-1. [GitHub Issues](https://github.com/yourusername/open-codelabs/issues)에서 중복 확인
+1. [GitHub Issues](https://github.com/JAICHANGPARK/open-codelabs/issues)에서 중복 확인
 2. 없다면 새 Issue 생성
 3. 다음 정보 포함:
    - **환경**: OS, Docker 버전, 브라우저 등
@@ -49,7 +49,7 @@ ERROR backend::handlers::codelabs: Failed to create step
 
 새로운 기능 아이디어가 있으신가요?
 
-1. [GitHub Discussions](https://github.com/yourusername/open-codelabs/discussions)에서 논의
+1. [GitHub Discussions](https://github.com/JAICHANGPARK/open-codelabs/discussions)에서 논의
 2. 커뮤니티 피드백 수집
 3. 승인되면 Issue로 전환
 4. 구현 시작
@@ -106,7 +106,7 @@ git clone https://github.com/YOUR_USERNAME/open-codelabs.git
 cd open-codelabs
 
 # Upstream 추가
-git remote add upstream https://github.com/yourusername/open-codelabs.git
+git remote add upstream https://github.com/JAICHANGPARK/open-codelabs.git
 ```
 
 ### 2. 개발 환경 설정
@@ -516,7 +516,7 @@ git push --force-with-lease
 
 ## 질문이 있으신가요?
 
-- [GitHub Discussions](https://github.com/yourusername/open-codelabs/discussions)
+- [GitHub Discussions](https://github.com/JAICHANGPARK/open-codelabs/discussions)
 - [Discord/Slack](링크)
 - [이메일](mailto:team@example.com)
 
@@ -524,6 +524,6 @@ git push --force-with-lease
 
 모든 기여자 목록:
 
-- [Contributors](https://github.com/yourusername/open-codelabs/graphs/contributors)
+- [Contributors](https://github.com/JAICHANGPARK/open-codelabs/graphs/contributors)
 
 당신의 기여를 기다립니다! 🚀

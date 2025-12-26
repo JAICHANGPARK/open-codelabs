@@ -191,7 +191,7 @@ Open Codelabs가 사용하는 주요 라이브러리들의 라이선스:
 
 ## 전체 라이선스 텍스트
 
-전체 Apache License 2.0 텍스트는 프로젝트 루트의 [LICENSE](https://github.com/yourusername/open-codelabs/blob/main/LICENSE) 파일에서 확인할 수 있습니다.
+전체 Apache License 2.0 텍스트는 프로젝트 루트의 [LICENSE](https://github.com/JAICHANGPARK/open-codelabs/blob/main/LICENSE) 파일에서 확인할 수 있습니다.
 
 ## 추가 정보
 
@@ -203,5 +203,5 @@ Open Codelabs가 사용하는 주요 라이브러리들의 라이선스:
 
 라이선스 관련 질문이 있으시면:
 
-- [GitHub Issues](https://github.com/yourusername/open-codelabs/issues)
+- [GitHub Issues](https://github.com/JAICHANGPARK/open-codelabs/issues)
 - [이메일](mailto:team@example.com)

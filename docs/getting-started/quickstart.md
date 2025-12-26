@@ -16,7 +16,7 @@
 ### 1. 저장소 클론
 
 ```bash
-git clone https://github.com/yourusername/open-codelabs.git
+git clone https://github.com/JAICHANGPARK/open-codelabs.git
 cd open-codelabs
 ```
 

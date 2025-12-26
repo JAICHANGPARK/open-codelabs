@@ -332,8 +332,8 @@ pandoc step_1.md -o step_1.pdf
 **A:** 환영합니다! [기여 가이드](contributing/guide.md)를 참조하세요.
 
 간단한 기여 방법:
-- 버그 리포트: [GitHub Issues](https://github.com/yourusername/open-codelabs/issues)
-- 기능 제안: [Discussions](https://github.com/yourusername/open-codelabs/discussions)
+- 버그 리포트: [GitHub Issues](https://github.com/JAICHANGPARK/open-codelabs/issues)
+- 기능 제안: [Discussions](https://github.com/JAICHANGPARK/open-codelabs/discussions)
 - Pull Request: [기여 워크플로우](contributing/workflow.md)
 
 ### Q: 상업적으로 사용할 수 있나요?
@@ -350,6 +350,6 @@ pandoc step_1.md -o step_1.pdf
 
 위에서 답을 찾지 못하셨나요?
 
-- [GitHub Issues](https://github.com/yourusername/open-codelabs/issues) - 버그 리포트
-- [GitHub Discussions](https://github.com/yourusername/open-codelabs/discussions) - 질문 및 토론
+- [GitHub Issues](https://github.com/JAICHANGPARK/open-codelabs/issues) - 버그 리포트
+- [GitHub Discussions](https://github.com/JAICHANGPARK/open-codelabs/discussions) - 질문 및 토론
 - [문서](index.md) - 전체 문서 탐색

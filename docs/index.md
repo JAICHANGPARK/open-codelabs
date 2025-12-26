@@ -95,6 +95,6 @@ docker-compose up --build
 
 ## 🔗 링크
 
-- [GitHub Repository](https://github.com/yourusername/open-codelabs)
-- [Issue Tracker](https://github.com/yourusername/open-codelabs/issues)
-- [Pull Requests](https://github.com/yourusername/open-codelabs/pulls)
+- [GitHub Repository](https://github.com/JAICHANGPARK/open-codelabs)
+- [Issue Tracker](https://github.com/JAICHANGPARK/open-codelabs/issues)
+- [Pull Requests](https://github.com/JAICHANGPARK/open-codelabs/pulls)

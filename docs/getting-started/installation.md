@@ -52,7 +52,7 @@ Docker는 가장 간단하고 권장되는 설치 방법입니다.
 ### 2. 프로젝트 클론
 
 ```bash
-git clone https://github.com/yourusername/open-codelabs.git
+git clone https://github.com/JAICHANGPARK/open-codelabs.git
 cd open-codelabs
 ```
 
@@ -188,7 +188,7 @@ bun --version
 ### 4. 프로젝트 클론 및 설정
 
 ```bash
-git clone https://github.com/yourusername/open-codelabs.git
+git clone https://github.com/JAICHANGPARK/open-codelabs.git
 cd open-codelabs
 ```
 

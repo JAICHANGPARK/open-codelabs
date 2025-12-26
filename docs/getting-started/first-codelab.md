@@ -468,5 +468,5 @@ codelab_xxx.zip
 ## 도움이 필요하신가요?
 
 - [FAQ](../faq.md) - 자주 묻는 질문
-- [GitHub Issues](https://github.com/yourusername/open-codelabs/issues) - 버그 리포트
+- [GitHub Issues](https://github.com/JAICHANGPARK/open-codelabs/issues) - 버그 리포트
 - [Contributing](../contributing/guide.md) - 기여하기
