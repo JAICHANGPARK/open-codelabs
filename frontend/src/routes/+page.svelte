@@ -47,7 +47,7 @@
 
                 <!-- Attendee Access -->
                 <a
-                    href="/admin"
+                    href="/codelabs"
                     class="group p-8 bg-white border border-[#DADCE0] rounded-2xl shadow-sm hover:shadow-md hover:border-[#4285F4] transition-all duration-300 flex flex-col items-center text-center"
                 >
                     <div

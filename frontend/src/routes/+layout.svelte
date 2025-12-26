@@ -1,4 +1,4 @@
-<script>
+<script lang="ts">
     import { onMount } from "svelte";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
@@ -7,23 +7,55 @@
     import "../app.css";
     import { Languages, LogOut } from "lucide-svelte";
 
-    let i18nLoaded = false;
+    let i18nLoaded = $state(false);
 
     onMount(async () => {
-        await waitLocale();
-        i18nLoaded = true;
+        try {
+            const savedLocale = localStorage.getItem("locale");
+            if (savedLocale) {
+                locale.set(savedLocale);
+            }
+        } catch (e) {
+            console.warn("localStorage not available", e);
+        }
 
-        const token = localStorage.getItem("adminToken");
-        // @ts-ignore
-        const isProtectedPath = page.url.pathname.startsWith("/admin");
-        if (isProtectedPath && !token) {
-            goto("/login");
+        try {
+            // Wait for locale to load, but don't hang for more than 500ms
+            await Promise.race([
+                waitLocale(),
+                new Promise((resolve) => setTimeout(resolve, 500)),
+            ]);
+        } catch (e) {
+            console.warn("i18n load issue", e);
+        } finally {
+            i18nLoaded = true;
+        }
+    });
+
+    $effect(() => {
+        if (!i18nLoaded) return;
+
+        // Track pathname for reactivity
+        const pathname = page.url.pathname;
+        try {
+            const token = localStorage.getItem("adminToken");
+            const isProtectedPath = pathname.startsWith("/admin");
+
+            if (isProtectedPath && !token) {
+                goto("/login");
+            }
+        } catch (e) {
+            console.error("Auth check failed", e);
         }
     });
 
     function handleLogout() {
-        localStorage.removeItem("adminToken");
-        goto("/login");
+        try {
+            localStorage.removeItem("adminToken");
+            goto("/login");
+        } catch (e) {
+            console.error("Logout failed", e);
+        }
     }
 
     const availableLocales = [
@@ -33,17 +65,14 @@
         { code: "zh", name: "中文" },
     ];
 
-    function changeLanguage(code) {
-        locale.set(code);
-        localStorage.setItem("locale", code);
-    }
-
-    onMount(() => {
-        const savedLocale = localStorage.getItem("locale");
-        if (savedLocale) {
-            locale.set(savedLocale);
+    function changeLanguage(code: string) {
+        try {
+            locale.set(code);
+            localStorage.setItem("locale", code);
+        } catch (e) {
+            console.error("Language change failed", e);
         }
-    });
+    }
 </script>
 
 <svelte:head>

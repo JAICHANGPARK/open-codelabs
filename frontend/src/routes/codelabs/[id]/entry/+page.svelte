@@ -44,8 +44,14 @@
             const attendee = await registerAttendee(id, name, code);
             localStorage.setItem(`attendee_${id}`, JSON.stringify(attendee));
             goto(`/codelabs/${id}`);
-        } catch (e) {
-            error = "Registration failed. Please try again.";
+        } catch (e: any) {
+            if (e.message === "DUPLICATE_NAME") {
+                error =
+                    "This nickname is already taken in this codelab. Please try another one.";
+            } else {
+                error =
+                    "Registration failed. Please check your connection and try again.";
+            }
         } finally {
             submitting = false;
         }

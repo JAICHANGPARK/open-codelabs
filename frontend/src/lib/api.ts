@@ -107,12 +107,23 @@ export interface HelpRequest {
     status: string;
 }
 
+export interface ChatMessage {
+    id: string;
+    codelab_id: string;
+    sender_name: string;
+    message: string;
+    msg_type: 'chat' | 'dm';
+    target_id?: string;
+    created_at?: string;
+}
+
 export async function registerAttendee(codelabId: string, name: string, code: string): Promise<Attendee> {
     const res = await fetch(`${API_URL}/codelabs/${codelabId}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, code }),
     });
+    if (res.status === 409) throw new Error('DUPLICATE_NAME');
     if (!res.ok) throw new Error('Registration failed');
     return res.json();
 }
@@ -135,9 +146,22 @@ export async function getHelpRequests(codelabId: string): Promise<HelpRequest[]>
     return res.json();
 }
 
+export async function resolveHelpRequest(codelabId: string, helpId: string): Promise<void> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/help/${helpId}/resolve`, {
+        method: 'POST',
+    });
+    if (!res.ok) throw new Error('Failed to resolve help request');
+}
+
 export async function getAttendees(codelabId: string): Promise<Attendee[]> {
     const res = await fetch(`${API_URL}/codelabs/${codelabId}/attendees`);
     if (!res.ok) throw new Error('Failed to fetch attendees');
+    return res.json();
+}
+
+export async function getChatHistory(codelabId: string): Promise<ChatMessage[]> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/chat`);
+    if (!res.ok) throw new Error('Failed to fetch chat history');
     return res.json();
 }
 

@@ -92,11 +92,15 @@ struct HelpRequest {
     created_at: Option<chrono::NaiveDateTime>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-struct ChatMessage {
-    sender: String,
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+struct ChatMessageRow {
+    id: String,
+    codelab_id: String,
+    sender_name: String,
     message: String,
-    timestamp: String,
+    msg_type: String,
+    target_id: Option<String>,
+    created_at: Option<chrono::NaiveDateTime>,
 }
 
 struct AppState {
@@ -105,6 +109,8 @@ struct AppState {
     admin_pw: String,
     // Map of codelab_id -> broadcast sender
     channels: Arc<DashMap<String, broadcast::Sender<String>>>,
+    // Map of (codelab_id, attendee_id) -> sender for DMs
+    sessions: Arc<DashMap<(String, String), tokio::sync::mpsc::UnboundedSender<Message>>>,
 }
 
 use tower_http::services::ServeDir;
@@ -136,6 +142,7 @@ async fn main() -> anyhow::Result<()> {
         admin_id,
         admin_pw,
         channels: Arc::new(DashMap::new()),
+        sessions: Arc::new(DashMap::new()),
     });
 
     // Build our application with routes
@@ -155,6 +162,11 @@ async fn main() -> anyhow::Result<()> {
             "/api/codelabs/:id/help",
             post(request_help).get(get_help_requests),
         )
+        .route(
+            "/api/codelabs/:id/help/:help_id/resolve",
+            post(resolve_help_request),
+        )
+        .route("/api/codelabs/:id/chat", get(get_chat_history))
         .route("/api/ws/:id", get(ws_handler))
         .nest_service("/assets", ServeDir::new("static/assets"))
         .fallback_service(ServeDir::new("static"))
@@ -471,6 +483,18 @@ async fn register_attendee(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<RegistrationPayload>,
 ) -> Result<Json<Attendee>, (StatusCode, String)> {
+    // Check for duplicate name in the same codelab
+    let existing = sqlx::query("SELECT id FROM attendees WHERE codelab_id = ? AND name = ?")
+        .bind(&id)
+        .bind(&payload.name)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    if existing.is_some() {
+        return Err((StatusCode::CONFLICT, "Nickname already taken".to_string()));
+    }
+
     let attendee_id = uuid::Uuid::new_v4().to_string();
 
     sqlx::query("INSERT INTO attendees (id, codelab_id, name, code) VALUES (?, ?, ?, ?)")
@@ -562,6 +586,44 @@ async fn get_help_requests(
     Ok(Json(requests))
 }
 
+async fn resolve_help_request(
+    Path((codelab_id, help_id)): Path<(String, String)>,
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+    sqlx::query("UPDATE help_requests SET status = 'resolved' WHERE id = ?")
+        .bind(&help_id)
+        .execute(&state.pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    // Notify via WebSocket
+    if let Some(res) = state.channels.get(&codelab_id) {
+        let msg = serde_json::json!({
+            "type": "help_resolved",
+            "id": help_id,
+        })
+        .to_string();
+        let _ = res.send(msg);
+    }
+
+    Ok(Json(serde_json::json!({ "status": "ok" })))
+}
+
+async fn get_chat_history(
+    Path(id): Path<String>,
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<Vec<ChatMessageRow>>, (StatusCode, String)> {
+    let messages = sqlx::query_as::<_, ChatMessageRow>(
+        "SELECT * FROM chat_messages WHERE codelab_id = ? ORDER BY created_at ASC",
+    )
+    .bind(&id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    Ok(Json(messages))
+}
+
 async fn ws_handler(
     Path(id): Path<String>,
     ws: WebSocketUpgrade,
@@ -571,7 +633,33 @@ async fn ws_handler(
 }
 
 async fn handle_socket(socket: WebSocket, codelab_id: String, state: Arc<AppState>) {
-    let tx = state
+    let (mut sender, mut receiver) = socket.split();
+    let (tx_ws, mut rx_ws) = tokio::sync::mpsc::unbounded_channel::<Message>();
+
+    let mut user_id = String::new();
+
+    // Listen for the first message to identify the user
+    if let Some(Ok(Message::Text(text))) = receiver.next().await {
+        if let Ok(val) = serde_json::from_str::<serde_json::Value>(&text) {
+            if let Some(id) = val.get("attendee_id").and_then(|v| v.as_str()) {
+                user_id = id.to_string();
+                state
+                    .sessions
+                    .insert((codelab_id.clone(), user_id.clone()), tx_ws);
+            } else if val.get("type").and_then(|v| v.as_str()) == Some("facilitator") {
+                user_id = "facilitator".to_string();
+                state
+                    .sessions
+                    .insert((codelab_id.clone(), user_id.clone()), tx_ws);
+            }
+        }
+    }
+
+    if user_id.is_empty() {
+        return;
+    }
+
+    let tx_broadcast = state
         .channels
         .entry(codelab_id.clone())
         .or_insert_with(|| {
@@ -580,31 +668,95 @@ async fn handle_socket(socket: WebSocket, codelab_id: String, state: Arc<AppStat
         })
         .clone();
 
-    let mut rx = tx.subscribe();
-    let (mut sender, mut receiver) = socket.split();
+    let mut rx_broadcast = tx_broadcast.subscribe();
 
     let mut send_task = tokio::spawn(async move {
-        while let Ok(msg) = rx.recv().await {
-            if sender.send(Message::Text(msg.into())).await.is_err() {
-                break;
+        loop {
+            tokio::select! {
+                // Incoming from broadcast channel
+                Ok(msg) = rx_broadcast.recv() => {
+                    if sender.send(Message::Text(msg.into())).await.is_err() {
+                        break;
+                    }
+                }
+                // Incoming from direct message channel
+                Some(msg) = rx_ws.recv() => {
+                    if sender.send(msg).await.is_err() {
+                        break;
+                    }
+                }
             }
         }
     });
 
-    let tx_clone = tx.clone();
+    let state_clone = state.clone();
+    let codelab_id_clone = codelab_id.clone();
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
-            // Echo or broadcast chat messages
             if let Ok(val) = serde_json::from_str::<serde_json::Value>(&text) {
-                if val.get("type").and_then(|t| t.as_str()) == Some("chat") {
-                    let _ = tx_clone.send(text.to_string());
+                match val.get("type").and_then(|v| v.as_str()) {
+                    Some("chat") => {
+                        // Broadcast chat
+                        let sender = val
+                            .get("sender")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("Unknown");
+                        let message = val.get("message").and_then(|v| v.as_str()).unwrap_or("");
+
+                        // Persist to DB
+                        let msg_id = uuid::Uuid::new_v4().to_string();
+                        let _ = sqlx::query("INSERT INTO chat_messages (id, codelab_id, sender_name, message, msg_type) VALUES (?, ?, ?, ?, 'chat')")
+                            .bind(&msg_id)
+                            .bind(&codelab_id_clone)
+                            .bind(sender)
+                            .bind(message)
+                            .execute(&state_clone.pool)
+                            .await;
+
+                        let _ = tx_broadcast.send(text.to_string());
+                    }
+                    Some("dm") => {
+                        // Direct message
+                        if let Some(target_id) = val.get("target_id").and_then(|v| v.as_str()) {
+                            let sender = val
+                                .get("sender")
+                                .and_then(|v| v.as_str())
+                                .unwrap_or("Unknown");
+                            let message = val.get("message").and_then(|v| v.as_str()).unwrap_or("");
+
+                            // Persist to DB
+                            let msg_id = uuid::Uuid::new_v4().to_string();
+                            let _ = sqlx::query("INSERT INTO chat_messages (id, codelab_id, sender_name, message, msg_type, target_id) VALUES (?, ?, ?, ?, 'dm', ?)")
+                                .bind(&msg_id)
+                                .bind(&codelab_id_clone)
+                                .bind(sender)
+                                .bind(message)
+                                .bind(target_id)
+                                .execute(&state_clone.pool)
+                                .await;
+
+                            if let Some(target_ws) = state_clone
+                                .sessions
+                                .get(&(codelab_id_clone.clone(), target_id.to_string()))
+                            {
+                                let _ = target_ws.send(Message::Text(text.into()));
+                            }
+                        }
+                    }
+                    _ => {}
                 }
             }
         }
     });
 
     tokio::select! {
-        _ = (&mut send_task) => recv_task.abort(),
-        _ = (&mut recv_task) => send_task.abort(),
+        _ = (&mut send_task) => {
+            recv_task.abort();
+            state.sessions.remove(&(codelab_id, user_id));
+        },
+        _ = (&mut recv_task) => {
+            send_task.abort();
+            state.sessions.remove(&(codelab_id, user_id));
+        },
     };
 }

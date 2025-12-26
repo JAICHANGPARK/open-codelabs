@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, untrack } from "svelte";
     import { fade, slide, fly } from "svelte/transition";
     import { page } from "$app/state";
     import {
@@ -8,11 +8,14 @@
         exportCodelab,
         getAttendees,
         getHelpRequests,
+        resolveHelpRequest,
         getWsUrl,
+        getChatHistory,
         type Codelab,
         type Step,
         type Attendee,
         type HelpRequest,
+        type ChatMessage,
     } from "$lib/api";
     // @ts-ignore
     import QRCode from "svelte-qrcode";
@@ -38,28 +41,36 @@
         Bell,
         MessageSquare,
         Send,
+        Copy,
+        Check,
+        X,
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
 
     let id = page.params.id as string;
-    let codelab: Codelab | null = null;
-    let steps: Step[] = [];
-    let loading = true;
-    let activeStepIndex = 0;
-    let mode: "edit" | "preview" | "live" = "edit";
-    let isSaving = false;
-    let saveSuccess = false;
+    let codelab = $state<Codelab | null>(null);
+    let steps = $state<Step[]>([]);
+    let loading = $state(true);
+    let activeStepIndex = $state(0);
+    let mode = $state<"edit" | "preview" | "live">("edit");
+    let isSaving = $state(false);
+    let saveSuccess = $state(false);
+    let copySuccess = $state(false);
 
-    let attendees: Attendee[] = [];
-    let helpRequests: HelpRequest[] = [];
-    let ws: WebSocket | null = null;
-    let chatMessage = "";
-    let messages: {
-        sender: string;
-        text: string;
-        time: string;
-        self?: boolean;
-    }[] = [];
+    let attendees = $state<Attendee[]>([]);
+    let helpRequests = $state<HelpRequest[]>([]);
+    let ws = $state<WebSocket | null>(null);
+    let chatMessage = $state("");
+    let messages = $state<
+        {
+            sender: string;
+            text: string;
+            time: string;
+            self?: boolean;
+        }[]
+    >([]);
+    let dmTarget = $state<Attendee | null>(null);
+    let dmMessage = $state("");
 
     onMount(async () => {
         try {
@@ -69,6 +80,7 @@
 
             // Initial fetch of live data
             await refreshLiveData();
+            await loadChatHistory();
             initWebSocket();
         } catch (e) {
             console.error(e);
@@ -76,6 +88,58 @@
             loading = false;
         }
     });
+
+    async function loadChatHistory() {
+        try {
+            const history = await getChatHistory(id);
+            messages = history.map((msg) => {
+                const timeStr = msg.created_at
+                    ? new Date(msg.created_at).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                      })
+                    : "";
+
+                if (msg.msg_type === "chat") {
+                    return {
+                        sender: msg.sender_name,
+                        text: msg.message,
+                        time: timeStr,
+                        self: msg.sender_name === "Facilitator",
+                    };
+                } else {
+                    // DM
+                    if (msg.sender_name === "Facilitator") {
+                        const target = attendees.find(
+                            (a) => a.id === msg.target_id,
+                        );
+                        return {
+                            sender: `To: ${target?.name || msg.target_id}`,
+                            text: msg.message,
+                            time: timeStr,
+                            self: true,
+                        };
+                    } else {
+                        return {
+                            sender: `[DM] ${msg.sender_name}`,
+                            text: msg.message,
+                            time: timeStr,
+                            self: false,
+                        };
+                    }
+                }
+            });
+
+            // Scroll to bottom
+            setTimeout(() => {
+                const chatContainer = document.getElementById("chat-messages");
+                if (chatContainer)
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        } catch (e) {
+            console.error("Failed to load chat history:", e);
+        }
+    }
 
     async function refreshLiveData() {
         try {
@@ -92,9 +156,14 @@
 
     function initWebSocket() {
         const wsUrl = getWsUrl(id);
-        ws = new WebSocket(wsUrl);
+        const newWs = new WebSocket(wsUrl);
 
-        ws.onmessage = (event) => {
+        newWs.onopen = () => {
+            // Identify as facilitator
+            newWs.send(JSON.stringify({ type: "facilitator" }));
+        };
+
+        newWs.onmessage = (event) => {
             try {
                 const data = JSON.parse(event.data);
                 if (data.type === "chat") {
@@ -104,10 +173,23 @@
                             sender: data.sender,
                             text: data.message,
                             time: data.timestamp,
-                            self: false, // In facilitator view, all are others or labeled differently
+                            self: data.sender === "Facilitator",
                         },
                     ];
-                } else if (data.type === "help_request") {
+                } else if (data.type === "dm") {
+                    messages = [
+                        ...messages,
+                        {
+                            sender: `[DM] ${data.sender}`,
+                            text: data.message,
+                            time: data.timestamp,
+                            self: false,
+                        },
+                    ];
+                } else if (
+                    data.type === "help_request" ||
+                    data.type === "help_resolved"
+                ) {
                     refreshLiveData();
                 }
             } catch (e) {
@@ -115,9 +197,10 @@
             }
         };
 
-        ws.onclose = () => {
+        newWs.onclose = () => {
             setTimeout(initWebSocket, 3000);
         };
+        ws = newWs;
     }
 
     function sendBroadcast() {
@@ -135,6 +218,45 @@
         chatMessage = "";
     }
 
+    function sendDM() {
+        if (!dmTarget || !dmMessage.trim() || !ws) return;
+        const msg = {
+            type: "dm",
+            target_id: dmTarget.id,
+            sender: "Facilitator",
+            message: dmMessage.trim(),
+            timestamp: new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+            }),
+        };
+        ws.send(JSON.stringify(msg));
+
+        // Also add to local messages for visibility
+        messages = [
+            ...messages,
+            {
+                sender: `To: ${dmTarget.name}`,
+                text: dmMessage.trim(),
+                time: msg.timestamp,
+                self: true,
+            },
+        ];
+
+        dmMessage = "";
+        dmTarget = null;
+    }
+
+    async function handleResolveHelp(helpId: string) {
+        try {
+            await resolveHelpRequest(id, helpId);
+            // WebSocket will trigger refresh for peers, but we refresh locally too
+            await refreshLiveData();
+        } catch (e) {
+            alert("Failed to resolve help request");
+        }
+    }
+
     function addStep() {
         const newStep: Step = {
             id: "",
@@ -145,6 +267,14 @@
         };
         steps = [...steps, newStep];
         activeStepIndex = steps.length - 1;
+    }
+
+    function removeStep(index: number) {
+        if (!confirm("Are you sure you want to delete this step?")) return;
+        steps = steps.filter((_, i) => i !== index);
+        if (activeStepIndex >= steps.length) {
+            activeStepIndex = Math.max(0, steps.length - 1);
+        }
     }
 
     async function handleSave() {
@@ -233,21 +363,65 @@
 
         for (const item of items) {
             if (item.type.indexOf("image") !== -1) {
-                // For now, we just insert a placeholder or hint that image upload will be here
-                // A full implementation would upload to a server and get a URL
                 insertMarkdown("image");
                 event.preventDefault();
             }
         }
     }
 
-    $: currentStep = steps[activeStepIndex];
-    // @ts-ignore
-    $: renderedContent = currentStep
-        ? (DOMPurify.sanitize(
-              marked.parse(currentStep.content_markdown) as string,
-          ) as string)
-        : "";
+    async function copyUrl() {
+        const url = `${window.location.origin}/codelabs/${id}`;
+
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(url);
+                copySuccess = true;
+            } else {
+                throw new Error("clipboard API unavailable");
+            }
+        } catch (e) {
+            // Fallback for non-secure contexts or older browsers
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = url;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                textArea.style.top = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                const successful = document.execCommand("copy");
+                document.body.removeChild(textArea);
+                if (successful) {
+                    copySuccess = true;
+                }
+            } catch (err) {
+                console.error("Fallback copy failed", err);
+            }
+        }
+
+        if (copySuccess) {
+            setTimeout(() => (copySuccess = false), 2000);
+        }
+    }
+
+    let currentStep = $derived(steps[activeStepIndex]);
+    let renderedContent = $derived.by(() => {
+        if (!currentStep) return "";
+        try {
+            // @ts-ignore
+            return DOMPurify.sanitize(
+                marked.parse(currentStep.content_markdown) as string,
+            );
+        } catch (e) {
+            console.error("Markdown parse error", e);
+            return "Error parsing markdown";
+        }
+    });
+
+    let attendeeUrl = $derived(
+        `${typeof window !== "undefined" ? window.location.origin : ""}/codelabs/${id}`,
+    );
 </script>
 
 <div class="min-h-screen bg-[#F8F9FA] flex flex-col font-sans text-[#3C4043]">
@@ -387,47 +561,77 @@
                     </div>
                     <div class="max-h-[50vh] overflow-y-auto">
                         {#each steps as step, i}
-                            <button
-                                on:click={() => (activeStepIndex = i)}
-                                class="w-full text-left px-5 py-4 hover:bg-[#F8F9FA] transition-all flex items-start gap-4 border-l-4 {activeStepIndex ===
-                                i
-                                    ? 'border-[#4285F4] bg-[#E8F0FE]/30'
-                                    : 'border-transparent'}"
-                            >
-                                <span
-                                    class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 {activeStepIndex ===
+                            <div class="group relative">
+                                <button
+                                    on:click={() => (activeStepIndex = i)}
+                                    class="w-full text-left px-5 py-4 hover:bg-[#F8F9FA] transition-all flex items-start gap-4 border-l-4 {activeStepIndex ===
                                     i
-                                        ? 'bg-[#4285F4] text-white'
-                                        : 'bg-[#F1F3F4] text-[#5F6368]'}"
-                                    >{i + 1}</span
+                                        ? 'border-[#4285F4] bg-[#E8F0FE]/30'
+                                        : 'border-transparent'}"
                                 >
-                                <span
-                                    class="text-sm font-bold {activeStepIndex ===
-                                    i
-                                        ? 'text-[#1967D2]'
-                                        : 'text-[#5F6368]'} line-clamp-1 pt-0.5"
-                                    >{step.title}</span
+                                    <span
+                                        class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 {activeStepIndex ===
+                                        i
+                                            ? 'bg-[#4285F4] text-white'
+                                            : 'bg-[#F1F3F4] text-[#5F6368]'}"
+                                        >{i + 1}</span
+                                    >
+                                    <span
+                                        class="text-sm font-bold {activeStepIndex ===
+                                        i
+                                            ? 'text-[#1967D2]'
+                                            : 'text-[#5F6368]'} line-clamp-1 pt-0.5 pr-6"
+                                        >{step.title}</span
+                                    >
+                                </button>
+                                <button
+                                    on:click={() => removeStep(i)}
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#BDC1C6] hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                    title="Delete Step"
                                 >
-                            </button>
+                                    <Trash2 size={14} />
+                                </button>
+                            </div>
                         {/each}
                     </div>
 
                     <div
-                        class="p-8 border-t border-[#F1F3F4] bg-[#F8F9FA]/50 flex flex-col items-center"
+                        class="p-6 border-t border-[#F1F3F4] bg-[#F8F9FA]/50 flex flex-col items-center"
                     >
                         <div
                             class="bg-white p-3 rounded-2xl border border-[#E8EAED] shadow-sm mb-4"
                         >
-                            <QRCode
-                                value="{window.location.origin}/codelabs/{id}"
-                                size={140}
-                            />
+                            <QRCode value={attendeeUrl} size={140} />
                         </div>
                         <p
-                            class="text-[11px] text-[#5F6368] text-center uppercase tracking-widest font-bold"
+                            class="text-[11px] text-[#5F6368] text-center uppercase tracking-widest font-bold mb-3"
                         >
                             {$t("editor.attendee_access")}
                         </p>
+
+                        <div
+                            class="w-full flex items-center gap-2 p-2 bg-white border border-[#E8EAED] rounded-xl shadow-sm overflow-hidden"
+                        >
+                            <input
+                                type="text"
+                                readonly
+                                value={attendeeUrl}
+                                class="flex-1 text-[10px] text-[#5F6368] font-mono outline-none bg-transparent overflow-hidden text-ellipsis"
+                            />
+                            <button
+                                on:click={copyUrl}
+                                class="p-2 hover:bg-[#F1F3F4] rounded-lg transition-colors {copySuccess
+                                    ? 'text-[#1E8E3E]'
+                                    : 'text-[#4285F4]'}"
+                                title="Copy URL"
+                            >
+                                {#if copySuccess}
+                                    <Check size={14} />
+                                {:else}
+                                    <Copy size={14} />
+                                {/if}
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -501,6 +705,13 @@
                                     class="w-full flex-1 min-h-[50vh] outline-none text-[#3C4043] font-mono text-base leading-relaxed resize-none bg-transparent"
                                     placeholder="Write your markdown here..."
                                 ></textarea>
+                            {:else if mode === "preview"}
+                                <div
+                                    class="prose prose-blue max-w-none flex-1 markdown-body"
+                                    in:fade
+                                >
+                                    {@html renderedContent}
+                                </div>
                             {:else if mode === "live"}
                                 <div
                                     class="grid grid-cols-2 gap-8 h-full"
@@ -545,7 +756,11 @@
                                                             </p>
                                                         </div>
                                                         <button
-                                                            class="text-xs font-bold text-white bg-[#EA4335] px-3 py-1.5 rounded-full"
+                                                            on:click={() =>
+                                                                handleResolveHelp(
+                                                                    hr.id,
+                                                                )}
+                                                            class="text-xs font-bold text-white bg-[#EA4335] px-3 py-1.5 rounded-full hover:bg-[#D93025] transition-colors"
                                                             >Resolve</button
                                                         >
                                                     </div>
@@ -580,27 +795,42 @@
                                             >
                                                 {#each attendees as attendee}
                                                     <div
-                                                        class="flex items-center gap-3 p-2 hover:bg-[#F8F9FA] rounded-lg transition-colors"
+                                                        class="flex items-center justify-between p-2 hover:bg-[#F8F9FA] rounded-lg transition-colors group"
                                                     >
                                                         <div
-                                                            class="w-8 h-8 rounded-full bg-[#E8EAED] flex items-center justify-center text-[#5F6368] text-xs font-bold uppercase"
+                                                            class="flex items-center gap-3"
                                                         >
-                                                            {attendee.name.charAt(
-                                                                0,
-                                                            )}
-                                                        </div>
-                                                        <div>
-                                                            <p
-                                                                class="text-sm font-bold text-[#202124]"
+                                                            <div
+                                                                class="w-8 h-8 rounded-full bg-[#E8EAED] flex items-center justify-center text-[#5F6368] text-xs font-bold uppercase"
                                                             >
-                                                                {attendee.name}
-                                                            </p>
-                                                            <p
-                                                                class="text-[10px] text-[#9AA0A6]"
-                                                            >
-                                                                Code: {attendee.code}
-                                                            </p>
+                                                                {attendee.name.charAt(
+                                                                    0,
+                                                                )}
+                                                            </div>
+                                                            <div>
+                                                                <p
+                                                                    class="text-sm font-bold text-[#202124]"
+                                                                >
+                                                                    {attendee.name}
+                                                                </p>
+                                                                <p
+                                                                    class="text-[10px] text-[#9AA0A6]"
+                                                                >
+                                                                    Code: {attendee.code}
+                                                                </p>
+                                                            </div>
                                                         </div>
+                                                        <button
+                                                            on:click={() =>
+                                                                (dmTarget =
+                                                                    attendee)}
+                                                            class="p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                            title="Message"
+                                                        >
+                                                            <MessageSquare
+                                                                size={16}
+                                                            />
+                                                        </button>
                                                     </div>
                                                 {/each}
                                             </div>
@@ -649,15 +879,43 @@
                                                 <input
                                                     type="text"
                                                     bind:value={chatMessage}
-                                                    placeholder="Broadcast to all attendees..."
-                                                    class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] text-sm"
+                                                    placeholder={dmTarget
+                                                        ? `Message to ${dmTarget.name}...`
+                                                        : "Broadcast to all attendees..."}
+                                                    class="w-full pl-4 pr-24 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] text-sm"
                                                 />
-                                                <button
-                                                    type="submit"
-                                                    class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#4285F4] hover:text-white rounded-lg transition-all"
+                                                <div
+                                                    class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1"
                                                 >
-                                                    <Send size={18} />
-                                                </button>
+                                                    {#if dmTarget}
+                                                        <button
+                                                            type="button"
+                                                            on:click={sendDM}
+                                                            class="p-2 bg-[#4285F4] text-white rounded-lg hover:bg-[#1A73E8] transition-all"
+                                                            title="Send DM"
+                                                        >
+                                                            <Send size={18} />
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            on:click={() =>
+                                                                (dmTarget =
+                                                                    null)}
+                                                            class="p-2 text-[#5F6368] hover:bg-[#E8EAED] rounded-lg"
+                                                            title="Cancel DM"
+                                                        >
+                                                            <X size={18} />
+                                                        </button>
+                                                    {:else}
+                                                        <button
+                                                            type="submit"
+                                                            class="p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-lg transition-all"
+                                                            title="Broadcast"
+                                                        >
+                                                            <Send size={18} />
+                                                        </button>
+                                                    {/if}
+                                                </div>
                                             </form>
                                         </div>
                                     </div>

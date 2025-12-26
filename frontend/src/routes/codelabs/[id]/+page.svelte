@@ -7,9 +7,11 @@
         getCodelab,
         requestHelp,
         getWsUrl,
+        getChatHistory,
         type Codelab,
         type Step,
         type Attendee,
+        type ChatMessage,
     } from "$lib/api";
     import { loadProgress, saveProgress } from "$lib/Progress";
     import { marked } from "marked";
@@ -66,6 +68,7 @@
             currentStepIndex = loadProgress(id);
             if (currentStepIndex >= steps.length) currentStepIndex = 0;
 
+            await loadChatHistory();
             initWebSocket();
         } catch (e) {
             console.error(e);
@@ -78,9 +81,66 @@
         if (ws) ws.close();
     });
 
+    async function loadChatHistory() {
+        if (!attendee) return;
+        try {
+            const history = await getChatHistory(id);
+            messages = history
+                .filter(
+                    (msg) =>
+                        msg.msg_type === "chat" ||
+                        msg.target_id === attendee?.id ||
+                        msg.sender_name === attendee?.name,
+                )
+                .map((msg) => {
+                    const timeStr = msg.created_at
+                        ? new Date(msg.created_at).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                          })
+                        : "";
+
+                    if (msg.msg_type === "chat") {
+                        return {
+                            sender: msg.sender_name,
+                            text: msg.message,
+                            time: timeStr,
+                            self: msg.sender_name === attendee?.name,
+                        };
+                    } else {
+                        // DM for or from me
+                        const isSelf = msg.sender_name === attendee?.name;
+                        return {
+                            sender: isSelf
+                                ? `To: Facilitator`
+                                : `[DM] ${msg.sender_name}`,
+                            text: msg.message,
+                            time: timeStr,
+                            self: isSelf,
+                        };
+                    }
+                });
+
+            // Scroll to bottom
+            setTimeout(() => {
+                const chatContainer = document.getElementById("chat-messages");
+                if (chatContainer)
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        } catch (e) {
+            console.error("Failed to load chat history:", e);
+        }
+    }
+
     function initWebSocket() {
         const wsUrl = getWsUrl(id);
         ws = new WebSocket(wsUrl);
+
+        ws.onopen = () => {
+            if (attendee) {
+                ws?.send(JSON.stringify({ attendee_id: attendee.id }));
+            }
+        };
 
         ws.onmessage = (event) => {
             try {
@@ -103,6 +163,20 @@
                             chatContainer.scrollTop =
                                 chatContainer.scrollHeight;
                     }, 50);
+                } else if (data.type === "dm") {
+                    // Show DM in chat
+                    messages = [
+                        ...messages,
+                        {
+                            sender: `[DM] ${data.sender}`,
+                            text: data.message,
+                            time: data.timestamp,
+                            self: false,
+                        },
+                    ];
+                    showChat = true; // Auto-open chat for DM
+                } else if (data.type === "help_resolved") {
+                    helpSent = false;
                 }
             } catch (e) {
                 console.error("WS Message error:", e);
