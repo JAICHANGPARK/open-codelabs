@@ -50,7 +50,9 @@
         "add_first_step": "Add First Step",
         "step_navigation": "Codelab Steps",
         "attendee_access": "Attendee Access",
-        "view_live": "View live"
+        "view_live": "View live",
+        "public_chat": "Public Chat",
+        "direct_messages": "Direct Messages"
     },
     "login": {
         "title": "Facilitator Login",
