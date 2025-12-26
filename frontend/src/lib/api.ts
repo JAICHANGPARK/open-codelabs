@@ -1,4 +1,6 @@
-const API_URL = (import.meta.env.VITE_API_URL || 'http://localhost:8080') + '/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+const API_URL = BASE_URL + '/api';
+export const ASSET_URL = BASE_URL;
 
 export interface Codelab {
     id: string;
@@ -103,6 +105,7 @@ export interface Attendee {
     codelab_id: string;
     name: string;
     code: string;
+    current_step?: number;
 }
 
 export interface HelpRequest {

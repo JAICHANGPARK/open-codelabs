@@ -248,6 +248,18 @@
     }
 
     let currentStep = $derived(steps[currentStepIndex]);
+
+    $effect(() => {
+        if (ws && ws.readyState === WebSocket.OPEN && attendee) {
+            ws.send(
+                JSON.stringify({
+                    type: "step_progress",
+                    attendee_id: attendee.id,
+                    step_number: currentStepIndex + 1,
+                }),
+            );
+        }
+    });
     // @ts-ignore
     let renderedContent = $derived(
         currentStep

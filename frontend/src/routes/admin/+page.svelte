@@ -17,6 +17,8 @@
         Download,
         FileUp,
         Trash2,
+        Share2,
+        Check,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
 
@@ -24,6 +26,7 @@
     let loading = true;
     let showCreateModal = false;
     let newCodelab = { title: "", description: "", author: "" };
+    let copyTarget: string | null = $state(null);
 
     onMount(async () => {
         try {
@@ -79,6 +82,19 @@
         } catch (e) {
             console.error(e);
             alert("Delete failed");
+        }
+    }
+
+    async function copyLink(id: string) {
+        const url = `${window.location.origin}/codelabs/${id}`;
+        try {
+            await navigator.clipboard.writeText(url);
+            copyTarget = id;
+            setTimeout(() => {
+                if (copyTarget === id) copyTarget = null;
+            }, 2000);
+        } catch (err) {
+            console.error("Failed to copy!", err);
         }
     }
 </script>
@@ -167,25 +183,36 @@
                             class="group block bg-white border border-[#E8EAED] rounded-2xl p-8 hover:shadow-xl transition-all duration-300 hover:border-[#4285F4] relative overflow-hidden"
                         >
                             <div
-                                class="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                                class="absolute top-4 right-4 flex items-center gap-2 z-20"
                             >
-                                <div
-                                    class="w-8 h-8 rounded-full bg-[#E8F0FE] flex items-center justify-center text-[#4285F4]"
+                                <button
+                                    onclick={(e) => {
+                                        e.preventDefault();
+                                        copyLink(codelab.id);
+                                    }}
+                                    class="p-2 transition-all rounded-full {copyTarget ===
+                                    codelab.id
+                                        ? 'bg-[#E6F4EA] text-[#1E8E3E]'
+                                        : 'bg-[#F8F9FA] text-[#5F6368] hover:bg-[#E8F0FE] hover:text-[#4285F4]'}"
+                                    title="Share Participant Link"
                                 >
-                                    <Plus size={16} />
-                                </div>
+                                    {#if copyTarget === codelab.id}
+                                        <Check size={18} />
+                                    {:else}
+                                        <Share2 size={18} />
+                                    {/if}
+                                </button>
+                                <button
+                                    onclick={(e) => {
+                                        e.preventDefault();
+                                        handleDelete(codelab.id);
+                                    }}
+                                    class="p-2 bg-[#F8F9FA] text-[#5F6368] hover:text-[#EA4335] hover:bg-[#FEECEB] rounded-full transition-all"
+                                    title={$t("common.delete") || "Delete"}
+                                >
+                                    <Trash2 size={18} />
+                                </button>
                             </div>
-
-                            <button
-                                onclick={(e) => {
-                                    e.preventDefault();
-                                    handleDelete(codelab.id);
-                                }}
-                                class="absolute top-4 right-4 p-2 text-[#BDC1C6] hover:text-[#EA4335] hover:bg-[#FEECEB] rounded-full transition-all opacity-0 group-hover:opacity-100 z-10"
-                                title={$t("common.delete") || "Delete"}
-                            >
-                                <Trash2 size={18} />
-                            </button>
 
                             <h3
                                 class="text-xl font-bold text-[#202124] group-hover:text-[#4285F4] transition-colors mb-3 line-clamp-1"

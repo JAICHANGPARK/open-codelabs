@@ -132,6 +132,10 @@ async fn handle_socket(socket: WebSocket, codelab_id: String, state: Arc<AppStat
                             }
                         }
                     }
+                    Some("step_progress") => {
+                        // Broadcast step progress to facilitators
+                        let _ = tx_broadcast.send(text.to_string());
+                    }
                     _ => {}
                 }
             }

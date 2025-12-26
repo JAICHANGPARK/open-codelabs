@@ -11,6 +11,7 @@
         resolveHelpRequest,
         getWsUrl,
         getChatHistory,
+        ASSET_URL,
         uploadImage,
         type Codelab,
         type Step,
@@ -209,6 +210,12 @@
                     data.type === "help_resolved"
                 ) {
                     refreshLiveData();
+                } else if (data.type === "step_progress") {
+                    attendees = attendees.map((a) =>
+                        a.id === data.attendee_id
+                            ? { ...a, current_step: data.step_number }
+                            : a,
+                    );
                 }
             } catch (e) {
                 console.error("WS error:", e);
@@ -393,7 +400,10 @@
                         const start = textarea.selectionStart;
                         const end = textarea.selectionEnd;
                         const text = steps[activeStepIndex].content_markdown;
-                        const replacement = `![image](${url})`;
+                        const fullUrl = url.startsWith("http")
+                            ? url
+                            : `${ASSET_URL}${url}`;
+                        const replacement = `![image](${fullUrl})`;
 
                         steps[activeStepIndex].content_markdown =
                             text.substring(0, start) +
@@ -471,6 +481,15 @@
         `${typeof window !== "undefined" ? window.location.origin : ""}/codelabs/${id}`,
     );
 </script>
+
+<svelte:window
+    onkeydown={(e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+            e.preventDefault();
+            handleSave();
+        }
+    }}
+/>
 
 <div class="min-h-screen bg-[#F8F9FA] flex flex-col font-sans text-[#3C4043]">
     <header
@@ -822,7 +841,7 @@
                                         </div>
 
                                         <div
-                                            class="flex-1 bg-white border border-[#E8EAED] rounded-2xl overflow-hidden shadow-sm flex flex-col"
+                                            class="flex-1 bg-white border border-[#E8EAED] rounded-2xl overflow-hidden shadow-sm flex flex-col min-h-[400px]"
                                         >
                                             <div
                                                 class="p-4 bg-[#F8F9FA] border-b border-[#E8EAED] flex items-center gap-2"
@@ -864,6 +883,10 @@
                                                                     class="text-[10px] text-[#9AA0A6]"
                                                                 >
                                                                     Code: {attendee.code}
+                                                                    {#if attendee.current_step}
+                                                                        &bull;
+                                                                        Step {attendee.current_step}
+                                                                    {/if}
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -886,7 +909,7 @@
 
                                     <!-- Right: Live Chat -->
                                     <div
-                                        class="bg-white border border-[#E8EAED] rounded-2xl overflow-hidden shadow-sm flex flex-col h-full"
+                                        class="bg-white border border-[#E8EAED] rounded-2xl overflow-hidden shadow-sm flex flex-col h-full min-h-[600px]"
                                     >
                                         <div
                                             class="p-4 bg-[#4285F4] text-white flex items-center gap-2"
