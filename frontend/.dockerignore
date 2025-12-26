@@ -1,0 +1,17 @@
+node_modules
+Dockerfile*
+docker-compose*
+.dockerignore
+.git
+.gitignore
+README.md
+LICENSE
+.vscode
+.env
+.editorconfig
+.idea
+build
+.svelte-kit
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
