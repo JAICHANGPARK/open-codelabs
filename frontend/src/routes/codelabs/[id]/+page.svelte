@@ -63,6 +63,18 @@
             : messages.filter((m) => m.type === "dm"),
     );
 
+    $effect(() => {
+        if (ws && ws.readyState === WebSocket.OPEN && attendee) {
+            ws.send(
+                JSON.stringify({
+                    type: "step_progress",
+                    attendee_id: attendee.id,
+                    step_number: currentStepIndex + 1,
+                }),
+            );
+        }
+    });
+
     onMount(async () => {
         // Check for registration
         const savedAttendee = localStorage.getItem(`attendee_${id}`);
@@ -152,6 +164,14 @@
         ws.onopen = () => {
             if (attendee) {
                 ws?.send(JSON.stringify({ attendee_id: attendee.id }));
+                // Send initial progress
+                ws?.send(
+                    JSON.stringify({
+                        type: "step_progress",
+                        attendee_id: attendee.id,
+                        step_number: currentStepIndex + 1,
+                    }),
+                );
             }
         };
 
