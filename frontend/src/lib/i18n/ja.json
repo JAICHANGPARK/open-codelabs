@@ -50,7 +50,9 @@
         "add_first_step": "最初のステップを追加",
         "step_navigation": "コードラボのステップ",
         "attendee_access": "参加者のアクセス",
-        "view_live": "ライブ表示"
+        "view_live": "ライブ表示",
+        "public_chat": "全体チャット",
+        "direct_messages": "1:1メッセージ"
     },
     "login": {
         "title": "ファシリテーターログイン",
@@ -61,5 +63,10 @@
         "connecting": "接続中...",
         "error_fields": "すべてのフィールドを入力してください",
         "error_credentials": "IDまたはパスワードが正しくありません"
+    },
+    "home": {
+        "subtitle": "開発者のためのインタラクティブなハンズオン学習プラットフォーム",
+        "facilitator_desc": "コードラボの作成・管理、参加者の進捗追跡、リアルタイムでのサポート提供が可能です。",
+        "attendee_desc": "利用可能なセッションに参加し、ステップバイステップの指示に従って新しい技術を学びましょう。"
     }
 }
