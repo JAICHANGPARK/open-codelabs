@@ -220,7 +220,7 @@ Follow these strict guidelines to create the content:
             const codelab = await createCodelab({
                 title: parsedData.title,
                 description: parsedData.description,
-                author: "AI Assistant",
+                author: $t("common.ai_assistant"),
             });
 
             // 2. Save Steps
@@ -242,6 +242,9 @@ Follow these strict guidelines to create the content:
 
 <div
     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
 >
     <div
         class="bg-white dark:bg-dark-surface rounded-3xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden relative border dark:border-dark-border"
@@ -253,11 +256,11 @@ Follow these strict guidelines to create the content:
         >
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
-                    <div class="bg-white/20 p-2 rounded-lg">
+                    <div class="bg-white/20 p-2 rounded-lg" aria-hidden="true">
                         <Sparkles size={24} />
                     </div>
                     <div>
-                        <h2 class="text-2xl font-bold">
+                        <h2 id="modal-title" class="text-2xl font-bold">
                             {$t("ai_generator.title")}
                         </h2>
                         <p class="opacity-80 text-sm">
@@ -268,6 +271,7 @@ Follow these strict guidelines to create the content:
                 <button
                     onclick={onClose}
                     class="p-2 hover:bg-white/10 rounded-full transition-colors"
+                    aria-label={$t("common.close") || "Close"}
                 >
                     <X size={24} />
                 </button>
@@ -382,13 +386,16 @@ Follow these strict guidelines to create the content:
                 <div
                     class="h-full flex flex-col items-center justify-center gap-6"
                     in:fade
+                    aria-live="polite"
                 >
                     <div class="relative">
                         <div
                             class="absolute inset-0 bg-[#8E24AA] rounded-full blur-xl opacity-20 animate-pulse"
+                            aria-hidden="true"
                         ></div>
                         <Loader2
                             class="w-16 h-16 text-[#8E24AA] animate-spin relative z-10"
+                            aria-hidden="true"
                         />
                     </div>
                     <h3 class="text-xl font-bold text-[#3C4043] dark:text-dark-text">
