@@ -154,5 +154,29 @@
         "subtitle": "Host perfect hands-on sessions with interactive step-by-step guides.",
         "facilitator_desc": "Design workshops and guide your participants in real-time.",
         "attendee_desc": "Learn at your own pace and request help when you're stuck."
+    },
+    "ai_generator": {
+        "title": "Create with Gemini AI",
+        "subtitle": "Turn your code into an interactive Codelab instantly",
+        "input_label": "Paste your source code here",
+        "google_search": "Google Search (Real-time data)",
+        "url_context": "URL Context",
+        "show_thinking": "Show AI Thinking",
+        "billing_notice": "Billing Notice:",
+        "billing_desc": "Google Search and URL Context tools may incur additional charges starting January 5, 2026.",
+        "placeholder": "// Paste your Rust, TypeScript, Python... code here\n// Gemini will explain it step-by-step.",
+        "api_key_required": "Please set your Gemini API Key in Settings first.",
+        "generate_button": "Generate Codelab",
+        "analyzing": "Analyzing your code...",
+        "analyzing_desc": "Gemini is crafting a step-by-step guide from your source code.",
+        "thinking_process": "AI Thinking Process",
+        "preview_title": "Preview",
+        "preview_subtitle": "Review the generated codelab structure",
+        "back": "Back",
+        "saving": "Saving...",
+        "create_button": "Create Codelab",
+        "error_parse": "Unexpected error parsing AI response. Please try again.",
+        "error_generate": "Generation failed",
+        "error_save": "Failed to save codelab."
     }
 }
