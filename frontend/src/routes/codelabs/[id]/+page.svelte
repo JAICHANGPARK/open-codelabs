@@ -10,6 +10,10 @@
         getWsUrl,
         getChatHistory,
         submitFeedback,
+        isFirebaseMode,
+        listenToWsReplacement,
+        sendChatMessage,
+        updateAttendeeProgress,
         type Codelab,
         type Step,
         type Attendee,
@@ -103,14 +107,18 @@
     );
 
     $effect(() => {
-        if (ws && ws.readyState === WebSocket.OPEN && attendee) {
-            ws.send(
-                JSON.stringify({
-                    type: "step_progress",
-                    attendee_id: attendee.id,
-                    step_number: currentStepIndex + 1,
-                }),
-            );
+        if (attendee) {
+            if (isFirebaseMode()) {
+                updateAttendeeProgress(id, attendee.id, currentStepIndex + 1);
+            } else if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(
+                    JSON.stringify({
+                        type: "step_progress",
+                        attendee_id: attendee.id,
+                        step_number: currentStepIndex + 1,
+                    }),
+                );
+            }
         }
     });
 
@@ -133,6 +141,7 @@
         };
     });
 
+    let wsCleanup: any;
     onMount(async () => {
         // Check for registration
         const savedAttendee = localStorage.getItem(`attendee_${id}`);
@@ -150,7 +159,7 @@
             if (currentStepIndex >= steps.length) currentStepIndex = 0;
 
             await loadChatHistory();
-            initWebSocket();
+            wsCleanup = initWebSocket();
         } catch (e) {
             console.error(e);
         } finally {
@@ -160,6 +169,7 @@
 
     $effect(() => {
         return () => {
+            if (wsCleanup && typeof wsCleanup === 'function') wsCleanup();
             if (ws) ws.close();
         };
     });
@@ -255,6 +265,40 @@
     }
 
     function initWebSocket() {
+        if (isFirebaseMode()) {
+            return listenToWsReplacement(id, (data) => {
+                if (data.type === "chat") {
+                    // Check if it's already in messages to avoid duplicates from history load
+                    if (messages.find(m => m.text === data.message && m.sender === data.sender_name)) return;
+
+                    messages = [
+                        ...messages,
+                        {
+                            sender: data.sender_name,
+                            text: data.message,
+                            time: data.created_at?.toDate ? data.created_at.toDate().toLocaleTimeString() : new Date().toLocaleTimeString(),
+                            self: data.sender_name === attendee?.name,
+                            type: "chat",
+                        },
+                    ];
+                } else if (data.type === "dm") {
+                    if (data.target_id !== attendee?.id) return;
+                    messages = [
+                        ...messages,
+                        {
+                            sender: `[DM] ${data.sender_name}`,
+                            text: data.message,
+                            time: new Date().toLocaleTimeString(),
+                            self: false,
+                            type: "dm",
+                        },
+                    ];
+                    if (chatTab !== "direct") hasNewDm = true;
+                    showChat = true;
+                }
+            });
+        }
+
         const wsUrl = getWsUrl(id);
         ws = new WebSocket(wsUrl);
 
@@ -325,8 +369,19 @@
     }
 
     function sendChat() {
-        if (!chatMessage.trim() || !ws || !attendee) return;
+        if (!chatMessage.trim() || !attendee) return;
 
+        if (isFirebaseMode()) {
+            sendChatMessage(id, {
+                sender: attendee.name,
+                message: chatMessage.trim(),
+                type: "chat",
+            });
+            chatMessage = "";
+            return;
+        }
+
+        if (!ws) return;
         const msg = {
             type: "chat",
             sender: attendee.name,
@@ -978,12 +1033,13 @@
         padding: 24px;
         margin: 24px 0;
         overflow-x: auto;
+        transition: background-color 0.2s;
     }
     :global(html.dark .markdown-body pre) {
         background-color: #1e1e1e;
         border-color: #3c4043;
     }
-    :global(.markdown-body code) {
+    :global(.markdown-body code:not(pre code)) {
         font-family: "Google Sans Mono", "JetBrains Mono", monospace;
         font-size: 0.9em;
         /* Inline code (not in pre) - subtle gray background */
@@ -992,7 +1048,7 @@
         border-radius: 6px;
         color: #24292e;
     }
-    :global(html.dark .markdown-body code) {
+    :global(html.dark .markdown-body code:not(pre code)) {
         background-color: rgba(232, 234, 237, 0.1);
         color: #e8eaed;
     }
@@ -1001,6 +1057,9 @@
         background-color: transparent;
         padding: 0;
         color: inherit;
+    }
+    :global(html.dark .markdown-body pre code) {
+        color: #e8eaed;
     }
     :global(.markdown-body h2) {
         font-size: 1.5rem;
