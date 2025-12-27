@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { login } from "$lib/api";
+    import { login, loginWithGoogle, isFirebaseMode } from "$lib/api";
     import { goto } from "$app/navigation";
-    import { Lock, User, LogIn, AlertCircle, Github, FileText as FileIcon } from "lucide-svelte";
+    import { Lock, User, LogIn, AlertCircle, Github, FileText as FileIcon, Chrome } from "lucide-svelte";
     import { fade, fly } from "svelte/transition";
     import { t } from "svelte-i18n";
 
@@ -23,6 +23,29 @@
             goto("/admin");
         } catch (e) {
             error = $t("login.error_credentials");
+        } finally {
+            loading = false;
+        }
+    }
+
+    async function handleGoogleLogin() {
+        loading = true;
+        error = "";
+        try {
+            const { token, user } = await loginWithGoogle();
+            localStorage.setItem("adminToken", token);
+            // Store user info if needed
+            localStorage.setItem("user", JSON.stringify({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL
+            }));
+            goto("/admin");
+        } catch (e: any) {
+            if (e.code !== 'auth/popup-closed-by-user') {
+                error = "Google login failed: " + e.message;
+            }
         } finally {
             loading = false;
         }
@@ -120,6 +143,26 @@
                         <LogIn size={20} />
                     {/if}
                 </button>
+
+                {#if isFirebaseMode()}
+                    <div class="relative py-2">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-[#F1F3F4] dark:border-dark-border"></div>
+                        </div>
+                        <div class="relative flex justify-center text-xs uppercase">
+                            <span class="bg-white dark:bg-dark-surface px-4 text-[#9AA0A6] font-bold">{$t("common.or") || "OR"}</span>
+                        </div>
+                    </div>
+
+                    <button
+                        onclick={handleGoogleLogin}
+                        disabled={loading}
+                        class="w-full bg-white dark:bg-dark-surface hover:bg-[#F8F9FA] dark:hover:bg-white/5 text-[#3C4043] dark:text-dark-text font-bold py-4 rounded-2xl border-2 border-[#F1F3F4] dark:border-dark-border shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 text-lg"
+                    >
+                        <Chrome size={20} class="text-[#4285F4]" />
+                        <span>Sign in with Google</span>
+                    </button>
+                {/if}
 
                 <div class="pt-2 text-center">
                     <button
