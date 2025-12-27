@@ -1,8 +1,8 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { getStorage } from "firebase/storage";
-import { getDatabase } from "firebase/database";
+import { getFirestore, type Firestore } from "firebase/firestore";
+import { getAuth, type Auth } from "firebase/auth";
+import { getStorage, type FirebaseStorage } from "firebase/storage";
+import { getDatabase, type Database } from "firebase/database";
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -14,15 +14,32 @@ const firebaseConfig = {
     databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
 };
 
-let app: FirebaseApp;
-if (!getApps().length) {
-    app = initializeApp(firebaseConfig);
-} else {
-    app = getApps()[0];
+// Check if Firebase config is actually provided
+const isConfigValid = !!import.meta.env.VITE_FIREBASE_API_KEY && 
+                     import.meta.env.VITE_FIREBASE_API_KEY !== "undefined" &&
+                     import.meta.env.VITE_FIREBASE_API_KEY !== "";
+
+let app: FirebaseApp | undefined;
+let db: Firestore | any;
+let auth: Auth | any;
+let storage: FirebaseStorage | any;
+let rtdb: Database | any;
+
+if (isConfigValid) {
+    try {
+        if (!getApps().length) {
+            app = initializeApp(firebaseConfig);
+        } else {
+            app = getApps()[0];
+        }
+        db = getFirestore(app);
+        auth = getAuth(app);
+        storage = getStorage(app);
+        rtdb = getDatabase(app);
+    } catch (e) {
+        console.error("Firebase initialization failed:", e);
+    }
 }
 
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-export const storage = getStorage(app);
-export const rtdb = getDatabase(app);
+export { app, db, auth, storage, rtdb };
 export default app;
