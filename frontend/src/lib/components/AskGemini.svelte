@@ -3,7 +3,7 @@
     import { browser } from "$app/environment";
     import { streamGeminiResponseRobust } from "$lib/gemini";
     import { X, Send, Key, Sparkles, Loader2 } from "lucide-svelte";
-    import { marked } from "marked";
+    import { attendeeMarked as marked } from "$lib/markdown";
     import DOMPurify from "dompurify";
     import { fly, fade } from "svelte/transition";
     import Prism from "prismjs";
@@ -21,10 +21,6 @@
     let inputRef = $state<HTMLTextAreaElement | null>(null);
 
     onMount(() => {
-        marked.use({
-            gfm: true,
-            breaks: true,
-        });
         const storedKey = localStorage.getItem("gemini_api_key");
         if (storedKey) {
             apiKey = storedKey;
