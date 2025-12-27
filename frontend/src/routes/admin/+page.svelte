@@ -120,13 +120,28 @@
     async function copyLink(id: string) {
         const url = `${window.location.origin}/codelabs/${id}`;
         try {
-            await navigator.clipboard.writeText(url);
+            // Check if clipboard API is available
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(url);
+            } else {
+                // Fallback for browsers without clipboard API
+                const input = document.createElement("input");
+                input.value = url;
+                input.style.position = "fixed";
+                input.style.opacity = "0";
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand("copy");
+                document.body.removeChild(input);
+            }
+
             copyTarget = id;
             setTimeout(() => {
                 if (copyTarget === id) copyTarget = null;
             }, 2000);
         } catch (err) {
             console.error("Failed to copy!", err);
+            alert("Failed to copy link. Please try again.");
         }
     }
 </script>
