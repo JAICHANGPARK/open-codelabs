@@ -224,7 +224,7 @@
                         const isSelf = msg.sender_name === attendee?.name;
                         return {
                             sender: isSelf
-                                ? `To: Facilitator`
+                                ? `To: ${$t("common.facilitator")}`
                                 : `[DM] ${msg.sender_name}`,
                             text: msg.message,
                             time: timeStr,
@@ -339,9 +339,9 @@
             await requestHelp(id, attendee.id, currentStepIndex + 1);
             helpSent = true;
             setTimeout(() => (helpSent = false), 30000); // Prevent spamming
-            alert("Help request sent to facilitator!");
+            alert($t("help.sent"));
         } catch (e) {
-            alert("Failed to send help request.");
+            alert($t("help.failed"));
         }
     }
 
@@ -359,10 +359,10 @@
         } catch (e: any) {
             console.error("Feedback error", e);
             if (e.message === "ALREADY_SUBMITTED") {
-                alert("You have already submitted feedback for this codelab.");
+                alert($t("feedback.already_submitted"));
                 feedbackSubmitted = true; // Show submitted state
             } else {
-                alert("Failed to submit feedback");
+                alert($t("feedback.failed_submit"));
             }
         } finally {
             feedbackSubmitting = false;
@@ -462,13 +462,13 @@
                 class="hidden sm:flex items-center gap-2 text-[#5F6368] text-[11px] font-bold uppercase tracking-wider"
             >
                 <Clock size={14} />
-                <span>{steps.length * 5} mins remaining</span>
+                <span>{$t("editor.mins_remaining", { values: { mins: steps.length * 5 } })}</span>
             </div>
 
             <button
                 onclick={() => (showChat = !showChat)}
                 class="p-2 hover:bg-[#F1F3F4] rounded-full relative transition-colors"
-                title="Open Chat"
+                title={$t("editor.public_chat")}
             >
                 <MessageSquare
                     size={20}
@@ -576,15 +576,12 @@
                             <CheckCircle2 size={48} />
                         </div>
                         <h1 class="text-4xl font-extrabold text-[#202124] mb-4">
-                            You're all done!
+                            {$t("feedback.done_title")}
                         </h1>
                         <p
                             class="text-[#5F6368] text-xl max-w-lg mb-12 leading-relaxed"
                         >
-                            Congratulations on completing <strong
-                                >{codelab?.title}</strong
-                            >. You've successfully finished all the steps in
-                            this workshop.
+                            {$t("feedback.done_desc", { values: { title: codelab?.title } })}
                         </p>
 
                         {#if !feedbackSubmitted}
@@ -594,14 +591,14 @@
                                 <h3
                                     class="font-bold text-lg mb-4 text-[#202124]"
                                 >
-                                    How was your experience?
+                                    {$t("feedback.experience_title")}
                                 </h3>
 
                                 <!-- ... (keep feedback form inputs) -->
                                 <div class="mb-4">
                                     <span
                                         class="block text-sm font-bold text-[#5F6368] mb-2"
-                                        >Satisfaction</span
+                                        >{$t("feedback.satisfaction")}</span
                                     >
                                     <div class="flex gap-2">
                                         {#each [1, 2, 3, 4, 5] as s}
@@ -630,7 +627,7 @@
                                     <label
                                         for="difficulty-slider"
                                         class="block text-sm font-bold text-[#5F6368] mb-2"
-                                        >Difficulty</label
+                                        >{$t("feedback.difficulty")}</label
                                     >
                                     <input
                                         id="difficulty-slider"
@@ -644,9 +641,9 @@
                                     <div
                                         class="flex justify-between text-xs text-[#9AA0A6] mt-2 font-medium"
                                     >
-                                        <span>Too Easy</span>
-                                        <span>Just Right</span>
-                                        <span>Too Hard</span>
+                                        <span>{$t("feedback.too_easy")}</span>
+                                        <span>{$t("feedback.just_right")}</span>
+                                        <span>{$t("feedback.too_hard")}</span>
                                     </div>
                                 </div>
 
@@ -654,14 +651,14 @@
                                     <label
                                         for="feedback-comments"
                                         class="block text-sm font-bold text-[#5F6368] mb-2"
-                                        >Comments (Optional)</label
+                                        >{$t("feedback.comments_optional")}</label
                                     >
                                     <textarea
                                         id="feedback-comments"
                                         bind:value={feedbackComment}
                                         class="w-full border border-[#DADCE0] rounded-lg p-3 text-sm focus:border-[#4285F4] outline-none transition-colors"
                                         rows="3"
-                                        placeholder="Any additional feedback?"
+                                        placeholder={$t("feedback.comments_placeholder")}
                                     ></textarea>
                                 </div>
 
@@ -671,8 +668,8 @@
                                     class="w-full bg-[#4285F4] text-white py-3 rounded-full font-bold hover:bg-[#1A73E8] disabled:opacity-50 transition-all shadow-md active:scale-95"
                                 >
                                     {feedbackSubmitting
-                                        ? "Submitting..."
-                                        : "Submit Feedback"}
+                                        ? $t("feedback.submitting")
+                                        : $t("feedback.submit")}
                                 </button>
                             </div>
                         {:else}
@@ -681,7 +678,7 @@
                             >
                                 <CheckCircle2 size={32} />
                                 <span class="font-bold text-lg"
-                                    >Thank you for your feedback!</span
+                                    >{$t("feedback.thanks")}</span
                                 >
                             </div>
                         {/if}
@@ -692,7 +689,7 @@
                                 class="bg-white border border-[#E8EAED] text-[#4285F4] hover:bg-[#F8F9FA] px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                             >
                                 <Users size={20} />
-                                View Live Status
+                                {$t("feedback.view_live_status")}
                             </a>
                         </div>
                     </div>
@@ -735,10 +732,10 @@
                     </div>
                     {#if helpSent}
                         <span class="pr-2 text-sm font-bold animate-pulse"
-                            >Help Requested ✓</span
+                            >{$t("help.requested")} ✓</span
                         >
                     {:else}
-                        <span class="pr-2 text-sm font-bold">Request Help</span>
+                        <span class="pr-2 text-sm font-bold">{$t("help.request")}</span>
                     {/if}
                 </button>
             {/if}
@@ -927,7 +924,7 @@
                     onclick={finishCodelab}
                     class="bg-[#1E8E3E] hover:bg-[#178037] text-white px-10 py-2.5 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                 >
-                    Finish
+                    {$t("editor.finish")}
                 </button>
             {:else if isFinished}
                 <div class="w-[100px]"></div>
@@ -936,7 +933,7 @@
                     onclick={nextStep}
                     class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-10 py-2.5 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                 >
-                    Next
+                    {$t("editor.next")}
                     <ChevronRight size={20} />
                 </button>
             {/if}
