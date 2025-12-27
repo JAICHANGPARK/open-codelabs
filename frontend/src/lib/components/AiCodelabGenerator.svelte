@@ -1,9 +1,12 @@
 <script lang="ts">
     import { fade, fly } from "svelte/transition";
-    import { X, Sparkles, Loader2, ArrowRight } from "lucide-svelte";
-    import { streamGeminiResponseRobust } from "$lib/gemini";
+    import { X, Sparkles, Loader2, ArrowRight, Info } from "lucide-svelte";
+    import {
+        streamGeminiStructuredOutput,
+        type GeminiStructuredConfig,
+    } from "$lib/gemini";
     import { createCodelab, saveSteps, type Codelab } from "$lib/api";
-    import { t } from "svelte-i18n";
+    import { t, locale } from "svelte-i18n";
 
     let { apiKey, onClose, onCodelabCreated } = $props<{
         apiKey: string;
@@ -15,6 +18,10 @@
     let loading = $state(false);
     let generationStep = $state<"input" | "generating" | "review">("input");
     let generatedContent = $state("");
+    let thinkingContent = $state("");
+    let showThinking = $state(true);
+    let useGoogleSearch = $state(false);
+    let useUrlContext = $state(false);
     let parsedData = $state<{
         title: string;
         description: string;
@@ -25,23 +32,10 @@
 You are an expert technical writer and developer advocate. 
 Your goal is to convert the provided source code into an engaging, step-by-step generic "Codelab" or tutorial.
 
-Return the response **strictly** as a valid JSON object with the following structure:
-{
-  "title": "Codelab Title",
-  "description": "Brief description of what will be built",
-  "steps": [
-    {
-      "title": "Step Title (e.g., Setting up the Project)",
-      "content": "Markdown content for this step. Explain the code clearly. Use code blocks."
-    }
-  ]
-}
-
 - Break down the code into logical steps.
 - Explain "why" we are doing this, not just "what".
-- Use generic clear markdown.
-- Do NOT include any markdown formatting outside the JSON structure (e.g., no \`\`\`json wrappers).
-- Ensure the JSON is valid.
+- Use clear markdown with code blocks.
+- Create comprehensive, educational content.
 `;
 
     async function handleGenerate() {
@@ -50,34 +44,98 @@ Return the response **strictly** as a valid JSON object with the following struc
         loading = true;
         generationStep = "generating";
         generatedContent = "";
+        thinkingContent = "";
         parsedData = null;
 
-        const prompt = `Here is the source code:\n\n${sourceCode}\n\nCreate a codelab from this.`;
+        // Detect user language
+        const userLanguage = $locale || "en";
+        const languageNames: Record<string, string> = {
+            ko: "Korean",
+            en: "English",
+            zh: "Chinese",
+            ja: "Japanese",
+        };
+        const targetLanguage = languageNames[userLanguage] || "English";
+
+        // Define JSON Schema for the codelab structure
+        const codelabSchema = {
+            type: "object",
+            properties: {
+                title: {
+                    type: "string",
+                    description: `The name of the codelab in ${targetLanguage}`,
+                },
+                description: {
+                    type: "string",
+                    description: `Brief description in ${targetLanguage} of what will be built`,
+                },
+                steps: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            title: {
+                                type: "string",
+                                description: `Step title in ${targetLanguage} (e.g., Setting up the Project)`,
+                            },
+                            content: {
+                                type: "string",
+                                description: `Markdown content in ${targetLanguage} for this step. Explain the code clearly. Use code blocks.`,
+                            },
+                        },
+                        required: ["title", "content"],
+                    },
+                },
+            },
+            required: ["title", "description", "steps"],
+        };
+
+        const prompt = `Create a codelab tutorial from the following source code. Write ALL content in ${targetLanguage}.\n\nSource code:\n${sourceCode}`;
+
+        // Build tools array
+        const tools: GeminiStructuredConfig["tools"] = [];
+        if (useGoogleSearch) {
+            tools.push({ googleSearch: {} });
+        }
+        if (useUrlContext) {
+            tools.push({ urlContext: {} });
+        }
 
         try {
-            const stream = streamGeminiResponseRobust(prompt, SYSTEM_PROMPT, {
-                apiKey,
-            });
+            const stream = streamGeminiStructuredOutput(
+                prompt,
+                SYSTEM_PROMPT,
+                codelabSchema,
+                {
+                    apiKey,
+                    model: "gemini-3-flash-preview",
+                    tools: tools.length > 0 ? tools : undefined,
+                    thinkingConfig: { thinkingLevel: "high" },
+                },
+            );
 
             for await (const chunk of stream) {
-                generatedContent += chunk;
+                if (chunk.thinking) {
+                    thinkingContent += chunk.thinking;
+                }
+                if (chunk.content) {
+                    generatedContent += chunk.content;
+                }
             }
 
-            // Attempt to parse JSON
-            // Clean up any markdown code blocks if the model still adds them
-            let jsonStr = generatedContent.trim();
-            if (jsonStr.startsWith("```json")) {
-                jsonStr = jsonStr.replace(/^```json/, "").replace(/```$/, "");
-            } else if (jsonStr.startsWith("```")) {
-                jsonStr = jsonStr.replace(/^```/, "").replace(/```$/, "");
-            }
-
+            // With structured outputs, we get guaranteed valid JSON
             try {
-                parsedData = JSON.parse(jsonStr);
+                parsedData = JSON.parse(generatedContent);
                 generationStep = "review";
             } catch (e) {
-                console.error("JSON Parse Error", e);
-                alert("Failed to parse AI response. Please try again.");
+                console.error(
+                    "JSON Parse Error (should not happen with structured outputs)",
+                    e,
+                );
+                console.error("Response:", generatedContent);
+                alert(
+                    "Unexpected error parsing AI response. Please try again.",
+                );
                 generationStep = "input";
             }
         } catch (e: any) {
@@ -160,6 +218,71 @@ Return the response **strictly** as a valid JSON object with the following struc
                         class="text-[#5F6368] font-bold text-lg"
                         >Paste your source code here</label
                     >
+
+                    <!-- Advanced Options -->
+                    <div class="flex flex-wrap gap-4 mb-4">
+                        <label
+                            class="flex items-center gap-2 cursor-pointer group"
+                        >
+                            <input
+                                type="checkbox"
+                                bind:checked={useGoogleSearch}
+                                class="w-5 h-5 rounded border-gray-300 text-[#8E24AA] focus:ring-[#8E24AA]"
+                            />
+                            <span
+                                class="text-sm font-medium text-[#5F6368] group-hover:text-[#8E24AA]"
+                            >
+                                Google Search (Real-time data)
+                            </span>
+                        </label>
+
+                        <label
+                            class="flex items-center gap-2 cursor-pointer group"
+                        >
+                            <input
+                                type="checkbox"
+                                bind:checked={useUrlContext}
+                                class="w-5 h-5 rounded border-gray-300 text-[#8E24AA] focus:ring-[#8E24AA]"
+                            />
+                            <span
+                                class="text-sm font-medium text-[#5F6368] group-hover:text-[#8E24AA]"
+                            >
+                                URL Context
+                            </span>
+                        </label>
+
+                        <label
+                            class="flex items-center gap-2 cursor-pointer group"
+                        >
+                            <input
+                                type="checkbox"
+                                bind:checked={showThinking}
+                                class="w-5 h-5 rounded border-gray-300 text-[#8E24AA] focus:ring-[#8E24AA]"
+                            />
+                            <span
+                                class="text-sm font-medium text-[#5F6368] group-hover:text-[#8E24AA]"
+                            >
+                                Show AI Thinking
+                            </span>
+                        </label>
+                    </div>
+
+                    {#if useGoogleSearch || useUrlContext}
+                        <div
+                            class="flex items-start gap-2 p-3 bg-[#FEF7E0] border border-[#F9AB00]/30 rounded-lg mb-4"
+                        >
+                            <Info
+                                size={16}
+                                class="text-[#F9AB00] mt-0.5 shrink-0"
+                            />
+                            <p class="text-xs text-[#3C4043]">
+                                <strong>Billing Notice:</strong> Google Search and
+                                URL Context tools may incur additional charges starting
+                                January 5, 2026.
+                            </p>
+                        </div>
+                    {/if}
+
                     <textarea
                         id="source-code"
                         bind:value={sourceCode}
@@ -213,6 +336,31 @@ Return the response **strictly** as a valid JSON object with the following struc
                         Gemini is crafting a step-by-step guide<br />from your
                         source code.
                     </p>
+
+                    <!-- Thinking Display -->
+                    {#if showThinking && thinkingContent}
+                        <div class="w-full max-w-2xl mt-6">
+                            <details
+                                open
+                                class="bg-white rounded-xl border border-[#E8EAED] shadow-sm overflow-hidden"
+                            >
+                                <summary
+                                    class="px-4 py-3 cursor-pointer hover:bg-[#F8F9FA] flex items-center gap-2 font-medium text-[#5F6368]"
+                                >
+                                    <Sparkles
+                                        size={16}
+                                        class="text-[#8E24AA]"
+                                    />
+                                    AI Thinking Process
+                                </summary>
+                                <div
+                                    class="px-4 py-3 text-xs text-[#5F6368] font-mono bg-[#F8F9FA] max-h-48 overflow-y-auto border-t border-[#E8EAED]"
+                                >
+                                    {thinkingContent}
+                                </div>
+                            </details>
+                        </div>
+                    {/if}
 
                     <!-- Preview of raw stream just to show activity -->
                     <div
