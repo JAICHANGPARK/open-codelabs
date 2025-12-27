@@ -36,7 +36,16 @@
         "placeholder_title": "예: SvelteKit 입문",
         "placeholder_desc": "무엇을 배게 되나요?",
         "placeholder_author": "이름",
-        "confirm_delete": "이 코드랩을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+        "confirm_delete": "이 코드랩을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+        "create_with_ai": "AI로 생성하기",
+        "share_link": "참가자 링크 복사",
+        "settings": {
+            "title": "설정",
+            "gemini_api_key": "Gemini API 키",
+            "api_key_placeholder": "Gemini API 키를 입력하세요",
+            "api_key_desc": "API 키는 브라우저에 암호화되어 로컬로 저장되며, 서버로 전송되지 않습니다.",
+            "save_success": "설정이 저장되었습니다."
+        }
     },
     "editor": {
         "edit": "편집",
@@ -53,7 +62,81 @@
         "attendee_access": "참가자 접속",
         "view_live": "라이브 보기",
         "public_chat": "전체 채팅",
-        "direct_messages": "1:1 메시지"
+        "direct_messages": "1:1 메시지",
+        "facilitator_mode": "퍼실리테이터 모드",
+        "back": "뒤로",
+        "next": "다음",
+        "finish": "종료",
+        "mins_remaining": "{mins}분 남음",
+        "chat_placeholder": "메시지를 입력하세요...",
+        "no_messages": "메시지가 없습니다.",
+        "no_messages_desc": "퍼실리테이터로부터 아직 메시지가 없습니다.",
+        "feedback_tab": "피드백",
+        "delete_step": "단계 삭제",
+        "copy_url": "URL 복사",
+        "placeholder_step_title": "단계 제목을 입력하세요",
+        "start_writing": "여기에 내용을 작성하세요...",
+        "export_zip": "ZIP으로 내보내기",
+        "help_requests": "도움 요청",
+        "no_help_requests": "도움 요청이 없습니다.",
+        "resolve": "해결",
+        "send_dm": "메시지 보내기",
+        "to_facilitator": "퍼실리테이터에게",
+        "from_facilitator": "퍼실리테이터",
+        "ai_menu": {
+            "explain": "AI 설명",
+            "summarize": "AI 요약",
+            "fix_grammar": "문법 교정",
+            "improve_writing": "문장 개선"
+        }
+    },
+    "attendee": {
+        "join_title": "코드랩 참여하기",
+        "join_desc": "정보를 입력하여 참여하세요",
+        "nickname": "이름 / 닉네임",
+        "nickname_placeholder": "예: 홍길동",
+        "unique_code": "고유 코드 (전화번호 뒷자리 등)",
+        "unique_code_placeholder": "예: 1234",
+        "start_learning": "학습 시작하기",
+        "processing": "처리 중...",
+        "error_fill_fields": "모든 필드를 채워주세요",
+        "error_duplicate_name": "이미 사용 중인 닉네임입니다. 다른 이름을 사용해주세요.",
+        "error_registration_failed": "등록에 실패했습니다. 연결을 확인하고 다시 시도해주세요.",
+        "return_home": "홈으로 돌아가기",
+        "codelab_not_found": "코드랩을 찾을 수 없습니다"
+    },
+    "feedback": {
+        "done_title": "모든 단계를 완료했습니다!",
+        "done_desc": "{title} 코드랩을 성공적으로 마쳤습니다.",
+        "experience_title": "학습 경험은 어떠셨나요?",
+        "satisfaction": "만족도",
+        "difficulty": "난이도",
+        "too_easy": "매우 쉬움",
+        "just_right": "적당함",
+        "too_hard": "매우 어려움",
+        "comments_optional": "의견 (선택 사항)",
+        "comments_placeholder": "추가적인 의견이 있으신가요?",
+        "submit": "피드백 제출",
+        "submitting": "제출 중...",
+        "thanks": "피드백을 주셔서 감사합니다!",
+        "already_submitted": "이미 피드백을 제출하셨습니다.",
+        "failed_submit": "피드백 제출에 실패했습니다.",
+        "view_live_status": "실시간 현황 보기"
+    },
+    "help": {
+        "request": "도움 요청",
+        "requested": "도움 요청됨",
+        "sent": "퍼실리테이터에게 도움을 요청했습니다!",
+        "failed": "도움 요청에 실패했습니다."
+    },
+    "live": {
+        "status_title": "실시간 현황",
+        "participants": "{count}명 참여 중",
+        "realtime_progress": "실시간 진행 상황",
+        "step_progress": "단계 {current} / {total}",
+        "you": "(나)",
+        "live_chat": "라이브 채팅",
+        "say_hello": "인사해 보세요..."
     },
     "login": {
         "title": "퍼실리테이터 로그인",
@@ -63,11 +146,13 @@
         "sign_in": "로그인",
         "connecting": "접속 중...",
         "error_fields": "모든 필드를 채워주세요",
-        "error_credentials": "아이디 또는 비밀번호가 잘못되었습니다"
+        "error_credentials": "아이디 또는 비밀번호가 잘못되었습니다",
+        "placeholder_id": "관리자 ID를 입력하세요",
+        "trouble": "로그인에 문제가 있나요?"
     },
     "home": {
-        "subtitle": "개발자를 위한 대화형 핸즈온 학습 플랫폼",
-        "facilitator_desc": "코드랩을 생성 및 관리하고, 참가자의 진행 상황을 추적하며 실시간으로 도움을 제공하세요.",
-        "attendee_desc": "진행 중인 세션에 참여하여 단계별 설명을 따라가며 새로운 기술을 배워보세요."
+        "subtitle": "대화형 단계별 가이드로 완벽한 핸즈온 세션을 운영하세요.",
+        "facilitator_desc": "워크숍을 설계하고 참가자들을 실시간으로 안내하세요.",
+        "attendee_desc": "자신의 속도에 맞춰 학습하고 막힐 땐 도움을 요청하세요."
     }
 }
