@@ -31,7 +31,7 @@
     // @ts-ignore
     import QRCode from "svelte-qrcode";
     import { adminMarked as marked } from "$lib/markdown";
-    import "highlight.js/styles/github-dark.css";
+    import "highlight.js/styles/github.css";
     import DOMPurify from "dompurify";
     // ... icons imports ...
     import {
@@ -1764,6 +1764,41 @@
         background-color: #1e1e1e;
         border-color: #3c4043;
     }
+    /* Dark mode syntax highlighting overrides */
+    :global(html.dark .hljs) {
+        color: #e8eaed;
+        background: transparent;
+    }
+    :global(html.dark .hljs-keyword),
+    :global(html.dark .hljs-selector-tag),
+    :global(html.dark .hljs-literal),
+    :global(html.dark .hljs-section),
+    :global(html.dark .hljs-link) {
+        color: #8ab4f8;
+    }
+    :global(html.dark .hljs-string),
+    :global(html.dark .hljs-title),
+    :global(html.dark .hljs-name),
+    :global(html.dark .hljs-type),
+    :global(html.dark .hljs-attribute),
+    :global(html.dark .hljs-symbol),
+    :global(html.dark .hljs-bullet),
+    :global(html.dark .hljs-built_in),
+    :global(html.dark .hljs-addition),
+    :global(html.dark .hljs-variable),
+    :global(html.dark .hljs-template-tag),
+    :global(html.dark .hljs-template-variable) {
+        color: #81c995;
+    }
+    :global(html.dark .hljs-comment),
+    :global(html.dark .hljs-quote),
+    :global(html.dark .hljs-deletion),
+    :global(html.dark .hljs-meta) {
+        color: #9aa0a6;
+    }
+    :global(html.dark .hljs-number) {
+        color: #ff8b7f;
+    }
     :global(.markdown-body code:not(pre code)) {
         font-family: inherit;
         color: #c5221f;
@@ -1780,8 +1815,36 @@
         font-family: "JetBrains Mono", "Google Sans Mono", monospace;
         background-color: transparent;
         padding: 0;
-        color: #202124;
+        color: #1a1a1a;
         font-size: 0.95rem;
+    }
+    /* Light mode syntax highlighting - darker colors for better contrast */
+    :global(.hljs) {
+        color: #1a1a1a;
+    }
+    :global(.hljs-comment) {
+        color: #6a737d;
+    }
+    :global(.hljs-keyword),
+    :global(.hljs-selector-tag),
+    :global(.hljs-meta-keyword),
+    :global(.hljs-doctag),
+    :global(.hljs-section) {
+        color: #d73a49;
+    }
+    :global(.hljs-string),
+    :global(.hljs-attr),
+    :global(.hljs-attribute) {
+        color: #032f62;
+    }
+    :global(.hljs-class .hljs-title),
+    :global(.hljs-title) {
+        color: #6f42c1;
+    }
+    :global(.hljs-number),
+    :global(.hljs-literal),
+    :global(.hljs-built_in) {
+        color: #005cc5;
     }
     :global(html.dark .markdown-body pre code) {
         color: #e8eaed;
