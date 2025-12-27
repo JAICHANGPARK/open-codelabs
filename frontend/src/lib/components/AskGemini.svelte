@@ -96,29 +96,29 @@
     ></div>
 
     <div
-        class="bg-white shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden border-l border-[#E8EAED] relative"
+        class="bg-white dark:bg-dark-surface shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden border-l border-[#E8EAED] dark:border-dark-border relative"
         transition:fly={{ x: 500, duration: 300 }}
     >
         <!-- Header -->
         <div
-            class="flex items-center justify-between p-4 border-b border-[#E8EAED] bg-[#F8F9FA]"
+            class="flex items-center justify-between p-4 border-b border-[#E8EAED] dark:border-dark-border bg-[#F8F9FA] dark:bg-dark-surface"
         >
             <div class="flex items-center gap-2 text-[#4285F4]">
                 <Sparkles size={20} />
-                <h2 class="font-bold text-[#202124]">Ask Gemini</h2>
+                <h2 class="font-bold text-[#202124] dark:text-dark-text">Ask Gemini</h2>
             </div>
             <div class="flex items-center gap-2">
                 {#if hasKey}
                     <button
                         onclick={clearKey}
-                        class="text-xs text-[#5F6368] hover:text-[#EA4335] font-medium underline px-2"
+                        class="text-xs text-[#5F6368] dark:text-dark-text-muted hover:text-[#EA4335] font-medium underline px-2"
                     >
                         Change Key
                     </button>
                 {/if}
                 <button
                     onclick={onClose}
-                    class="p-1 hover:bg-[#E8EAED] rounded-full text-[#5F6368]"
+                    class="p-1 hover:bg-[#E8EAED] dark:hover:bg-white/10 rounded-full text-[#5F6368] dark:text-dark-text-muted"
                 >
                     <X size={20} />
                 </button>
@@ -126,21 +126,21 @@
         </div>
 
         <!-- Content -->
-        <div class="flex-1 overflow-y-auto p-6 bg-white markdown-body">
+        <div class="flex-1 overflow-y-auto p-6 bg-white dark:bg-dark-bg markdown-body">
             {#if !hasKey}
                 <div
                     class="flex flex-col items-center justify-center h-full text-center space-y-6"
                 >
                     <div
-                        class="w-16 h-16 bg-[#E8F0FE] rounded-full flex items-center justify-center text-[#4285F4]"
+                        class="w-16 h-16 bg-[#E8F0FE] dark:bg-[#4285F4]/10 rounded-full flex items-center justify-center text-[#4285F4]"
                     >
                         <Key size={32} />
                     </div>
                     <div>
-                        <h3 class="font-bold text-lg text-[#202124]">
+                        <h3 class="font-bold text-lg text-[#202124] dark:text-dark-text">
                             Enter your Gemini API Key
                         </h3>
-                        <p class="text-[#5F6368] text-sm mt-1">
+                        <p class="text-[#5F6368] dark:text-dark-text-muted text-sm mt-1">
                             To use AI features, you need a valid Google Gemini
                             API key.
                         </p>
@@ -162,7 +162,7 @@
                             type="password"
                             bind:value={apiKey}
                             placeholder="Paste API Key here..."
-                            class="flex-1 border border-[#DADCE0] rounded-lg px-4 py-2 text-sm outline-none focus:border-[#4285F4]"
+                            class="flex-1 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-lg px-4 py-2 text-sm outline-none focus:border-[#4285F4] dark:text-dark-text"
                         />
                         <button
                             type="submit"
@@ -177,14 +177,14 @@
                 <div class="space-y-6">
                     {#if context}
                         <div
-                            class="bg-[#F8F9FA] border border-[#E8EAED] rounded-lg p-3"
+                            class="bg-[#F8F9FA] dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-lg p-3"
                         >
                             <span
-                                class="text-xs font-bold text-[#5F6368] uppercase mb-1 block"
+                                class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase mb-1 block"
                                 >Context Selected</span
                             >
                             <div
-                                class="text-xs text-[#3C4043] font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
+                                class="text-xs text-[#3C4043] dark:text-dark-text font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
                             >
                                 {context}
                             </div>
@@ -193,7 +193,7 @@
 
                     {#if response}
                         <div
-                            class="prose max-w-none text-[#3C4043] text-sm leading-relaxed gemini-response"
+                            class="prose max-w-none text-[#3C4043] dark:text-dark-text text-sm leading-relaxed gemini-response"
                         >
                             {@html renderedResponse}
                         </div>
@@ -201,7 +201,7 @@
 
                     {#if loading}
                         <div
-                            class="flex items-center gap-2 text-[#5F6368] text-sm animate-pulse"
+                            class="flex items-center gap-2 text-[#5F6368] dark:text-dark-text-muted text-sm animate-pulse"
                         >
                             <Loader2 size={16} class="animate-spin" />
                             Thinking...
@@ -213,7 +213,7 @@
 
         <!-- Footer Input -->
         {#if hasKey}
-            <div class="p-4 border-t border-[#E8EAED] bg-white">
+            <div class="p-4 border-t border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface">
                 <div class="relative flex items-end gap-2">
                     <textarea
                         bind:this={inputRef}
@@ -226,7 +226,7 @@
                         }}
                         placeholder="Ask a question about the code..."
                         rows="3"
-                        class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm resize-none"
+                        class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm resize-none dark:text-dark-text"
                     ></textarea>
                     <button
                         onclick={handleSubmit}
@@ -250,6 +250,11 @@
         overflow: auto;
         font-size: 85%;
         line-height: 1.45;
+        transition: background-color 0.2s;
+    }
+    :global(html.dark .gemini-response pre) {
+        background-color: #1e1e1e;
+        border: 1px solid #3c4043;
     }
     :global(.gemini-response code) {
         background-color: rgba(175, 184, 193, 0.2);
@@ -264,10 +269,16 @@
             Liberation Mono,
             monospace;
         font-size: 85%;
+        color: #24292e;
+    }
+    :global(html.dark .gemini-response code) {
+        background-color: rgba(232, 234, 237, 0.1);
+        color: #e8eaed;
     }
     :global(.gemini-response pre code) {
         background-color: transparent;
         padding: 0;
+        color: inherit;
     }
     :global(.gemini-response p) {
         margin-bottom: 1rem;
