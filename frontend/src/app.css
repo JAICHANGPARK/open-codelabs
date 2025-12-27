@@ -150,6 +150,14 @@
     @apply mb-6;
   }
 
+  .markdown-body strong {
+    @apply font-bold text-[#202124];
+  }
+
+  .dark .markdown-body strong {
+    @apply text-white;
+  }
+
   .markdown-body ul, 
   .markdown-body ol {
     @apply mb-6 pl-6 list-disc;
