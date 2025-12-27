@@ -1,5 +1,12 @@
 import { db, auth, storage } from './firebase';
 import { 
+    GoogleAuthProvider,
+    signInWithPopup,
+    signOut,
+    onAuthStateChanged,
+    type User
+} from "firebase/auth";
+import { 
     collection, 
     getDocs, 
     getDoc, 
@@ -88,6 +95,26 @@ export async function login(admin_id: string, admin_pw: string): Promise<{ token
         return { token: "firebase-token-mock" };
     }
     throw new Error('Invalid credentials');
+}
+
+export async function loginWithGoogle(): Promise<{ token: string, user: User }> {
+    const provider = new GoogleAuthProvider();
+    try {
+        const result = await signInWithPopup(auth, provider);
+        const token = await result.user.getIdToken();
+        return { token, user: result.user };
+    } catch (error) {
+        console.error("Google Login Error:", error);
+        throw error;
+    }
+}
+
+export async function logout(): Promise<void> {
+    await signOut(auth);
+}
+
+export function onAuthChange(callback: (user: User | null) => void) {
+    return onAuthStateChanged(auth, callback);
 }
 
 export async function registerAttendee(codelabId: string, name: string, code: string): Promise<Attendee> {
