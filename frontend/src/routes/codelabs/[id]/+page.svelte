@@ -34,6 +34,8 @@
         Star,
         Users,
         Sparkles,
+        Github,
+        FileText,
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
     import AskGemini from "$lib/components/AskGemini.svelte";
@@ -425,19 +427,19 @@
 </script>
 
 <div
-    class="min-h-screen bg-white flex flex-col font-sans text-[#3C4043] selection:bg-[#4285F4]/20 selection:text-[#4285F4]"
+    class="min-h-screen bg-white dark:bg-dark-bg flex flex-col font-sans text-[#3C4043] dark:text-dark-text selection:bg-[#4285F4]/20 selection:text-[#4285F4]"
 >
     <!-- Header -->
     <header
-        class="h-16 border-b border-[#E8EAED] flex items-center justify-between px-4 lg:px-8 sticky top-0 bg-white z-30"
+        class="h-16 border-b border-[#E8EAED] dark:border-dark-border flex items-center justify-between px-4 lg:px-8 sticky top-0 bg-white dark:bg-dark-surface z-30 transition-colors"
     >
         <div class="flex items-center gap-4">
             <button
                 onclick={() => (showSidebar = !showSidebar)}
-                class="p-2 hover:bg-[#F1F3F4] rounded-full lg:hidden transition-colors"
+                class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/10 rounded-full lg:hidden transition-colors"
                 aria-label="Toggle sidebar"
             >
-                {#if showSidebar}<X size={20} />{:else}<Menu size={20} />{/if}
+                {#if showSidebar}<X size={20} class="dark:text-dark-text" />{:else}<Menu size={20} class="dark:text-dark-text" />{/if}
             </button>
             <div class="flex items-center gap-3">
                 <div
@@ -445,44 +447,67 @@
                 >
                     OC
                 </div>
-                <h1 class="font-bold text-lg hidden sm:block text-[#5F6368]">
+                <h1 class="font-bold text-lg hidden sm:block text-[#5F6368] dark:text-dark-text-muted">
                     Open-Codelabs
                 </h1>
             </div>
         </div>
 
         <div class="flex-1 max-w-2xl px-8 text-center hidden md:block">
-            <h2 class="font-medium text-[#3C4043] truncate text-base">
+            <h2 class="font-medium text-[#3C4043] dark:text-dark-text truncate text-base">
                 {codelab?.title || "Loading..."}
             </h2>
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2 sm:gap-4">
             <div
-                class="hidden sm:flex items-center gap-2 text-[#5F6368] text-[11px] font-bold uppercase tracking-wider"
+                class="hidden sm:flex items-center gap-2 text-[#5F6368] dark:text-dark-text-muted text-[11px] font-bold uppercase tracking-wider"
             >
                 <Clock size={14} />
                 <span>{$t("editor.mins_remaining", { values: { mins: steps.length * 5 } })}</span>
             </div>
 
+            <div class="h-6 w-px bg-[#E8EAED] dark:bg-dark-border hidden md:block mx-1"></div>
+
+            <div class="hidden md:flex items-center gap-1">
+                <a
+                    href="https://github.com/JAICHANGPARK/open-codelabs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
+                    title="GitHub Repository"
+                >
+                    <Github size={18} />
+                </a>
+                <a
+                    href="https://jaichangpark.github.io/open-codelabs/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
+                    title="Documentation"
+                >
+                    <FileText size={18} />
+                </a>
+            </div>
+
             <button
                 onclick={() => (showChat = !showChat)}
-                class="p-2 hover:bg-[#F1F3F4] rounded-full relative transition-colors"
+                class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/10 rounded-full relative transition-colors"
                 title={$t("editor.public_chat")}
             >
                 <MessageSquare
                     size={20}
-                    class={showChat ? "text-[#4285F4]" : "text-[#5F6368]"}
+                    class={showChat ? "text-[#4285F4]" : "text-[#5F6368] dark:text-dark-text-muted"}
                 />
                 {#if !showChat && messages.length > 0}
                     <span
-                        class="absolute top-1 right-1 w-2 h-2 bg-[#EA4335] rounded-full border-2 border-white"
+                        class="absolute top-1 right-1 w-2 h-2 bg-[#EA4335] rounded-full border-2 border-white dark:border-dark-surface"
                     ></span>
                 {/if}
             </button>
 
             <div
-                class="w-8 h-8 rounded-full bg-[#E8EAED] flex items-center justify-center text-[#5F6368] border-2 border-white shadow-sm"
+                class="w-8 h-8 rounded-full bg-[#E8EAED] dark:bg-white/10 flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted border-2 border-white dark:border-dark-surface shadow-sm"
                 title={attendee?.name}
             >
                 <User size={18} />
@@ -491,7 +516,7 @@
     </header>
 
     <!-- Progress Bar -->
-    <div class="h-1 bg-[#F1F3F4] transition-all sticky top-16 z-30">
+    <div class="h-1 bg-[#F1F3F4] dark:bg-dark-border transition-all sticky top-16 z-30">
         <div
             class="h-full bg-[#4285F4] transition-all duration-700 ease-out"
             style="width: {isFinished ? 100 : progressPercent}%"
@@ -503,7 +528,7 @@
         <aside
             class="fixed inset-y-0 left-0 transform {showSidebar
                 ? 'translate-x-0'
-                : '-translate-x-full'} lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-20 w-72 bg-[#F8F9FA] border-r border-[#E8EAED] overflow-y-auto pt-16 lg:pt-0"
+                : '-translate-x-full'} lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-20 w-72 bg-[#F8F9FA] dark:bg-dark-surface border-r border-[#E8EAED] dark:border-dark-border overflow-y-auto pt-16 lg:pt-0"
         >
             <nav class="p-4 space-y-1">
                 {#each steps as step, i}
@@ -514,14 +539,14 @@
                         }}
                         class="w-full text-left p-3 rounded-lg flex items-start gap-4 transition-all duration-200 {currentStepIndex ===
                             i && !isFinished
-                            ? 'bg-[#E8F0FE] text-[#1967D2]'
-                            : 'hover:bg-[#F1F3F4] text-[#5F6368]'}"
+                            ? 'bg-[#E8F0FE] dark:bg-[#4285F4]/20 text-[#1967D2] dark:text-[#4285F4]'
+                            : 'hover:bg-[#F1F3F4] dark:hover:bg-white/5 text-[#5F6368] dark:text-dark-text-muted'}"
                     >
                         <span
                             class="text-xs font-bold mt-1 w-5 h-5 rounded-full flex items-center justify-center shrink-0 {currentStepIndex ===
                                 i && !isFinished
                                 ? 'bg-[#4285F4] text-white'
-                                : 'bg-[#E8EAED] text-[#5F6368]'}">{i + 1}</span
+                                : 'bg-[#E8EAED] dark:bg-white/10 text-[#5F6368] dark:text-dark-text-muted'}">{i + 1}</span
                         >
                         <span class="text-sm font-medium leading-tight pt-1"
                             >{step.title}</span
@@ -535,32 +560,32 @@
             <button
                 onclick={() => (showSidebar = false)}
                 aria-label="Close sidebar"
-                class="fixed inset-0 bg-[#3C4043]/40 backdrop-blur-[2px] z-10 lg:hidden transition-opacity"
+                class="fixed inset-0 bg-[#3C4043]/40 dark:bg-black/60 backdrop-blur-[2px] z-10 lg:hidden transition-opacity"
                 transition:fade={{ duration: 200 }}
             ></button>
         {/if}
 
         <!-- Content Area -->
-        <main class="flex-1 overflow-y-auto p-6 lg:p-12 bg-white relative">
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-12 bg-white dark:bg-dark-bg relative transition-colors">
             <div class="max-w-3xl mx-auto min-h-full">
                 {#if loading}
                     <div class="space-y-6" in:fade>
                         <div
-                            class="h-12 bg-[#F1F3F4] rounded-md w-3/4 animate-pulse"
+                            class="h-12 bg-[#F1F3F4] dark:bg-dark-surface rounded-md w-3/4 animate-pulse"
                         ></div>
                         <div class="space-y-3">
                             <div
-                                class="h-4 bg-[#F1F3F4] rounded w-full animate-pulse"
+                                class="h-4 bg-[#F1F3F4] dark:bg-dark-surface rounded w-full animate-pulse"
                             ></div>
                             <div
-                                class="h-4 bg-[#F1F3F4] rounded w-5/6 animate-pulse"
+                                class="h-4 bg-[#F1F3F4] dark:bg-dark-surface rounded w-5/6 animate-pulse"
                             ></div>
                             <div
-                                class="h-4 bg-[#F1F3F4] rounded w-4/5 animate-pulse"
+                                class="h-4 bg-[#F1F3F4] dark:bg-dark-surface rounded w-4/5 animate-pulse"
                             ></div>
                         </div>
                         <div
-                            class="h-80 bg-[#F8F9FA] rounded-xl w-full mt-10 animate-pulse"
+                            class="h-80 bg-[#F8F9FA] dark:bg-dark-surface rounded-xl w-full mt-10 animate-pulse"
                         ></div>
                     </div>
                 {:else if isFinished}
@@ -571,25 +596,25 @@
                     >
                         <!-- ... (keep check circle and text) -->
                         <div
-                            class="w-24 h-24 bg-[#E6F4EA] text-[#1E8E3E] rounded-full flex items-center justify-center mb-8"
+                            class="w-24 h-24 bg-[#E6F4EA] dark:bg-green-500/10 text-[#1E8E3E] dark:text-green-400 rounded-full flex items-center justify-center mb-8"
                         >
                             <CheckCircle2 size={48} />
                         </div>
-                        <h1 class="text-4xl font-extrabold text-[#202124] mb-4">
+                        <h1 class="text-4xl font-extrabold text-[#202124] dark:text-dark-text mb-4">
                             {$t("feedback.done_title")}
                         </h1>
                         <p
-                            class="text-[#5F6368] text-xl max-w-lg mb-12 leading-relaxed"
+                            class="text-[#5F6368] dark:text-dark-text-muted text-xl max-w-lg mb-12 leading-relaxed"
                         >
                             {$t("feedback.done_desc", { values: { title: codelab?.title } })}
                         </p>
 
                         {#if !feedbackSubmitted}
                             <div
-                                class="max-w-md w-full bg-white border border-[#E8EAED] rounded-xl p-6 mb-8 text-left shadow-sm"
+                                class="max-w-md w-full bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-6 mb-8 text-left shadow-sm transition-colors"
                             >
                                 <h3
-                                    class="font-bold text-lg mb-4 text-[#202124]"
+                                    class="font-bold text-lg mb-4 text-[#202124] dark:text-dark-text"
                                 >
                                     {$t("feedback.experience_title")}
                                 </h3>
@@ -597,7 +622,7 @@
                                 <!-- ... (keep feedback form inputs) -->
                                 <div class="mb-4">
                                     <span
-                                        class="block text-sm font-bold text-[#5F6368] mb-2"
+                                        class="block text-sm font-bold text-[#5F6368] dark:text-dark-text-muted mb-2"
                                         >{$t("feedback.satisfaction")}</span
                                     >
                                     <div class="flex gap-2">
@@ -605,7 +630,7 @@
                                             <button
                                                 onclick={() =>
                                                     (feedbackSatisfaction = s)}
-                                                class="p-1 rounded-lg transition-all hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                                class="p-1 rounded-lg transition-all hover:bg-yellow-50 dark:hover:bg-yellow-500/10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                                             >
                                                 <Star
                                                     size={28}
@@ -616,7 +641,7 @@
                                                     class={feedbackSatisfaction >=
                                                     s
                                                         ? "text-[#F9AB00]"
-                                                        : "text-[#BDC1C6]"}
+                                                        : "text-[#BDC1C6] dark:text-dark-text-muted/30"}
                                                 />
                                             </button>
                                         {/each}
@@ -626,7 +651,7 @@
                                 <div class="mb-4">
                                     <label
                                         for="difficulty-slider"
-                                        class="block text-sm font-bold text-[#5F6368] mb-2"
+                                        class="block text-sm font-bold text-[#5F6368] dark:text-dark-text-muted mb-2"
                                         >{$t("feedback.difficulty")}</label
                                     >
                                     <input
@@ -636,10 +661,10 @@
                                         max="5"
                                         step="1"
                                         bind:value={feedbackDifficulty}
-                                        class="w-full accent-[#4285F4] h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+                                        class="w-full accent-[#4285F4] h-2 bg-gray-200 dark:bg-dark-border rounded-lg appearance-none cursor-pointer"
                                     />
                                     <div
-                                        class="flex justify-between text-xs text-[#9AA0A6] mt-2 font-medium"
+                                        class="flex justify-between text-xs text-[#9AA0A6] dark:text-dark-text-muted mt-2 font-medium"
                                     >
                                         <span>{$t("feedback.too_easy")}</span>
                                         <span>{$t("feedback.just_right")}</span>
@@ -650,13 +675,13 @@
                                 <div class="mb-6">
                                     <label
                                         for="feedback-comments"
-                                        class="block text-sm font-bold text-[#5F6368] mb-2"
+                                        class="block text-sm font-bold text-[#5F6368] dark:text-dark-text-muted mb-2"
                                         >{$t("feedback.comments_optional")}</label
                                     >
                                     <textarea
                                         id="feedback-comments"
                                         bind:value={feedbackComment}
-                                        class="w-full border border-[#DADCE0] rounded-lg p-3 text-sm focus:border-[#4285F4] outline-none transition-colors"
+                                        class="w-full bg-transparent border border-[#DADCE0] dark:border-dark-border rounded-lg p-3 text-sm text-[#3C4043] dark:text-dark-text focus:border-[#4285F4] outline-none transition-colors"
                                         rows="3"
                                         placeholder={$t("feedback.comments_placeholder")}
                                     ></textarea>
@@ -674,7 +699,7 @@
                             </div>
                         {:else}
                             <div
-                                class="bg-[#E6F4EA] text-[#137333] px-8 py-6 rounded-2xl mb-12 flex flex-col items-center gap-2 border border-[#CEEAD6]"
+                                class="bg-[#E6F4EA] dark:bg-green-500/10 text-[#137333] dark:text-green-400 px-8 py-6 rounded-2xl mb-12 flex flex-col items-center gap-2 border border-[#CEEAD6] dark:border-green-500/20"
                             >
                                 <CheckCircle2 size={32} />
                                 <span class="font-bold text-lg"
@@ -686,7 +711,7 @@
                         <div class="flex flex-wrap justify-center gap-4">
                             <a
                                 href="/codelabs/{id}/live"
-                                class="bg-white border border-[#E8EAED] text-[#4285F4] hover:bg-[#F8F9FA] px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
+                                class="bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border text-[#4285F4] hover:bg-[#F8F9FA] dark:hover:bg-white/5 px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                             >
                                 <Users size={20} />
                                 {$t("feedback.view_live_status")}
@@ -695,11 +720,11 @@
                     </div>
                 {:else if currentStep}
                     <div
-                        class="prose max-w-none text-[#3C4043]"
+                        class="prose max-w-none text-[#3C4043] dark:text-dark-text"
                         in:fade={{ duration: 300 }}
                     >
                         <h1
-                            class="text-[32px] leading-tight font-bold text-[#202124] border-b border-[#F1F3F4] pb-6 mb-10"
+                            class="text-[32px] leading-tight font-bold text-[#202124] dark:text-dark-text border-b border-[#F1F3F4] dark:border-dark-border pb-6 mb-10 transition-colors"
                         >
                             {currentStepIndex + 1}. {currentStep.title}
                         </h1>
@@ -715,27 +740,27 @@
                 <button
                     onclick={handleRequestHelp}
                     disabled={helpSent}
-                    class="fixed bottom-24 right-8 p-4 border rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 group z-20 flex items-center gap-2 {helpSent
+                    class="fixed bottom-24 right-4 sm:right-8 p-3 sm:p-4 border rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 group z-20 flex items-center gap-2 {helpSent
                         ? 'bg-[#34A853] border-[#34A853] text-white cursor-not-allowed'
-                        : 'bg-white border-[#E8EAED] text-[#EA4335] hover:border-[#EA4335]'}"
+                        : 'bg-white dark:bg-dark-surface border-[#E8EAED] dark:border-dark-border text-[#EA4335] hover:border-[#EA4335]'}"
                 >
                     <div
                         class="p-2 rounded-full transition-colors {helpSent
                             ? 'bg-white/20'
-                            : 'bg-[#EA4335]/10 group-hover:bg-[#EA4335] group-hover:text-white'}"
+                            : 'bg-[#EA4335]/10 dark:bg-[#EA4335]/20 group-hover:bg-[#EA4335] group-hover:text-white'}"
                     >
                         {#if helpSent}
-                            <Check size={24} />
+                            <Check size={20} class="sm:w-6 sm:h-6" />
                         {:else}
-                            <HelpCircle size={24} />
+                            <HelpCircle size={20} class="sm:w-6 sm:h-6" />
                         {/if}
                     </div>
                     {#if helpSent}
-                        <span class="pr-2 text-sm font-bold animate-pulse"
+                        <span class="pr-1 sm:pr-2 text-xs sm:text-sm font-bold animate-pulse"
                             >{$t("help.requested")} ✓</span
                         >
                     {:else}
-                        <span class="pr-2 text-sm font-bold">{$t("help.request")}</span>
+                        <span class="pr-1 sm:pr-2 text-xs sm:text-sm font-bold">{$t("help.request")}</span>
                     {/if}
                 </button>
             {/if}
@@ -744,14 +769,14 @@
             {#if showGeminiButton}
                 <button
                     style="top: {geminiButtonPos.y}px; left: {geminiButtonPos.x}px;"
-                    class="fixed z-50 bg-white text-[#4285F4] px-4 py-2 rounded-lg shadow-xl border border-[#D2E3FC] flex items-center gap-2 font-bold text-sm animate-in fade-in zoom-in-95 duration-200 hover:bg-[#F8F9FA] active:scale-95 cursor-pointer"
+                    class="fixed z-50 bg-white dark:bg-dark-surface text-[#4285F4] px-4 py-2 rounded-lg shadow-xl border border-[#D2E3FC] dark:border-[#4285F4]/30 flex items-center gap-2 font-bold text-sm animate-in fade-in zoom-in-95 duration-200 hover:bg-[#F8F9FA] dark:hover:bg-white/10 active:scale-95 cursor-pointer"
                     onmousedown={(e) => {
                         e.preventDefault();
                         showGeminiModal = true;
                         showGeminiButton = false;
                     }}
                 >
-                    <Sparkles size={16} />
+                    <span class="hidden sm:inline"><Sparkles size={16} /></span>
                     Ask Gemini
                 </button>
             {/if}
@@ -768,12 +793,12 @@
         {#if showChat}
             <aside
                 transition:fly={{ x: 320, duration: 300 }}
-                class="fixed inset-y-0 right-0 z-40 w-80 bg-white border-l border-[#E8EAED] flex flex-col pt-16 lg:pt-0"
+                class="fixed inset-y-0 right-0 z-40 w-full sm:w-80 bg-white dark:bg-dark-surface border-l border-[#E8EAED] dark:border-dark-border flex flex-col pt-16 lg:pt-0"
             >
-                <div class="border-b border-[#E8EAED] bg-[#F8F9FA]">
+                <div class="border-b border-[#E8EAED] dark:border-dark-border bg-[#F8F9FA] dark:bg-white/5">
                     <div class="p-4 flex items-center justify-between pb-2">
                         <h3
-                            class="font-bold text-[#3C4043] flex items-center gap-2"
+                            class="font-bold text-[#3C4043] dark:text-dark-text flex items-center gap-2"
                         >
                             <MessageSquare size={18} />
                             {chatTab === "public"
@@ -782,7 +807,7 @@
                         </h3>
                         <button
                             onclick={() => (showChat = false)}
-                            class="p-1 hover:bg-[#E8EAED] rounded-full"
+                            class="p-1 hover:bg-[#E8EAED] dark:hover:bg-white/10 rounded-full dark:text-dark-text"
                         >
                             <X size={18} />
                         </button>
@@ -794,7 +819,7 @@
                             class="pb-2 text-sm font-bold transition-all relative {chatTab ===
                             'public'
                                 ? 'text-[#4285F4] border-b-2 border-[#4285F4]'
-                                : 'text-[#5F6368] hover:text-[#3C4043]'}"
+                                : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#3C4043] dark:hover:text-dark-text'}"
                         >
                             {$t("editor.public_chat")}
                         </button>
@@ -806,12 +831,12 @@
                             class="pb-2 text-sm font-bold transition-all relative {chatTab ===
                             'direct'
                                 ? 'text-[#4285F4] border-b-2 border-[#4285F4]'
-                                : 'text-[#5F6368] hover:text-[#3C4043]'}"
+                                : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#3C4043] dark:hover:text-dark-text'}"
                         >
                             {$t("editor.direct_messages")}
                             {#if hasNewDm}
                                 <span
-                                    class="absolute -top-1 -right-2 w-2 h-2 bg-red-500 rounded-full border border-white"
+                                    class="absolute -top-1 -right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-dark-surface"
                                 ></span>
                             {/if}
                         </button>
@@ -820,7 +845,7 @@
 
                 <div
                     id="chat-messages"
-                    class="flex-1 overflow-y-auto p-4 space-y-4"
+                    class="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-dark-bg/50"
                 >
                     {#each filteredMessages as msg}
                         <div
@@ -830,13 +855,13 @@
                         >
                             {#if chatTab === "public"}
                                 <span
-                                    class="text-[10px] text-[#5F6368] font-bold mb-1 ml-1 mr-1 uppercase tracking-tight"
+                                    class="text-[10px] text-[#5F6368] dark:text-dark-text-muted font-bold mb-1 ml-1 mr-1 uppercase tracking-tight"
                                 >
                                     {msg.sender} &bull; {msg.time}
                                 </span>
                             {:else}
                                 <span
-                                    class="text-[10px] text-[#5F6368] font-bold mb-1 ml-1 mr-1 uppercase tracking-tight {msg.self
+                                    class="text-[10px] text-[#5F6368] dark:text-dark-text-muted font-bold mb-1 ml-1 mr-1 uppercase tracking-tight {msg.self
                                         ? ''
                                         : 'text-[#D93025]'}"
                                 >
@@ -847,8 +872,8 @@
                                 class="max-w-[90%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm {msg.self
                                     ? 'bg-[#4285F4] text-white rounded-tr-none'
                                     : msg.type === 'dm'
-                                      ? 'bg-[#FEEFC3] text-[#3C4043] rounded-tl-none border border-[#FAD2CF]'
-                                      : 'bg-[#F1F3F4] text-[#3C4043] rounded-tl-none'}"
+                                      ? 'bg-[#FEEFC3] dark:bg-yellow-500/20 text-[#3C4043] dark:text-yellow-200 rounded-tl-none border border-[#FAD2CF] dark:border-yellow-500/30'
+                                      : 'bg-[#F1F3F4] dark:bg-dark-surface text-[#3C4043] dark:text-dark-text rounded-tl-none border border-transparent dark:border-dark-border'}"
                             >
                                 {msg.text}
                             </div>
@@ -856,10 +881,10 @@
                     {/each}
                     {#if filteredMessages.length === 0}
                         <div
-                            class="flex flex-col items-center justify-center h-full text-center text-[#9AA0A6] px-6"
+                            class="flex flex-col items-center justify-center h-full text-center text-[#9AA0A6] dark:text-dark-text-muted px-6"
                         >
                             <div
-                                class="w-12 h-12 bg-[#F1F3F4] rounded-full flex items-center justify-center mb-4"
+                                class="w-12 h-12 bg-[#F1F3F4] dark:bg-white/5 rounded-full flex items-center justify-center mb-4"
                             >
                                 <MessageSquare size={20} />
                             </div>
@@ -872,7 +897,7 @@
                     {/if}
                 </div>
 
-                <div class="p-4 border-t border-[#E8EAED] bg-white">
+                <div class="p-4 border-t border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface">
                     <form
                         onsubmit={(e) => {
                             e.preventDefault();
@@ -884,7 +909,7 @@
                             type="text"
                             bind:value={chatMessage}
                             placeholder="Type a message..."
-                            class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm"
+                            class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm text-[#3C4043] dark:text-dark-text"
                         />
                         <button
                             type="submit"
@@ -900,40 +925,42 @@
 
     <!-- Footer Navigation -->
     <footer
-        class="h-20 border-t border-[#E8EAED] bg-white flex items-center justify-center px-8 sticky bottom-0 z-30"
+        class="h-20 border-t border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface flex items-center justify-center px-4 sm:px-8 sticky bottom-0 z-30 transition-colors"
     >
         <div class="max-w-3xl w-full flex justify-between items-center">
             <button
                 onclick={prevStep}
                 disabled={currentStepIndex === 0 || isFinished}
-                class="flex items-center gap-2 px-6 py-2 rounded-full font-bold transition-all {currentStepIndex ===
+                class="flex items-center gap-1 sm:gap-2 px-3 sm:px-6 py-2 rounded-full font-bold transition-all {currentStepIndex ===
                     0 || isFinished
-                    ? 'text-[#DADCE0] cursor-not-allowed'
-                    : 'text-[#5F6368] hover:bg-[#F1F3F4]'}"
+                    ? 'text-[#DADCE0] dark:text-dark-text-muted/30 cursor-not-allowed'
+                    : 'text-[#5F6368] dark:text-dark-text-muted hover:bg-[#F1F3F4] dark:hover:bg-white/10'}"
             >
                 <ChevronLeft size={20} />
-                Back
+                <span class="hidden xs:inline">Back</span>
             </button>
             <div
-                class="flex items-center text-sm font-bold text-[#5F6368] bg-[#F1F3F4] px-4 py-1.5 rounded-full"
+                class="flex items-center text-xs sm:text-sm font-bold text-[#5F6368] dark:text-dark-text-muted bg-[#F1F3F4] dark:bg-white/10 px-3 sm:px-4 py-1.5 rounded-full"
             >
                 {isFinished ? steps.length : currentStepIndex + 1} / {steps.length}
             </div>
             {#if currentStepIndex === steps.length - 1 && !isFinished}
                 <button
                     onclick={finishCodelab}
-                    class="bg-[#1E8E3E] hover:bg-[#178037] text-white px-10 py-2.5 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
+                    class="bg-[#1E8E3E] hover:bg-[#178037] text-white px-6 sm:px-10 py-2.5 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                 >
-                    {$t("editor.finish")}
+                    <span class="hidden xs:inline">{$t("editor.finish")}</span>
+                    <span class="xs:hidden">Finish</span>
                 </button>
             {:else if isFinished}
-                <div class="w-[100px]"></div>
+                <div class="w-[60px] sm:w-[100px]"></div>
             {:else}
                 <button
                     onclick={nextStep}
-                    class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-10 py-2.5 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
+                    class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-6 sm:px-10 py-2.5 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                 >
-                    {$t("editor.next")}
+                    <span class="hidden xs:inline">{$t("editor.next")}</span>
+                    <span class="xs:hidden">Next</span>
                     <ChevronRight size={20} />
                 </button>
             {/if}
@@ -946,6 +973,9 @@
         font-size: 1.125rem;
         line-height: 1.75;
     }
+    :global(html.dark .markdown-body) {
+        color: #e8eaed;
+    }
     :global(.markdown-body pre) {
         background-color: #f8f9fa;
         border: 1px solid #e8eaed;
@@ -953,6 +983,10 @@
         padding: 24px;
         margin: 24px 0;
         overflow-x: auto;
+    }
+    :global(html.dark .markdown-body pre) {
+        background-color: #1e1e1e;
+        border-color: #3c4043;
     }
     :global(.markdown-body code) {
         font-family: "Google Sans Mono", "JetBrains Mono", monospace;
@@ -962,6 +996,10 @@
         padding: 0.2em 0.4em;
         border-radius: 6px;
         color: #24292e;
+    }
+    :global(html.dark .markdown-body code) {
+        background-color: rgba(232, 234, 237, 0.1);
+        color: #e8eaed;
     }
     :global(.markdown-body pre code) {
         /* Code in pre blocks - let Prism handle it */
@@ -977,6 +1015,10 @@
         margin-bottom: 1.5rem;
         border-bottom: 1px solid #f1f3f4;
         padding-bottom: 0.5rem;
+    }
+    :global(html.dark .markdown-body h2) {
+        color: #e8eaed;
+        border-bottom-color: #3c4043;
     }
     :global(.markdown-body p) {
         margin-bottom: 1.5rem;
