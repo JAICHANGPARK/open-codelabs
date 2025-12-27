@@ -1,2 +1,21 @@
 @import "tailwindcss";
+
+@theme {
+  --color-dark-bg: #121212;
+  --color-dark-surface: #1e1e1e;
+  --color-dark-border: #333333;
+  --color-dark-text: #e8eaed;
+  --color-dark-text-muted: #9aa0a6;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-[#3C4043] transition-colors duration-200;
+  }
+  
+  .dark body {
+    @apply bg-[var(--color-dark-bg)] text-[var(--color-dark-text)];
+  }
+}
+
 /* @plugin "@tailwindcss/typography"; */
