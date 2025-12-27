@@ -932,6 +932,16 @@
                         <span class="hidden sm:inline">{$t("editor.edit")}</span>
                     </button>
                     <button
+                        onclick={() => (mode = "preview")}
+                        class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                        'preview'
+                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
+                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
+                    >
+                        <Eye size={14} />
+                        <span class="hidden sm:inline">{$t("editor.preview")}</span>
+                    </button>
+                    <button
                         onclick={() => (mode = "live")}
                         class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
                         'live'
