@@ -154,5 +154,29 @@
         "subtitle": "대화형 단계별 가이드로 완벽한 핸즈온 세션을 운영하세요.",
         "facilitator_desc": "워크숍을 설계하고 참가자들을 실시간으로 안내하세요.",
         "attendee_desc": "자신의 속도에 맞춰 학습하고 막힐 땐 도움을 요청하세요."
+    },
+    "ai_generator": {
+        "title": "Gemini AI로 생성하기",
+        "subtitle": "소스 코드를 즉시 대화형 코드랩으로 변환하세요",
+        "input_label": "여기에 소스 코드를 붙여넣으세요",
+        "google_search": "Google 검색 (실시간 데이터)",
+        "url_context": "URL 컨텍스트",
+        "show_thinking": "AI 생각 과정 표시",
+        "billing_notice": "과금 알림:",
+        "billing_desc": "Google 검색 및 URL 컨텍스트 도구는 2026년 1월 5일부터 추가 비용이 발생할 수 있습니다.",
+        "placeholder": "// Rust, TypeScript, Python 등의 코드를 여기에 붙여넣으세요\n// Gemini가 단계별로 설명해 드립니다.",
+        "api_key_required": "먼저 설정에서 Gemini API 키를 설정해주세요.",
+        "generate_button": "코드랩 생성",
+        "analyzing": "코드 분석 중...",
+        "analyzing_desc": "Gemini가 소스 코드를 바탕으로 단계별 가이드를 작성하고 있습니다.",
+        "thinking_process": "AI 생각 과정",
+        "preview_title": "미리보기",
+        "preview_subtitle": "생성된 코드랩 구조를 검토하세요",
+        "back": "뒤로",
+        "saving": "저장 중...",
+        "create_button": "코드랩 만들기",
+        "error_parse": "AI 응답을 분석하는 동안 예기치 않은 오류가 발생했습니다. 다시 시도해주세요.",
+        "error_generate": "생성 실패",
+        "error_save": "코드랩 저장에 실패했습니다."
     }
 }
