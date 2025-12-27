@@ -22,6 +22,7 @@ COPY . .
 
 # build the SvelteKit app
 ENV NODE_ENV=production
+RUN bun run prepare
 RUN bun run build
 
 # copy production dependencies and build output into final image
