@@ -13,6 +13,13 @@ function createThemeState() {
         } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
             theme = "dark";
         }
+        
+        // Apply theme initially
+        if (theme === "dark") {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
     }
 
     return {
@@ -21,9 +28,17 @@ function createThemeState() {
         },
         set current(value: Theme) {
             theme = value;
+            if (browser) {
+                localStorage.setItem("theme", value);
+                if (value === "dark") {
+                    document.documentElement.classList.add("dark");
+                } else {
+                    document.documentElement.classList.remove("dark");
+                }
+            }
         },
         toggle() {
-            theme = theme === "light" ? "dark" : "light";
+            this.current = theme === "light" ? "dark" : "light";
         }
     };
 }
