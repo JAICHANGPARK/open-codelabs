@@ -31,7 +31,6 @@
     // @ts-ignore
     import QRCode from "svelte-qrcode";
     import { adminMarked as marked } from "$lib/markdown";
-    import "highlight.js/styles/github.css";
     import DOMPurify from "dompurify";
     // ... icons imports ...
     import {
@@ -902,7 +901,7 @@
     <header
         class="bg-white dark:bg-dark-surface border-b border-[#E8EAED] dark:border-dark-border py-3 sm:py-4 px-4 sm:px-8 sticky top-0 z-40 shadow-sm"
     >
-        <div class="max-w-7xl mx-auto flex justify-between items-center gap-2 sm:gap-3">
+        <div class="max-w-screen-2xl mx-auto flex justify-between items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1 sm:gap-6 flex-1 min-w-0">
                 <a
                     href="/admin"
@@ -1039,7 +1038,7 @@
         </div>
     {:else}
         <main
-            class="max-w-7xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start relative"
+            class="max-w-screen-2xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start relative"
         >
             <!-- Mobile Step Navigation Toggle -->
             <div class="lg:hidden flex items-center justify-between bg-white dark:bg-dark-surface p-4 rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm mb-2">
@@ -1054,7 +1053,7 @@
 
             <!-- Sidebar Navigation -->
             <div 
-                class="fixed inset-0 z-50 lg:relative lg:inset-auto lg:col-span-3 lg:block transition-all duration-300 {isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100 lg:sticky lg:top-28'}"
+                class="fixed inset-0 z-50 lg:relative lg:inset-auto lg:col-span-4 lg:block transition-all duration-300 {isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100 lg:sticky lg:top-28'}"
             >
                 <!-- Overlay for mobile -->
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -1065,7 +1064,7 @@
                 ></div>
 
                 <div
-                    class="relative bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border overflow-hidden shadow-xl lg:shadow-sm w-4/5 max-w-xs h-[90vh] lg:h-auto m-4 lg:m-0 flex flex-col"
+                    class="relative bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border overflow-hidden shadow-xl lg:shadow-sm w-4/5 max-w-sm h-[90vh] lg:h-auto m-4 lg:m-0 flex flex-col"
                 >
                     <div
                         class="p-5 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA] dark:bg-white/5 flex justify-between items-center"
@@ -1185,7 +1184,7 @@
             </div>
 
             <!-- Content Area -->
-            <div class="lg:col-span-9 w-full min-w-0" in:fade>
+            <div class="lg:col-span-8 w-full min-w-0" in:fade>
                 {#if steps.length > 0}
                     <div
                         class="bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden min-h-[70vh] flex flex-col transition-colors"
@@ -1751,54 +1750,7 @@
         font-size: 1.1rem;
         line-height: 1.6;
     }
-    :global(.markdown-body pre) {
-        background-color: #f8f9fa;
-        border: 1px solid #e8eaed;
-        border-radius: 8px;
-        padding: 24px;
-        margin: 24px 0;
-        overflow-x: auto;
-        transition: background-color 0.2s;
-    }
-    :global(html.dark .markdown-body pre) {
-        background-color: #1e1e1e;
-        border-color: #3c4043;
-    }
-    /* Dark mode syntax highlighting overrides */
-    :global(html.dark .hljs) {
-        color: #e8eaed;
-        background: transparent;
-    }
-    :global(html.dark .hljs-keyword),
-    :global(html.dark .hljs-selector-tag),
-    :global(html.dark .hljs-literal),
-    :global(html.dark .hljs-section),
-    :global(html.dark .hljs-link) {
-        color: #8ab4f8;
-    }
-    :global(html.dark .hljs-string),
-    :global(html.dark .hljs-title),
-    :global(html.dark .hljs-name),
-    :global(html.dark .hljs-type),
-    :global(html.dark .hljs-attribute),
-    :global(html.dark .hljs-symbol),
-    :global(html.dark .hljs-bullet),
-    :global(html.dark .hljs-built_in),
-    :global(html.dark .hljs-addition),
-    :global(html.dark .hljs-variable),
-    :global(html.dark .hljs-template-tag),
-    :global(html.dark .hljs-template-variable) {
-        color: #81c995;
-    }
-    :global(html.dark .hljs-comment),
-    :global(html.dark .hljs-quote),
-    :global(html.dark .hljs-deletion),
-    :global(html.dark .hljs-meta) {
-        color: #9aa0a6;
-    }
-    :global(html.dark .hljs-number) {
-        color: #ff8b7f;
-    }
+    /* Syntax Highlighting - Handled globally in app.css */
     :global(.markdown-body code:not(pre code)) {
         font-family: inherit;
         color: #c5221f;
@@ -1815,39 +1767,7 @@
         font-family: "JetBrains Mono", "Google Sans Mono", monospace;
         background-color: transparent;
         padding: 0;
-        color: #1a1a1a;
         font-size: 0.95rem;
-    }
-    /* Light mode syntax highlighting - darker colors for better contrast */
-    :global(.hljs) {
-        color: #1a1a1a;
-    }
-    :global(.hljs-comment) {
-        color: #6a737d;
-    }
-    :global(.hljs-keyword),
-    :global(.hljs-selector-tag),
-    :global(.hljs-meta-keyword),
-    :global(.hljs-doctag),
-    :global(.hljs-section) {
-        color: #d73a49;
-    }
-    :global(.hljs-string),
-    :global(.hljs-attr),
-    :global(.hljs-attribute) {
-        color: #032f62;
-    }
-    :global(.hljs-class .hljs-title),
-    :global(.hljs-title) {
-        color: #6f42c1;
-    }
-    :global(.hljs-number),
-    :global(.hljs-literal),
-    :global(.hljs-built_in) {
-        color: #005cc5;
-    }
-    :global(html.dark .markdown-body pre code) {
-        color: #e8eaed;
     }
     :global(.markdown-body h2) {
         font-size: 1.4rem;
