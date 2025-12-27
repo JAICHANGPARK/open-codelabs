@@ -538,6 +538,66 @@
         }
     }
 
+    // Drag & Drop Handlers
+    function handleDragStart(e: DragEvent, index: number) {
+        draggedStepIndex = index;
+        if (e.dataTransfer) {
+            e.dataTransfer.effectAllowed = "move";
+        }
+    }
+
+    function handleDragOver(e: DragEvent, index: number) {
+        e.preventDefault();
+        if (e.dataTransfer) {
+            e.dataTransfer.dropEffect = "move";
+        }
+        dragOverIndex = index;
+    }
+
+    function handleDragLeave() {
+        dragOverIndex = null;
+    }
+
+    function handleDrop(e: DragEvent, dropIndex: number) {
+        e.preventDefault();
+
+        if (draggedStepIndex === null || draggedStepIndex === dropIndex) {
+            draggedStepIndex = null;
+            dragOverIndex = null;
+            return;
+        }
+
+        // Reorder steps array
+        const newSteps = [...steps];
+        const [draggedStep] = newSteps.splice(draggedStepIndex, 1);
+        newSteps.splice(dropIndex, 0, draggedStep);
+
+        steps = newSteps;
+
+        // Update active step index if needed
+        if (activeStepIndex === draggedStepIndex) {
+            activeStepIndex = dropIndex;
+        } else if (
+            draggedStepIndex < activeStepIndex &&
+            dropIndex >= activeStepIndex
+        ) {
+            activeStepIndex--;
+        } else if (
+            draggedStepIndex > activeStepIndex &&
+            dropIndex <= activeStepIndex
+        ) {
+            activeStepIndex++;
+        }
+
+        draggedStepIndex = null;
+        dragOverIndex = null;
+    }
+
+    function handleDragEnd() {
+        draggedStepIndex = null;
+        dragOverIndex = null;
+    }
+
     async function handleSave() {
         if (isSaving) return;
         isSaving = true;
@@ -754,77 +814,83 @@
     <header
         class="bg-white border-b border-[#E8EAED] py-4 px-8 sticky top-0 z-30 shadow-sm"
     >
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-6">
+        <div class="max-w-7xl mx-auto flex justify-between items-center gap-3">
+            <div class="flex items-center gap-2 md:gap-6 flex-1 min-w-0">
                 <a
                     href="/admin"
-                    class="text-[#5F6368] hover:text-[#202124] hover:bg-[#F1F3F4] p-2 rounded-full transition-all"
+                    class="text-[#5F6368] hover:text-[#202124] hover:bg-[#F1F3F4] p-2 rounded-full transition-all shrink-0"
                     aria-label="Back to dashboard"
                 >
                     <ChevronLeft size={24} />
                 </a>
-                <div>
+                <div class="min-w-0 flex-1">
                     {#if loading}
                         <div
-                            class="h-6 w-48 bg-[#F1F3F4] animate-pulse rounded"
+                            class="h-6 w-32 md:w-48 bg-[#F1F3F4] animate-pulse rounded"
                         ></div>
                     {:else}
                         <h1
-                            class="text-xl font-bold text-[#202124] flex items-center gap-2"
+                            class="text-base md:text-xl font-bold text-[#202124] flex items-center gap-2 truncate"
                         >
-                            {codelab?.title}
+                            <span class="truncate">{codelab?.title}</span>
                             <a
                                 href="/codelabs/{id}"
                                 target="_blank"
-                                class="text-[#4285F4] hover:text-[#1A73E8]"
+                                class="text-[#4285F4] hover:text-[#1A73E8] shrink-0"
                                 title={$t("editor.view_live")}
                             >
                                 <ExternalLink size={16} />
                             </a>
                         </h1>
-                        <p class="text-xs text-[#5F6368] font-medium mt-0.5">
+                        <p
+                            class="text-xs text-[#5F6368] font-medium mt-0.5 hidden sm:block"
+                        >
                             ID: {id} &bull; {$t("common.facilitator")} Mode
                         </p>
                     {/if}
                 </div>
             </div>
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-2 md:gap-4 shrink-0">
                 <button
                     onclick={handleExport}
-                    class="p-2.5 text-[#5F6368] hover:text-[#4285F4] hover:bg-[#E8F0FE] rounded-full transition-all"
+                    class="p-2 md:p-2.5 text-[#5F6368] hover:text-[#4285F4] hover:bg-[#E8F0FE] rounded-full transition-all"
                     title="Export Codelab"
                 >
-                    <Download size={24} />
+                    <Download size={20} class="md:hidden" />
+                    <Download size={24} class="hidden md:block" />
                 </button>
                 <div
                     class="flex bg-[#F1F3F4] p-1 rounded-full border border-[#E8EAED]"
                 >
                     <button
                         onclick={() => (mode = "edit")}
-                        class="px-5 py-1.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all {mode ===
+                        class="px-2 md:px-5 py-1.5 rounded-full flex items-center gap-1 md:gap-2 text-xs md:text-sm font-bold transition-all {mode ===
                         'edit'
                             ? 'bg-white shadow-sm text-[#4285F4]'
                             : 'text-[#5F6368] hover:text-[#202124]'}"
                     >
-                        <Edit3 size={16} /> Edit
+                        <Edit3 size={16} />
+                        <span class="hidden sm:inline">Edit</span>
                     </button>
                     <button
                         onclick={() => (mode = "preview")}
-                        class="px-5 py-1.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all {mode ===
+                        class="px-2 md:px-5 py-1.5 rounded-full flex items-center gap-1 md:gap-2 text-xs md:text-sm font-bold transition-all {mode ===
                         'preview'
                             ? 'bg-white shadow-sm text-[#4285F4]'
                             : 'text-[#5F6368] hover:text-[#202124]'}"
                     >
-                        <Eye size={16} /> Preview
+                        <Eye size={16} />
+                        <span class="hidden sm:inline">Preview</span>
                     </button>
                     <button
                         onclick={() => (mode = "live")}
-                        class="px-5 py-1.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all {mode ===
+                        class="px-2 md:px-5 py-1.5 rounded-full flex items-center gap-1 md:gap-2 text-xs md:text-sm font-bold transition-all {mode ===
                         'live'
                             ? 'bg-white shadow-sm text-[#4285F4]'
                             : 'text-[#5F6368] hover:text-[#202124]'}"
                     >
-                        <Users size={16} /> Live Status
+                        <Users size={16} />
+                        <span class="hidden sm:inline">Live</span>
                         {#if helpRequests.length > 0}
                             <span class="w-2 h-2 bg-[#EA4335] rounded-full"
                             ></span>
@@ -896,13 +962,26 @@
                     </div>
                     <div class="max-h-[50vh] overflow-y-auto">
                         {#each steps as step, i}
-                            <div class="group relative">
+                            <div
+                                class="group relative {dragOverIndex === i
+                                    ? 'border-t-4 border-[#4285F4]'
+                                    : ''}"
+                                draggable="true"
+                                ondragstart={(e) => handleDragStart(e, i)}
+                                ondragover={(e) => handleDragOver(e, i)}
+                                ondragleave={handleDragLeave}
+                                ondrop={(e) => handleDrop(e, i)}
+                                ondragend={handleDragEnd}
+                            >
                                 <button
                                     onclick={() => (activeStepIndex = i)}
-                                    class="w-full text-left px-5 py-4 hover:bg-[#F8F9FA] transition-all flex items-start gap-4 border-l-4 {activeStepIndex ===
+                                    class="w-full text-left px-5 py-4 hover:bg-[#F8F9FA] transition-all flex items-start gap-4 border-l-4 cursor-pointer {activeStepIndex ===
                                     i
                                         ? 'border-[#4285F4] bg-[#E8F0FE]/30'
-                                        : 'border-transparent'}"
+                                        : 'border-transparent'} {draggedStepIndex ===
+                                    i
+                                        ? 'opacity-50'
+                                        : ''}"
                                 >
                                     <span
                                         class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 {activeStepIndex ===
