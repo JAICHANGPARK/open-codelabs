@@ -17,6 +17,7 @@
 		"@sveltejs/vite-plugin-svelte": "^6.2.1",
 		"@tailwindcss/typography": "^0.5.19",
 		"@tailwindcss/vite": "^4.1.18",
+		"@types/crypto-js": "^4.2.2",
 		"@types/dompurify": "^3.2.0",
 		"@types/marked": "^6.0.0",
 		"autoprefixer": "^10.4.23",
@@ -29,6 +30,7 @@
 		"vite": "^7.2.6"
 	},
 	"dependencies": {
+		"crypto-js": "^4.2.0",
 		"dompurify": "^3.3.1",
 		"highlight.js": "^11.11.1",
 		"lucide-svelte": "^0.562.0",
