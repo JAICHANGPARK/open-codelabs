@@ -50,6 +50,7 @@
         "confirm_delete": "このコードラボを削除してもよろしいですか？この操作は取り消せません。",
         "create_with_ai": "AIで生成",
         "share_link": "参加者用リンクをコピー",
+        "unknown_date": "不明な日付",
         "settings": {
             "title": "設定",
             "gemini_api_key": "Gemini API キー",
@@ -182,6 +183,10 @@
         "placeholder": "// Rust、TypeScript、Pythonなどのコードをここに貼り付けてください\n// Geminiがステップバイステップで説明します。",
         "api_key_required": "まず設定でGemini APIキーを設定してください。",
         "generate_button": "コードラボを生成",
+        "duration_label": "ハンズオン時間",
+        "duration_mins": "{mins}分",
+        "duration_custom": "直接入力",
+        "mins": "分",
         "analyzing": "コードを分析中...",
         "analyzing_desc": "Gemini가ソースコードに基づいてガイドを作成しています。",
         "thinking_process": "AIの思考プロセス",
