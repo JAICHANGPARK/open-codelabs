@@ -21,10 +21,20 @@
   }
 }
 
-/* Syntax Highlighting Dark Mode Overrides */
+/* Syntax Highlighting Overrides */
+.hljs {
+  background: transparent !important;
+  color: inherit;
+}
+
 .dark .hljs {
   color: #e8eaed !important;
-  background: transparent !important;
+}
+
+/* Improve contrast for comments in light mode */
+.hljs-comment,
+.hljs-quote {
+  color: #57606a !important;
 }
 
 .dark .hljs-keyword,
@@ -161,11 +171,17 @@
   }
 
   .markdown-body pre {
-    @apply bg-[#F1F3F4] border border-[#E8EAED] rounded-lg p-6 my-6 overflow-x-auto;
+    @apply bg-[#F1F3F4] border border-[#E8EAED] rounded-lg p-6 my-6 overflow-x-auto text-[#24292e];
   }
 
   .dark .markdown-body pre {
-    @apply bg-[#1E1E1E] border-[#3C4043];
+    @apply bg-[#1E1E1E] border-[#3C4043] text-[#e8eaed];
+  }
+
+  /* Ensure prose code blocks look good in light mode */
+  .prose {
+    --tw-prose-pre-code: #24292e;
+    --tw-prose-pre-bg: #F1F3F4;
   }
 
   /* Ensure prose works with dark mode */
