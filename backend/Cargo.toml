@@ -22,3 +22,6 @@ axum-extra = { version = "0.12.3", features = ["multipart"] }
 dashmap = "6.0"
 futures-util = "0.3"
 image = "0.25.9"
+
+[dev-dependencies]
+tower = { version = "0.5", features = ["util"] }
