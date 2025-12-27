@@ -790,7 +790,7 @@
                 <button
                     onclick={handleRequestHelp}
                     disabled={helpSent}
-                    class="fixed bottom-24 right-4 sm:right-8 p-3 sm:p-4 border rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 group z-20 flex items-center gap-2 {helpSent
+                    class="fixed bottom-24 right-20 sm:right-24 p-3 sm:p-4 border rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 group z-20 flex items-center gap-2 {helpSent
                         ? 'bg-[#34A853] border-[#34A853] text-white cursor-not-allowed'
                         : 'bg-white dark:bg-dark-surface border-[#E8EAED] dark:border-dark-border text-[#EA4335] hover:border-[#EA4335]'}"
                 >
@@ -987,7 +987,7 @@
                     : 'text-[#5F6368] dark:text-dark-text-muted hover:bg-[#F1F3F4] dark:hover:bg-white/10'}"
             >
                 <ChevronLeft size={20} />
-                <span class="hidden xs:inline">Back</span>
+                <span class="hidden xs:inline">{$t("editor.back")}</span>
             </button>
             <div
                 class="flex items-center text-xs sm:text-sm font-bold text-[#5F6368] dark:text-dark-text-muted bg-[#F1F3F4] dark:bg-white/10 px-3 sm:px-4 py-1.5 rounded-full"
@@ -1000,7 +1000,7 @@
                     class="bg-[#1E8E3E] hover:bg-[#178037] text-white px-6 sm:px-10 py-2.5 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                 >
                     <span class="hidden xs:inline">{$t("editor.finish")}</span>
-                    <span class="xs:hidden">Finish</span>
+                    <span class="xs:hidden">{$t("editor.finish")}</span>
                 </button>
             {:else if isFinished}
                 <div class="w-[60px] sm:w-[100px]"></div>
@@ -1010,7 +1010,7 @@
                     class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-6 sm:px-10 py-2.5 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
                 >
                     <span class="hidden xs:inline">{$t("editor.next")}</span>
-                    <span class="xs:hidden">Next</span>
+                    <span class="xs:hidden">{$t("editor.next")}</span>
                     <ChevronRight size={20} />
                 </button>
             {/if}
