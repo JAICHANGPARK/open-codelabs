@@ -423,6 +423,191 @@ ngrok http 5173 --region=jp  # 일본
 ngrok http 5173 --region=ap  # 아시아-태평양
 ```
 
+## Firebase Hosting 배포
+
+Firebase Hosting을 사용하면 프론트엔드를 Google의 글로벌 CDN에 배포할 수 있습니다.
+
+### 1. Firebase CLI 설치
+
+```bash
+npm install -g firebase-tools
+```
+
+### 2. Firebase 프로젝트 설정
+
+```bash
+# Firebase 로그인
+firebase login
+
+# 프로젝트 초기화 (이미 설정되어 있다면 생략)
+firebase init hosting
+```
+
+프로젝트의 `.firebaserc` 파일을 수정하여 Firebase 프로젝트 ID 설정:
+
+```json
+{
+  "projects": {
+    "default": "your-firebase-project-id"
+  }
+}
+```
+
+### 3. 프론트엔드 빌드
+
+```bash
+cd frontend
+npm install
+npm run build
+```
+
+빌드된 파일은 `frontend/build` 디렉토리에 생성됩니다.
+
+### 4. Firebase 배포
+
+```bash
+# 프로젝트 루트에서 실행
+firebase deploy --only hosting
+```
+
+배포 후 제공되는 URL 예시:
+
+```
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/your-project/overview
+Hosting URL: https://your-project.web.app
+```
+
+### 5. 커스텀 도메인 (선택사항)
+
+Firebase Console에서 커스텀 도메인 연결:
+
+1. [Firebase Console](https://console.firebase.google.com) 접속
+2. Hosting 섹션으로 이동
+3. "Add custom domain" 클릭
+4. 도메인 입력 및 DNS 설정
+
+### Firebase Hosting 특징
+
+**장점:**
+
+- 글로벌 CDN을 통한 빠른 속도
+- 무료 SSL 인증서 자동 제공
+- 무료 티어로도 충분한 용량 (10GB 저장공간, 월 10GB 전송량)
+- 쉬운 롤백 및 버전 관리
+- 자동 캐싱 및 압축
+
+**제한사항:**
+
+- 정적 파일만 호스팅 가능 (백엔드는 별도 배포 필요)
+- 백엔드는 Firebase Functions, Cloud Run, 또는 별도 서버 필요
+
+### 백엔드 배포 옵션
+
+프론트엔드를 Firebase Hosting에 배포한 경우 백엔드 배포 옵션:
+
+#### Option 1: Firebase Functions
+
+```bash
+# Functions 초기화
+firebase init functions
+
+# 배포
+firebase deploy --only functions
+```
+
+#### Option 2: Google Cloud Run
+
+```bash
+# 백엔드 Docker 이미지 빌드
+cd backend
+docker build -t gcr.io/your-project/backend .
+
+# Cloud Run에 배포
+gcloud run deploy backend \
+  --image gcr.io/your-project/backend \
+  --platform managed \
+  --region asia-northeast1
+```
+
+#### Option 3: 별도 서버
+
+프론트엔드는 Firebase Hosting, 백엔드는 기존 서버 사용:
+
+```bash
+# .env 파일에 백엔드 URL 설정
+VITE_API_URL=https://your-backend-server.com
+```
+
+### 배포 자동화
+
+GitHub Actions를 사용한 자동 배포:
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy to Firebase
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          cd frontend
+          npm ci
+
+      - name: Build
+        run: |
+          cd frontend
+          npm run build
+
+      - name: Deploy to Firebase
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: '${{ secrets.GITHUB_TOKEN }}'
+          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          projectId: your-firebase-project-id
+```
+
+### 프리뷰 채널
+
+배포 전 테스트를 위한 프리뷰 URL 생성:
+
+```bash
+# 프리뷰 채널 생성
+firebase hosting:channel:deploy preview
+
+# 특정 기간 동안 유효한 프리뷰
+firebase hosting:channel:deploy preview --expires 7d
+```
+
+### 비용 관리
+
+Firebase Hosting 무료 티어:
+
+- 저장공간: 10GB
+- 전송량: 월 10GB (약 1만 사용자)
+- 빌드 시간: 제한 없음
+
+대규모 행사의 경우:
+
+```bash
+# 사용량 모니터링
+firebase hosting:metrics
+```
+
 ## 다음 단계
 
 - [환경 변수 설정](environment.md) - 세부 설정
