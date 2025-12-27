@@ -8,13 +8,16 @@
   --color-dark-text-muted: #9aa0a6;
 }
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @layer base {
   body {
     @apply bg-white text-[#3C4043] transition-colors duration-200;
   }
   
   .dark body {
-    @apply bg-[var(--color-dark-bg)] text-[var(--color-dark-text)];
+    background-color: var(--color-dark-bg);
+    color: var(--color-dark-text);
   }
 }
 
