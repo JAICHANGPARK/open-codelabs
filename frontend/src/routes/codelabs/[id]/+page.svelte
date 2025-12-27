@@ -122,6 +122,16 @@
         }
     });
 
+    // Run Prism highlighting whenever content changes
+    $effect(() => {
+        if (currentStepIndex >= 0 && browser) {
+            // Need to wait for DOM to update
+            setTimeout(() => {
+                Prism.highlightAll();
+            }, 0);
+        }
+    });
+
     // Apply syntax highlighting when step content changes
     $effect(() => {
         if (currentStepIndex >= 0 && steps.length > 0) {
