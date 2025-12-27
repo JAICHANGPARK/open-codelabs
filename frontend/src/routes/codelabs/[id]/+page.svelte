@@ -41,9 +41,13 @@
         Sparkles,
         Github,
         FileText,
+        Volume2,
+        Square,
     } from "lucide-svelte";
-    import { t } from "svelte-i18n";
+    import { t, locale } from "svelte-i18n";
     import AskGemini from "$lib/components/AskGemini.svelte";
+    import { createTtsPlayer } from "$lib/tts";
+    import { themeState } from "$lib/theme.svelte";
 
     // Prism.js for syntax highlighting
     import Prism from "prismjs";
@@ -100,6 +104,10 @@
     let selectedContext = $state("");
     let geminiButtonPos = $state({ x: 0, y: 0 });
 
+    // TTS State
+    const tts = createTtsPlayer();
+    let isSpeaking = $state(false);
+
     let filteredMessages = $derived(
         chatTab === "public"
             ? messages.filter((m) => m.type === "chat")
@@ -121,6 +129,24 @@
             }
         }
     });
+
+    $effect(() => {
+        if (currentStepIndex >= 0) {
+            tts.stop();
+            isSpeaking = false;
+        }
+    });
+
+    function handleTtsToggle() {
+        if (isSpeaking) {
+            tts.stop();
+            isSpeaking = false;
+        } else if (currentStep) {
+            const textToRead = `${currentStep.title}. ${currentStep.content_markdown}`;
+            tts.speak(textToRead, $locale || "en");
+            isSpeaking = true;
+        }
+    }
 
     // Run Prism highlighting whenever content changes
     $effect(() => {
@@ -536,6 +562,7 @@
                     rel="noopener noreferrer"
                     class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
                     title="GitHub Repository"
+                    aria-label="GitHub Repository"
                 >
                     <Github size={18} />
                 </a>
@@ -545,6 +572,7 @@
                     rel="noopener noreferrer"
                     class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
                     title="Documentation"
+                    aria-label="Documentation"
                 >
                     <FileText size={18} />
                 </a>
@@ -554,6 +582,8 @@
                 onclick={() => (showChat = !showChat)}
                 class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/10 rounded-full relative transition-colors"
                 title={$t("editor.public_chat")}
+                aria-label={$t("editor.public_chat")}
+                aria-expanded={showChat}
             >
                 <MessageSquare
                     size={20}
@@ -578,8 +608,8 @@
     <!-- Progress Bar -->
     <div class="h-1 bg-[#F1F3F4] dark:bg-dark-border transition-all sticky top-16 z-30">
         <div
-            class="h-full bg-[#4285F4] transition-all duration-700 ease-out"
-            style="width: {isFinished ? 100 : progressPercent}%"
+            class="h-full bg-[#4285F4] transition-all duration-700 ease-out {themeState.colorblindMode ? 'opacity-80' : ''}"
+            style="width: {isFinished ? 100 : progressPercent}%; {themeState.colorblindMode ? 'background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.3) 10px, rgba(255,255,255,0.3) 20px); border-bottom: 2px solid #000;' : ''}"
         ></div>
     </div>
 
@@ -691,6 +721,8 @@
                                                 onclick={() =>
                                                     (feedbackSatisfaction = s)}
                                                 class="p-1 rounded-lg transition-all hover:bg-yellow-50 dark:hover:bg-yellow-500/10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                                aria-label="Rate {s} out of 5 stars"
+                                                aria-pressed={feedbackSatisfaction >= s}
                                             >
                                                 <Star
                                                     size={28}
@@ -702,6 +734,7 @@
                                                     s
                                                         ? "text-[#F9AB00]"
                                                         : "text-[#BDC1C6] dark:text-dark-text-muted/30"}
+                                                    aria-hidden="true"
                                                 />
                                             </button>
                                         {/each}
@@ -784,9 +817,21 @@
                         in:fade={{ duration: 300 }}
                     >
                         <h1
-                            class="text-[32px] leading-tight font-bold text-[#202124] dark:text-dark-text border-b border-[#F1F3F4] dark:border-dark-border pb-6 mb-10 transition-colors"
+                            class="text-[32px] leading-tight font-bold text-[#202124] dark:text-dark-text border-b border-[#F1F3F4] dark:border-dark-border pb-6 mb-10 transition-colors flex items-center justify-between"
                         >
-                            {currentStepIndex + 1}. {currentStep.title}
+                            <span>{currentStepIndex + 1}. {currentStep.title}</span>
+                            <button
+                                onclick={handleTtsToggle}
+                                class="p-2 rounded-full hover:bg-[#F1F3F4] dark:hover:bg-white/10 transition-all {isSpeaking ? 'text-[#4285F4] bg-[#E8F0FE] dark:bg-[#4285F4]/20' : 'text-[#5F6368] dark:text-dark-text-muted'}"
+                                title={isSpeaking ? $t("common.tts_stop") : $t("common.tts_read")}
+                                aria-label={isSpeaking ? $t("common.tts_stop") : $t("common.tts_read")}
+                            >
+                                {#if isSpeaking}
+                                    <Square size={20} fill="currentColor" />
+                                {:else}
+                                    <Volume2 size={20} />
+                                {/if}
+                            </button>
                         </h1>
                         <div class="markdown-body">
                             {@html renderedContent}
@@ -868,14 +913,17 @@
                         <button
                             onclick={() => (showChat = false)}
                             class="p-1 hover:bg-[#E8EAED] dark:hover:bg-white/10 rounded-full dark:text-dark-text"
+                            aria-label="Close chat"
                         >
                             <X size={18} />
                         </button>
                     </div>
 
-                    <div class="flex px-4 pb-2 gap-4">
+                    <div class="flex px-4 pb-2 gap-4" role="tablist">
                         <button
                             onclick={() => (chatTab = "public")}
+                            role="tab"
+                            aria-selected={chatTab === 'public'}
                             class="pb-2 text-sm font-bold transition-all relative {chatTab ===
                             'public'
                                 ? 'text-[#4285F4] border-b-2 border-[#4285F4]'
@@ -888,6 +936,8 @@
                                 chatTab = "direct";
                                 hasNewDm = false;
                             }}
+                            role="tab"
+                            aria-selected={chatTab === 'direct'}
                             class="pb-2 text-sm font-bold transition-all relative {chatTab ===
                             'direct'
                                 ? 'text-[#4285F4] border-b-2 border-[#4285F4]'
@@ -897,6 +947,7 @@
                             {#if hasNewDm}
                                 <span
                                     class="absolute -top-1 -right-2 w-2 h-2 bg-red-500 rounded-full border border-white dark:border-dark-surface"
+                                    aria-label="New message"
                                 ></span>
                             {/if}
                         </button>
@@ -906,6 +957,7 @@
                 <div
                     id="chat-messages"
                     class="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-dark-bg/50"
+                    aria-live="polite"
                 >
                     {#each filteredMessages as msg}
                         <div
@@ -969,11 +1021,13 @@
                             type="text"
                             bind:value={chatMessage}
                             placeholder="Type a message..."
+                            aria-label="Chat message"
                             class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm text-[#3C4043] dark:text-dark-text"
                         />
                         <button
                             type="submit"
                             class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#4285F4] hover:text-white rounded-lg transition-all"
+                            aria-label="Send message"
                         >
                             <Send size={18} />
                         </button>
