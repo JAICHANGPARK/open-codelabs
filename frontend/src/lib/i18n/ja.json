@@ -69,5 +69,29 @@
         "subtitle": "開発者のためのインタラクティブなハンズオン学習プラットフォーム",
         "facilitator_desc": "コードラボの作成・管理、参加者の進捗追跡、リアルタイムでのサポート提供が可能です。",
         "attendee_desc": "利用可能なセッションに参加し、ステップバイステップの指示に従って新しい技術を学びましょう。"
+    },
+    "ai_generator": {
+        "title": "Gemini AIで作成",
+        "subtitle": "ソースコードを即座にインタラクティブなコードラボに変換します",
+        "input_label": "ここにソースコードを貼り付けてください",
+        "google_search": "Google検索（リアルタイムデータ）",
+        "url_context": "URLコンテキスト",
+        "show_thinking": "AIの思考プロセスを表示",
+        "billing_notice": "課金に関するお知らせ:",
+        "billing_desc": "Google検索およびURLコンテキストツールは、2026年1月5日から追加料金が発生する場合があります。",
+        "placeholder": "// Rust、TypeScript、Pythonなどのコードをここに貼り付けてください\n// Geminiがステップバイステップで説明します。",
+        "api_key_required": "まず設定でGemini APIキーを設定してください。",
+        "generate_button": "コードラボを生成",
+        "analyzing": "コードを分析中...",
+        "analyzing_desc": "Geminiがソースコードに基づいてガイドを作成しています。",
+        "thinking_process": "AIの思考プロセス",
+        "preview_title": "プレビュー",
+        "preview_subtitle": "生成されたコードラボの構造を確認してください",
+        "back": "戻る",
+        "saving": "保存中...",
+        "create_button": "コードラボを作成",
+        "error_parse": "AIの応答を解析中に予期しないエラーが発生しました。もう一度お試しください。",
+        "error_generate": "生成に失敗しました",
+        "error_save": "コードラボの保存に失敗しました。"
     }
 }
