@@ -5,10 +5,17 @@ export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback };
 const envApiUrl = import.meta.env.VITE_API_URL;
 let BASE_URL = envApiUrl || 'http://localhost:8080';
 
-if (browser && (envApiUrl === 'http://backend:8080' || !envApiUrl)) {
+if (browser && (envApiUrl === 'http://backend:8080' || !envApiUrl || envApiUrl.includes('localhost'))) {
     // If we are in the browser and the URL is set to the Docker internal name or not set,
-    // we use the current hostname but keep the 8080 port which is standard for our backend.
-    BASE_URL = `${window.location.protocol}//${window.location.hostname}:8080`;
+    // or pointing to localhost (which won't work from remote), we use the current hostname.
+    if (window.location.hostname.includes('ngrok') || window.location.hostname.includes('bore') || window.location.port === '443' || window.location.port === '80') {
+        // For tunnel services or standard web ports, use the current origin without port 8080
+        // The SvelteKit proxy (hooks.server.ts) will handle forwarding to the backend.
+        BASE_URL = window.location.origin;
+    } else {
+        // Standard local development, keep using port 8080
+        BASE_URL = `${window.location.protocol}//${window.location.hostname}:8080`;
+    }
 }
 
 const API_URL = BASE_URL + '/api';
