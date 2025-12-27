@@ -311,9 +311,35 @@
             };
         } catch (e: any) {
             console.error(e);
-            alert("AI Improvement failed: " + e.message);
-            // Restore? Pushing undo stack would be nice but complex.
-            // For now, assuming it just appended or failed mid-way.
+
+            // Provide specific error messages
+            let errorMessage = "AI Improvement failed: ";
+
+            if (
+                e.message &&
+                (e.message.includes("429") ||
+                    e.message.includes("API Error: 429"))
+            ) {
+                errorMessage =
+                    "⏱️ Rate limit exceeded.\n\nPlease wait a moment and try again.\nThe free tier has limited requests per minute.";
+            } else if (e.message) {
+                errorMessage += e.message;
+            } else {
+                errorMessage += "Unknown error occurred.";
+            }
+
+            alert(errorMessage);
+
+            // Restore original text if generation failed
+            const textarea = document.querySelector("textarea");
+            if (textarea && selectedText) {
+                textarea.setRangeText(
+                    selectedText,
+                    selectionRange.start,
+                    selectionRange.start,
+                    "end",
+                );
+            }
         } finally {
             aiLoading = false;
         }
