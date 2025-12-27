@@ -21,98 +21,86 @@
   }
 }
 
-/* Syntax Highlighting Overrides */
-.hljs {
+/* Syntax Highlighting Overrides - Always Dark for Code Blocks */
+.hljs, .prism {
   background: transparent !important;
   color: #e8eaed !important;
 }
 
 /* Improve contrast for comments */
 .hljs-comment,
-.hljs-quote {
+.hljs-quote,
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
   color: #8b949e !important;
+  font-style: italic !important;
 }
 
 .hljs-keyword,
 .hljs-selector-tag,
 .hljs-built_in,
 .hljs-name,
-.hljs-tag {
+.hljs-tag,
+.token.atrule,
+.token.attr-value,
+.token.keyword,
+.token.important,
+.token.bold {
   color: #ff7b72 !important;
 }
 
 .hljs-string,
+.hljs-attr,
 .hljs-title,
 .hljs-section,
 .hljs-attribute,
 .hljs-literal,
 .hljs-template-tag,
 .hljs-template-variable,
-.hljs-type {
+.hljs-type,
+.token.string,
+.token.char,
+.token.attr-name,
+.token.builtin,
+.token.inserted,
+.token.url {
   color: #a5d6ff !important;
 }
 
 .hljs-deletion,
-.hljs-meta {
-  color: #8b949e !important;
+.hljs-meta,
+.token.regex,
+.token.variable {
+  color: #79c0ff !important;
 }
 
 .hljs-operator,
-.hljs-constant {
+.hljs-constant,
+.token.operator,
+.token.entity {
   color: #ff7b72 !important;
 }
 
-.hljs-function .hljs-title {
+.hljs-function .hljs-title,
+.token.function,
+.token.class-name {
   color: #d2a8ff !important;
 }
 
-/* Prism.js Dark Mode Fixes (Applied always as code blocks are dark) */
-.token.atrule,
-.token.attr-value,
-.token.keyword {
-  color: #ff7b72 !important;
-}
-
-.token.punctuation {
-  color: #e8eaed !important;
-}
-
-.token.operator,
-.token.entity,
-.token.url,
-.language-css .token.string,
-.style .token.string {
-  color: #a5d6ff !important;
-}
-
-.token.property,
-.token.tag,
+.hljs-number,
 .token.boolean,
 .token.number,
+.token.property,
 .token.constant,
 .token.symbol,
 .token.deleted {
   color: #79c0ff !important;
 }
 
-.token.selector,
-.token.attr-name,
-.token.string,
-.token.char,
-.token.builtin,
-.token.inserted {
-  color: #a5d6ff !important;
-}
-
-.token.function,
-.token.class-name {
-  color: #d2a8ff !important;
-}
-
-.token.comment,
-.token.prolog,
-.token.doctype,
-.token.cdata {
+.token.punctuation,
+.hljs-punctuation {
   color: #8b949e !important;
 }
 
@@ -171,14 +159,32 @@
     @apply mb-2;
   }
 
-  .markdown-body pre {
-    @apply bg-[#1E1E1E] border border-[#3C4043] rounded-lg p-6 my-6 overflow-x-auto text-[#e8eaed];
+  .markdown-body pre,
+  .prose pre {
+    background-color: #0d1117 !important;
+    border: 1px solid #30363d !important;
+    border-radius: 0.75rem !important;
+    padding: 1.5rem !important;
+    margin-top: 1.5rem !important;
+    margin-bottom: 1.5rem !important;
+    overflow-x: auto !important;
+    color: #e8eaed !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  /* Ensure code inside pre also has correct color */
+  .markdown-body pre code,
+  .prose pre code {
+    color: #e8eaed !important;
+    background: transparent !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
   }
 
   /* Ensure prose code blocks look good in both modes (always dark) */
   .prose {
     --tw-prose-pre-code: #e8eaed;
-    --tw-prose-pre-bg: #1e1e1e;
+    --tw-prose-pre-bg: #0d1117;
   }
 
   /* Ensure prose works with dark mode */
@@ -196,15 +202,26 @@
     --tw-prose-captions: var(--color-dark-text-muted);
     --tw-prose-code: white;
     --tw-prose-pre-code: var(--color-dark-text);
-    --tw-prose-pre-bg: #1e1e1e;
+    --tw-prose-pre-bg: #0d1117;
     --tw-prose-th-borders: var(--color-dark-border);
     --tw-prose-td-borders: var(--color-dark-border);
   }
 
-  .markdown-body code:not(pre code) {
+  .markdown-body code:not(pre code),
+  .prose code:not(pre code) {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    font-size: 0.9em;
-    @apply bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded text-[#24292e] dark:text-[#e8eaed];
+    font-size: 0.85em;
+    background-color: rgba(175, 184, 193, 0.2);
+    padding: 0.2em 0.4em;
+    border-radius: 6px;
+    color: #24292e;
+    transition: background-color 0.2s;
+  }
+
+  .dark .markdown-body code:not(pre code),
+  .dark .prose code:not(pre code) {
+    background-color: rgba(110, 118, 129, 0.4);
+    color: #e8eaed;
   }
 
   .markdown-body blockquote {
