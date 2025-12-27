@@ -1,7 +1,7 @@
 <script lang="ts">
     import { login } from "$lib/api";
     import { goto } from "$app/navigation";
-    import { Lock, User, LogIn, AlertCircle } from "lucide-svelte";
+    import { Lock, User, LogIn, AlertCircle, Github, FileText as FileIcon } from "lucide-svelte";
     import { fade, fly } from "svelte/transition";
     import { t } from "svelte-i18n";
 
@@ -29,10 +29,10 @@
     }
 </script>
 
-<div class="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-6">
+<div class="min-h-screen bg-[#F8F9FA] dark:bg-dark-bg flex items-center justify-center p-6 transition-colors">
     <div class="w-full max-w-md" in:fly={{ y: 20, duration: 600 }}>
         <div
-            class="bg-white rounded-[2rem] shadow-2xl overflow-hidden border border-[#E8EAED]"
+            class="bg-white dark:bg-dark-surface rounded-[2rem] shadow-2xl overflow-hidden border border-[#E8EAED] dark:border-dark-border"
         >
             <div class="bg-[#4285F4] p-10 text-white text-center">
                 <div
@@ -44,10 +44,10 @@
                 <p class="text-white/80 font-medium">{$t("login.subtitle")}</p>
             </div>
 
-            <div class="p-10 space-y-8">
+            <div class="p-8 sm:p-10 space-y-6 sm:space-y-8">
                 {#if error}
                     <div
-                        class="bg-red-50 text-red-600 p-4 rounded-xl flex items-center gap-3 border border-red-100"
+                        class="bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-center gap-3 border border-red-100 dark:border-red-500/20"
                         in:fade
                     >
                         <AlertCircle size={20} />
@@ -59,12 +59,12 @@
                     <div>
                         <label
                             for="admin_id"
-                            class="block text-xs font-bold text-[#5F6368] uppercase tracking-widest mb-2 px-1"
+                            class="block text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-widest mb-2 px-1"
                             >{$t("login.admin_id")}</label
                         >
                         <div class="relative group">
                             <div
-                                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#BDC1C6] group-focus-within:text-[#4285F4] transition-colors"
+                                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#BDC1C6] dark:text-dark-text-muted group-focus-within:text-[#4285F4] transition-colors"
                             >
                                 <User size={20} />
                             </div>
@@ -73,7 +73,7 @@
                                 type="text"
                                 bind:value={admin_id}
                                 placeholder={$t("login.placeholder_id")}
-                                class="w-full bg-[#FAFBFF] border-2 border-[#F1F3F4] rounded-2xl pl-12 pr-4 py-4 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] font-medium"
+                                class="w-full bg-[#FAFBFF] dark:bg-dark-bg border-2 border-[#F1F3F4] dark:border-dark-border rounded-2xl pl-12 pr-4 py-4 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] dark:placeholder-dark-text-muted/30 font-medium text-[#3C4043] dark:text-dark-text"
                                 onkeydown={(e) =>
                                     e.key === "Enter" && handleLogin()}
                             />
@@ -83,12 +83,12 @@
                     <div>
                         <label
                             for="admin_pw"
-                            class="block text-xs font-bold text-[#5F6368] uppercase tracking-widest mb-2 px-1"
+                            class="block text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-widest mb-2 px-1"
                             >{$t("login.password")}</label
                         >
                         <div class="relative group">
                             <div
-                                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#BDC1C6] group-focus-within:text-[#4285F4] transition-colors"
+                                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#BDC1C6] dark:text-dark-text-muted group-focus-within:text-[#4285F4] transition-colors"
                             >
                                 <Lock size={20} />
                             </div>
@@ -97,7 +97,7 @@
                                 type="password"
                                 bind:value={admin_pw}
                                 placeholder="••••••••"
-                                class="w-full bg-[#FAFBFF] border-2 border-[#F1F3F4] rounded-2xl pl-12 pr-4 py-4 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] font-medium"
+                                class="w-full bg-[#FAFBFF] dark:bg-dark-bg border-2 border-[#F1F3F4] dark:border-dark-border rounded-2xl pl-12 pr-4 py-4 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] dark:placeholder-dark-text-muted/30 font-medium text-[#3C4043] dark:text-dark-text"
                                 onkeydown={(e) =>
                                     e.key === "Enter" && handleLogin()}
                             />
@@ -108,7 +108,7 @@
                 <button
                     onclick={handleLogin}
                     disabled={loading}
-                    class="w-full bg-[#4285F4] hover:bg-[#1A73E8] text-white font-bold py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 text-lg"
+                    class="w-full bg-[#4285F4] hover:bg-[#1A73E8] text-white font-bold py-4 sm:py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 text-lg"
                 >
                     {#if loading}
                         <div
@@ -121,9 +121,9 @@
                     {/if}
                 </button>
 
-                <div class="pt-4 text-center">
+                <div class="pt-2 text-center">
                     <button
-                        class="text-sm font-bold text-[#5F6368] hover:text-[#4285F4] transition-colors"
+                        class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] transition-colors"
                     >
                         {$t("login.trouble")}
                     </button>
@@ -131,8 +131,31 @@
             </div>
         </div>
 
-        <p class="mt-8 text-center text-[#9AA0A6] text-sm font-medium">
-            {$t("common.title")} &copy; 2025
-        </p>
+        <div class="mt-8 flex flex-col items-center gap-4">
+            <div class="flex items-center gap-4">
+                <a
+                    href="https://github.com/JAICHANGPARK/open-codelabs"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center gap-2 text-[#9AA0A6] dark:text-dark-text-muted hover:text-[#4285F4] transition-colors text-sm font-medium"
+                >
+                    <Github size={18} />
+                    GitHub
+                </a>
+                <div class="w-px h-4 bg-[#E8EAED] dark:bg-dark-border"></div>
+                <a
+                    href="https://jaichangpark.github.io/open-codelabs/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="flex items-center gap-2 text-[#9AA0A6] dark:text-dark-text-muted hover:text-[#4285F4] transition-colors text-sm font-medium"
+                >
+                    <FileIcon size={18} />
+                    Docs
+                </a>
+            </div>
+            <p class="text-[#9AA0A6] dark:text-dark-text-muted text-sm font-medium">
+                {$t("common.title")} &copy; 2025
+            </p>
+        </div>
     </div>
 </div>
