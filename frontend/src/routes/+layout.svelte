@@ -5,7 +5,8 @@
     import { locale, waitLocale, t } from "svelte-i18n";
     import "$lib/i18n";
     import "../app.css";
-    import { Languages, LogOut } from "lucide-svelte";
+    import { Languages, LogOut, Sun, Moon, Github, FileText as FileIcon } from "lucide-svelte";
+    import { themeState } from "$lib/theme";
 
     let { children } = $props();
     let i18nLoaded = $state(false);
@@ -96,23 +97,45 @@
     <div
         class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 print:hidden"
     >
+        <!-- External Links -->
+        <div class="flex flex-col items-end gap-3 mb-2">
+            <a
+                href="https://github.com/JAICHANGPARK/open-codelabs"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-10 h-10 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
+                title="GitHub Repository"
+            >
+                <Github size={18} />
+            </a>
+            <a
+                href="https://jaichangpark.github.io/open-codelabs/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-10 h-10 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
+                title="Documentation"
+            >
+                <FileIcon size={18} />
+            </a>
+        </div>
+
         <div class="group relative">
             <button
-                class="w-12 h-12 bg-white border border-[#E8EAED] rounded-full shadow-lg flex items-center justify-center text-[#5F6368] hover:text-[#4285F4] hover:border-[#4285F4] transition-all"
+                class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
                 title="Change Language"
             >
                 <Languages size={20} />
             </button>
             <div
-                class="absolute bottom-full right-0 mb-3 bg-white border border-[#E8EAED] rounded-2xl shadow-2xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all min-w-[120px]"
+                class="absolute bottom-full right-0 mb-3 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl shadow-2xl overflow-hidden opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all min-w-[120px]"
             >
                 {#each availableLocales as loc}
                     <button
                         onclick={() => changeLanguage(loc.code)}
-                        class="w-full text-left px-4 py-3 text-sm font-bold hover:bg-[#F8F9FA] transition-colors {loc.code ===
+                        class="w-full text-left px-4 py-3 text-sm font-bold hover:bg-[#F8F9FA] dark:hover:bg-white/5 transition-colors {loc.code ===
                         $locale
-                            ? 'text-[#4285F4] bg-[#E8F0FE]'
-                            : 'text-[#5F6368]'}"
+                            ? 'text-[#4285F4] bg-[#E8F0FE] dark:bg-[#4285F4]/10'
+                            : 'text-[#5F6368] dark:text-dark-text-muted'}"
                     >
                         {loc.name}
                     </button>
@@ -120,11 +143,24 @@
             </div>
         </div>
 
+        <!-- Theme Toggle -->
+        <button
+            onclick={() => themeState.toggle()}
+            class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
+            title="Toggle Theme"
+        >
+            {#if themeState.current === 'light'}
+                <Moon size={20} />
+            {:else}
+                <Sun size={20} />
+            {/if}
+        </button>
+
         <!-- Logout button if in admin -->
         {#if page.url.pathname.startsWith("/admin")}
             <button
                 onclick={handleLogout}
-                class="w-12 h-12 bg-white border border-[#E8EAED] rounded-full shadow-lg flex items-center justify-center text-[#5F6368] hover:text-red-500 hover:border-red-500 transition-all"
+                class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-red-400 hover:text-red-500 hover:border-red-500 transition-all"
                 title={$t("common.logout")}
             >
                 <LogOut size={20} />
@@ -132,9 +168,9 @@
         {/if}
     </div>
 {:else}
-    <div class="min-h-screen flex items-center justify-center bg-[#F8F9FA]">
+    <div class="min-h-screen flex items-center justify-center bg-[#F8F9FA] dark:bg-dark-bg">
         <div
-            class="animate-spin rounded-full h-12 w-12 border-4 border-[#E8EAED] border-t-[#4285F4]"
+            class="animate-spin rounded-full h-12 w-12 border-4 border-[#E8EAED] dark:border-dark-border border-t-[#4285F4] dark:border-t-[#4285F4]"
         ></div>
     </div>
 {/if}
