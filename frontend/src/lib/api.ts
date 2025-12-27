@@ -1,4 +1,14 @@
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+import { browser } from '$app/environment';
+
+const envApiUrl = import.meta.env.VITE_API_URL;
+let BASE_URL = envApiUrl || 'http://localhost:8080';
+
+if (browser && envApiUrl === 'http://backend:8080') {
+    // If we are in the browser and the URL is set to the Docker internal name,
+    // we fallback to localhost.
+    BASE_URL = 'http://localhost:8080';
+}
+
 const API_URL = BASE_URL + '/api';
 export const ASSET_URL = BASE_URL;
 
