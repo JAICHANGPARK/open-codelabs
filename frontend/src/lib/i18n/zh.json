@@ -18,7 +18,18 @@
         "date": "日期",
         "status": "状态",
         "error": "错误",
-        "success": "成功"
+        "success": "成功",
+        "toggle_colorblind": "切换色觉辅助模式",
+        "tts_read": "朗读本步骤",
+        "tts_stop": "停止朗读",
+        "google_login": "使用 Google 登录",
+        "github_repo": "GitHub 仓库",
+        "documentation": "文档",
+        "change_language": "更改语言",
+        "toggle_theme": "切换主题",
+        "or": "或",
+        "ai_assistant": "AI 助手",
+        "close": "关闭"
     },
     "dashboard": {
         "title": "协调员仪表板",
@@ -36,7 +47,16 @@
         "placeholder_title": "例如：SvelteKit 入门",
         "placeholder_desc": "他们将学习什么？",
         "placeholder_author": "您的姓名",
-        "confirm_delete": "您确定要删除此代码实验室吗？此操作无法撤销。"
+        "confirm_delete": "您确定要删除此代码实验室吗？此操作无法撤销。",
+        "create_with_ai": "使用 AI 创建",
+        "share_link": "复制参与者链接",
+        "settings": {
+            "title": "设置",
+            "gemini_api_key": "Gemini API 密钥",
+            "api_key_placeholder": "请输入您的 Gemini API 密钥",
+            "api_key_desc": "您的密钥将加密存储在浏览器本地，不会发送到我们的服务器。",
+            "save_success": "设置保存成功。"
+        }
     },
     "editor": {
         "edit": "编辑",
@@ -53,22 +73,102 @@
         "attendee_access": "参与者入口",
         "view_live": "查看实时页面",
         "public_chat": "公共聊天",
-        "direct_messages": "私信"
+        "direct_messages": "私信",
+        "facilitator_mode": "协调员模式",
+        "back": "返回",
+        "next": "下一步",
+        "finish": "结束",
+        "mins_remaining": "剩余 {mins} 分钟",
+        "chat_placeholder": "输入消息...",
+        "no_messages": "暂无消息。",
+        "no_messages_desc": "协调员尚未发送消息。",
+        "feedback_tab": "反馈",
+        "delete_step": "删除步骤",
+        "copy_url": "复制 URL",
+        "placeholder_step_title": "未命名步骤",
+        "start_writing": "在此处开始写作...",
+        "export_zip": "导出为 ZIP",
+        "help_requests": "帮助请求",
+        "no_help_requests": "暂无帮助请求。",
+        "resolve": "解决",
+        "send_dm": "发送消息",
+        "to_facilitator": "致协调员",
+        "from_facilitator": "协调员",
+        "ai_menu": {
+            "explain": "AI 解释",
+            "summarize": "AI 总结",
+            "fix_grammar": "语法检查",
+            "improve_writing": "改进写作"
+        },
+        "live_tab": "实时",
+        "export_codelab": "导出代码实验室",
+        "save_changes": "保存更改",
+        "stuck_on_step": "卡在第 {step} 步"
+    },
+    "attendee": {
+        "join_title": "加入代码实验室",
+        "join_desc": "请输入您的详细信息以参与",
+        "nickname": "姓名 / 昵称",
+        "nickname_placeholder": "例如：张三",
+        "unique_code": "唯一代码（手机尾号等）",
+        "unique_code_placeholder": "例如：1234",
+        "start_learning": "开始学习",
+        "processing": "处理中...",
+        "error_fill_fields": "请填写所有字段",
+        "error_duplicate_name": "该昵称已在此代码实验室中使用。请换一个。",
+        "error_registration_failed": "注册失败。请检查您的网络连接并重试。",
+        "return_home": "返回首页",
+        "codelab_not_found": "找不到代码实验室"
+    },
+    "feedback": {
+        "done_title": "您已完成！",
+        "done_desc": "恭喜您完成 {title}。",
+        "experience_title": "您的学习体验如何？",
+        "satisfaction": "满意度",
+        "difficulty": "难度",
+        "too_easy": "太简单",
+        "just_right": "正合适",
+        "too_hard": "太难",
+        "comments_optional": "评论（可选）",
+        "comments_placeholder": "还有其他反馈吗？",
+        "submit": "提交反馈",
+        "submitting": "提交中...",
+        "thanks": "感谢您的反馈！",
+        "already_submitted": "您已经为此代码实验室提交过反馈。",
+        "failed_submit": "提交反馈失败。",
+        "view_live_status": "查看实时状态"
+    },
+    "help": {
+        "request": "寻求帮助",
+        "requested": "已请求帮助",
+        "sent": "已向协调员发送帮助请求！",
+        "failed": "发送帮助请求失败。"
+    },
+    "live": {
+        "status_title": "实时状态",
+        "participants": "{count} 人参与中",
+        "realtime_progress": "实时进度",
+        "step_progress": "第 {current} / {total} 步",
+        "you": "(您)",
+        "live_chat": "实时聊天",
+        "say_hello": "打个招呼吧..."
     },
     "login": {
         "title": "协调员登录",
-        "subtitle": "访问您的 仪表板",
+        "subtitle": "访问您的仪表板",
         "admin_id": "管理员 ID",
         "password": "密码",
         "sign_in": "登录",
         "connecting": "正在连接...",
         "error_fields": "请填写所有字段",
-        "error_credentials": "ID 或密码无效"
+        "error_credentials": "管理员 ID 或密码无效",
+        "placeholder_id": "请输入管理员 ID",
+        "trouble": "登录遇到困难？"
     },
     "home": {
-        "subtitle": "面向开发者的互动式动手实践学习平台",
-        "facilitator_desc": "创建和管理您自己的代码实验室，跟踪参与者进度，并提供实时帮助。",
-        "attendee_desc": "加入可用会话，按照分步说明操作，并学习新技术。"
+        "subtitle": "通过互动的分步指南开展完美的动手实践课程。",
+        "facilitator_desc": "设计工作坊并实时引导您的参与者。",
+        "attendee_desc": "按照自己的节奏学习，并在卡住时寻求帮助。"
     },
     "ai_generator": {
         "title": "使用 Gemini AI 创建",
@@ -93,5 +193,19 @@
         "error_parse": "解析 AI 响应时发生意外错误。请重试。",
         "error_generate": "生成失败",
         "error_save": "保存代码实验室失败。"
+    },
+    "gemini": {
+        "ask_gemini": "向 Gemini 提问",
+        "change_key": "更改密钥",
+        "enter_api_key": "输入 Gemini API 密钥",
+        "api_key_required_desc": "要使用 AI 功能，您需要有效的 Google Gemini API 密钥。",
+        "get_api_key": "在此处获取 API 密钥",
+        "paste_api_key": "在此处粘贴 API 密钥...",
+        "context_selected": "已选上下文",
+        "thinking": "思考中...",
+        "ask_question_placeholder": "向 AI 提问有关代码的问题...",
+        "improve_with_gemini": "使用 Gemini 改进",
+        "gemini_is_writing": "Gemini 正在写作...",
+        "improving_content": "正在改进您的内容"
     }
 }
