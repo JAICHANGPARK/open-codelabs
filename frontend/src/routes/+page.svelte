@@ -18,7 +18,7 @@
             <h1
                 class="text-5xl font-extrabold text-[#3C4043] mb-4 tracking-tight"
             >
-                AntiGravity <span class="text-[#4285F4]">Dojo</span>
+                Open<span class="text-[#4285F4]">Codelabs</span>
             </h1>
             <p class="text-xl text-[#5F6368] mb-12">
                 {$t("home.subtitle")}
