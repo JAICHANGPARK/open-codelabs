@@ -3,10 +3,10 @@ import { browser } from '$app/environment';
 const envApiUrl = import.meta.env.VITE_API_URL;
 let BASE_URL = envApiUrl || 'http://localhost:8080';
 
-if (browser && envApiUrl === 'http://backend:8080') {
-    // If we are in the browser and the URL is set to the Docker internal name,
-    // we fallback to localhost.
-    BASE_URL = 'http://localhost:8080';
+if (browser && (envApiUrl === 'http://backend:8080' || !envApiUrl)) {
+    // If we are in the browser and the URL is set to the Docker internal name or not set,
+    // we use the current hostname but keep the 8080 port which is standard for our backend.
+    BASE_URL = `${window.location.protocol}//${window.location.hostname}:8080`;
 }
 
 const API_URL = BASE_URL + '/api';

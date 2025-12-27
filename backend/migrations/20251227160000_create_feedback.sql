@@ -5,5 +5,6 @@ CREATE TABLE IF NOT EXISTS feedback (
     difficulty VARCHAR(50) NOT NULL,
     satisfaction VARCHAR(50) NOT NULL,
     comment TEXT,
-    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (codelab_id) REFERENCES codelabs(id) ON DELETE CASCADE
 );

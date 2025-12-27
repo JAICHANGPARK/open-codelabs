@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
+    import { browser } from "$app/environment";
     import { locale, waitLocale, t } from "svelte-i18n";
     import "$lib/i18n";
     import "../app.css";
