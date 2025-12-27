@@ -15,6 +15,10 @@ export const updateCodelab = USE_FIREBASE ? firebase.updateCodelab : backend.upd
 export const saveSteps = USE_FIREBASE ? firebase.saveSteps : backend.saveSteps;
 export const deleteCodelab = USE_FIREBASE ? firebase.deleteCodelab : backend.deleteCodelab;
 export const login = USE_FIREBASE ? firebase.login : backend.login;
+export const loginWithGoogle = USE_FIREBASE ? firebase.loginWithGoogle : async () => { throw new Error('Not supported in backend mode'); };
+export const logout = USE_FIREBASE ? firebase.logout : async () => { localStorage.removeItem('adminToken'); };
+export const onAuthChange = USE_FIREBASE ? firebase.onAuthChange : (cb: any) => { /* no-op */ };
+
 export const registerAttendee = USE_FIREBASE ? firebase.registerAttendee : backend.registerAttendee;
 export const updateAttendeeProgress = USE_FIREBASE ? firebase.updateAttendeeProgress : async (codelabId: string, attendeeId: string, stepNumber: number) => { /* WebSocket handles this */ };
 export const requestHelp = USE_FIREBASE ? firebase.requestHelp : backend.requestHelp;
