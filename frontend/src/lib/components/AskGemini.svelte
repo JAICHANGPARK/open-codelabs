@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { browser } from "$app/environment";
     import { streamGeminiResponseRobust } from "$lib/gemini";
     import { X, Send, Key, Sparkles, Loader2 } from "lucide-svelte";
     import { marked } from "marked";
@@ -74,10 +75,13 @@
         }
     }
 
-    // @ts-ignore
-    let renderedResponse = $derived(
-        DOMPurify.sanitize(marked.parse(response) as string),
-    );
+    let renderedResponse = $derived.by(() => {
+        const html = marked.parse(response) as string;
+        if (browser) {
+            return DOMPurify.sanitize(html);
+        }
+        return html;
+    });
 </script>
 
 <div
