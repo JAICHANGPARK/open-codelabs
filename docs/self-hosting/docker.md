@@ -184,6 +184,7 @@ openssl rand -base64 32
 
 데이터베이스 데이터를 유지하려면 볼륨 사용:
 
+#### SQLite 사용 시
 ```yaml
 services:
   backend:
@@ -194,6 +195,29 @@ services:
 
 volumes:
   backend_data:
+```
+
+#### PostgreSQL 사용 시 (예시)
+```yaml
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=codelab
+      - POSTGRES_PASSWORD=secure_password
+      - POSTGRES_DB=open_codelabs
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    environment:
+      - DATABASE_URL=postgres://codelab:secure_password@db:5432/open_codelabs
+    depends_on:
+      - db
+    # ...
+
+volumes:
+  postgres_data:
 ```
 
 ### 백업 전략

@@ -8,13 +8,24 @@ Open Codelabs의 모든 환경 변수에 대한 상세 가이드입니다.
 
 #### DATABASE_URL
 
-SQLite 데이터베이스 연결 문자열
+데이터베이스 연결 문자열 (SQLite, PostgreSQL, MySQL 지원)
 
+**SQLite (기본값)**:
 ```bash
 DATABASE_URL=sqlite:data/sqlite.db?mode=rwc
 ```
 
-**형식**: `sqlite:<경로>?<옵션>`
+**PostgreSQL**:
+```bash
+DATABASE_URL=postgres://user:password@localhost:5432/dbname
+```
+
+**MySQL**:
+```bash
+DATABASE_URL=mysql://user:password@localhost:3306/dbname
+```
+
+**형식**: `sqlite:<경로>?<옵션>` 또는 `<db_type>://<user>:<password>@<host>:<port>/<dbname>`
 
 **옵션**:
 - `mode=rwc`: Read, Write, Create 모드
