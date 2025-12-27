@@ -20,7 +20,7 @@
         type ChatMessage,
     } from "$lib/api";
     import { loadProgress, saveProgress } from "$lib/Progress";
-    import { marked } from "marked";
+    import { attendeeMarked as marked } from "$lib/markdown";
     import DOMPurify from "dompurify";
     import {
         ChevronLeft,
@@ -143,10 +143,6 @@
 
     let wsCleanup: any;
     onMount(async () => {
-        marked.use({
-            gfm: true,
-            breaks: true,
-        });
         // Check for registration
         const savedAttendee = localStorage.getItem(`attendee_${id}`);
         if (!savedAttendee) {
