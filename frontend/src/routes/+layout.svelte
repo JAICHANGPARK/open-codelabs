@@ -76,17 +76,6 @@
             console.error("Language change failed", e);
         }
     }
-
-    $effect(() => {
-        if (!browser) return;
-        const currentTheme = themeState.current;
-        if (currentTheme === "dark") {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
-        }
-        localStorage.setItem("theme", currentTheme);
-    });
 </script>
 
 <svelte:head>
