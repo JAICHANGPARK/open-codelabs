@@ -119,7 +119,7 @@ export async function* streamGeminiResponseRobust(
     context: string,
     config: GeminiConfig
 ): AsyncGenerator<string, void, unknown> {
-    const model = config.model || "gemini-2.0-flash-exp";
+    const model = config.model || "gemini-3-flash-preview";
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${config.apiKey}`;
 
     const payload = {
