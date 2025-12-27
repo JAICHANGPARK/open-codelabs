@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount, onDestroy } from "svelte";
+    import { onMount } from "svelte";
     import { page } from "$app/state";
     import {
         getCodelab,
@@ -68,8 +68,10 @@
         }
     });
 
-    onDestroy(() => {
-        if (ws) ws.close();
+    $effect(() => {
+        return () => {
+            if (ws) ws.close();
+        };
     });
 
     async function loadChatHistory() {
