@@ -118,6 +118,8 @@
             : messages.filter((m) => m.type === "dm"),
     );
 
+    let isSidebarOpen = $state(false);
+
     // Sync mode to URL and load data
     $effect(() => {
         const url = new URL(window.location.href);
@@ -540,7 +542,7 @@
             // WebSocket will trigger refresh for peers, but we refresh locally too
             await refreshLiveData();
         } catch (e) {
-            alert("Failed to resolve help request");
+            alert($t("common.error"));
         }
     }
 
@@ -550,14 +552,14 @@
             codelab_id: id,
             step_number: steps.length + 1,
             title: $t("editor.untitled_step"),
-            content_markdown: `# ${$t("editor.untitled_step")}\n\nStart writing here...`,
+            content_markdown: `# ${$t("editor.untitled_step")}\n\n${$t("editor.start_writing")}`,
         };
         steps = [...steps, newStep];
         activeStepIndex = steps.length - 1;
     }
 
     function removeStep(index: number) {
-        if (!confirm("Are you sure you want to delete this step?")) return;
+        if (!confirm($t("dashboard.confirm_delete"))) return;
         steps = steps.filter((_, i) => i !== index);
         if (activeStepIndex >= steps.length) {
             activeStepIndex = Math.max(0, steps.length - 1);
@@ -1028,7 +1030,7 @@
                                 <button
                                     onclick={() => removeStep(i)}
                                     class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#BDC1C6] hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                                    title="Delete Step"
+                                    title={$t("editor.delete_step")}
                                 >
                                     <Trash2 size={14} />
                                 </button>
@@ -1064,7 +1066,7 @@
                                 class="p-2 hover:bg-[#F1F3F4] rounded-lg transition-colors {copySuccess
                                     ? 'text-[#1E8E3E]'
                                     : 'text-[#4285F4]'}"
-                                title="Copy URL"
+                                title={$t("editor.copy_url")}
                             >
                                 {#if copySuccess}
                                     <Check size={14} />
@@ -1217,7 +1219,7 @@
                                                 <h3
                                                     class="font-bold text-[#EA4335]"
                                                 >
-                                                    Help Requests ({helpRequests.length})
+                                                    {$t("help.request")} ({helpRequests.length})
                                                 </h3>
                                             </div>
                                             <div
@@ -1272,7 +1274,7 @@
                                                 <h3
                                                     class="font-bold text-[#3C4043]"
                                                 >
-                                                    Active Attendees ({attendees.length})
+                                                    {$t("common.attendee")} ({attendees.length})
                                                 </h3>
                                             </div>
                                             <div
@@ -1314,7 +1316,7 @@
                                                                 (dmTarget =
                                                                     attendee)}
                                                             class="p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                                                            title="Message"
+                                                            title={$t("editor.send_dm")}
                                                         >
                                                             <MessageSquare
                                                                 size={16}
