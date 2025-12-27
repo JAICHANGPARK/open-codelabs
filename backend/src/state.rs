@@ -59,3 +59,65 @@ impl AppState {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sqlx::any::AnyPoolOptions;
+
+    #[tokio::test]
+    async fn test_q_placeholder_transformation() {
+        // We don't need a real pool for this test as we only test the `q` method
+        // But AppState requires one. We can use a dummy/invalid one or a mock if possible.
+        // Actually, sqlx::AnyPool can be created from an in-memory sqlite connection.
+        sqlx::any::install_default_drivers();
+        let pool = AnyPoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .unwrap();
+
+        let state_sqlite = AppState {
+            pool: pool.clone(),
+            db_kind: DbKind::Sqlite,
+            admin_id: "admin".to_string(),
+            admin_pw: "pass".to_string(),
+            channels: Arc::new(DashMap::new()),
+            sessions: Arc::new(DashMap::new()),
+        };
+
+        let state_postgres = AppState {
+            pool,
+            db_kind: DbKind::Postgres,
+            admin_id: "admin".to_string(),
+            admin_pw: "pass".to_string(),
+            channels: Arc::new(DashMap::new()),
+            sessions: Arc::new(DashMap::new()),
+        };
+
+        let sql = "SELECT * FROM users WHERE id = ? AND name = ?";
+        
+        assert_eq!(state_sqlite.q(sql), "SELECT * FROM users WHERE id = ? AND name = ?");
+        assert_eq!(state_postgres.q(sql), "SELECT * FROM users WHERE id = $1 AND name = $2");
+    }
+
+    #[tokio::test]
+    async fn test_q_with_quotes() {
+        sqlx::any::install_default_drivers();
+        let pool = AnyPoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .unwrap();
+
+        let state_postgres = AppState {
+            pool,
+            db_kind: DbKind::Postgres,
+            admin_id: "admin".to_string(),
+            admin_pw: "pass".to_string(),
+            channels: Arc::new(DashMap::new()),
+            sessions: Arc::new(DashMap::new()),
+        };
+
+        let sql = "SELECT * FROM users WHERE name = '?' AND id = ?";
+        assert_eq!(state_postgres.q(sql), "SELECT * FROM users WHERE name = '?' AND id = $1");
+    }
+}
