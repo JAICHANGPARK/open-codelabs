@@ -6,7 +6,7 @@
     import "$lib/i18n";
     import "../app.css";
     import { Languages, LogOut, Sun, Moon, Github, FileText as FileIcon } from "lucide-svelte";
-    import { themeState } from "$lib/theme";
+    import { themeState } from "$lib/theme.svelte";
 
     let { children } = $props();
     let i18nLoaded = $state(false);
