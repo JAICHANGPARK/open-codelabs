@@ -3,8 +3,8 @@
     import { fly, fade } from "svelte/transition";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
-    import { getCodelab, registerAttendee, type Codelab } from "$lib/api";
-    import { User, KeyRound, ArrowRight, Loader2 } from "lucide-svelte";
+    import { getCodelab, registerAttendee, loginWithGoogle, isFirebaseMode, type Codelab } from "$lib/api";
+    import { User, KeyRound, ArrowRight, Loader2, Chrome } from "lucide-svelte";
     import { t } from "svelte-i18n";
 
     let id = page.params.id as string;
@@ -49,6 +49,27 @@
                 error = $t("attendee.error_duplicate_name");
             } else {
                 error = $t("attendee.error_registration_failed");
+            }
+        } finally {
+            submitting = false;
+        }
+    }
+
+    async function handleGoogleLogin() {
+        submitting = true;
+        error = "";
+        try {
+            const { user } = await loginWithGoogle();
+            const emailPart = user.email ? user.email.split('@')[0] : "";
+            const displayName = user.displayName || emailPart || "Anonymous";
+            const userCode = user.uid.substring(0, 8); // Use part of UID as code
+            
+            const attendee = await registerAttendee(id, displayName, userCode);
+            localStorage.setItem(`attendee_${id}`, JSON.stringify(attendee));
+            goto(`/codelabs/${id}`);
+        } catch (e: any) {
+            if (e.code !== 'auth/popup-closed-by-user') {
+                error = $t("attendee.error_registration_failed") + ": " + e.message;
             }
         } finally {
             submitting = false;
@@ -165,6 +186,27 @@
                             />
                         {/if}
                     </button>
+
+                    {#if isFirebaseMode()}
+                        <div class="relative py-2">
+                            <div class="absolute inset-0 flex items-center">
+                                <div class="w-full border-t border-[#F1F3F4]"></div>
+                            </div>
+                            <div class="relative flex justify-center text-xs uppercase">
+                                <span class="bg-white px-4 text-[#9AA0A6] font-bold">{$t("common.or") || "OR"}</span>
+                            </div>
+                        </div>
+
+                        <button
+                            type="button"
+                            onclick={handleGoogleLogin}
+                            disabled={submitting}
+                            class="w-full bg-white hover:bg-[#F8F9FA] text-[#3C4043] font-bold py-4 rounded-xl border border-[#DADCE0] shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+                        >
+                            <Chrome size={20} class="text-[#4285F4]" />
+                            <span>Continue with Google</span>
+                        </button>
+                    {/if}
                 </form>
             </div>
 
