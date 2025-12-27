@@ -19,8 +19,12 @@
         Trash2,
         Share2,
         Check,
+        Settings,
+        Sparkles,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
+    import { encrypt, decrypt } from "$lib/crypto";
+    import AiCodelabGenerator from "$lib/components/AiCodelabGenerator.svelte";
 
     let codelabs: Codelab[] = $state([]);
     let loading = $state(true);
@@ -28,15 +32,43 @@
     let newCodelab = $state({ title: "", description: "", author: "" });
     let copyTarget: string | null = $state(null);
 
+    // AI & Settings State
+    let showSettingsModal = $state(false);
+    let showAiGenerator = $state(false);
+    let geminiApiKey = $state("");
+    let apiKeySaved = $state(false);
+
     onMount(async () => {
         try {
             codelabs = await listCodelabs();
+
+            // Load API Key
+            const encryptedKey = localStorage.getItem("gemini_api_key");
+            if (encryptedKey) {
+                const decrypted = decrypt(encryptedKey);
+                if (decrypted) {
+                    geminiApiKey = decrypted;
+                    apiKeySaved = true;
+                }
+            }
         } catch (e) {
             console.error(e);
         } finally {
             loading = false;
         }
     });
+
+    function saveSettings() {
+        if (geminiApiKey.trim()) {
+            const encrypted = encrypt(geminiApiKey.trim());
+            localStorage.setItem("gemini_api_key", encrypted);
+            apiKeySaved = true;
+            showSettingsModal = false;
+        } else {
+            localStorage.removeItem("gemini_api_key");
+            apiKeySaved = false;
+        }
+    }
 
     async function handleCreate() {
         if (!newCodelab.title) return;
@@ -120,6 +152,18 @@
                 </p>
             </div>
             <div class="flex items-center gap-4">
+                <button
+                    onclick={() => (showSettingsModal = true)}
+                    class="p-2.5 hover:bg-[#F8F9FA] rounded-full text-[#5F6368] transition-all border border-transparent hover:border-[#E8EAED]"
+                    title="Settings"
+                >
+                    <Settings
+                        size={20}
+                        class={apiKeySaved ? "text-[#34A853]" : ""}
+                    />
+                </button>
+                <div class="h-6 w-px bg-[#E8EAED]"></div>
+
                 <input
                     type="file"
                     accept=".zip"
@@ -129,14 +173,21 @@
                 />
                 <button
                     onclick={() => fileInput.click()}
-                    class="bg-white hover:bg-[#F8F9FA] text-[#5F6368] px-6 py-2.5 rounded-full flex items-center gap-2 transition-all border border-[#DADCE0] font-bold"
+                    class="bg-white hover:bg-[#F8F9FA] text-[#5F6368] px-4 py-2.5 rounded-full flex items-center gap-2 transition-all border border-[#DADCE0] font-bold text-sm"
                 >
-                    <FileUp size={20} />
+                    <FileUp size={18} />
                     {$t("common.import")}
                 </button>
                 <button
+                    onclick={() => (showAiGenerator = true)}
+                    class="bg-white hover:bg-[#F8F9FA] text-[#4285F4] px-4 py-2.5 rounded-full flex items-center gap-2 transition-all border border-[#DADCE0] font-bold text-sm"
+                >
+                    <Sparkles size={18} />
+                    Create with AI
+                </button>
+                <button
                     onclick={() => (showCreateModal = true)}
-                    class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-6 py-2.5 rounded-full flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-bold"
+                    class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-5 py-2.5 rounded-full flex items-center gap-2 transition-all shadow-md hover:shadow-lg font-bold text-sm"
                 >
                     <Plus size={20} />
                     {$t("dashboard.new_codelab")}
@@ -330,4 +381,74 @@
             </div>
         </div>
     </div>
+{/if}
+
+{#if showSettingsModal}
+    <div
+        class="fixed inset-0 bg-[#202124]/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+        transition:fade={{ duration: 200 }}
+    >
+        <div
+            class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
+            in:fly={{ y: 20, duration: 300 }}
+        >
+            <div
+                class="px-6 py-4 border-b border-[#F1F3F4] flex items-center justify-between bg-[#F8F9FA]"
+            >
+                <h3 class="font-bold text-[#202124]">Settings</h3>
+                <button
+                    onclick={() => (showSettingsModal = false)}
+                    class="text-[#5F6368] hover:bg-[#E8EAED] p-1 rounded-full"
+                    ><Settings size={18} /></button
+                >
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label
+                        for="api-key"
+                        class="block text-sm font-bold text-[#5F6368] mb-2"
+                        >Gemini API Key</label
+                    >
+                    <input
+                        id="api-key"
+                        type="password"
+                        bind:value={geminiApiKey}
+                        placeholder="Enter your Gemini API Key"
+                        class="w-full border-2 border-[#F1F3F4] rounded-lg px-4 py-2.5 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] text-sm font-mono"
+                    />
+                    <p class="text-xs text-[#9AA0A6] mt-2">
+                        Your key is stored locally in your browser and
+                        encrypted. It is never sent to our servers.
+                    </p>
+                </div>
+            </div>
+            <div
+                class="px-6 py-4 border-t border-[#F1F3F4] flex justify-end gap-3 bg-[#F8F9FA]"
+            >
+                <button
+                    onclick={() => (showSettingsModal = false)}
+                    class="px-4 py-2 text-[#5F6368] font-bold hover:bg-[#E8EAED] rounded-lg text-sm transition-all"
+                >
+                    Cancel
+                </button>
+                <button
+                    onclick={saveSettings}
+                    class="px-6 py-2 bg-[#4285F4] text-white rounded-lg font-bold hover:bg-[#1A73E8] text-sm transition-all shadow-sm"
+                >
+                    Save Settings
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
+
+{#if showAiGenerator}
+    <AiCodelabGenerator
+        apiKey={geminiApiKey}
+        onClose={() => (showAiGenerator = false)}
+        onCodelabCreated={(codelab) => {
+            codelabs = [codelab, ...codelabs];
+            showAiGenerator = false;
+        }}
+    />
 {/if}
