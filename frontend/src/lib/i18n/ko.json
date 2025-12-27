@@ -18,7 +18,18 @@
         "date": "날짜",
         "status": "상태",
         "error": "오류",
-        "success": "성공"
+        "success": "성공",
+        "toggle_colorblind": "색맹 모드 토글",
+        "tts_read": "이 단계 읽어주기",
+        "tts_stop": "읽기 중단",
+        "google_login": "Google로 로그인",
+        "github_repo": "GitHub 저장소",
+        "documentation": "문서",
+        "change_language": "언어 변경",
+        "toggle_theme": "테마 변경",
+        "or": "또는",
+        "ai_assistant": "AI 어시스턴트",
+        "close": "닫기"
     },
     "dashboard": {
         "title": "퍼실리테이터 대시보드",
@@ -88,7 +99,11 @@
             "summarize": "AI 요약",
             "fix_grammar": "문법 교정",
             "improve_writing": "문장 개선"
-        }
+        },
+        "live_tab": "라이브",
+        "export_codelab": "코드랩 내보내기",
+        "save_changes": "변경사항 저장",
+        "stuck_on_step": "단계 {step}에서 멈춤"
     },
     "attendee": {
         "join_title": "코드랩 참여하기",
@@ -178,5 +193,19 @@
         "error_parse": "AI 응답을 분석하는 동안 예기치 않은 오류가 발생했습니다. 다시 시도해주세요.",
         "error_generate": "생성 실패",
         "error_save": "코드랩 저장에 실패했습니다."
+    },
+    "gemini": {
+        "ask_gemini": "Gemini에게 질문하기",
+        "change_key": "키 변경",
+        "enter_api_key": "Gemini API 키 입력",
+        "api_key_required_desc": "AI 기능을 사용하려면 유효한 Google Gemini API 키가 필요합니다.",
+        "get_api_key": "여기에서 API 키 받기",
+        "paste_api_key": "여기에 API 키 붙여넣기...",
+        "context_selected": "선택된 컨텍스트",
+        "thinking": "생각 중...",
+        "ask_question_placeholder": "코드에 대해 궁금한 점을 물어보세요...",
+        "improve_with_gemini": "Gemini로 개선하기",
+        "gemini_is_writing": "Gemini가 작성 중...",
+        "improving_content": "콘텐츠를 개선하고 있습니다"
     }
 }
