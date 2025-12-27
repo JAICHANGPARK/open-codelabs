@@ -506,6 +506,17 @@ docker system prune -a
 
 ## 문제 해결
 
+### 마이그레이션 오류 (Checksum Mismatch)
+
+최근 업데이트로 PostgreSQL/MySQL 지원을 위해 마이그레이션 파일이 수정되었습니다. 기존 SQLite 사용자 중 `Error: migration ... was previously applied but has been modified` 에러가 발생하는 경우 다음 방법 중 하나를 시도하세요:
+
+1. **데이터베이스 초기화 (권장)**: 기존 데이터를 보존할 필요가 없다면 SQLite 파일을 삭제하고 다시 시작합니다.
+   ```bash
+   rm backend/data/sqlite.db
+   docker-compose up --build
+   ```
+2. **PostgreSQL/MySQL로 전환**: 새로운 데이터베이스를 사용하는 경우 이 문제가 발생하지 않습니다. [환경 변수 가이드](environment.md)를 참조하여 `DATABASE_URL`을 설정하세요.
+
 ### 컨테이너가 계속 재시작됨
 
 ```bash
