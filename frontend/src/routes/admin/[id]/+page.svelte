@@ -55,7 +55,6 @@
         Copy,
         Check,
         X,
-        X,
         FileText,
         Sparkles,
         Loader2,
@@ -156,86 +155,93 @@
             await loadChatHistory();
             initWebSocket();
 
-             // Load API Key
+            // Load API Key
             const encryptedKey = localStorage.getItem("gemini_api_key");
             if (encryptedKey) {
                 const decrypted = decrypt(encryptedKey);
                 if (decrypted) geminiApiKey = decrypted;
             }
-            
+
             document.addEventListener("selectionchange", handleSelectionChange);
-             
         } catch (e) {
             console.error(e);
         } finally {
             loading = false;
         }
     });
-    
+
     // Cleanup
-     $effect(() => {
+    $effect(() => {
         return () => {
-             document.removeEventListener("selectionchange", handleSelectionChange);
+            document.removeEventListener(
+                "selectionchange",
+                handleSelectionChange,
+            );
         };
     });
 
     function handleSelectionChange() {
         if (mode !== "edit" || aiLoading) return;
-        
+
         const activeElement = document.activeElement as HTMLTextAreaElement;
         if (activeElement && activeElement.tagName === "TEXTAREA") {
             const start = activeElement.selectionStart;
             const end = activeElement.selectionEnd;
-             
+
             if (start !== end) {
                 // We have a selection
                 const text = activeElement.value.substring(start, end);
                 if (text.trim().length > 0) {
-                     // Get coordinates for the menu
-                     // This is tricky with textarea. simpler to just show near mouse or fixed?
-                     // Let's use mouseup to get coordinates, selectionchange for state
-                     
-                     selectedText = text;
-                     selectionRange = { start, end };
-                     return;
+                    // Get coordinates for the menu
+                    // This is tricky with textarea. simpler to just show near mouse or fixed?
+                    // Let's use mouseup to get coordinates, selectionchange for state
+
+                    selectedText = text;
+                    selectionRange = { start, end };
+                    return;
                 }
             }
         }
         // If we are here, no valid selection or lost focus
-        if (!showAiMenu) { // Only hide if not already open/interacting?
-             // Actually, we should use handleMouseUp for the UI part
+        if (!showAiMenu) {
+            // Only hide if not already open/interacting?
+            // Actually, we should use handleMouseUp for the UI part
         }
     }
-    
+
     function handleMouseUp(e: MouseEvent) {
-         if (mode !== "edit") return;
-         
-         // Timeout to let selection settle
-         setTimeout(() => {
-             const activeElement = document.activeElement as HTMLTextAreaElement;
-             if (activeElement && activeElement.tagName === "TEXTAREA" && activeElement.contains(e.target as Node)) {
-                  const start = activeElement.selectionStart;
-                  const end = activeElement.selectionEnd;
-                  
-                  if (start !== end) {
-                       const text = activeElement.value.substring(start, end);
-                       if (text.trim().length > 0) {
-                           selectedText = text;
-                           selectionRange = { start, end };
-                           
-                           // Calculate position relative to viewport
-                           // A bit hacky for textarea, but we can just use mouse coordinates
-                           menuPos = { x: e.clientX, y: e.clientY - 40 };
-                           showAiMenu = true;
-                           return;
-                       }
-                  }
-             }
-             // Hide if clicked elsewhere and not loading
-             if (!aiLoading) {
-                 showAiMenu = false;
-             }
-         }, 10);
+        if (mode !== "edit") return;
+
+        // Timeout to let selection settle
+        setTimeout(() => {
+            const activeElement = document.activeElement as HTMLTextAreaElement;
+            if (
+                activeElement &&
+                activeElement.tagName === "TEXTAREA" &&
+                activeElement.contains(e.target as Node)
+            ) {
+                const start = activeElement.selectionStart;
+                const end = activeElement.selectionEnd;
+
+                if (start !== end) {
+                    const text = activeElement.value.substring(start, end);
+                    if (text.trim().length > 0) {
+                        selectedText = text;
+                        selectionRange = { start, end };
+
+                        // Calculate position relative to viewport
+                        // A bit hacky for textarea, but we can just use mouse coordinates
+                        menuPos = { x: e.clientX, y: e.clientY - 40 };
+                        showAiMenu = true;
+                        return;
+                    }
+                }
+            }
+            // Hide if clicked elsewhere and not loading
+            if (!aiLoading) {
+                showAiMenu = false;
+            }
+        }, 10);
     }
 
     async function improveWithAi() {
@@ -244,52 +250,66 @@
             return;
         }
         if (!selectedText || !selectionRange) return;
-        
+
         aiLoading = true;
         showAiMenu = false; // Hide menu, show loading state inline maybe?
-        
+
         // We will replace the text with a placeholder or just start streaming content into it?
         // Let's stream directly into the replacement.
-        
+
         const prompt = `Improve the following technical writing/markdown content. Make it clearer, correct grammar, and better formatted. Maintain the original meaning. Only return the improved content, no explanations.\n\nContent:\n${selectedText}`;
         const systemPrompt = "You are a helpful technical editor.";
-        
+
         let newContent = "";
-        
+
         try {
-             // 1. We replace the selection with "Generating..." or keep it and replace at end?
-             // User requested "stream response". Replacing in real-time is cool.
-             
-             // Initial replacement to clear selection
-             const textarea = document.querySelector("textarea");
-             if (textarea) {
-                 textarea.setRangeText("", selectionRange.start, selectionRange.end, "select");
-             }
-             
-             let currentCursor = selectionRange.start;
-             
-             const stream = streamGeminiResponseRobust(prompt, systemPrompt, { apiKey: geminiApiKey });
-             
-             for await (const chunk of stream) {
-                  steps[activeStepIndex].content_markdown = 
-                      steps[activeStepIndex].content_markdown.substring(0, currentCursor) + 
-                      chunk + 
-                      steps[activeStepIndex].content_markdown.substring(currentCursor);
-                  
-                  currentCursor += chunk.length;
-                  
-                  // Force update textarea if needed? Svelte bind should handle it but might lose cursor?
-                  // We need to keep focus?
-             }
-             
-             // Update selection to the new content
-             selectionRange = { start: selectionRange.start, end: currentCursor };
-             
+            // 1. We replace the selection with "Generating..." or keep it and replace at end?
+            // User requested "stream response". Replacing in real-time is cool.
+
+            // Initial replacement to clear selection
+            const textarea = document.querySelector("textarea");
+            if (textarea) {
+                textarea.setRangeText(
+                    "",
+                    selectionRange.start,
+                    selectionRange.end,
+                    "select",
+                );
+            }
+
+            let currentCursor = selectionRange.start;
+
+            const stream = streamGeminiResponseRobust(prompt, systemPrompt, {
+                apiKey: geminiApiKey,
+            });
+
+            for await (const chunk of stream) {
+                steps[activeStepIndex].content_markdown =
+                    steps[activeStepIndex].content_markdown.substring(
+                        0,
+                        currentCursor,
+                    ) +
+                    chunk +
+                    steps[activeStepIndex].content_markdown.substring(
+                        currentCursor,
+                    );
+
+                currentCursor += chunk.length;
+
+                // Force update textarea if needed? Svelte bind should handle it but might lose cursor?
+                // We need to keep focus?
+            }
+
+            // Update selection to the new content
+            selectionRange = {
+                start: selectionRange.start,
+                end: currentCursor,
+            };
         } catch (e: any) {
             console.error(e);
             alert("AI Improvement failed: " + e.message);
-             // Restore? Pushing undo stack would be nice but complex.
-             // For now, assuming it just appended or failed mid-way.
+            // Restore? Pushing undo stack would be nice but complex.
+            // For now, assuming it just appended or failed mid-way.
         } finally {
             aiLoading = false;
         }
@@ -1014,13 +1034,19 @@
                                     bind:this={fileInput}
                                     onchange={handleFileSelect}
                                 />
+                                <textarea
+                                    bind:value={
+                                        steps[activeStepIndex].content_markdown
+                                    }
+                                    onkeydown={handleKeydown}
+                                    onpaste={handlePaste}
                                     class="w-full flex-1 min-h-[50vh] outline-none text-[#3C4043] font-mono text-base leading-relaxed resize-none bg-transparent"
                                     placeholder="Write your markdown here..."
                                     onmouseup={handleMouseUp}
                                 ></textarea>
-                                
+
                                 {#if showAiMenu}
-                                    <div 
+                                    <div
                                         class="fixed z-50 animate-in fade-in zoom-in-95 duration-200"
                                         style="top: {menuPos.y}px; left: {menuPos.x}px;"
                                     >
@@ -1033,15 +1059,24 @@
                                         </button>
                                     </div>
                                 {/if}
-                                
+
                                 {#if aiLoading}
-                                     <div 
+                                    <div
                                         class="fixed z-50 top-4 right-4 bg-white px-4 py-3 rounded-xl shadow-lg border border-[#E8EAED] flex items-center gap-3 animate-in slide-in-from-right"
                                     >
-                                        <Loader2 class="animate-spin text-[#4285F4]" size={20} />
+                                        <Loader2
+                                            class="animate-spin text-[#4285F4]"
+                                            size={20}
+                                        />
                                         <div>
-                                            <p class="text-sm font-bold text-[#202124]">Gemini is writing...</p>
-                                            <p class="text-xs text-[#5F6368]">Improving your content</p>
+                                            <p
+                                                class="text-sm font-bold text-[#202124]"
+                                            >
+                                                Gemini is writing...
+                                            </p>
+                                            <p class="text-xs text-[#5F6368]">
+                                                Improving your content
+                                            </p>
                                         </div>
                                     </div>
                                 {/if}
