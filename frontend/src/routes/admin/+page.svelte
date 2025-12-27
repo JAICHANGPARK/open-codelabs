@@ -169,6 +169,7 @@
                     onclick={() => (showSettingsModal = true)}
                     class="p-2.5 hover:bg-white dark:hover:bg-dark-surface rounded-full text-[#5F6368] dark:text-dark-text-muted transition-all border border-transparent hover:border-[#E8EAED] dark:hover:border-dark-border"
                     title={$t("dashboard.settings.title")}
+                    aria-label={$t("dashboard.settings.title")}
                 >
                     <Settings
                         size={20}
@@ -184,6 +185,7 @@
                         rel="noopener noreferrer"
                         class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#F8F9FA] dark:hover:bg-white/5 rounded-full transition-all"
                         title="GitHub Repository"
+                        aria-label="GitHub Repository"
                     >
                         <Github size={20} />
                     </a>
@@ -193,6 +195,7 @@
                         rel="noopener noreferrer"
                         class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#F8F9FA] dark:hover:bg-white/5 rounded-full transition-all"
                         title="Documentation"
+                        aria-label="Documentation"
                     >
                         <FileText size={20} />
                     </a>
@@ -281,6 +284,7 @@
                                         ? 'bg-[#E6F4EA] dark:bg-[#34A853]/20 text-[#1E8E3E] dark:text-[#34A853]'
                                         : 'bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 hover:text-[#4285F4]'}"
                                     title={$t("dashboard.share_link")}
+                                    aria-label={$t("dashboard.share_link")}
                                 >
                                     {#if copyTarget === codelab.id}
                                         <Check size={18} />
@@ -295,6 +299,7 @@
                                     }}
                                     class="p-2 bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:text-[#EA4335] hover:bg-[#FEECEB] dark:hover:bg-[#EA4335]/10 rounded-full transition-all"
                                     title={$t("common.delete") || "Delete"}
+                                    aria-label={$t("common.delete") || "Delete"}
                                 >
                                     <Trash2 size={18} />
                                 </button>
@@ -346,13 +351,16 @@
     <div
         class="fixed inset-0 bg-[#202124]/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
         transition:fade={{ duration: 200 }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="create-modal-title"
     >
         <div
             class="bg-white dark:bg-dark-surface rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden"
             in:fly={{ y: 40, duration: 400 }}
         >
             <div class="bg-[#4285F4] p-6 sm:p-8 text-white">
-                <h2 class="text-xl sm:text-2xl font-bold mb-2">
+                <h2 id="create-modal-title" class="text-xl sm:text-2xl font-bold mb-2">
                     {$t("dashboard.create_new_title")}
                 </h2>
                 <p class="opacity-80 text-sm sm:text-base">{$t("dashboard.design_experience")}</p>
@@ -424,6 +432,9 @@
     <div
         class="fixed inset-0 bg-[#202124]/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
         transition:fade={{ duration: 200 }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-modal-title"
     >
         <div
             class="bg-white dark:bg-dark-surface rounded-2xl shadow-2xl w-full max-w-md overflow-hidden"
@@ -432,10 +443,11 @@
             <div
                 class="px-6 py-4 border-b border-[#F1F3F4] dark:border-dark-border flex items-center justify-between bg-[#F8F9FA] dark:bg-white/5"
             >
-                <h3 class="font-bold text-[#202124] dark:text-dark-text">{$t("dashboard.settings.title")}</h3>
+                <h3 id="settings-modal-title" class="font-bold text-[#202124] dark:text-dark-text">{$t("dashboard.settings.title")}</h3>
                 <button
                     onclick={() => (showSettingsModal = false)}
                     class="text-[#5F6368] dark:text-dark-text-muted hover:bg-[#E8EAED] dark:hover:bg-white/10 p-1 rounded-full transition-colors"
+                    aria-label="Close settings"
                     ><X size={18} /></button
                 >
             </div>
