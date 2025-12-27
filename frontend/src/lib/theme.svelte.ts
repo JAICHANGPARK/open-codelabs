@@ -6,27 +6,13 @@ function createThemeState() {
     let theme = $state<Theme>("light");
 
     if (browser) {
-        $effect.root(() => {
-            $effect(() => {
-                const savedTheme = localStorage.getItem("theme") as Theme;
-                if (savedTheme) {
-                    theme = savedTheme;
-                } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                    theme = "dark";
-                }
-                applyTheme(theme);
-            });
-        });
-    }
-
-    function applyTheme(newTheme: Theme) {
-        if (!browser) return;
-        if (newTheme === "dark") {
-            document.documentElement.classList.add("dark");
-        } else {
-            document.documentElement.classList.remove("dark");
+        // Load initial state
+        const savedTheme = localStorage.getItem("theme") as Theme;
+        if (savedTheme) {
+            theme = savedTheme;
+        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            theme = "dark";
         }
-        localStorage.setItem("theme", newTheme);
     }
 
     return {
@@ -35,10 +21,9 @@ function createThemeState() {
         },
         set current(value: Theme) {
             theme = value;
-            applyTheme(value);
         },
         toggle() {
-            this.current = theme === "light" ? "dark" : "light";
+            theme = theme === "light" ? "dark" : "light";
         }
     };
 }
