@@ -19,6 +19,27 @@
     background-color: var(--color-dark-bg);
     color: var(--color-dark-text);
   }
+
+  /* Colorblind Mode Support */
+  .colorblind {
+    --color-primary-accessible: #0056b3;
+    --color-success-accessible: #006400;
+    --color-error-accessible: #8b0000;
+    --color-warning-accessible: #4b3b00;
+  }
+
+  .colorblind body {
+    filter: contrast(1.15) saturate(1.1);
+  }
+
+  .colorblind a {
+    text-decoration: underline !important;
+    text-decoration-thickness: 2px !important;
+  }
+
+  .colorblind button:not(.p-1, .p-2), .colorblind .btn {
+    border: 2px solid currentColor !important;
+  }
 }
 
 /* Syntax Highlighting Overrides - Always Dark for Code Blocks */
