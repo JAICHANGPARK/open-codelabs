@@ -108,6 +108,10 @@
     let selectionRange = $state<{ start: number; end: number } | null>(null);
     let aiLoading = $state(false);
 
+    // Drag & Drop State
+    let draggedStepIndex = $state<number | null>(null);
+    let dragOverIndex = $state<number | null>(null);
+
     let filteredMessages = $derived(
         chatTab === "public"
             ? messages.filter((m) => m.type === "chat")
