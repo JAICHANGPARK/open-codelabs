@@ -50,6 +50,7 @@
         "confirm_delete": "Are you sure you want to delete this codelab? This action cannot be undone.",
         "create_with_ai": "Create with AI",
         "share_link": "Copy Participant Link",
+        "unknown_date": "Unknown Date",
         "settings": {
             "title": "Settings",
             "gemini_api_key": "Gemini API Key",
@@ -182,6 +183,10 @@
         "placeholder": "// Paste your Rust, TypeScript, Python... code here\n// Gemini will explain it step-by-step.",
         "api_key_required": "Please set your Gemini API Key in Settings first.",
         "generate_button": "Generate Codelab",
+        "duration_label": "Hands-on Duration",
+        "duration_mins": "{mins} mins",
+        "duration_custom": "Custom",
+        "mins": "mins",
         "analyzing": "Analyzing your code...",
         "analyzing_desc": "Gemini is crafting a step-by-step guide from your source code.",
         "thinking_process": "AI Thinking Process",
