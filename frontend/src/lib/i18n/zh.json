@@ -50,6 +50,7 @@
         "confirm_delete": "您确定要删除此代码实验室吗？此操作无法撤销。",
         "create_with_ai": "使用 AI 创建",
         "share_link": "复制参与者链接",
+        "unknown_date": "未知日期",
         "settings": {
             "title": "设置",
             "gemini_api_key": "Gemini API 密钥",
@@ -182,6 +183,10 @@
         "placeholder": "// 在此粘贴您的 Rust、TypeScript、Python... 代码\n// Gemini 将逐步为您解释。",
         "api_key_required": "请先在设置中设置您的 Gemini API 密钥。",
         "generate_button": "生成代码实验室",
+        "duration_label": "动手实践时长",
+        "duration_mins": "{mins} 分钟",
+        "duration_custom": "自定义",
+        "mins": "分钟",
         "analyzing": "正在分析您的代码...",
         "analyzing_desc": "Gemini 正在根据您的源代码制作分步指南。",
         "thinking_process": "AI 思考过程",
