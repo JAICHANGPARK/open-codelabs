@@ -72,7 +72,7 @@
                                 id="admin_id"
                                 type="text"
                                 bind:value={admin_id}
-                                placeholder="Enter admin ID"
+                                placeholder={$t("login.placeholder_id")}
                                 class="w-full bg-[#FAFBFF] border-2 border-[#F1F3F4] rounded-2xl pl-12 pr-4 py-4 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] font-medium"
                                 onkeydown={(e) =>
                                     e.key === "Enter" && handleLogin()}
@@ -125,7 +125,7 @@
                     <button
                         class="text-sm font-bold text-[#5F6368] hover:text-[#4285F4] transition-colors"
                     >
-                        Trouble logging in?
+                        {$t("login.trouble")}
                     </button>
                 </div>
             </div>
