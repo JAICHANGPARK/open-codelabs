@@ -30,9 +30,7 @@
     import { decrypt } from "$lib/crypto";
     // @ts-ignore
     import QRCode from "svelte-qrcode";
-    import { marked } from "marked";
-    import { markedHighlight } from "marked-highlight";
-    import hljs from "highlight.js";
+    import { adminMarked as marked } from "$lib/markdown";
     import "highlight.js/styles/github-dark.css";
     import DOMPurify from "dompurify";
     // ... icons imports ...
@@ -161,24 +159,6 @@
 
     let wsCleanup: any;
     onMount(async () => {
-        // Configure marked with highlight.js
-        marked.use(
-            markedHighlight({
-                emptyLangClass: "hljs",
-                langPrefix: "hljs language-",
-                highlight(code, lang) {
-                    const language = hljs.getLanguage(lang)
-                        ? lang
-                        : "plaintext";
-                    return hljs.highlight(code, { language }).value;
-                },
-            }),
-            {
-                gfm: true,
-                breaks: true,
-            }
-        );
-
         try {
             const data = await getCodelab(id);
             codelab = data[0];
