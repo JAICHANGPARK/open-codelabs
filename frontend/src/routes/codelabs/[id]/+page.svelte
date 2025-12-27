@@ -415,7 +415,7 @@
                 <div
                     class="w-8 h-8 bg-[#4285F4] rounded flex items-center justify-center text-white font-bold"
                 >
-                    A
+                    OC
                 </div>
                 <h1 class="font-bold text-lg hidden sm:block text-[#5F6368]">
                     Open-Codelabs
