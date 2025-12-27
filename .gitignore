@@ -27,3 +27,4 @@ frontend/bun.lockb
 
 # Docker
 .docker/
+.env
