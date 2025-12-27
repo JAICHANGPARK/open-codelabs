@@ -217,7 +217,7 @@ Follow these strict guidelines to create the content:
     >
         <!-- Header -->
         <div
-            class="bg-gradient-to-r from-[#8E24AA] to-[#D81B60] p-6 text-white shrink-0"
+            class="bg-[#8E24AA] p-6 text-white shrink-0"
         >
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
@@ -341,7 +341,7 @@ Follow these strict guidelines to create the content:
                             <button
                                 onclick={handleGenerate}
                                 disabled={!sourceCode.trim()}
-                                class="bg-gradient-to-r from-[#8E24AA] to-[#D81B60] text-white px-8 py-3 rounded-full font-bold hover:shadow-lg hover:scale-105 transition-all text-lg flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+                                class="bg-[#8E24AA] text-white px-8 py-3 rounded-full font-bold hover:shadow-lg hover:scale-105 transition-all text-lg flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
                             >
                                 <Sparkles size={20} />
                                 Generate Codelab
@@ -356,10 +356,10 @@ Follow these strict guidelines to create the content:
                 >
                     <div class="relative">
                         <div
-                            class="absolute inset-0 bg-gradient-to-r from-[#8E24AA] to-[#D81B60] rounded-full blur-xl opacity-20 animate-pulse"
+                            class="absolute inset-0 bg-[#8E24AA] rounded-full blur-xl opacity-20 animate-pulse"
                         ></div>
                         <Loader2
-                            class="w-16 h-16 text-[#D81B60] animate-spin relative z-10"
+                            class="w-16 h-16 text-[#8E24AA] animate-spin relative z-10"
                         />
                     </div>
                     <h3 class="text-xl font-bold text-[#3C4043]">
