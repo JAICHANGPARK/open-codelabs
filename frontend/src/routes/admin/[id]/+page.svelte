@@ -16,6 +16,9 @@
         ASSET_URL,
         uploadImage,
         getFeedback,
+        isFirebaseMode,
+        listenToWsReplacement,
+        sendChatMessage,
         type Codelab,
         type Step,
         type Attendee,
@@ -156,6 +159,7 @@
         };
     });
 
+    let wsCleanup: any;
     onMount(async () => {
         // Configure marked with highlight.js
         marked.use(
@@ -179,7 +183,7 @@
             // Initial fetch of live data
             await refreshLiveData();
             await loadChatHistory();
-            initWebSocket();
+            wsCleanup = initWebSocket();
 
             // Load API Key
             const encryptedKey = localStorage.getItem("gemini_api_key");
@@ -194,7 +198,12 @@
         }
     });
 
-    // Removed top-level cleanup $effect
+    $effect(() => {
+        return () => {
+            if (wsCleanup && typeof wsCleanup === 'function') wsCleanup();
+            if (ws) ws.close();
+        };
+    });
 
     function handleSelectionChange() {
         if (mode !== "edit" || aiLoading) return;
@@ -442,6 +451,26 @@
     }
 
     function initWebSocket() {
+        if (isFirebaseMode()) {
+            return listenToWsReplacement(id, (data) => {
+                if (data.type === "chat") {
+                    if (messages.find(m => m.text === data.message && m.sender === data.sender_name)) return;
+                    messages = [
+                        ...messages,
+                        {
+                            sender: data.sender_name,
+                            text: data.message,
+                            time: data.created_at?.toDate ? data.created_at.toDate().toLocaleTimeString() : new Date().toLocaleTimeString(),
+                            self: false,
+                            type: "chat",
+                        },
+                    ];
+                } else if (data.type === "help_request") {
+                    refreshLiveData();
+                }
+            });
+        }
+
         const wsUrl = getWsUrl(id);
         const newWs = new WebSocket(wsUrl);
 
@@ -501,7 +530,17 @@
     }
 
     function sendBroadcast() {
-        if (!chatMessage.trim() || !ws) return;
+        if (!chatMessage.trim()) return;
+        if (isFirebaseMode()) {
+            sendChatMessage(id, {
+                sender: "Facilitator",
+                message: chatMessage.trim(),
+                type: "chat",
+            });
+            chatMessage = "";
+            return;
+        }
+        if (!ws) return;
         const msg = {
             type: "chat",
             sender: "Facilitator",
@@ -516,7 +555,33 @@
     }
 
     function sendDM() {
-        if (!dmTarget || !dmMessage.trim() || !ws) return;
+        if (!dmTarget || !dmMessage.trim()) return;
+
+        if (isFirebaseMode()) {
+            sendChatMessage(id, {
+                sender: "Facilitator",
+                message: dmMessage.trim(),
+                type: "dm",
+                target_id: dmTarget.id,
+            });
+            // Also add to local messages for visibility
+            messages = [
+                ...messages,
+                {
+                    sender: `To: ${dmTarget.name}`,
+                    text: dmMessage.trim(),
+                    time: new Date().toLocaleTimeString(),
+                    self: true,
+                    type: "dm",
+                },
+            ];
+            dmMessage = "";
+            dmTarget = null;
+            scrollToBottom();
+            return;
+        }
+
+        if (!ws) return;
         const msg = {
             type: "dm",
             target_id: dmTarget.id,
@@ -1709,6 +1774,11 @@
         padding: 24px;
         margin: 24px 0;
         overflow-x: auto;
+        transition: background-color 0.2s;
+    }
+    :global(html.dark .markdown-body pre) {
+        background-color: #1e1e1e;
+        border-color: #3c4043;
     }
     :global(.markdown-body code:not(pre code)) {
         font-family: inherit;
@@ -1718,12 +1788,19 @@
         border-radius: 4px;
         font-size: 0.9em;
     }
+    :global(html.dark .markdown-body code:not(pre code)) {
+        color: #ff8077;
+        background-color: rgba(234, 67, 53, 0.15);
+    }
     :global(.markdown-body pre code) {
         font-family: "JetBrains Mono", "Google Sans Mono", monospace;
         background-color: transparent;
         padding: 0;
         color: inherit;
         font-size: 0.95rem;
+    }
+    :global(html.dark .markdown-body pre code) {
+        color: #e8eaed;
     }
     :global(.markdown-body h2) {
         font-size: 1.4rem;
@@ -1732,5 +1809,9 @@
         margin-top: 2rem;
         border-bottom: 1px solid #f1f3f4;
         padding-bottom: 0.5rem;
+    }
+    :global(html.dark .markdown-body h2) {
+        color: #e8eaed;
+        border-bottom-color: #3c4043;
     }
 </style>
