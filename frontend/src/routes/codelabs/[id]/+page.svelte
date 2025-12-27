@@ -143,6 +143,10 @@
 
     let wsCleanup: any;
     onMount(async () => {
+        marked.use({
+            gfm: true,
+            breaks: true,
+        });
         // Check for registration
         const savedAttendee = localStorage.getItem(`attendee_${id}`);
         if (!savedAttendee) {
@@ -770,7 +774,7 @@
                     </div>
                 {:else if currentStep}
                     <div
-                        class="prose max-w-none text-[#3C4043] dark:text-dark-text"
+                        class="prose dark:prose-invert max-w-none text-[#3C4043] dark:text-dark-text"
                         in:fade={{ duration: 300 }}
                     >
                         <h1
@@ -1018,70 +1022,3 @@
     </footer>
 </div>
 
-<style>
-    :global(.markdown-body) {
-        font-size: 1.125rem;
-        line-height: 1.75;
-    }
-    :global(html.dark .markdown-body) {
-        color: #e8eaed;
-    }
-    :global(.markdown-body pre) {
-        background-color: #f8f9fa;
-        border: 1px solid #e8eaed;
-        border-radius: 8px;
-        padding: 24px;
-        margin: 24px 0;
-        overflow-x: auto;
-        transition: background-color 0.2s;
-    }
-    :global(html.dark .markdown-body pre) {
-        background-color: #1e1e1e;
-        border-color: #3c4043;
-    }
-    :global(.markdown-body code:not(pre code)) {
-        font-family: "Google Sans Mono", "JetBrains Mono", monospace;
-        font-size: 0.9em;
-        /* Inline code (not in pre) - subtle gray background */
-        background-color: rgba(175, 184, 193, 0.2);
-        padding: 0.2em 0.4em;
-        border-radius: 6px;
-        color: #24292e;
-    }
-    :global(html.dark .markdown-body code:not(pre code)) {
-        background-color: rgba(232, 234, 237, 0.1);
-        color: #e8eaed;
-    }
-    :global(.markdown-body pre code) {
-        /* Code in pre blocks - let Prism handle it */
-        background-color: transparent;
-        padding: 0;
-        color: inherit;
-    }
-    :global(html.dark .markdown-body pre code) {
-        color: #e8eaed;
-    }
-    :global(.markdown-body h2) {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #202124;
-        margin-top: 3rem;
-        margin-bottom: 1.5rem;
-        border-bottom: 1px solid #f1f3f4;
-        padding-bottom: 0.5rem;
-    }
-    :global(html.dark .markdown-body h2) {
-        color: #e8eaed;
-        border-bottom-color: #3c4043;
-    }
-    :global(.markdown-body p) {
-        margin-bottom: 1.5rem;
-    }
-    :global(.markdown-body ul, .markdown-body ol) {
-        margin-bottom: 1.5rem;
-        padding-left: 1.5rem;
-    }
-    :global(.markdown-body li) {
-        margin-bottom: 0.5rem;
-    }
-</style>
