@@ -1,6 +1,6 @@
 <script lang="ts">
     import { fade, fly } from "svelte/transition";
-    import { X, Sparkles, Loader2, ArrowRight, Info } from "lucide-svelte";
+    import { X, Sparkles, Loader2, ArrowRight, Info, Clock } from "lucide-svelte";
     import {
         streamGeminiStructuredOutput,
         type GeminiStructuredConfig,
@@ -22,6 +22,8 @@
     let showThinking = $state(true);
     let useGoogleSearch = $state(false);
     let useUrlContext = $state(false);
+    let handsOnDuration = $state("60");
+    let customDuration = $state("");
     let parsedData = $state<{
         title: string;
         description: string;
@@ -155,7 +157,10 @@ Follow these strict guidelines to create the content:
             required: ["title", "description", "steps"],
         };
 
-        const prompt = `Create a codelab tutorial from the following source code. Write ALL content in ${targetLanguage}.\n\nSource code:\n${sourceCode}`;
+        const durationValue = handsOnDuration === 'custom' ? customDuration : handsOnDuration;
+        const durationText = durationValue ? `The target duration for this hands-on session is approximately ${durationValue} minutes. Please adjust the depth and number of steps to fit this timeframe.` : "";
+
+        const prompt = `Create a codelab tutorial from the following source code. ${durationText} Write ALL content in ${targetLanguage}.\n\nSource code:\n${sourceCode}`;
 
         // Build tools array
         const tools: GeminiStructuredConfig["tools"] = [];
@@ -289,51 +294,103 @@ Follow these strict guidelines to create the content:
                     >
 
                     <!-- Advanced Options -->
-                    <div class="flex flex-wrap gap-4 mb-4">
-                        <label
-                            class="flex items-center gap-2 cursor-pointer group"
-                        >
-                            <input
-                                type="checkbox"
-                                bind:checked={useGoogleSearch}
-                                class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#8E24AA] focus:ring-[#8E24AA]"
-                            />
+                    <div
+                        class="flex flex-col gap-4 mb-4 bg-white dark:bg-dark-surface/50 p-4 rounded-2xl border border-[#DADCE0] dark:border-dark-border shadow-sm"
+                    >
+                        <!-- Duration Selection -->
+                        <div class="flex flex-col gap-3">
                             <span
-                                class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#8E24AA]"
+                                class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted flex items-center gap-2"
                             >
-                                {$t("ai_generator.google_search")}
+                                <Clock size={16} class="text-[#8E24AA]" />
+                                {$t("ai_generator.duration_label")}
                             </span>
-                        </label>
+                            <div class="flex flex-wrap gap-2">
+                                {#each ["60", "90", "120", "150", "180", "custom"] as d}
+                                    <button
+                                        onclick={() => (handsOnDuration = d)}
+                                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {handsOnDuration ===
+                                        d
+                                            ? 'bg-[#8E24AA] text-white border-[#8E24AA] shadow-md'
+                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#8E24AA]'}"
+                                    >
+                                        {d === "custom"
+                                            ? $t("ai_generator.duration_custom")
+                                            : $t("ai_generator.duration_mins", {
+                                                  values: { mins: d },
+                                              })}
+                                    </button>
+                                {/each}
+                                {#if handsOnDuration === "custom"}
+                                    <div
+                                        class="flex items-center gap-2 ml-2"
+                                        in:fade
+                                    >
+                                        <input
+                                            type="number"
+                                            bind:value={customDuration}
+                                            placeholder="10"
+                                            class="w-20 bg-white dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-[#8E24AA] focus:ring-2 focus:ring-[#8E24AA]/10"
+                                        />
+                                        <span
+                                            class="text-xs font-medium text-[#5F6368] dark:text-dark-text-muted"
+                                            >{$t("ai_generator.mins")}</span
+                                        >
+                                    </div>
+                                {/if}
+                            </div>
+                        </div>
 
-                        <label
-                            class="flex items-center gap-2 cursor-pointer group"
-                        >
-                            <input
-                                type="checkbox"
-                                bind:checked={useUrlContext}
-                                class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#8E24AA] focus:ring-[#8E24AA]"
-                            />
-                            <span
-                                class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#8E24AA]"
-                            >
-                                {$t("ai_generator.url_context")}
-                            </span>
-                        </label>
+                        <div
+                            class="h-px bg-[#F1F3F4] dark:bg-dark-border w-full"
+                        ></div>
 
-                        <label
-                            class="flex items-center gap-2 cursor-pointer group"
-                        >
-                            <input
-                                type="checkbox"
-                                bind:checked={showThinking}
-                                class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#8E24AA] focus:ring-[#8E24AA]"
-                            />
-                            <span
-                                class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#8E24AA]"
+                        <div class="flex flex-wrap gap-6">
+                            <label
+                                class="flex items-center gap-2 cursor-pointer group"
                             >
-                                {$t("ai_generator.show_thinking")}
-                            </span>
-                        </label>
+                                <input
+                                    type="checkbox"
+                                    bind:checked={useGoogleSearch}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#8E24AA] focus:ring-[#8E24AA]"
+                                />
+                                <span
+                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#8E24AA]"
+                                >
+                                    {$t("ai_generator.google_search")}
+                                </span>
+                            </label>
+
+                            <label
+                                class="flex items-center gap-2 cursor-pointer group"
+                            >
+                                <input
+                                    type="checkbox"
+                                    bind:checked={useUrlContext}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#8E24AA] focus:ring-[#8E24AA]"
+                                />
+                                <span
+                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#8E24AA]"
+                                >
+                                    {$t("ai_generator.url_context")}
+                                </span>
+                            </label>
+
+                            <label
+                                class="flex items-center gap-2 cursor-pointer group"
+                            >
+                                <input
+                                    type="checkbox"
+                                    bind:checked={showThinking}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#8E24AA] focus:ring-[#8E24AA]"
+                                />
+                                <span
+                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#8E24AA]"
+                                >
+                                    {$t("ai_generator.show_thinking")}
+                                </span>
+                            </label>
+                        </div>
                     </div>
 
                     {#if useGoogleSearch || useUrlContext}
