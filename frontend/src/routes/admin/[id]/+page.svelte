@@ -254,7 +254,7 @@
 
     async function improveWithAi() {
         if (!geminiApiKey) {
-            alert("Please set your Gemini API Key in the Dashboard first.");
+            alert($t("ai_generator.api_key_required"));
             return;
         }
         if (!selectedText || !selectionRange) return;
@@ -932,7 +932,7 @@
                         <p
                             class="text-[10px] sm:text-xs text-[#5F6368] dark:text-dark-text-muted font-medium mt-0.5 hidden xs:block"
                         >
-                            ID: {id.split('-')[0]}... &bull; Facilitator Mode
+                            ID: {id.split('-')[0]}... &bull; {$t("editor.facilitator_mode")}
                         </p>
                     {/if}
                 </div>
@@ -944,7 +944,7 @@
                         target="_blank"
                         rel="noopener noreferrer"
                         class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
-                        title="GitHub Repository"
+                        title={$t("common.github_repo")}
                     >
                         <Github size={20} />
                     </a>
@@ -953,7 +953,7 @@
                         target="_blank"
                         rel="noopener noreferrer"
                         class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
-                        title="Documentation"
+                        title={$t("common.documentation")}
                     >
                         <FileText size={20} />
                     </a>
@@ -962,7 +962,7 @@
                 <button
                     onclick={handleExport}
                     class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
-                    title="Export Codelab"
+                    title={$t("editor.export_codelab")}
                 >
                     <Download size={20} />
                 </button>
@@ -997,7 +997,7 @@
                             : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
                     >
                         <Users size={14} />
-                        <span class="hidden sm:inline">Live</span>
+                        <span class="hidden sm:inline">{$t("editor.live_tab")}</span>
                     </button>
                     <button
                         onclick={() => (mode = "feedback")}
@@ -1196,7 +1196,7 @@
                                 type="text"
                                 bind:value={steps[activeStepIndex].title}
                                 class="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-dark-text w-full bg-transparent outline-none placeholder-[#DADCE0] dark:placeholder-dark-text-muted border-b-2 border-transparent focus:border-[#4285F4] transition-all pb-2"
-                                placeholder="Untitled Step"
+                                placeholder={$t("editor.untitled_step")}
                             />
                         </div>
 
@@ -1257,7 +1257,7 @@
                                     onkeydown={handleKeydown}
                                     onpaste={handlePaste}
                                     class="w-full flex-1 min-h-[50vh] outline-none text-[#3C4043] dark:text-dark-text font-mono text-base leading-relaxed resize-none bg-transparent"
-                                    placeholder="Write your markdown here..."
+                                    placeholder={$t("editor.start_writing")}
                                     onmouseup={handleMouseUp}
                                 ></textarea>
 
@@ -1271,7 +1271,7 @@
                                             class="bg-white dark:bg-dark-surface text-[#4285F4] px-4 py-2 rounded-full shadow-xl border border-[#D2E3FC] dark:border-[#4285F4]/30 flex items-center gap-2 font-bold text-sm hover:bg-[#F8F9FA] dark:hover:bg-white/10 transition-all hover:scale-105"
                                         >
                                             <Sparkles size={16} />
-                                            Improve with Gemini
+                                            {$t("gemini.improve_with_gemini")}
                                         </button>
                                     </div>
                                 {/if}
@@ -1288,10 +1288,10 @@
                                             <p
                                                 class="text-sm font-bold text-[#202124] dark:text-dark-text"
                                             >
-                                                Gemini is writing...
+                                                {$t("gemini.gemini_is_writing")}
                                             </p>
                                             <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
-                                                Improving your content
+                                                {$t("gemini.improving_content")}
                                             </p>
                                         </div>
                                     </div>
@@ -1343,7 +1343,7 @@
                                                             <p
                                                                 class="text-xs text-[#EA4335]"
                                                             >
-                                                                Stuck on Step {hr.step_number}
+                                                                {$t("editor.stuck_on_step", { values: { step: hr.step_number } })}
                                                             </p>
                                                         </div>
                                                         <button
@@ -1352,7 +1352,7 @@
                                                                     hr.id,
                                                                 )}
                                                             class="text-xs font-bold text-white bg-[#EA4335] px-3 py-1.5 rounded-full hover:bg-[#D93025] transition-colors shadow-sm"
-                                                            >Resolve</button
+                                                            >{$t("editor.resolve")}</button
                                                         >
                                                     </div>
                                                 {:else}
