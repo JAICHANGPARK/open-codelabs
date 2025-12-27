@@ -3,6 +3,7 @@
     import { fade, slide, fly } from "svelte/transition";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
+    import { browser } from "$app/environment";
     import {
         getCodelab,
         saveSteps,
@@ -123,6 +124,7 @@
 
     // Sync mode to URL and load data
     $effect(() => {
+        if (!browser) return;
         const url = new URL(window.location.href);
         if (url.searchParams.get("mode") !== mode) {
             url.searchParams.set("mode", mode);
@@ -135,6 +137,23 @@
             refreshLiveData();
             scrollToBottom();
         }
+    });
+
+    $effect(() => {
+        return () => {
+            if (ws) ws.close();
+        };
+    });
+
+    $effect(() => {
+        if (!browser) return;
+        document.addEventListener("selectionchange", handleSelectionChange);
+        return () => {
+            document.removeEventListener(
+                "selectionchange",
+                handleSelectionChange,
+            );
+        };
     });
 
     onMount(async () => {
@@ -168,8 +187,6 @@
                 const decrypted = decrypt(encryptedKey);
                 if (decrypted) geminiApiKey = decrypted;
             }
-
-            document.addEventListener("selectionchange", handleSelectionChange);
         } catch (e) {
             console.error(e);
         } finally {
@@ -177,15 +194,7 @@
         }
     });
 
-    // Cleanup
-    $effect(() => {
-        return () => {
-            document.removeEventListener(
-                "selectionchange",
-                handleSelectionChange,
-            );
-        };
-    });
+    // Removed top-level cleanup $effect
 
     function handleSelectionChange() {
         if (mode !== "edit" || aiLoading) return;
@@ -815,10 +824,11 @@
     let renderedContent = $derived.by(() => {
         if (!currentStep) return "";
         try {
-            // @ts-ignore
-            return DOMPurify.sanitize(
-                marked.parse(currentStep.content_markdown) as string,
-            );
+            const html = marked.parse(currentStep.content_markdown) as string;
+            if (browser) {
+                return DOMPurify.sanitize(html);
+            }
+            return html;
         } catch (e) {
             console.error("Markdown parse error", e);
             return "Error parsing markdown";
