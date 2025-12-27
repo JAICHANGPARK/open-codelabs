@@ -21,6 +21,8 @@
         Check,
         Settings,
         Sparkles,
+        Github,
+        FileText,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
     import { encrypt, decrypt } from "$lib/crypto";
@@ -174,6 +176,28 @@
                 </button>
                 <div class="h-6 w-px bg-[#E8EAED] dark:bg-dark-border hidden sm:block"></div>
 
+                <div class="hidden lg:flex items-center gap-1">
+                    <a
+                        href="https://github.com/JAICHANGPARK/open-codelabs"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#F8F9FA] dark:hover:bg-white/5 rounded-full transition-all"
+                        title="GitHub Repository"
+                    >
+                        <Github size={20} />
+                    </a>
+                    <a
+                        href="https://jaichangpark.github.io/open-codelabs/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#F8F9FA] dark:hover:bg-white/5 rounded-full transition-all"
+                        title="Documentation"
+                    >
+                        <FileText size={20} />
+                    </a>
+                    <div class="h-6 w-px bg-[#E8EAED] dark:bg-dark-border mx-1"></div>
+                </div>
+
                 <input
                     type="file"
                     accept=".zip"
@@ -208,7 +232,7 @@
         {#if loading}
             <div class="flex justify-center items-center py-20" in:fade>
                 <div
-                    class="animate-spin rounded-full h-12 w-12 border-4 border-[#E8EAED] dark:border-dark-border border-t-[#4285F4]"
+                    class="animate-spin rounded-full h-12 w-12 border-4 border-[#E8EAED] dark:border-dark-border border-t-[#4285F4] dark:border-t-[#4285F4]"
                 ></div>
             </div>
         {:else if codelabs.length === 0}
@@ -244,7 +268,7 @@
                             class="group block bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl p-6 sm:p-8 hover:shadow-xl transition-all duration-300 hover:border-[#4285F4] dark:hover:border-[#4285F4] relative overflow-hidden h-full flex flex-col"
                         >
                             <div
-                                class="absolute top-4 right-4 flex items-center gap-2 z-20"
+                                class="absolute top-4 right-4 flex items-center gap-1 sm:gap-2 z-20"
                             >
                                 <button
                                     onclick={(e) => {
@@ -276,7 +300,7 @@
                             </div>
 
                             <h3
-                                class="text-xl font-bold text-[#202124] dark:text-dark-text group-hover:text-[#4285F4] transition-colors mb-3 line-clamp-1 pr-20"
+                                class="text-xl font-bold text-[#202124] dark:text-dark-text group-hover:text-[#4285F4] transition-colors mb-3 line-clamp-2 pr-20"
                             >
                                 {codelab.title}
                             </h3>
@@ -289,22 +313,24 @@
                                 class="flex items-center justify-between border-t border-[#F1F3F4] dark:border-dark-border pt-6"
                             >
                                 <div
-                                    class="flex items-center gap-2 text-[#5F6368] dark:text-dark-text-muted text-sm font-medium"
+                                    class="flex items-center gap-2 text-[#5F6368] dark:text-dark-text-muted text-sm font-medium min-w-0"
                                 >
                                     <div
                                         class="w-6 h-6 rounded-full bg-[#F1F3F4] dark:bg-white/5 flex items-center justify-center shrink-0"
                                     >
                                         <User size={14} />
                                     </div>
-                                    <span class="truncate max-w-[100px]">{codelab.author}</span>
+                                    <span class="truncate">{codelab.author}</span>
                                 </div>
                                 <div
-                                    class="flex items-center gap-1.5 text-[#9AA0A6] dark:text-dark-text-muted text-xs font-medium uppercase tracking-wider"
+                                    class="flex items-center gap-1.5 text-[#9AA0A6] dark:text-dark-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wider shrink-0"
                                 >
                                     <Clock size={14} />
-                                    {new Date(
-                                        codelab.created_at || "",
-                                    ).toLocaleDateString($locale || "en")}
+                                    <span class="hidden xs:inline">
+                                        {new Date(
+                                            codelab.created_at || "",
+                                        ).toLocaleDateString($locale || "en")}
+                                    </span>
                                 </div>
                             </div>
                         </a>
