@@ -24,102 +24,95 @@
 /* Syntax Highlighting Overrides */
 .hljs {
   background: transparent !important;
-  color: inherit;
-}
-
-.dark .hljs {
   color: #e8eaed !important;
 }
 
-/* Improve contrast for comments in light mode */
+/* Improve contrast for comments */
 .hljs-comment,
 .hljs-quote {
-  color: #57606a !important;
-}
-
-.dark .hljs-keyword,
-.dark .hljs-selector-tag,
-.dark .hljs-built_in,
-.dark .hljs-name,
-.dark .hljs-tag {
-  color: #ff7b72 !important;
-}
-
-.dark .hljs-string,
-.dark .hljs-title,
-.dark .hljs-section,
-.dark .hljs-attribute,
-.dark .hljs-literal,
-.dark .hljs-template-tag,
-.dark .hljs-template-variable,
-.dark .hljs-type {
-  color: #a5d6ff !important;
-}
-
-.dark .hljs-comment,
-.dark .hljs-quote,
-.dark .hljs-deletion,
-.dark .hljs-meta {
   color: #8b949e !important;
 }
 
-.dark .hljs-keyword,
-.dark .hljs-operator,
-.dark .hljs-constant {
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-built_in,
+.hljs-name,
+.hljs-tag {
   color: #ff7b72 !important;
 }
 
-.dark .hljs-function .hljs-title {
+.hljs-string,
+.hljs-title,
+.hljs-section,
+.hljs-attribute,
+.hljs-literal,
+.hljs-template-tag,
+.hljs-template-variable,
+.hljs-type {
+  color: #a5d6ff !important;
+}
+
+.hljs-deletion,
+.hljs-meta {
+  color: #8b949e !important;
+}
+
+.hljs-operator,
+.hljs-constant {
+  color: #ff7b72 !important;
+}
+
+.hljs-function .hljs-title {
   color: #d2a8ff !important;
 }
 
-/* Prism.js Dark Mode Fixes */
-.dark .token.atrule,
-.dark .token.attr-value,
-.dark .token.keyword {
+/* Prism.js Dark Mode Fixes (Applied always as code blocks are dark) */
+.token.atrule,
+.token.attr-value,
+.token.keyword {
   color: #ff7b72 !important;
 }
 
-.dark .token.punctuation {
+.token.punctuation {
   color: #e8eaed !important;
 }
 
-.dark .token.operator,
-.dark .token.entity,
-.dark .token.url,
-.dark .language-css .token.string,
-.dark .style .token.string {
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
   color: #a5d6ff !important;
 }
 
-.dark .token.property,
-.dark .token.tag,
-.dark .token.boolean,
-.dark .token.number,
-.dark .token.constant,
-.dark .token.symbol,
-.dark .token.deleted {
+.token.property,
+.token.tag,
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol,
+.token.deleted {
   color: #79c0ff !important;
 }
 
-.dark .token.selector,
-.dark .token.attr-name,
-.dark .token.string,
-.dark .token.char,
-.dark .token.builtin,
-.dark .token.inserted {
+.token.selector,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin,
+.token.inserted {
   color: #a5d6ff !important;
 }
 
-.dark .token.function,
-.dark .token.class-name {
+.token.function,
+.token.class-name {
   color: #d2a8ff !important;
 }
 
-.dark .token.comment,
-.dark .token.prolog,
-.dark .token.doctype,
-.dark .token.cdata {
+.token.comment,
+.token.prolog,
+.token.doctype,
+.token.cdata {
   color: #8b949e !important;
 }
 
@@ -171,17 +164,13 @@
   }
 
   .markdown-body pre {
-    @apply bg-[#F1F3F4] border border-[#E8EAED] rounded-lg p-6 my-6 overflow-x-auto text-[#24292e];
+    @apply bg-[#1E1E1E] border border-[#3C4043] rounded-lg p-6 my-6 overflow-x-auto text-[#e8eaed];
   }
 
-  .dark .markdown-body pre {
-    @apply bg-[#1E1E1E] border-[#3C4043] text-[#e8eaed];
-  }
-
-  /* Ensure prose code blocks look good in light mode */
+  /* Ensure prose code blocks look good in both modes (always dark) */
   .prose {
-    --tw-prose-pre-code: #24292e;
-    --tw-prose-pre-bg: #F1F3F4;
+    --tw-prose-pre-code: #e8eaed;
+    --tw-prose-pre-bg: #1e1e1e;
   }
 
   /* Ensure prose works with dark mode */
