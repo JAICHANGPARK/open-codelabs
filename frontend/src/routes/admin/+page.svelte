@@ -23,6 +23,7 @@
         Sparkles,
         Github,
         FileText,
+        X,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
     import { encrypt, decrypt } from "$lib/crypto";
