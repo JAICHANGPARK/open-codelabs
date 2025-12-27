@@ -64,6 +64,7 @@ async fn test_create_and_get_codelab() {
         title: "Test Codelab".to_string(),
         description: "Test Description".to_string(),
         author: "Test Author".to_string(),
+        is_public: None,
     };
 
     let response = app

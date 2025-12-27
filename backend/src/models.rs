@@ -6,7 +6,25 @@ pub struct Codelab {
     pub title: String,
     pub description: String,
     pub author: String,
+    #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
+    pub is_public: i32,
     pub created_at: Option<String>,
+}
+
+fn to_bool<S>(v: &i32, s: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    s.serialize_bool(*v != 0)
+}
+
+fn from_bool<'de, D>(d: D) -> Result<i32, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    use serde::Deserialize;
+    let b = bool::deserialize(d)?;
+    Ok(if b { 1 } else { 0 })
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -23,6 +41,7 @@ pub struct CreateCodelab {
     pub title: String,
     pub description: String,
     pub author: String,
+    pub is_public: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -115,6 +134,7 @@ mod tests {
             title: "Test Title".to_string(),
             description: "Test Description".to_string(),
             author: "Test Author".to_string(),
+            is_public: 1,
             created_at: Some("2023-01-01".to_string()),
         };
 

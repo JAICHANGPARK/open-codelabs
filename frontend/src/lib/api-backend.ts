@@ -21,32 +21,49 @@ if (browser && (envApiUrl === 'http://backend:8080' || !envApiUrl || envApiUrl.i
 const API_URL = BASE_URL + '/api';
 export const ASSET_URL = BASE_URL;
 
+function getAuthHeader(): Record<string, string> {
+    if (!browser) return {};
+    const token = localStorage.getItem('adminToken');
+    return token ? { 'Authorization': `Bearer ${token}` } : {};
+}
+
 export async function listCodelabs(): Promise<Codelab[]> {
-    const res = await fetch(`${API_URL}/codelabs`);
+    const res = await fetch(`${API_URL}/codelabs`, {
+        headers: getAuthHeader()
+    });
     if (!res.ok) throw new Error('Failed to fetch codelabs');
     return res.json();
 }
 
 export async function getCodelab(id: string): Promise<[Codelab, Step[]]> {
-    const res = await fetch(`${API_URL}/codelabs/${id}`);
+    const res = await fetch(`${API_URL}/codelabs/${id}`, {
+        headers: getAuthHeader()
+    });
+    if (res.status === 403) throw new Error('PRIVATE_CODELAB');
     if (!res.ok) throw new Error('Failed to fetch codelab');
     return res.json();
 }
 
-export async function createCodelab(payload: { title: string; description: string; author: string }): Promise<Codelab> {
+export async function createCodelab(payload: { title: string; description: string; author: string; is_public?: boolean }): Promise<Codelab> {
     const res = await fetch(`${API_URL}/codelabs`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            ...getAuthHeader()
+        },
         body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('Failed to create codelab');
     return res.json();
 }
 
-export async function updateCodelab(id: string, payload: { title: string; description: string; author: string }): Promise<Codelab> {
+export async function updateCodelab(id: string, payload: { title: string; description: string; author: string; is_public?: boolean }): Promise<Codelab> {
     const res = await fetch(`${API_URL}/codelabs/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+            'Content-Type': 'application/json',
+            ...getAuthHeader()
+        },
         body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error('Failed to update codelab');

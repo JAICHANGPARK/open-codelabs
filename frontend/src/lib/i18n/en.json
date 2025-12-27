@@ -29,7 +29,10 @@
         "toggle_theme": "Toggle Theme",
         "or": "OR",
         "ai_assistant": "AI Assistant",
-        "close": "Close"
+        "close": "Close",
+        "visibility": "Visibility",
+        "public": "Public",
+        "private": "Private"
     },
     "dashboard": {
         "title": "Facilitator Dashboard",
@@ -118,6 +121,7 @@
         "error_fill_fields": "Please fill in all fields",
         "error_duplicate_name": "This nickname is already taken in this codelab. Please try another one.",
         "error_registration_failed": "Registration failed. Please check your connection and try again.",
+        "error_private_codelab": "This codelab is currently private and inaccessible. Please contact the facilitator.",
         "return_home": "Return to Home",
         "codelab_not_found": "Codelab not found"
     },

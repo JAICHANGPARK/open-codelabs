@@ -29,7 +29,10 @@
         "toggle_theme": "テーマを切り替え",
         "or": "または",
         "ai_assistant": "AIアシスタント",
-        "close": "閉じる"
+        "close": "閉じる",
+        "visibility": "公開設定",
+        "public": "公開",
+        "private": "非公開"
     },
     "dashboard": {
         "title": "ファシリテーターダッシュボード",
@@ -118,6 +121,7 @@
         "error_fill_fields": "すべてのフィールドを入力してください",
         "error_duplicate_name": "このニックネームは既に使用されています。別の名前を試してください。",
         "error_registration_failed": "登録に失敗しました。接続を確認してもう一度お試しください。",
+        "error_private_codelab": "このコードラボは非公開です。ファシリテーターにお問い合わせください。",
         "return_home": "ホームに戻る",
         "codelab_not_found": "コードラボが見つかりませんでした"
     },

@@ -6,6 +6,7 @@
     import { browser } from "$app/environment";
     import {
         getCodelab,
+        updateCodelab,
         saveSteps,
         exportCodelab,
         getAttendees,
@@ -685,22 +686,50 @@
     }
 
     async function handleSave() {
-        if (isSaving) return;
+        if (isSaving || !codelab) return;
         isSaving = true;
         try {
-            await saveSteps(
-                id,
-                steps.map((s) => ({
-                    title: s.title,
-                    content_markdown: s.content_markdown,
-                })),
-            );
+            await Promise.all([
+                saveSteps(
+                    id,
+                    steps.map((s) => ({
+                        title: s.title,
+                        content_markdown: s.content_markdown,
+                    })),
+                ),
+                updateCodelab(id, {
+                    title: codelab.title,
+                    description: codelab.description,
+                    author: codelab.author,
+                    is_public: codelab.is_public
+                })
+            ]);
             saveSuccess = true;
             setTimeout(() => (saveSuccess = false), 3000);
         } catch (e) {
             alert("Save failed: " + e);
         } finally {
             isSaving = false;
+        }
+    }
+
+    async function toggleVisibility() {
+        if (!codelab || isSaving) return;
+
+        const newStatus = !codelab.is_public;
+        codelab.is_public = newStatus;
+
+        try {
+            await updateCodelab(id, {
+                title: codelab.title,
+                description: codelab.description,
+                author: codelab.author,
+                is_public: newStatus
+            });
+        } catch (e) {
+            // Revert on failure
+            codelab.is_public = !newStatus;
+            alert("Failed to update visibility: " + e);
         }
     }
 
@@ -959,6 +988,24 @@
                     </a>
                     <div class="w-px h-6 bg-[#E8EAED] dark:bg-dark-border mx-1"></div>
                 </div>
+                <button
+                    onclick={toggleVisibility}
+                    class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2 {codelab?.is_public ? 'bg-[#34A853]' : 'bg-gray-200 dark:bg-dark-border'}"
+                    role="switch"
+                    aria-checked={codelab?.is_public}
+                    title={codelab?.is_public ? $t("common.public") : $t("common.private")}
+                >
+                    <span
+                        class="pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 {codelab?.is_public ? 'translate-x-6' : 'translate-x-1'}"
+                    >
+                        {#if codelab?.is_public}
+                            <Eye size={12} class="text-[#34A853]" />
+                        {:else}
+                            <X size={12} class="text-[#EA4335]" />
+                        {/if}
+                    </span>
+                </button>
+                <div class="h-6 w-px bg-[#E8EAED] dark:bg-dark-border hidden sm:block"></div>
                 <button
                     onclick={handleExport}
                     class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"

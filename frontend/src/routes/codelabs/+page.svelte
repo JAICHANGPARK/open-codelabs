@@ -29,8 +29,11 @@
     let filteredCodelabs = $derived(
         codelabs.filter(
             (c) =>
-                c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                c.description.toLowerCase().includes(searchQuery.toLowerCase()),
+                c.is_public &&
+                (c.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    c.description
+                        .toLowerCase()
+                        .includes(searchQuery.toLowerCase())),
         ),
     );
 </script>

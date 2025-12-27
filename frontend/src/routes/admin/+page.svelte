@@ -19,6 +19,7 @@
         Trash2,
         Share2,
         Check,
+        Eye,
         Settings,
         Sparkles,
         Github,
@@ -32,7 +33,7 @@
     let codelabs: Codelab[] = $state([]);
     let loading = $state(true);
     let showCreateModal = $state(false);
-    let newCodelab = $state({ title: "", description: "", author: "" });
+    let newCodelab = $state({ title: "", description: "", author: "", is_public: true });
     let copyTarget: string | null = $state(null);
 
     // Grouping logic
@@ -103,7 +104,7 @@
             const created = await createCodelab(newCodelab);
             codelabs = [created, ...codelabs];
             showCreateModal = false;
-            newCodelab = { title: "", description: "", author: "" };
+            newCodelab = { title: "", description: "", author: "", is_public: true };
         } catch (e) {
             console.error(e);
         }
@@ -342,9 +343,15 @@
                                         </div>
 
                                         <h3
-                                            class="text-xl font-bold text-[#202124] dark:text-dark-text group-hover:text-[#4285F4] transition-colors mb-3 line-clamp-2 pr-20"
+                                            class="text-xl font-bold text-[#202124] dark:text-dark-text group-hover:text-[#4285F4] transition-colors mb-3 line-clamp-2 pr-20 flex items-center gap-2"
                                         >
                                             {codelab.title}
+                                            {#if !codelab.is_public}
+                                                <span class="bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-dark-text-muted text-[10px] px-2 py-0.5 rounded-full border dark:border-dark-border flex items-center gap-1 font-bold">
+                                                    <X size={10} />
+                                                    {$t("common.private")}
+                                                </span>
+                                            {/if}
                                         </h3>
                                         <p
                                             class="text-[#5F6368] dark:text-dark-text-muted text-base line-clamp-2 mb-8 flex-1"
@@ -446,6 +453,26 @@
                         placeholder={$t("dashboard.placeholder_author")}
                         class="w-full bg-[#F8F9FA] dark:bg-dark-bg border-2 border-[#F1F3F4] dark:border-dark-border rounded-xl px-4 py-3 focus:border-[#4285F4] dark:focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] text-[#202124] dark:text-dark-text"
                     />
+                </div>
+                <div class="flex items-center justify-between p-4 bg-[#F8F9FA] dark:bg-dark-bg rounded-xl border-2 border-[#F1F3F4] dark:border-dark-border">
+                    <span class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted">{$t("common.visibility")}</span>
+                    <button
+                        onclick={() => newCodelab.is_public = !newCodelab.is_public}
+                        class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2 {newCodelab.is_public ? 'bg-[#34A853]' : 'bg-gray-200 dark:bg-dark-border'}"
+                        role="switch"
+                        aria-checked={newCodelab.is_public}
+                        title={newCodelab.is_public ? $t("common.public") : $t("common.private")}
+                    >
+                        <span
+                            class="pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 {newCodelab.is_public ? 'translate-x-6' : 'translate-x-1'}"
+                        >
+                            {#if newCodelab.is_public}
+                                <Eye size={12} class="text-[#34A853]" />
+                            {:else}
+                                <X size={12} class="text-[#EA4335]" />
+                            {/if}
+                        </span>
+                    </button>
                 </div>
             </div>
 

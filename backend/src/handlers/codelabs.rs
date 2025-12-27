@@ -16,8 +16,21 @@ use zip;
 
 pub async fn list_codelabs(
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
 ) -> Result<Json<Vec<Codelab>>, (StatusCode, String)> {
-    let codelabs = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs"))
+    let is_admin = headers
+        .get(header::AUTHORIZATION)
+        .and_then(|h| h.to_str().ok())
+        .map(|s| s == "Bearer mock-jwt-token" || s == "mock-jwt-token")
+        .unwrap_or(false);
+
+    let query = if is_admin {
+        "SELECT * FROM codelabs"
+    } else {
+        "SELECT * FROM codelabs WHERE is_public = 1"
+    };
+
+    let codelabs = sqlx::query_as::<_, Codelab>(&state.q(query))
         .fetch_all(&state.pool)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
@@ -28,6 +41,7 @@ pub async fn list_codelabs(
 pub async fn get_codelab(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
 ) -> Result<Json<(Codelab, Vec<Step>)>, (StatusCode, String)> {
     let codelab = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs WHERE id = ?"))
         .bind(&id)
@@ -35,6 +49,16 @@ pub async fn get_codelab(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
         .ok_or((StatusCode::NOT_FOUND, "Codelab not found".to_string()))?;
+
+    let is_admin = headers
+        .get(header::AUTHORIZATION)
+        .and_then(|h| h.to_str().ok())
+        .map(|s| s == "Bearer mock-jwt-token" || s == "mock-jwt-token")
+        .unwrap_or(false);
+
+    if codelab.is_public == 0 && !is_admin {
+        return Err((StatusCode::FORBIDDEN, "This codelab is private".to_string()));
+    }
 
     let steps =
         sqlx::query_as::<_, Step>(&state.q("SELECT * FROM steps WHERE codelab_id = ? ORDER BY step_number"))
@@ -51,12 +75,14 @@ pub async fn create_codelab(
     Json(payload): Json<CreateCodelab>,
 ) -> Result<Json<Codelab>, (StatusCode, String)> {
     let id = uuid::Uuid::new_v4().to_string();
+    let is_public = payload.is_public.unwrap_or(true);
 
-    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author) VALUES (?, ?, ?, ?)"))
+    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public) VALUES (?, ?, ?, ?, ?)"))
         .bind(&id)
         .bind(&payload.title)
         .bind(&payload.description)
         .bind(&payload.author)
+        .bind(is_public as i32)
         .execute(&state.pool)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
@@ -75,10 +101,12 @@ pub async fn update_codelab_info(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<CreateCodelab>,
 ) -> Result<Json<Codelab>, (StatusCode, String)> {
-    sqlx::query(&state.q("UPDATE codelabs SET title = ?, description = ?, author = ? WHERE id = ?"))
+    let is_public = payload.is_public.unwrap_or(true);
+    sqlx::query(&state.q("UPDATE codelabs SET title = ?, description = ?, author = ?, is_public = ? WHERE id = ?"))
         .bind(&payload.title)
         .bind(&payload.description)
         .bind(&payload.author)
+        .bind(is_public as i32)
         .bind(&id)
         .execute(&state.pool)
         .await
@@ -264,11 +292,12 @@ pub async fn import_codelab(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author) VALUES (?, ?, ?, ?)"))
+    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public) VALUES (?, ?, ?, ?, ?)"))
         .bind(&codelab.id)
         .bind(&codelab.title)
         .bind(&codelab.description)
         .bind(&codelab.author)
+        .bind(codelab.is_public)
         .execute(&mut *tx)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;

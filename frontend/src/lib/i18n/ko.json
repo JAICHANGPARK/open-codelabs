@@ -29,7 +29,10 @@
         "toggle_theme": "테마 변경",
         "or": "또는",
         "ai_assistant": "AI 어시스턴트",
-        "close": "닫기"
+        "close": "닫기",
+        "visibility": "공개 설정",
+        "public": "공개",
+        "private": "비공개"
     },
     "dashboard": {
         "title": "퍼실리테이터 대시보드",
@@ -118,6 +121,7 @@
         "error_fill_fields": "모든 필드를 채워주세요",
         "error_duplicate_name": "이미 사용 중인 닉네임입니다. 다른 이름을 사용해주세요.",
         "error_registration_failed": "등록에 실패했습니다. 연결을 확인하고 다시 시도해주세요.",
+        "error_private_codelab": "이 코드랩은 현재 비공개 상태로 접근이 불가능합니다. 관리자에게 문의하세요.",
         "return_home": "홈으로 돌아가기",
         "codelab_not_found": "코드랩을 찾을 수 없습니다"
     },

@@ -4,7 +4,7 @@
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
     import { getCodelab, registerAttendee, loginWithGoogle, isFirebaseMode, type Codelab } from "$lib/api";
-    import { User, KeyRound, ArrowRight, Loader2, Chrome } from "lucide-svelte";
+    import { User, KeyRound, ArrowRight, Loader2, Chrome, Lock, X } from "lucide-svelte";
     import { t } from "svelte-i18n";
 
     let id = page.params.id as string;
@@ -14,6 +14,7 @@
     let loading = $state(true);
     let submitting = $state(false);
     let error = $state("");
+    let errorType = $state("");
 
     onMount(async () => {
         try {
@@ -25,8 +26,14 @@
             if (savedAttendee) {
                 goto(`/codelabs/${id}`);
             }
-        } catch (e) {
-            error = $t("attendee.codelab_not_found");
+        } catch (e: any) {
+            if (e.message === 'PRIVATE_CODELAB') {
+                error = $t("attendee.error_private_codelab");
+                errorType = "PRIVATE";
+            } else {
+                error = $t("attendee.codelab_not_found");
+                errorType = "NOT_FOUND";
+            }
         } finally {
             loading = false;
         }
@@ -215,11 +222,29 @@
             </p>
         </div>
     {:else}
-        <div in:fade class="text-center">
-            <h1 class="text-2xl font-bold text-[#202124] mb-4">{error}</h1>
-            <a href="/" class="text-[#4285F4] font-bold hover:underline"
-                >{$t("attendee.return_home")}</a
+        <div in:fade class="text-center max-w-sm px-6">
+            <div
+                class="w-20 h-20 {errorType === 'PRIVATE'
+                    ? 'bg-amber-50 text-amber-500 border-amber-100'
+                    : 'bg-red-50 text-red-500 border-red-100'} rounded-full flex items-center justify-center mx-auto mb-6 border shadow-sm"
             >
+                {#if errorType === "PRIVATE"}
+                    <Lock size={40} />
+                {:else}
+                    <X size={40} />
+                {/if}
+            </div>
+            <h1
+                class="text-xl font-bold text-[#202124] mb-8 break-keep leading-relaxed"
+            >
+                {error}
+            </h1>
+            <a
+                href="/codelabs"
+                class="inline-flex items-center gap-2 bg-[#4285F4] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#1A73E8] transition-all shadow-lg shadow-[#4285F4]/20 active:scale-95"
+            >
+                {$t("attendee.return_home")}
+            </a>
         </div>
     {/if}
 </div>

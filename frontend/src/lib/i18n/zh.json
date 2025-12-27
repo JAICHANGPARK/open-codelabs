@@ -29,7 +29,10 @@
         "toggle_theme": "切换主题",
         "or": "或",
         "ai_assistant": "AI 助手",
-        "close": "关闭"
+        "close": "关闭",
+        "visibility": "可见性",
+        "public": "公开",
+        "private": "私有"
     },
     "dashboard": {
         "title": "协调员仪表板",
@@ -118,6 +121,7 @@
         "error_fill_fields": "请填写所有字段",
         "error_duplicate_name": "该昵称已在此代码实验室中使用。请换一个。",
         "error_registration_failed": "注册失败。请检查您的网络连接并重试。",
+        "error_private_codelab": "此代码实验室目前为私有状态，无法访问。请联系管理员。",
         "return_home": "返回首页",
         "codelab_not_found": "找不到代码实验室"
     },

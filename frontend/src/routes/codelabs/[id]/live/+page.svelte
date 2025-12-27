@@ -179,7 +179,7 @@
     >
         <div class="max-w-screen-2xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <a href="/" class="text-[#5F6368] hover:text-[#202124]">
+                <a href="/codelabs" class="text-[#5F6368] hover:text-[#202124]">
                     <Home size={24} />
                 </a>
                 <h1 class="text-xl font-bold text-[#202124]">

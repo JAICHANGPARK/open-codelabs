@@ -3,6 +3,7 @@ export interface Codelab {
     title: string;
     description: string;
     author: string;
+    is_public: boolean;
     created_at?: string;
 }
 

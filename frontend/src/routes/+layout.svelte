@@ -129,29 +129,29 @@
     <div
         class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 print:hidden"
     >
-        <!-- External Links -->
-        <div class="flex flex-col items-end gap-3 mb-2">
-            <a
-                href="https://github.com/JAICHANGPARK/open-codelabs"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="w-10 h-10 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
-                title={$t("common.github_repo")}
-                aria-label={$t("common.github_repo")}
-            >
-                <Github size={18} />
-            </a>
-            <a
-                href="https://jaichangpark.github.io/open-codelabs/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="w-10 h-10 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
-                title={$t("common.documentation")}
-                aria-label={$t("common.documentation")}
-            >
-                <FileIcon size={18} />
-            </a>
-        </div>
+<!--        &lt;!&ndash; External Links &ndash;&gt;-->
+<!--        <div class="flex flex-col items-end gap-3 mb-2">-->
+<!--            <a-->
+<!--                href="https://github.com/JAICHANGPARK/open-codelabs"-->
+<!--                target="_blank"-->
+<!--                rel="noopener noreferrer"-->
+<!--                class="w-10 h-10 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"-->
+<!--                title={$t("common.github_repo")}-->
+<!--                aria-label={$t("common.github_repo")}-->
+<!--            >-->
+<!--                <Github size={18} />-->
+<!--            </a>-->
+<!--            <a-->
+<!--                href="https://jaichangpark.github.io/open-codelabs/"-->
+<!--                target="_blank"-->
+<!--                rel="noopener noreferrer"-->
+<!--                class="w-10 h-10 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"-->
+<!--                title={$t("common.documentation")}-->
+<!--                aria-label={$t("common.documentation")}-->
+<!--            >-->
+<!--                <FileIcon size={18} />-->
+<!--            </a>-->
+<!--        </div>-->
 
         <div class="relative">
             <button

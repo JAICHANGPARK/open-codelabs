@@ -1,8 +1,8 @@
-use crate::models::{Attendee, HelpRequest, HelpRequestPayload, RegistrationPayload};
+use crate::models::{Attendee, HelpRequest, HelpRequestPayload, RegistrationPayload, Codelab};
 use crate::state::AppState;
 use axum::{
     extract::{Path, State},
-    http::{HeaderMap, StatusCode},
+    http::{header, HeaderMap, StatusCode},
     Json,
 };
 use serde_json;
@@ -13,8 +13,27 @@ use uuid;
 pub async fn register_attendee(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
     Json(payload): Json<RegistrationPayload>,
 ) -> Result<Json<Attendee>, (StatusCode, String)> {
+    // Check if codelab is public
+    let codelab = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs WHERE id = ?"))
+        .bind(&id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
+        .ok_or((StatusCode::NOT_FOUND, "Codelab not found".to_string()))?;
+
+    let is_admin = headers
+        .get(header::AUTHORIZATION)
+        .and_then(|h| h.to_str().ok())
+        .map(|s| s == "Bearer mock-jwt-token" || s == "mock-jwt-token")
+        .unwrap_or(false);
+
+    if codelab.is_public == 0 && !is_admin {
+        return Err((StatusCode::FORBIDDEN, "This codelab is private".to_string()));
+    }
+
     // Check for duplicate name in the same codelab
     let existing = sqlx::query(&state.q("SELECT id FROM attendees WHERE codelab_id = ? AND name = ?"))
         .bind(&id)

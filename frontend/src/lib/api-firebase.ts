@@ -31,17 +31,29 @@ import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback } from
 
 const CODELABS_COLLECTION = "codelabs";
 
+function isAdmin() {
+    if (typeof localStorage === 'undefined') return false;
+    return !!localStorage.getItem('adminToken');
+}
+
 export async function listCodelabs(): Promise<Codelab[]> {
-    const q = query(collection(db, CODELABS_COLLECTION), orderBy("created_at", "desc"));
+    let q = query(collection(db, CODELABS_COLLECTION), orderBy("created_at", "desc"));
+    if (!isAdmin()) {
+        q = query(collection(db, CODELABS_COLLECTION), where("is_public", "==", true), orderBy("created_at", "desc"));
+    }
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Codelab));
+    return querySnapshot.docs.map(d => ({ id: d.id, is_public: true, ...d.data() } as Codelab));
 }
 
 export async function getCodelab(id: string): Promise<[Codelab, Step[]]> {
     const codelabDoc = await getDoc(doc(db, CODELABS_COLLECTION, id));
     if (!codelabDoc.exists()) throw new Error('Codelab not found');
     
-    const codelab = { id: codelabDoc.id, ...codelabDoc.data() } as Codelab;
+    const codelab = { id: codelabDoc.id, is_public: true, ...codelabDoc.data() } as Codelab;
+    
+    if (!codelab.is_public && !isAdmin()) {
+        throw new Error('PRIVATE_CODELAB');
+    }
     
     const stepsSnapshot = await getDocs(query(collection(db, `${CODELABS_COLLECTION}/${id}/steps`), orderBy("step_number", "asc")));
     const steps = stepsSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Step));
@@ -49,18 +61,24 @@ export async function getCodelab(id: string): Promise<[Codelab, Step[]]> {
     return [codelab, steps];
 }
 
-export async function createCodelab(payload: { title: string; description: string; author: string }): Promise<Codelab> {
-    const docRef = await addDoc(collection(db, CODELABS_COLLECTION), {
+export async function createCodelab(payload: { title: string; description: string; author: string; is_public?: boolean }): Promise<Codelab> {
+    const data = {
         ...payload,
+        is_public: payload.is_public ?? true,
         created_at: serverTimestamp()
-    });
-    return { id: docRef.id, ...payload };
+    };
+    const docRef = await addDoc(collection(db, CODELABS_COLLECTION), data);
+    return { id: docRef.id, is_public: data.is_public, ...payload };
 }
 
-export async function updateCodelab(id: string, payload: { title: string; description: string; author: string }): Promise<Codelab> {
+export async function updateCodelab(id: string, payload: { title: string; description: string; author: string; is_public?: boolean }): Promise<Codelab> {
     const docRef = doc(db, CODELABS_COLLECTION, id);
-    await updateDoc(docRef, payload);
-    return { id, ...payload };
+    const data = {
+        ...payload,
+        is_public: payload.is_public ?? true
+    };
+    await updateDoc(docRef, data);
+    return { id, is_public: data.is_public, ...payload };
 }
 
 export async function saveSteps(codelabId: string, steps: { title: string, content_markdown: string }[]): Promise<void> {

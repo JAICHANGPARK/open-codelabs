@@ -196,8 +196,11 @@
 
             await loadChatHistory();
             wsCleanup = initWebSocket();
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
+            if (e.message === 'PRIVATE_CODELAB') {
+                goto(`/codelabs/${id}/entry`); // Let entry page handle private error
+            }
         } finally {
             loading = false;
         }
