@@ -248,17 +248,15 @@
 <style>
     /* Add GitHub-like markdown styles for the response */
     :global(.gemini-response pre) {
-        background-color: #f6f8fa;
+        background-color: #1e1e1e;
+        border: 1px solid #3c4043;
         border-radius: 6px;
         padding: 16px;
         overflow: auto;
         font-size: 85%;
         line-height: 1.45;
+        color: #e8eaed;
         transition: background-color 0.2s;
-    }
-    :global(html.dark .gemini-response pre) {
-        background-color: #1e1e1e;
-        border: 1px solid #3c4043;
     }
     :global(.gemini-response code) {
         background-color: rgba(175, 184, 193, 0.2);
