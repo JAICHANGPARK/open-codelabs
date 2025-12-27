@@ -1780,7 +1780,7 @@
         font-family: "JetBrains Mono", "Google Sans Mono", monospace;
         background-color: transparent;
         padding: 0;
-        color: inherit;
+        color: #202124;
         font-size: 0.95rem;
     }
     :global(html.dark .markdown-body pre code) {
