@@ -8,9 +8,9 @@ TUNNEL_TYPE="ngrok"
 CONTAINER_ENGINE="docker"
 
 # Check for podman
-if command -v podman-compose &> /dev/null; then
+if command -v podman compose &> /dev/null; then
     CONTAINER_ENGINE="podman"
-elif command -v docker-compose &> /dev/null; then
+elif command -v docker compose &> /dev/null; then
     CONTAINER_ENGINE="docker"
 else
     echo "❌ No container engine (docker-compose or podman-compose) found!"
@@ -30,9 +30,9 @@ echo "🚀 Starting Open Codelabs Hands-on System using $CONTAINER_ENGINE..."
 
 # Start containers in background
 if [ "$CONTAINER_ENGINE" == "podman" ]; then
-    podman-compose up -d
+    podman compose up -d
 else
-    docker-compose up -d
+    docker compose up -d
 fi
 
 echo "✅ Containers are up!"
@@ -64,7 +64,9 @@ else
     echo "🎉 Your Codelab is now PUBLIC!"
     echo "Admin Dashboard: $PUBLIC_URL/admin"
     echo "Attendee Entry:  $PUBLIC_URL"
+    echo "API Endpoint:    $PUBLIC_URL/api (Proxied)"
     echo "------------------------------------------------"
+    echo "💡 Note: If login is slow, please wait a moment for the tunnel to stabilize."
 fi
 
 # Keep script running to maintain tunnel process
