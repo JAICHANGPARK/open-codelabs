@@ -173,6 +173,10 @@
                     return hljs.highlight(code, { language }).value;
                 },
             }),
+            {
+                gfm: true,
+                breaks: true,
+            }
         );
 
         try {
@@ -1315,7 +1319,7 @@
                                 {/if}
                             {:else if mode === "preview"}
                                 <div
-                                    class="prose prose-blue max-w-none flex-1 markdown-body"
+                                    class="prose dark:prose-invert prose-blue max-w-none flex-1 markdown-body"
                                     in:fade
                                 >
                                     {@html renderedContent}
