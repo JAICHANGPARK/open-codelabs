@@ -103,3 +103,42 @@ pub struct Feedback {
     pub comment: Option<String>,
     pub created_at: Option<String>,
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_codelab_serialization() {
+        let codelab = Codelab {
+            id: "test-id".to_string(),
+            title: "Test Title".to_string(),
+            description: "Test Description".to_string(),
+            author: "Test Author".to_string(),
+            created_at: Some("2023-01-01".to_string()),
+        };
+
+        let json = serde_json::to_string(&codelab).unwrap();
+        assert!(json.contains("\"id\":\"test-id\""));
+        assert!(json.contains("\"title\":\"Test Title\""));
+    }
+
+    #[test]
+    fn test_create_codelab_deserialization() {
+        let json = r#"{"title":"New Codelab","description":"Desc","author":"John"}"#;
+        let create_codelab: CreateCodelab = serde_json::from_str(json).unwrap();
+        
+        assert_eq!(create_codelab.title, "New Codelab");
+        assert_eq!(create_codelab.description, "Desc");
+        assert_eq!(create_codelab.author, "John");
+    }
+
+    #[test]
+    fn test_registration_payload_deserialization() {
+        let json = r#"{"name":"Alice","code":"1234"}"#;
+        let payload: RegistrationPayload = serde_json::from_str(json).unwrap();
+        
+        assert_eq!(payload.name, "Alice");
+        assert_eq!(payload.code, "1234");
+    }
+}
