@@ -18,7 +18,18 @@
         "date": "Date",
         "status": "Status",
         "error": "Error",
-        "success": "Success"
+        "success": "Success",
+        "toggle_colorblind": "Toggle Colorblind Mode",
+        "tts_read": "Read this step",
+        "tts_stop": "Stop reading",
+        "google_login": "Sign in with Google",
+        "github_repo": "GitHub Repository",
+        "documentation": "Documentation",
+        "change_language": "Change Language",
+        "toggle_theme": "Toggle Theme",
+        "or": "OR",
+        "ai_assistant": "AI Assistant",
+        "close": "Close"
     },
     "dashboard": {
         "title": "Facilitator Dashboard",
@@ -88,7 +99,11 @@
             "summarize": "AI Summarize",
             "fix_grammar": "Fix Grammar",
             "improve_writing": "Improve Writing"
-        }
+        },
+        "live_tab": "Live",
+        "export_codelab": "Export Codelab",
+        "save_changes": "Save Changes",
+        "stuck_on_step": "Stuck on Step {step}"
     },
     "attendee": {
         "join_title": "Join Codelab",
@@ -178,5 +193,19 @@
         "error_parse": "Unexpected error parsing AI response. Please try again.",
         "error_generate": "Generation failed",
         "error_save": "Failed to save codelab."
+    },
+    "gemini": {
+        "ask_gemini": "Ask Gemini",
+        "change_key": "Change Key",
+        "enter_api_key": "Enter your Gemini API Key",
+        "api_key_required_desc": "To use AI features, you need a valid Google Gemini API key.",
+        "get_api_key": "Get an API key here",
+        "paste_api_key": "Paste API Key here...",
+        "context_selected": "Context Selected",
+        "thinking": "Thinking...",
+        "ask_question_placeholder": "Ask a question about the code...",
+        "improve_with_gemini": "Improve with Gemini",
+        "gemini_is_writing": "Gemini is writing...",
+        "improving_content": "Improving your content"
     }
 }
