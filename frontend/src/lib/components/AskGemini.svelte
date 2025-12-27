@@ -21,6 +21,10 @@
     let inputRef = $state<HTMLTextAreaElement | null>(null);
 
     onMount(() => {
+        marked.use({
+            gfm: true,
+            breaks: true,
+        });
         const storedKey = localStorage.getItem("gemini_api_key");
         if (storedKey) {
             apiKey = storedKey;
@@ -193,7 +197,7 @@
 
                     {#if response}
                         <div
-                            class="prose max-w-none text-[#3C4043] dark:text-dark-text text-sm leading-relaxed gemini-response"
+                            class="prose dark:prose-invert max-w-none text-[#3C4043] dark:text-dark-text text-sm leading-relaxed gemini-response"
                         >
                             {@html renderedResponse}
                         </div>
