@@ -4,6 +4,7 @@ export type Theme = "light" | "dark";
 
 function createThemeState() {
     let theme = $state<Theme>("light");
+    let colorblindMode = $state<boolean>(false);
 
     if (browser) {
         // Load initial state
@@ -14,11 +15,18 @@ function createThemeState() {
             theme = "dark";
         }
         
+        const savedColorblind = localStorage.getItem("colorblindMode") === "true";
+        colorblindMode = savedColorblind;
+
         // Apply theme initially
         if (theme === "dark") {
             document.documentElement.classList.add("dark");
         } else {
             document.documentElement.classList.remove("dark");
+        }
+
+        if (colorblindMode) {
+            document.documentElement.classList.add("colorblind");
         }
     }
 
@@ -37,8 +45,25 @@ function createThemeState() {
                 }
             }
         },
+        get colorblindMode() {
+            return colorblindMode;
+        },
+        set colorblindMode(value: boolean) {
+            colorblindMode = value;
+            if (browser) {
+                localStorage.setItem("colorblindMode", String(value));
+                if (value) {
+                    document.documentElement.classList.add("colorblind");
+                } else {
+                    document.documentElement.classList.remove("colorblind");
+                }
+            }
+        },
         toggle() {
             this.current = theme === "light" ? "dark" : "light";
+        },
+        toggleColorblind() {
+            this.colorblindMode = !colorblindMode;
         }
     };
 }
