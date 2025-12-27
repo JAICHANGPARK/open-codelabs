@@ -5,6 +5,8 @@ Thumbs.db
 # Backend (Rust)
 backend/target/
 backend/.env
+backend/.env.sample
+!backend/.env.sample
 backend/data/*.db
 backend/data/*.db-journal
 backend/data/*.db-shm
@@ -16,7 +18,7 @@ frontend/.svelte-kit/
 frontend/build/
 frontend/.env
 frontend/.env.*
-!frontend/.env.example
+!frontend/.env.sample
 frontend/bun.lockb
 
 # IDE
@@ -28,4 +30,6 @@ frontend/bun.lockb
 # Docker
 .docker/
 .env
+.env.sample
+!.env.sample
 
