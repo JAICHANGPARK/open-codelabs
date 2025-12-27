@@ -8,11 +8,32 @@
     import "../app.css";
     import { Languages, LogOut, Sun, Moon, Github, FileText as FileIcon } from "lucide-svelte";
     import { themeState } from "$lib/theme.svelte";
+    import { logout, onAuthChange, isFirebaseMode } from "$lib/api";
 
     let { children } = $props();
     let i18nLoaded = $state(false);
 
     onMount(async () => {
+        if (isFirebaseMode()) {
+            onAuthChange((user) => {
+                if (!user && page.url.pathname.startsWith("/admin")) {
+                    localStorage.removeItem("adminToken");
+                    localStorage.removeItem("user");
+                    goto("/login");
+                } else if (user) {
+                    // Sync token if needed
+                    user.getIdToken().then(token => {
+                        localStorage.setItem("adminToken", token);
+                        localStorage.setItem("user", JSON.stringify({
+                            uid: user.uid,
+                            email: user.email,
+                            displayName: user.displayName,
+                            photoURL: user.photoURL
+                        }));
+                    });
+                }
+            });
+        }
         try {
             const savedLocale = localStorage.getItem("locale");
             if (savedLocale) {
@@ -52,9 +73,11 @@
         }
     });
 
-    function handleLogout() {
+    async function handleLogout() {
         try {
+            await logout();
             localStorage.removeItem("adminToken");
+            localStorage.removeItem("user");
             goto("/login");
         } catch (e) {
             console.error("Logout failed", e);
