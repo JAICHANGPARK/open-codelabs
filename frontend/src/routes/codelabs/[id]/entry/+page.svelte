@@ -193,7 +193,7 @@
                                 <div class="w-full border-t border-[#F1F3F4]"></div>
                             </div>
                             <div class="relative flex justify-center text-xs uppercase">
-                                <span class="bg-white px-4 text-[#9AA0A6] font-bold">{$t("common.or") || "OR"}</span>
+                                <span class="bg-white px-4 text-[#9AA0A6] font-bold">{$t("common.or")}</span>
                             </div>
                         </div>
 
@@ -204,7 +204,7 @@
                             class="w-full bg-white hover:bg-[#F8F9FA] text-[#3C4043] font-bold py-4 rounded-xl border border-[#DADCE0] shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
                         >
                             <Chrome size={20} class="text-[#4285F4]" />
-                            <span>Continue with Google</span>
+                            <span>{$t("common.google_login")}</span>
                         </button>
                     {/if}
                 </form>
