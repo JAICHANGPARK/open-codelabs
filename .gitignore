@@ -33,3 +33,6 @@ frontend/bun.lockb
 .env.sample
 !.env.sample
 
+.firebase/hosting.ZnJvbnRlbmQvYnVpbGQ.cache
+.firebaserc
+.firebaserc
