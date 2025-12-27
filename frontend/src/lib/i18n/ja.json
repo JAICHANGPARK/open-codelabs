@@ -18,7 +18,18 @@
         "date": "日付",
         "status": "ステータス",
         "error": "エラー",
-        "success": "成功"
+        "success": "成功",
+        "toggle_colorblind": "色覚サポートモードを切り替え",
+        "tts_read": "このステップを読み上げる",
+        "tts_stop": "読み上げを停止",
+        "google_login": "Googleでログイン",
+        "github_repo": "GitHubリポジトリ",
+        "documentation": "ドキュメント",
+        "change_language": "言語を変更",
+        "toggle_theme": "テーマを切り替え",
+        "or": "または",
+        "ai_assistant": "AIアシスタント",
+        "close": "閉じる"
     },
     "dashboard": {
         "title": "ファシリテーターダッシュボード",
@@ -36,7 +47,16 @@
         "placeholder_title": "例：SvelteKit入門",
         "placeholder_desc": "何を学びますか？",
         "placeholder_author": "お名前",
-        "confirm_delete": "このコードラボを削除してもよろしいですか？この操作は取り消せません。"
+        "confirm_delete": "このコードラボを削除してもよろしいですか？この操作は取り消せません。",
+        "create_with_ai": "AIで生成",
+        "share_link": "参加者用リンクをコピー",
+        "settings": {
+            "title": "設定",
+            "gemini_api_key": "Gemini API キー",
+            "api_key_placeholder": "Gemini APIキーを入力してください",
+            "api_key_desc": "APIキーはブラウザに暗호化されてローカルに保存され、サーバーには送信されません。",
+            "save_success": "設定を保存しました。"
+        }
     },
     "editor": {
         "edit": "編集",
@@ -53,7 +73,85 @@
         "attendee_access": "参加者のアクセス",
         "view_live": "ライブ表示",
         "public_chat": "全体チャット",
-        "direct_messages": "1:1メッセージ"
+        "direct_messages": "1:1メッセージ",
+        "facilitator_mode": "ファシリテーターモード",
+        "back": "戻る",
+        "next": "次へ",
+        "finish": "終了",
+        "mins_remaining": "残り{mins}分",
+        "chat_placeholder": "メッセージを入力...",
+        "no_messages": "メッセージはまだありません。",
+        "no_messages_desc": "ファシリテーターからのメッセージはまだありません。",
+        "feedback_tab": "フィードバック",
+        "delete_step": "ステップを削除",
+        "copy_url": "URLをコピー",
+        "placeholder_step_title": "無題のステップ",
+        "start_writing": "ここに内容を記入してください...",
+        "export_zip": "ZIPとしてエクスポート",
+        "help_requests": "ヘルプ要請",
+        "no_help_requests": "ヘルプ要請はありません。",
+        "resolve": "解決",
+        "send_dm": "メッセージを送信",
+        "to_facilitator": "ファシリテーターへ",
+        "from_facilitator": "ファシリテーター",
+        "ai_menu": {
+            "explain": "AIで説明",
+            "summarize": "AIで要約",
+            "fix_grammar": "文法を修正",
+            "improve_writing": "文章を改善"
+        },
+        "live_tab": "ライブ",
+        "export_codelab": "コードラボをエクスポート",
+        "save_changes": "変更를保存",
+        "stuck_on_step": "ステップ {step} で止まっています"
+    },
+    "attendee": {
+        "join_title": "コードラボに参加",
+        "join_desc": "情報を入力して参加してください",
+        "nickname": "名前 / ニックネーム",
+        "nickname_placeholder": "例：田中太郎",
+        "unique_code": "固有コード（電話番号の下4桁など）",
+        "unique_code_placeholder": "例：1234",
+        "start_learning": "学習を開始",
+        "processing": "処理中...",
+        "error_fill_fields": "すべてのフィールドを入力してください",
+        "error_duplicate_name": "このニックネームは既に使用されています。別の名前を試してください。",
+        "error_registration_failed": "登録に失敗しました。接続を確認してもう一度お試しください。",
+        "return_home": "ホームに戻る",
+        "codelab_not_found": "コードラボが見つかりませんでした"
+    },
+    "feedback": {
+        "done_title": "完了しました！",
+        "done_desc": "{title} コードラボを正常に完了しました。",
+        "experience_title": "学習体験はいかがでしたか？",
+        "satisfaction": "満足度",
+        "difficulty": "難易度",
+        "too_easy": "非常に簡単",
+        "just_right": "ちょうどよい",
+        "too_hard": "非常に難しい",
+        "comments_optional": "コメント（任意）",
+        "comments_placeholder": "追加のフィードバックはありますか？",
+        "submit": "フィードバックを送信",
+        "submitting": "送信中...",
+        "thanks": "フィードバックありがとうございます！",
+        "already_submitted": "既にフィードバックを送信済みです。",
+        "failed_submit": "フィードバックの送信に失敗しました。",
+        "view_live_status": "リアルタイム状況を表示"
+    },
+    "help": {
+        "request": "ヘルプを求める",
+        "requested": "ヘルプ要請済み",
+        "sent": "ファシリテーターにヘルプを要請しました！",
+        "failed": "ヘルプ要請に失敗しました。"
+    },
+    "live": {
+        "status_title": "リアルタイム状況",
+        "participants": "{count}名が参加中",
+        "realtime_progress": "リアルタイムの進捗状況",
+        "step_progress": "ステップ {current} / {total}",
+        "you": "(自分)",
+        "live_chat": "ライブチャット",
+        "say_hello": "挨拶してみましょう..."
     },
     "login": {
         "title": "ファシリテーターログイン",
@@ -63,12 +161,14 @@
         "sign_in": "サインイン",
         "connecting": "接続中...",
         "error_fields": "すべてのフィールドを入力してください",
-        "error_credentials": "IDまたはパスワードが正しくありません"
+        "error_credentials": "IDまたはパスワードが正しくありません",
+        "placeholder_id": "管理者IDを入力してください",
+        "trouble": "ログインにお困りですか？"
     },
     "home": {
-        "subtitle": "開発者のためのインタラクティブなハンズオン学習プラットフォーム",
-        "facilitator_desc": "コードラボの作成・管理、参加者の進捗追跡、リアルタイムでのサポート提供が可能です。",
-        "attendee_desc": "利用可能なセッションに参加し、ステップバイステップの指示に従って新しい技術を学びましょう。"
+        "subtitle": "インタラクティブなステップバイステップガイドで、完璧なハンズオンセッションを運営しましょう。",
+        "facilitator_desc": "ワークショップを設計し、参加者をリアルタイムで案内します。",
+        "attendee_desc": "自分のペースで学習し、行き詰まったときはヘルプを要請できます。"
     },
     "ai_generator": {
         "title": "Gemini AIで作成",
@@ -83,7 +183,7 @@
         "api_key_required": "まず設定でGemini APIキーを設定してください。",
         "generate_button": "コードラボを生成",
         "analyzing": "コードを分析中...",
-        "analyzing_desc": "Geminiがソースコードに基づいてガイドを作成しています。",
+        "analyzing_desc": "Gemini가ソースコードに基づいてガイドを作成しています。",
         "thinking_process": "AIの思考プロセス",
         "preview_title": "プレビュー",
         "preview_subtitle": "生成されたコードラボの構造を確認してください",
@@ -93,5 +193,19 @@
         "error_parse": "AIの応答を解析中に予期しないエラーが発生しました。もう一度お試しください。",
         "error_generate": "生成に失敗しました",
         "error_save": "コードラボの保存に失敗しました。"
+    },
+    "gemini": {
+        "ask_gemini": "Geminiに質問する",
+        "change_key": "キーを変更",
+        "enter_api_key": "Gemini APIキーを入力",
+        "api_key_required_desc": "AI機能を使用するには、有効なGoogle Gemini APIキーが必要です。",
+        "get_api_key": "ここでAPIキーを取得",
+        "paste_api_key": "ここにAPIキーを貼り付け...",
+        "context_selected": "選択されたコンテキスト",
+        "thinking": "思考中...",
+        "ask_question_placeholder": "コードについて質問する...",
+        "improve_with_gemini": "Geminiで改善",
+        "gemini_is_writing": "Geminiが書き込み中...",
+        "improving_content": "コンテンツを改善しています"
     }
 }
