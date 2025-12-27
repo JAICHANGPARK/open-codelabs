@@ -26,7 +26,7 @@
                 goto(`/codelabs/${id}`);
             }
         } catch (e) {
-            error = "Codelab not found";
+            error = $t("attendee.codelab_not_found");
         } finally {
             loading = false;
         }
@@ -34,7 +34,7 @@
 
     async function handleSubmit() {
         if (!name || !code) {
-            error = "Please fill in all fields";
+            error = $t("attendee.error_fill_fields");
             return;
         }
 
@@ -46,11 +46,9 @@
             goto(`/codelabs/${id}`);
         } catch (e: any) {
             if (e.message === "DUPLICATE_NAME") {
-                error =
-                    "This nickname is already taken in this codelab. Please try another one.";
+                error = $t("attendee.error_duplicate_name");
             } else {
-                error =
-                    "Registration failed. Please check your connection and try again.";
+                error = $t("attendee.error_registration_failed");
             }
         } finally {
             submitting = false;
@@ -78,10 +76,10 @@
                         <User class="w-8 h-8 text-[#4285F4]" />
                     </div>
                     <h1 class="text-2xl font-bold text-[#202124] mb-2">
-                        Join Codelab
+                        {$t("attendee.join_title")}
                     </h1>
                     <p class="text-[#5F6368] text-sm">
-                        Enter your details to participate in <br />
+                        {$t("attendee.join_desc")} <br />
                         <span class="font-bold text-[#202124]"
                             >{codelab.title}</span
                         >
@@ -109,7 +107,7 @@
                             for="name"
                             class="text-xs font-bold text-[#5F6368] uppercase tracking-wider ml-1"
                         >
-                            Your Name / Nickname
+                            {$t("attendee.nickname")}
                         </label>
                         <div class="relative group">
                             <div
@@ -121,7 +119,7 @@
                                 id="name"
                                 type="text"
                                 bind:value={name}
-                                placeholder="e.g. Alex"
+                                placeholder={$t("attendee.nickname_placeholder")}
                                 class="w-full pl-12 pr-4 py-3.5 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 transition-all text-[#202124]"
                                 required
                             />
@@ -133,7 +131,7 @@
                             for="code"
                             class="text-xs font-bold text-[#5F6368] uppercase tracking-wider ml-1"
                         >
-                            Unique Code (Phone suffix, etc.)
+                            {$t("attendee.unique_code")}
                         </label>
                         <div class="relative group">
                             <div
@@ -145,7 +143,7 @@
                                 id="code"
                                 type="text"
                                 bind:value={code}
-                                placeholder="e.g. 1234"
+                                placeholder={$t("attendee.unique_code_placeholder")}
                                 class="w-full pl-12 pr-4 py-3.5 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 transition-all text-[#202124]"
                                 required
                             />
@@ -159,9 +157,9 @@
                     >
                         {#if submitting}
                             <Loader2 class="w-5 h-5 animate-spin" />
-                            Processing...
+                            {$t("attendee.processing")}
                         {:else}
-                            Start Learning
+                            {$t("attendee.start_learning")}
                             <ArrowRight
                                 class="w-5 h-5 group-hover:translate-x-1 transition-transform"
                             />
@@ -178,7 +176,7 @@
         <div in:fade class="text-center">
             <h1 class="text-2xl font-bold text-[#202124] mb-4">{error}</h1>
             <a href="/" class="text-[#4285F4] font-bold hover:underline"
-                >Return to Home</a
+                >{$t("attendee.return_home")}</a
             >
         </div>
     {/if}
