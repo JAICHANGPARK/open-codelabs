@@ -177,7 +177,7 @@
     <header
         class="bg-white border-b border-[#E8EAED] py-4 px-8 sticky top-0 z-30 shadow-sm"
     >
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <div class="max-w-screen-2xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4">
                 <a href="/" class="text-[#5F6368] hover:text-[#202124]">
                     <Home size={24} />
@@ -194,7 +194,7 @@
     </header>
 
     <main
-        class="max-w-7xl mx-auto w-full p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 items-start"
+        class="max-w-screen-2xl mx-auto w-full p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 flex-1 items-start"
     >
         <!-- Progress Board -->
         <div
