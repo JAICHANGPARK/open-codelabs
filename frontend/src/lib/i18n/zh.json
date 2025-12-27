@@ -69,5 +69,29 @@
         "subtitle": "面向开发者的互动式动手实践学习平台",
         "facilitator_desc": "创建和管理您自己的代码实验室，跟踪参与者进度，并提供实时帮助。",
         "attendee_desc": "加入可用会话，按照分步说明操作，并学习新技术。"
+    },
+    "ai_generator": {
+        "title": "使用 Gemini AI 创建",
+        "subtitle": "立即将您的代码转换为互动式代码实验室",
+        "input_label": "在此粘贴您的源代码",
+        "google_search": "Google 搜索（实时数据）",
+        "url_context": "URL 上下文",
+        "show_thinking": "显示 AI 思考过程",
+        "billing_notice": "计费通知：",
+        "billing_desc": "Google 搜索和 URL 上下文工具可能从 2026 年 1 月 5 日起产生额外费用。",
+        "placeholder": "// 在此粘贴您的 Rust、TypeScript、Python... 代码\n// Gemini 将逐步为您解释。",
+        "api_key_required": "请先在设置中设置您的 Gemini API 密钥。",
+        "generate_button": "生成代码实验室",
+        "analyzing": "正在分析您的代码...",
+        "analyzing_desc": "Gemini 正在根据您的源代码制作分步指南。",
+        "thinking_process": "AI 思考过程",
+        "preview_title": "预览",
+        "preview_subtitle": "查看生成的代码实验室结构",
+        "back": "返回",
+        "saving": "正在保存...",
+        "create_button": "创建代码实验室",
+        "error_parse": "解析 AI 响应时发生意外错误。请重试。",
+        "error_generate": "生成失败",
+        "error_save": "保存代码实验室失败。"
     }
 }
