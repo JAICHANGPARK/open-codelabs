@@ -17,7 +17,7 @@ use zip;
 pub async fn list_codelabs(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<Codelab>>, (StatusCode, String)> {
-    let codelabs = sqlx::query_as::<_, Codelab>("SELECT * FROM codelabs")
+    let codelabs = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs"))
         .fetch_all(&state.pool)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
@@ -29,7 +29,7 @@ pub async fn get_codelab(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<(Codelab, Vec<Step>)>, (StatusCode, String)> {
-    let codelab = sqlx::query_as::<_, Codelab>("SELECT * FROM codelabs WHERE id = ?")
+    let codelab = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs WHERE id = ?"))
         .bind(&id)
         .fetch_optional(&state.pool)
         .await
@@ -37,7 +37,7 @@ pub async fn get_codelab(
         .ok_or((StatusCode::NOT_FOUND, "Codelab not found".to_string()))?;
 
     let steps =
-        sqlx::query_as::<_, Step>("SELECT * FROM steps WHERE codelab_id = ? ORDER BY step_number")
+        sqlx::query_as::<_, Step>(&state.q("SELECT * FROM steps WHERE codelab_id = ? ORDER BY step_number"))
             .bind(&id)
             .fetch_all(&state.pool)
             .await
@@ -52,7 +52,7 @@ pub async fn create_codelab(
 ) -> Result<Json<Codelab>, (StatusCode, String)> {
     let id = uuid::Uuid::new_v4().to_string();
 
-    sqlx::query("INSERT INTO codelabs (id, title, description, author) VALUES (?, ?, ?, ?)")
+    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author) VALUES (?, ?, ?, ?)"))
         .bind(&id)
         .bind(&payload.title)
         .bind(&payload.description)
@@ -61,7 +61,7 @@ pub async fn create_codelab(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    let codelab = sqlx::query_as::<_, Codelab>("SELECT * FROM codelabs WHERE id = ?")
+    let codelab = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs WHERE id = ?"))
         .bind(&id)
         .fetch_one(&state.pool)
         .await
@@ -75,7 +75,7 @@ pub async fn update_codelab_info(
     State(state): State<Arc<AppState>>,
     Json(payload): Json<CreateCodelab>,
 ) -> Result<Json<Codelab>, (StatusCode, String)> {
-    sqlx::query("UPDATE codelabs SET title = ?, description = ?, author = ? WHERE id = ?")
+    sqlx::query(&state.q("UPDATE codelabs SET title = ?, description = ?, author = ? WHERE id = ?"))
         .bind(&payload.title)
         .bind(&payload.description)
         .bind(&payload.author)
@@ -84,7 +84,7 @@ pub async fn update_codelab_info(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    let codelab = sqlx::query_as::<_, Codelab>("SELECT * FROM codelabs WHERE id = ?")
+    let codelab = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs WHERE id = ?"))
         .bind(&id)
         .fetch_one(&state.pool)
         .await
@@ -105,7 +105,7 @@ pub async fn update_codelab_steps(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     // Delete existing steps
-    sqlx::query("DELETE FROM steps WHERE codelab_id = ?")
+    sqlx::query(&state.q("DELETE FROM steps WHERE codelab_id = ?"))
         .bind(&id)
         .execute(&mut *tx)
         .await
@@ -115,7 +115,7 @@ pub async fn update_codelab_steps(
     for (i, step) in payload.steps.into_iter().enumerate() {
         let step_id = uuid::Uuid::new_v4().to_string();
         sqlx::query(
-            "INSERT INTO steps (id, codelab_id, step_number, title, content_markdown) VALUES (?, ?, ?, ?, ?)",
+            &state.q("INSERT INTO steps (id, codelab_id, step_number, title, content_markdown) VALUES (?, ?, ?, ?, ?)"),
         )
         .bind(&step_id)
         .bind(&id)
@@ -138,7 +138,7 @@ pub async fn export_codelab(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let codelab = sqlx::query_as::<_, Codelab>("SELECT * FROM codelabs WHERE id = ?")
+    let codelab = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs WHERE id = ?"))
         .bind(&id)
         .fetch_optional(&state.pool)
         .await
@@ -146,7 +146,7 @@ pub async fn export_codelab(
         .ok_or((StatusCode::NOT_FOUND, "Codelab not found".to_string()))?;
 
     let steps =
-        sqlx::query_as::<_, Step>("SELECT * FROM steps WHERE codelab_id = ? ORDER BY step_number")
+        sqlx::query_as::<_, Step>(&state.q("SELECT * FROM steps WHERE codelab_id = ? ORDER BY step_number"))
             .bind(&id)
             .fetch_all(&state.pool)
             .await
@@ -264,7 +264,7 @@ pub async fn import_codelab(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    sqlx::query("INSERT INTO codelabs (id, title, description, author) VALUES (?, ?, ?, ?)")
+    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author) VALUES (?, ?, ?, ?)"))
         .bind(&codelab.id)
         .bind(&codelab.title)
         .bind(&codelab.description)
@@ -278,7 +278,7 @@ pub async fn import_codelab(
     for (step_num, title, content) in steps_content {
         let step_id = uuid::Uuid::new_v4().to_string();
         sqlx::query(
-            "INSERT INTO steps (id, codelab_id, step_number, title, content_markdown) VALUES (?, ?, ?, ?, ?)",
+            &state.q("INSERT INTO steps (id, codelab_id, step_number, title, content_markdown) VALUES (?, ?, ?, ?, ?)"),
         )
         .bind(&step_id)
         .bind(&codelab.id)
@@ -302,7 +302,7 @@ pub async fn get_chat_history(
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<ChatMessageRow>>, (StatusCode, String)> {
     let messages = sqlx::query_as::<_, ChatMessageRow>(
-        "SELECT * FROM chat_messages WHERE codelab_id = ? ORDER BY created_at ASC",
+        &state.q("SELECT * FROM chat_messages WHERE codelab_id = ? ORDER BY created_at ASC"),
     )
     .bind(&id)
     .fetch_all(&state.pool)
@@ -324,35 +324,35 @@ pub async fn delete_codelab(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     // Delete steps
-    sqlx::query("DELETE FROM steps WHERE codelab_id = ?")
+    sqlx::query(&state.q("DELETE FROM steps WHERE codelab_id = ?"))
         .bind(&id)
         .execute(&mut *tx)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     // Delete chat messages
-    sqlx::query("DELETE FROM chat_messages WHERE codelab_id = ?")
+    sqlx::query(&state.q("DELETE FROM chat_messages WHERE codelab_id = ?"))
         .bind(&id)
         .execute(&mut *tx)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     // Delete help requests
-    sqlx::query("DELETE FROM help_requests WHERE codelab_id = ?")
+    sqlx::query(&state.q("DELETE FROM help_requests WHERE codelab_id = ?"))
         .bind(&id)
         .execute(&mut *tx)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     // Delete attendees
-    sqlx::query("DELETE FROM attendees WHERE codelab_id = ?")
+    sqlx::query(&state.q("DELETE FROM attendees WHERE codelab_id = ?"))
         .bind(&id)
         .execute(&mut *tx)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     // Delete codelab itself
-    sqlx::query("DELETE FROM codelabs WHERE id = ?")
+    sqlx::query(&state.q("DELETE FROM codelabs WHERE id = ?"))
         .bind(&id)
         .execute(&mut *tx)
         .await

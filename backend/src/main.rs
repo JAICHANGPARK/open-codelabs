@@ -6,7 +6,7 @@ use axum::{
     routing::{get, post, put},
     Router,
 };
-use sqlx::sqlite::SqlitePool;
+use sqlx::any::AnyPoolOptions;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use tower_http::services::ServeDir;
@@ -25,7 +25,7 @@ use crate::handlers::{
     upload::upload_image,
     websocket::ws_handler,
 };
-use crate::state::AppState;
+use crate::state::{AppState, DbKind};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -40,8 +40,33 @@ async fn main() -> anyhow::Result<()> {
         .with(tracing_subscriber::fmt::layer())
         .init();
 
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let pool = SqlitePool::connect(&database_url).await?;
+    let database_url = std::env::var("DATABASE_URL")
+        .unwrap_or_else(|_| "sqlite:data/sqlite.db?mode=rwc".to_string());
+
+    // Ensure directory exists for sqlite
+    if database_url.starts_with("sqlite:") {
+        let path = database_url.replace("sqlite:", "");
+        let path = path.split('?').next().unwrap_or(&path);
+        if let Some(parent) = std::path::Path::new(path).parent() {
+            if !parent.as_os_str().is_empty() {
+                std::fs::create_dir_all(parent).ok();
+            }
+        }
+    }
+
+    sqlx::any::install_default_drivers();
+    let pool = AnyPoolOptions::new()
+        .max_connections(5)
+        .connect(&database_url)
+        .await?;
+
+    let db_kind = if database_url.starts_with("postgres") {
+        DbKind::Postgres
+    } else if database_url.starts_with("mysql") {
+        DbKind::Mysql
+    } else {
+        DbKind::Sqlite
+    };
 
     // Run migrations
     sqlx::migrate!("./migrations").run(&pool).await?;
@@ -51,6 +76,7 @@ async fn main() -> anyhow::Result<()> {
 
     let state = Arc::new(AppState {
         pool,
+        db_kind,
         admin_id,
         admin_pw,
         channels: Arc::new(dashmap::DashMap::new()),

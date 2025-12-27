@@ -1,9 +1,9 @@
 -- Create feedback table
 CREATE TABLE IF NOT EXISTS feedback (
-    id TEXT PRIMARY KEY,
-    codelab_id TEXT NOT NULL,
-    difficulty TEXT NOT NULL,
-    satisfaction TEXT NOT NULL,
+    id VARCHAR(255) PRIMARY KEY,
+    codelab_id VARCHAR(255) NOT NULL,
+    difficulty VARCHAR(50) NOT NULL,
+    satisfaction VARCHAR(50) NOT NULL,
     comment TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

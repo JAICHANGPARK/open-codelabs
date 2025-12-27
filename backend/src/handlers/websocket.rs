@@ -94,7 +94,7 @@ async fn handle_socket(socket: WebSocket, codelab_id: String, state: Arc<AppStat
 
                         // Persist to DB
                         let msg_id = uuid::Uuid::new_v4().to_string();
-                        let _ = sqlx::query("INSERT INTO chat_messages (id, codelab_id, sender_name, message, msg_type) VALUES (?, ?, ?, ?, 'chat')")
+                        let _ = sqlx::query(&state_clone.q("INSERT INTO chat_messages (id, codelab_id, sender_name, message, msg_type) VALUES (?, ?, ?, ?, 'chat')"))
                             .bind(&msg_id)
                             .bind(&codelab_id_clone)
                             .bind(sender)
@@ -115,7 +115,7 @@ async fn handle_socket(socket: WebSocket, codelab_id: String, state: Arc<AppStat
 
                             // Persist to DB
                             let msg_id = uuid::Uuid::new_v4().to_string();
-                            let _ = sqlx::query("INSERT INTO chat_messages (id, codelab_id, sender_name, message, msg_type, target_id) VALUES (?, ?, ?, ?, 'dm', ?)")
+                            let _ = sqlx::query(&state_clone.q("INSERT INTO chat_messages (id, codelab_id, sender_name, message, msg_type, target_id) VALUES (?, ?, ?, ?, 'dm', ?)"))
                                 .bind(&msg_id)
                                 .bind(&codelab_id_clone)
                                 .bind(sender)
@@ -139,7 +139,7 @@ async fn handle_socket(socket: WebSocket, codelab_id: String, state: Arc<AppStat
                             val.get("step_number").and_then(|v| v.as_i64()),
                         ) {
                             let _ =
-                                sqlx::query("UPDATE attendees SET current_step = ? WHERE id = ?")
+                                sqlx::query(&state_clone.q("UPDATE attendees SET current_step = ? WHERE id = ?"))
                                     .bind(step_number as i32)
                                     .bind(attendee_id)
                                     .execute(&state_clone.pool)

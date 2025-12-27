@@ -6,7 +6,7 @@ pub struct Codelab {
     pub title: String,
     pub description: String,
     pub author: String,
-    pub created_at: Option<chrono::NaiveDateTime>,
+    pub created_at: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -55,7 +55,7 @@ pub struct Attendee {
     pub name: String,
     pub code: String,
     pub current_step: i32,
-    pub created_at: Option<chrono::NaiveDateTime>,
+    pub created_at: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -71,7 +71,7 @@ pub struct HelpRequest {
     pub attendee_name: String,
     pub step_number: i32,
     pub status: String,
-    pub created_at: Option<chrono::NaiveDateTime>,
+    pub created_at: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -82,7 +82,7 @@ pub struct ChatMessageRow {
     pub message: String,
     pub msg_type: String,
     pub target_id: Option<String>,
-    pub created_at: Option<chrono::NaiveDateTime>,
+    pub created_at: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -101,5 +101,5 @@ pub struct Feedback {
     pub difficulty: String,
     pub satisfaction: String,
     pub comment: Option<String>,
-    pub created_at: Option<chrono::NaiveDateTime>,
+    pub created_at: Option<String>,
 }

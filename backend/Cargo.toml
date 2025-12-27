@@ -4,21 +4,21 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-axum = { version = "0.7", features = ["ws"] }
+axum = { version = "0.8.8", features = ["ws"] }
 tokio = { version = "1.0", features = ["full"] }
-sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "macros", "chrono", "uuid"] }
+sqlx = { version = "0.8", features = ["runtime-tokio-rustls", "sqlite", "postgres", "mysql", "any", "macros", "chrono", "uuid"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-tower-http = { version = "0.5", features = ["cors", "trace", "fs"] }
+tower-http = { version = "0.6.8", features = ["cors", "trace", "fs"] }
 dotenvy = "0.15"
 anyhow = "1.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 chrono = { version = "0.4", features = ["serde"] }
 uuid = { version = "1.1", features = ["v4", "serde"] }
-zip = { version = "2.0", default-features = false, features = ["deflate"] }
+zip = { version = "7.0.0", default-features = false, features = ["deflate"] }
 tempfile = "3.10"
-axum-extra = { version = "0.9", features = ["multipart"] }
+axum-extra = { version = "0.12.3", features = ["multipart"] }
 dashmap = "6.0"
 futures-util = "0.3"
 image = "0.25.9"
