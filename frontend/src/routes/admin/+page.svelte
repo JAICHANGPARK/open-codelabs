@@ -35,6 +35,30 @@
     let newCodelab = $state({ title: "", description: "", author: "" });
     let copyTarget: string | null = $state(null);
 
+    // Grouping logic
+    let groupedCodelabs = $derived.by(() => {
+        const groups: Record<string, Codelab[]> = {};
+        const sorted = [...codelabs].sort((a, b) => {
+            const dateA = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const dateB = b.created_at ? new Date(b.created_at).getTime() : 0;
+            return dateB - dateA; // Newest first
+        });
+
+        sorted.forEach(c => {
+            const date = c.created_at ? new Date(c.created_at).toLocaleDateString($locale || 'en', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            }) : $t('dashboard.unknown_date');
+            
+            if (!groups[date]) {
+                groups[date] = [];
+            }
+            groups[date].push(c);
+        });
+        return Object.entries(groups);
+    });
+
     // AI & Settings State
     let showSettingsModal = $state(false);
     let showAiGenerator = $state(false);
@@ -264,83 +288,98 @@
                 </button>
             </div>
         {:else}
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-                {#each codelabs as codelab, i}
-                    <div in:fly={{ y: 20, delay: i * 100, duration: 500 }}>
-                        <a
-                            href="/admin/{codelab.id}"
-                            class="group block bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl p-6 sm:p-8 hover:shadow-xl transition-all duration-300 hover:border-[#4285F4] dark:hover:border-[#4285F4] relative overflow-hidden h-full flex flex-col"
-                        >
-                            <div
-                                class="absolute top-4 right-4 flex items-center gap-1 sm:gap-2 z-20"
-                            >
-                                <button
-                                    onclick={(e) => {
-                                        e.preventDefault();
-                                        copyLink(codelab.id);
-                                    }}
-                                    class="p-2 transition-all rounded-full {copyTarget ===
-                                    codelab.id
-                                        ? 'bg-[#E6F4EA] dark:bg-[#34A853]/20 text-[#1E8E3E] dark:text-[#34A853]'
-                                        : 'bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 hover:text-[#4285F4]'}"
-                                    title={$t("dashboard.share_link")}
-                                    aria-label={$t("dashboard.share_link")}
-                                >
-                                    {#if copyTarget === codelab.id}
-                                        <Check size={18} />
-                                    {:else}
-                                        <Share2 size={18} />
-                                    {/if}
-                                </button>
-                                <button
-                                    onclick={(e) => {
-                                        e.preventDefault();
-                                        handleDelete(codelab.id);
-                                    }}
-                                    class="p-2 bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:text-[#EA4335] hover:bg-[#FEECEB] dark:hover:bg-[#EA4335]/10 rounded-full transition-all"
-                                    title={$t("common.delete") || "Delete"}
-                                    aria-label={$t("common.delete") || "Delete"}
-                                >
-                                    <Trash2 size={18} />
-                                </button>
-                            </div>
-
-                            <h3
-                                class="text-xl font-bold text-[#202124] dark:text-dark-text group-hover:text-[#4285F4] transition-colors mb-3 line-clamp-2 pr-20"
-                            >
-                                {codelab.title}
-                            </h3>
-                            <p
-                                class="text-[#5F6368] dark:text-dark-text-muted text-base line-clamp-2 mb-8 flex-1"
-                            >
-                                {codelab.description}
-                            </p>
-                            <div
-                                class="flex items-center justify-between border-t border-[#F1F3F4] dark:border-dark-border pt-6"
-                            >
-                                <div
-                                    class="flex items-center gap-2 text-[#5F6368] dark:text-dark-text-muted text-sm font-medium min-w-0"
-                                >
-                                    <div
-                                        class="w-6 h-6 rounded-full bg-[#F1F3F4] dark:bg-white/5 flex items-center justify-center shrink-0"
+            <div class="space-y-12">
+                {#each groupedCodelabs as [date, list]}
+                    <section>
+                        <div class="flex items-center gap-2 mb-6">
+                            <div class="h-8 w-1 bg-[#4285F4] rounded-full"></div>
+                            <h2 class="text-xl font-bold text-[#3C4043] dark:text-dark-text">
+                                {date}
+                            </h2>
+                            <span class="bg-[#F1F3F4] dark:bg-white/10 text-[#5F6368] dark:text-dark-text-muted px-2 py-0.5 rounded-md text-xs font-bold">
+                                {list.length}
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                            {#each list as codelab, i}
+                                <div in:fly={{ y: 20, delay: i * 50, duration: 500 }}>
+                                    <a
+                                        href="/admin/{codelab.id}"
+                                        class="group block bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl p-6 sm:p-8 hover:shadow-xl transition-all duration-300 hover:border-[#4285F4] dark:hover:border-[#4285F4] relative overflow-hidden h-full flex flex-col"
                                     >
-                                        <User size={14} />
-                                    </div>
-                                    <span class="truncate">{codelab.author}</span>
+                                        <div
+                                            class="absolute top-4 right-4 flex items-center gap-1 sm:gap-2 z-20"
+                                        >
+                                            <button
+                                                onclick={(e) => {
+                                                    e.preventDefault();
+                                                    copyLink(codelab.id);
+                                                }}
+                                                class="p-2 transition-all rounded-full {copyTarget ===
+                                                codelab.id
+                                                    ? 'bg-[#E6F4EA] dark:bg-[#34A853]/20 text-[#1E8E3E] dark:text-[#34A853]'
+                                                    : 'bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 hover:text-[#4285F4]'}"
+                                                title={$t("dashboard.share_link")}
+                                                aria-label={$t("dashboard.share_link")}
+                                            >
+                                                {#if copyTarget === codelab.id}
+                                                    <Check size={18} />
+                                                {:else}
+                                                    <Share2 size={18} />
+                                                {/if}
+                                            </button>
+                                            <button
+                                                onclick={(e) => {
+                                                    e.preventDefault();
+                                                    handleDelete(codelab.id);
+                                                }}
+                                                class="p-2 bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:text-[#EA4335] hover:bg-[#FEECEB] dark:hover:bg-[#EA4335]/10 rounded-full transition-all"
+                                                title={$t("common.delete") || "Delete"}
+                                                aria-label={$t("common.delete") || "Delete"}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+
+                                        <h3
+                                            class="text-xl font-bold text-[#202124] dark:text-dark-text group-hover:text-[#4285F4] transition-colors mb-3 line-clamp-2 pr-20"
+                                        >
+                                            {codelab.title}
+                                        </h3>
+                                        <p
+                                            class="text-[#5F6368] dark:text-dark-text-muted text-base line-clamp-2 mb-8 flex-1"
+                                        >
+                                            {codelab.description}
+                                        </p>
+                                        <div
+                                            class="flex items-center justify-between border-t border-[#F1F3F4] dark:border-dark-border pt-6"
+                                        >
+                                            <div
+                                                class="flex items-center gap-2 text-[#5F6368] dark:text-dark-text-muted text-sm font-medium min-w-0"
+                                            >
+                                                <div
+                                                    class="w-6 h-6 rounded-full bg-[#F1F3F4] dark:bg-white/5 flex items-center justify-center shrink-0"
+                                                >
+                                                    <User size={14} />
+                                                </div>
+                                                <span class="truncate">{codelab.author}</span>
+                                            </div>
+                                            <div
+                                                class="flex items-center gap-1.5 text-[#9AA0A6] dark:text-dark-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wider shrink-0"
+                                            >
+                                                <Clock size={14} />
+                                                <span class="hidden xs:inline">
+                                                    {new Date(
+                                                        codelab.created_at || "",
+                                                    ).toLocaleTimeString($locale || "en", { hour: '2-digit', minute: '2-digit' })}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </a>
                                 </div>
-                                <div
-                                    class="flex items-center gap-1.5 text-[#9AA0A6] dark:text-dark-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wider shrink-0"
-                                >
-                                    <Clock size={14} />
-                                    <span class="hidden xs:inline">
-                                        {new Date(
-                                            codelab.created_at || "",
-                                        ).toLocaleDateString($locale || "en")}
-                                    </span>
-                                </div>
-                            </div>
-                        </a>
-                    </div>
+                            {/each}
+                        </div>
+                    </section>
                 {/each}
             </div>
         {/if}
