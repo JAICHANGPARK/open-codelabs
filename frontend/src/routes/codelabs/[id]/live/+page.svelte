@@ -181,12 +181,12 @@
                     <Home size={24} />
                 </a>
                 <h1 class="text-xl font-bold text-[#202124]">
-                    {codelab?.title} - Live Status
+                    {codelab?.title} - {$t("live.status_title")}
                 </h1>
             </div>
             <div class="flex items-center gap-2 text-sm text-[#5F6368]">
                 <Users size={18} />
-                <span class="font-bold">{attendees.length} Participants</span>
+                <span class="font-bold">{$t("live.participants", { values: { count: attendees.length } })}</span>
             </div>
         </div>
     </header>
@@ -203,7 +203,7 @@
                     class="font-bold text-lg text-[#202124] flex items-center gap-2"
                 >
                     <Clock size={20} class="text-[#4285F4]" />
-                    Real-time Progress
+                    {$t("live.realtime_progress")}
                 </h2>
             </div>
             <div class="p-6">
@@ -214,11 +214,11 @@
                                 <span class="font-bold text-[#3C4043]"
                                     >{att.name}
                                     {att.id === attendee?.id
-                                        ? "(You)"
+                                        ? $t("live.you")
                                         : ""}</span
                                 >
                                 <span class="text-[#5F6368]"
-                                    >Step {att.current_step || 0} / {steps.length}</span
+                                    >{$t("live.step_progress", { values: { current: att.current_step || 0, total: steps.length } })}</span
                                 >
                             </div>
                             <div
@@ -248,7 +248,7 @@
                     class="font-bold text-lg text-[#202124] flex items-center gap-2"
                 >
                     <MessageSquare size={20} class="text-[#4285F4]" />
-                    Live Chat
+                    {$t("live.live_chat")}
                 </h2>
             </div>
 
@@ -289,7 +289,7 @@
                     <input
                         type="text"
                         bind:value={chatMessage}
-                        placeholder="Say hello..."
+                        placeholder={$t("live.say_hello")}
                         class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm"
                     />
                     <button
