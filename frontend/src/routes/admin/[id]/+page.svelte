@@ -98,7 +98,7 @@
     let chatTab = $state<"public" | "direct">("public");
     let dmTarget = $state<Attendee | null>(null);
     let dmMessage = $state("");
-    let fileInput: HTMLInputElement; // File input ref
+    let fileInput = $state<HTMLInputElement>(); // File input ref
 
     // AI State
     let geminiApiKey = $state("");
@@ -989,6 +989,7 @@
                     <div class="max-h-[50vh] overflow-y-auto">
                         {#each steps as step, i}
                             <div
+                                role="listitem"
                                 class="group relative {dragOverIndex === i
                                     ? 'border-t-4 border-[#4285F4]'
                                     : ''}"

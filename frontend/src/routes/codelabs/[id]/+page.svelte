@@ -961,9 +961,9 @@
         font-family: "Google Sans Mono", "JetBrains Mono", monospace;
         font-size: 0.9em;
         /* Inline code (not in pre) - subtle gray background */
-        background-color: #f0f0f0;
-        padding: 2px 6px;
-        border-radius: 4px;
+        background-color: rgba(175, 184, 193, 0.2);
+        padding: 0.2em 0.4em;
+        border-radius: 6px;
         color: #24292e;
     }
     :global(.markdown-body pre code) {

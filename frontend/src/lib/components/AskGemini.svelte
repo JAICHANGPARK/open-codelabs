@@ -4,6 +4,8 @@
     import { X, Send, Key, Sparkles, Loader2 } from "lucide-svelte";
     import { marked } from "marked";
     import DOMPurify from "dompurify";
+    import { fly, fade } from "svelte/transition";
+    import Prism from "prismjs";
 
     let { context = "", onClose } = $props<{
         context: string;
@@ -25,6 +27,13 @@
         }
         // Auto-focus input
         setTimeout(() => inputRef?.focus(), 100);
+    });
+
+    // Highlight code whenever response updates
+    $effect(() => {
+        if (response) {
+            Prism.highlightAll();
+        }
     });
 
     function saveKey() {
@@ -72,10 +81,19 @@
 </script>
 
 <div
-    class="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+    class="fixed inset-0 bg-black/5 z-50 flex justify-end"
+    transition:fade={{ duration: 200 }}
 >
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
-        class="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden border border-[#E8EAED] animate-in fade-in zoom-in-95 duration-200"
+        class="absolute inset-0"
+        onclick={onClose}
+    ></div>
+
+    <div
+        class="bg-white shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden border-l border-[#E8EAED] relative"
+        transition:fly={{ x: 500, duration: 300 }}
     >
         <!-- Header -->
         <div
@@ -104,7 +122,7 @@
         </div>
 
         <!-- Content -->
-        <div class="flex-1 overflow-y-auto p-6 bg-white">
+        <div class="flex-1 overflow-y-auto p-6 bg-white markdown-body">
             {#if !hasKey}
                 <div
                     class="flex flex-col items-center justify-center h-full text-center space-y-6"
@@ -162,7 +180,7 @@
                                 >Context Selected</span
                             >
                             <div
-                                class="text-sm text-[#3C4043] font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
+                                class="text-xs text-[#3C4043] font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
                             >
                                 {context}
                             </div>
@@ -203,7 +221,7 @@
                             }
                         }}
                         placeholder="Ask a question about the code..."
-                        rows="1"
+                        rows="3"
                         class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm resize-none"
                     ></textarea>
                     <button
@@ -246,5 +264,15 @@
     :global(.gemini-response pre code) {
         background-color: transparent;
         padding: 0;
+    }
+    :global(.gemini-response p) {
+        margin-bottom: 1rem;
+    }
+    :global(.gemini-response ul, .gemini-response ol) {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+    }
+    :global(.gemini-response li) {
+        margin-bottom: 0.5rem;
     }
 </style>
