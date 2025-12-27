@@ -1,8 +1,9 @@
 <script lang="ts">
-    import { onMount, onDestroy } from "svelte";
+    import { onMount } from "svelte";
     import { fade, slide, fly } from "svelte/transition";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
+    import { browser } from "$app/environment";
     import {
         getCodelab,
         requestHelp,
@@ -123,6 +124,15 @@
         }
     });
 
+    // Selection listener
+    $effect(() => {
+        if (!browser) return;
+        document.addEventListener("mouseup", handleSelection);
+        return () => {
+            document.removeEventListener("mouseup", handleSelection);
+        };
+    });
+
     onMount(async () => {
         // Check for registration
         const savedAttendee = localStorage.getItem(`attendee_${id}`);
@@ -140,11 +150,7 @@
             if (currentStepIndex >= steps.length) currentStepIndex = 0;
 
             await loadChatHistory();
-            await loadChatHistory();
             initWebSocket();
-
-            // Selection listener
-            document.addEventListener("mouseup", handleSelection);
         } catch (e) {
             console.error(e);
         } finally {
@@ -152,9 +158,10 @@
         }
     });
 
-    onDestroy(() => {
-        if (ws) ws.close();
-        document.removeEventListener("mouseup", handleSelection);
+    $effect(() => {
+        return () => {
+            if (ws) ws.close();
+        };
     });
 
     function handleSelection(e: MouseEvent) {
@@ -401,26 +408,14 @@
 
     let currentStep = $derived(steps[currentStepIndex]);
 
-    $effect(() => {
-        if (ws && ws.readyState === WebSocket.OPEN && attendee) {
-            ws.send(
-                JSON.stringify({
-                    type: "step_progress",
-                    attendee_id: attendee.id,
-                    step_number: currentStepIndex + 1,
-                }),
-            );
+    let renderedContent = $derived.by(() => {
+        if (!currentStep) return "";
+        const html = marked.parse(currentStep.content_markdown) as string;
+        if (browser) {
+            return DOMPurify.sanitize(html);
         }
+        return html;
     });
-
-    // @ts-ignore
-    let renderedContent = $derived(
-        currentStep
-            ? (DOMPurify.sanitize(
-                  marked.parse(currentStep.content_markdown) as string,
-              ) as string)
-            : "",
-    );
     let progressPercent = $derived(
         steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0,
     );
