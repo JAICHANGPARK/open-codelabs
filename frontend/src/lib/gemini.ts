@@ -4,6 +4,16 @@ export interface GeminiConfig {
     model?: string;
 }
 
+export interface GeminiStructuredConfig extends GeminiConfig {
+    tools?: Array<{ googleSearch?: {} } | { urlContext?: {} }>;
+    thinkingConfig?: { thinkingLevel: "low" | "medium" | "high" };
+}
+
+export interface ThinkingContent {
+    thinking?: string;
+    content: string;
+}
+
 export async function* streamGeminiResponse(
     prompt: string,
     context: string,
@@ -162,6 +172,130 @@ export async function* streamGeminiResponseRobust(
                         }
                     } catch (e) {
                         // ignore
+                    }
+                    lastProcessedIndex = i;
+                    start = -1;
+                }
+            }
+        }
+
+        if (lastProcessedIndex !== -1) {
+            buffer = buffer.substring(lastProcessedIndex + 1);
+        }
+    }
+}
+
+/**
+ * Stream Gemini response with Structured Outputs using JSON Schema.
+ * This guarantees the response will be valid JSON matching the provided schema.
+ * 
+ * @param prompt - The user's prompt
+ * @param systemPrompt - System instructions for the model
+ * @param schema - JSON Schema object defining the expected response structure
+ * @param config - Gemini configuration with API key
+ * @returns AsyncGenerator yielding the complete JSON string (streamable chunks)
+ */
+export async function* streamGeminiStructuredOutput(
+    prompt: string,
+    systemPrompt: string,
+    schema: object,
+    config: GeminiStructuredConfig
+): AsyncGenerator<ThinkingContent, void, unknown> {
+    const model = config.model || "gemini-3-flash-preview";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${config.apiKey}`;
+
+    const payload: any = {
+        contents: [
+            {
+                role: "user",
+                parts: [{ text: `${systemPrompt}\n\n${prompt}` }]
+            }
+        ],
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseJsonSchema: schema,
+            ...(config.thinkingConfig && {
+                thinkingConfig: {
+                    thinkingLevel: config.thinkingConfig.thinkingLevel
+                }
+            })
+        }
+    };
+
+    // Add tools if provided
+    if (config.tools && config.tools.length > 0) {
+        payload.tools = config.tools;
+    }
+
+    const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API Error ${response.status}: ${errorText}`);
+    }
+
+    const reader = response.body!.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        let braceCount = 0;
+        let start = -1;
+        let lastProcessedIndex = -1;
+        let inString = false;
+        let escape = false;
+
+        for (let i = 0; i < buffer.length; i++) {
+            const char = buffer[i];
+
+            if (escape) { escape = false; continue; }
+            if (char === '\\') { escape = true; continue; }
+            if (char === '"') { inString = !inString; continue; }
+            if (inString) continue;
+
+            if (char === '{') {
+                if (braceCount === 0) start = i;
+                braceCount++;
+            } else if (char === '}') {
+                braceCount--;
+                if (braceCount === 0 && start !== -1) {
+                    const jsonStr = buffer.substring(start, i + 1);
+                    try {
+                        const data = JSON.parse(jsonStr);
+                        const candidate = data.candidates?.[0];
+
+                        if (candidate?.content?.parts) {
+                            let thinkingText = "";
+                            let contentText = "";
+
+                            // Extract thinking and content from parts
+                            for (const part of candidate.content.parts) {
+                                if (part.thought) {
+                                    thinkingText += part.thought;
+                                } else if (part.text) {
+                                    contentText += part.text;
+                                }
+                            }
+
+                            // Yield structured response
+                            if (thinkingText || contentText) {
+                                yield {
+                                    thinking: thinkingText || undefined,
+                                    content: contentText
+                                };
+                            }
+                        }
+                    } catch (e) {
+                        // ignore malformed chunks
                     }
                     lastProcessedIndex = i;
                     start = -1;
