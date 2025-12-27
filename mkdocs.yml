@@ -74,6 +74,9 @@ nav:
       - 빠른 시작: getting-started/quickstart.md
       - 설치 가이드: getting-started/installation.md
       - 첫 번째 Codelab 만들기: getting-started/first-codelab.md
+  - 사용 가이드:
+      - 퍼실리테이터 가이드: user-guide/facilitator.md
+      - 참석자 가이드: user-guide/attendee.md
   - Self-Hosting:
       - Docker로 배포하기: self-hosting/docker.md
       - 로컬 개발 환경: self-hosting/local-development.md
