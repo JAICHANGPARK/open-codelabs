@@ -57,7 +57,7 @@
     },
     "login": {
         "title": "协调员登录",
-        "subtitle": "访问您的 AntiGravity 仪表板",
+        "subtitle": "访问您的 仪表板",
         "admin_id": "管理员 ID",
         "password": "密码",
         "sign_in": "登录",
