@@ -25,6 +25,7 @@
         Clock,
         User,
         CheckCircle2,
+        Check,
         Home,
         MessageSquare,
         Send,
@@ -690,16 +691,24 @@
                 <button
                     onclick={handleRequestHelp}
                     disabled={helpSent}
-                    class="fixed bottom-24 right-8 p-4 bg-white border border-[#E8EAED] text-[#EA4335] rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 group z-20 flex items-center gap-2"
+                    class="fixed bottom-24 right-8 p-4 border rounded-full shadow-lg hover:shadow-xl transition-all active:scale-95 group z-20 flex items-center gap-2 {helpSent
+                        ? 'bg-[#34A853] border-[#34A853] text-white cursor-not-allowed'
+                        : 'bg-white border-[#E8EAED] text-[#EA4335] hover:border-[#EA4335]'}"
                 >
                     <div
-                        class="bg-[#EA4335]/10 p-2 rounded-full group-hover:bg-[#EA4335] group-hover:text-white transition-colors"
+                        class="p-2 rounded-full transition-colors {helpSent
+                            ? 'bg-white/20'
+                            : 'bg-[#EA4335]/10 group-hover:bg-[#EA4335] group-hover:text-white'}"
                     >
-                        <HelpCircle size={24} />
+                        {#if helpSent}
+                            <Check size={24} />
+                        {:else}
+                            <HelpCircle size={24} />
+                        {/if}
                     </div>
                     {#if helpSent}
-                        <span class="pr-2 text-sm font-bold"
-                            >Help Requested</span
+                        <span class="pr-2 text-sm font-bold animate-pulse"
+                            >Help Requested ✓</span
                         >
                     {:else}
                         <span class="pr-2 text-sm font-bold">Request Help</span>
