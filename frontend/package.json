@@ -30,12 +30,14 @@
 		"vite": "^7.2.6"
 	},
 	"dependencies": {
+		"@types/prismjs": "^1.26.5",
 		"crypto-js": "^4.2.0",
 		"dompurify": "^3.3.1",
 		"highlight.js": "^11.11.1",
 		"lucide-svelte": "^0.562.0",
 		"marked": "^17.0.1",
 		"marked-highlight": "^2.2.3",
+		"prismjs": "^1.30.0",
 		"svelte-i18n": "^4.0.1",
 		"svelte-qrcode": "^1.0.1"
 	}

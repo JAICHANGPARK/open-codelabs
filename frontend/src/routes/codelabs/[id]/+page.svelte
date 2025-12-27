@@ -38,6 +38,23 @@
     import { t } from "svelte-i18n";
     import AskGemini from "$lib/components/AskGemini.svelte";
 
+    // Prism.js for syntax highlighting
+    import Prism from "prismjs";
+    import "prismjs/themes/prism-tomorrow.css";
+    import "prismjs/components/prism-javascript";
+    import "prismjs/components/prism-typescript";
+    import "prismjs/components/prism-python";
+    import "prismjs/components/prism-java";
+    import "prismjs/components/prism-rust";
+    import "prismjs/components/prism-dart";
+    import "prismjs/components/prism-swift";
+    import "prismjs/components/prism-kotlin";
+    import "prismjs/components/prism-go";
+    import "prismjs/components/prism-bash";
+    import "prismjs/components/prism-json";
+    import "prismjs/components/prism-yaml";
+    import "prismjs/components/prism-markdown";
+
     let id = page.params.id as string;
     let codelab = $state<Codelab | null>(null);
     let steps = $state<Step[]>([]);
@@ -91,6 +108,16 @@
                     step_number: currentStepIndex + 1,
                 }),
             );
+        }
+    });
+
+    // Apply syntax highlighting when step content changes
+    $effect(() => {
+        if (currentStepIndex >= 0 && steps.length > 0) {
+            // Wait for DOM to update then highlight
+            setTimeout(() => {
+                Prism.highlightAll();
+            }, 100);
         }
     });
 
@@ -933,10 +960,17 @@
     :global(.markdown-body code) {
         font-family: "Google Sans Mono", "JetBrains Mono", monospace;
         font-size: 0.9em;
-        color: #c5221f;
-        background-color: #fce8e6;
+        /* Inline code (not in pre) - subtle gray background */
+        background-color: #f0f0f0;
         padding: 2px 6px;
         border-radius: 4px;
+        color: #24292e;
+    }
+    :global(.markdown-body pre code) {
+        /* Code in pre blocks - let Prism handle it */
+        background-color: transparent;
+        padding: 0;
+        color: inherit;
     }
     :global(.markdown-body h2) {
         font-size: 1.5rem;
