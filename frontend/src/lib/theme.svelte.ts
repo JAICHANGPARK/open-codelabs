@@ -6,13 +6,17 @@ function createThemeState() {
     let theme = $state<Theme>("light");
 
     if (browser) {
-        const savedTheme = localStorage.getItem("theme") as Theme;
-        if (savedTheme) {
-            theme = savedTheme;
-        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            theme = "dark";
-        }
-        applyTheme(theme);
+        $effect.root(() => {
+            $effect(() => {
+                const savedTheme = localStorage.getItem("theme") as Theme;
+                if (savedTheme) {
+                    theme = savedTheme;
+                } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                    theme = "dark";
+                }
+                applyTheme(theme);
+            });
+        });
     }
 
     function applyTheme(newTheme: Theme) {
