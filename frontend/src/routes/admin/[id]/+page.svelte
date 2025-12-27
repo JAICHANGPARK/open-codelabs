@@ -56,6 +56,7 @@
         Check,
         X,
         FileText,
+        Github,
         Sparkles,
         Loader2,
     } from "lucide-svelte";
@@ -838,15 +839,15 @@
     }}
 />
 
-<div class="min-h-screen bg-[#F8F9FA] flex flex-col font-sans text-[#3C4043]">
+<div class="min-h-screen bg-[#F8F9FA] dark:bg-dark-bg flex flex-col font-sans text-[#3C4043] dark:text-dark-text transition-colors">
     <header
-        class="bg-white border-b border-[#E8EAED] py-4 px-8 sticky top-0 z-30 shadow-sm"
+        class="bg-white dark:bg-dark-surface border-b border-[#E8EAED] dark:border-dark-border py-3 sm:py-4 px-4 sm:px-8 sticky top-0 z-40 shadow-sm"
     >
-        <div class="max-w-7xl mx-auto flex justify-between items-center gap-3">
-            <div class="flex items-center gap-2 md:gap-6 flex-1 min-w-0">
+        <div class="max-w-7xl mx-auto flex justify-between items-center gap-2 sm:gap-3">
+            <div class="flex items-center gap-1 sm:gap-6 flex-1 min-w-0">
                 <a
                     href="/admin"
-                    class="text-[#5F6368] hover:text-[#202124] hover:bg-[#F1F3F4] p-2 rounded-full transition-all shrink-0"
+                    class="text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text hover:bg-[#F1F3F4] dark:hover:bg-white/5 p-1.5 sm:p-2 rounded-full transition-all shrink-0"
                     aria-label="Back to dashboard"
                 >
                     <ChevronLeft size={24} />
@@ -854,11 +855,11 @@
                 <div class="min-w-0 flex-1">
                     {#if loading}
                         <div
-                            class="h-6 w-32 md:w-48 bg-[#F1F3F4] animate-pulse rounded"
+                            class="h-5 sm:h-6 w-32 md:w-48 bg-[#F1F3F4] dark:bg-white/5 animate-pulse rounded"
                         ></div>
                     {:else}
                         <h1
-                            class="text-base md:text-xl font-bold text-[#202124] flex items-center gap-2 truncate"
+                            class="text-sm sm:text-lg md:text-xl font-bold text-[#202124] dark:text-dark-text flex items-center gap-2 truncate"
                         >
                             <span class="truncate">{codelab?.title}</span>
                             <a
@@ -871,88 +872,91 @@
                             </a>
                         </h1>
                         <p
-                            class="text-xs text-[#5F6368] font-medium mt-0.5 hidden sm:block"
+                            class="text-[10px] sm:text-xs text-[#5F6368] dark:text-dark-text-muted font-medium mt-0.5 hidden xs:block"
                         >
-                            ID: {id} &bull; {$t("common.facilitator")} Mode
+                            ID: {id.split('-')[0]}... &bull; Facilitator Mode
                         </p>
                     {/if}
                 </div>
             </div>
-            <div class="flex items-center gap-2 md:gap-4 shrink-0">
+            <div class="flex items-center gap-1 sm:gap-2 lg:gap-4 shrink-0">
+                <div class="hidden md:flex items-center gap-2">
+                    <a
+                        href="https://github.com/JAICHANGPARK/open-codelabs"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
+                        title="GitHub Repository"
+                    >
+                        <Github size={20} />
+                    </a>
+                    <a
+                        href="https://jaichangpark.github.io/open-codelabs/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
+                        title="Documentation"
+                    >
+                        <FileText size={20} />
+                    </a>
+                    <div class="w-px h-6 bg-[#E8EAED] dark:bg-dark-border mx-1"></div>
+                </div>
                 <button
                     onclick={handleExport}
-                    class="p-2 md:p-2.5 text-[#5F6368] hover:text-[#4285F4] hover:bg-[#E8F0FE] rounded-full transition-all"
+                    class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
                     title="Export Codelab"
                 >
-                    <Download size={20} class="md:hidden" />
-                    <Download size={24} class="hidden md:block" />
+                    <Download size={20} />
                 </button>
                 <div
-                    class="flex bg-[#F1F3F4] p-1 rounded-full border border-[#E8EAED]"
+                    class="flex bg-[#F1F3F4] dark:bg-white/5 p-1 rounded-full border border-[#E8EAED] dark:border-dark-border"
                 >
                     <button
                         onclick={() => (mode = "edit")}
-                        class="px-2 md:px-5 py-1.5 rounded-full flex items-center gap-1 md:gap-2 text-xs md:text-sm font-bold transition-all {mode ===
+                        class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
                         'edit'
-                            ? 'bg-white shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] hover:text-[#202124]'}"
+                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
+                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
                     >
-                        <Edit3 size={16} />
-                        <span class="hidden sm:inline">Edit</span>
-                    </button>
-                    <button
-                        onclick={() => (mode = "preview")}
-                        class="px-2 md:px-5 py-1.5 rounded-full flex items-center gap-1 md:gap-2 text-xs md:text-sm font-bold transition-all {mode ===
-                        'preview'
-                            ? 'bg-white shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] hover:text-[#202124]'}"
-                    >
-                        <Eye size={16} />
-                        <span class="hidden sm:inline">Preview</span>
+                        <Edit3 size={14} />
+                        <span class="hidden sm:inline">{$t("editor.edit")}</span>
                     </button>
                     <button
                         onclick={() => (mode = "live")}
-                        class="px-2 md:px-5 py-1.5 rounded-full flex items-center gap-1 md:gap-2 text-xs md:text-sm font-bold transition-all {mode ===
+                        class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
                         'live'
-                            ? 'bg-white shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] hover:text-[#202124]'}"
+                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
+                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
                     >
-                        <Users size={16} />
+                        <Users size={14} />
                         <span class="hidden sm:inline">Live</span>
-                        {#if helpRequests.length > 0}
-                            <span class="w-2 h-2 bg-[#EA4335] rounded-full"
-                            ></span>
-                        {/if}
                     </button>
                     <button
                         onclick={() => (mode = "feedback")}
-                        class="px-5 py-1.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all {mode ===
+                        class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
                         'feedback'
-                            ? 'bg-white shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] hover:text-[#202124]'}"
+                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
+                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
                     >
-                        <MessageSquare size={16} /> Feedback
+                        <MessageSquare size={14} />
+                        <span class="hidden sm:inline">{$t("editor.feedback_tab")}</span>
                     </button>
                 </div>
                 <button
                     onclick={handleSave}
-                    disabled={isSaving}
-                    class="bg-[#4285F4] hover:bg-[#1A73E8] text-white px-6 py-2.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all shadow-md active:scale-95 disabled:opacity-50 {saveSuccess
+                    disabled={isSaving || mode !== "edit"}
+                    class="bg-[#4285F4] hover:bg-[#1A73E8] disabled:opacity-50 text-white p-2 sm:px-6 sm:py-2.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all shadow-md active:scale-95 {saveSuccess
                         ? 'bg-[#1E8E3E]'
                         : ''}"
                 >
                     {#if isSaving}
-                        <div
-                            class="w-4 h-4 border-2 border-white border-t-transparent animate-spin rounded-full"
-                        ></div>
+                        <Loader2 size={18} class="animate-spin" />
                     {:else if saveSuccess}
                         <CheckCircle2 size={18} />
                     {:else}
                         <Save size={18} />
                     {/if}
-                    {saveSuccess
-                        ? $t("editor.saved")
-                        : $t("editor.save_content")}
+                    <span class="hidden sm:inline">{$t("common.save")}</span>
                 </button>
             </div>
         </div>
@@ -961,34 +965,63 @@
     {#if loading}
         <div class="flex-1 flex justify-center items-center">
             <div
-                class="animate-spin rounded-full h-12 w-12 border-4 border-[#E8EAED] border-t-[#4285F4]"
+                class="animate-spin rounded-full h-12 w-12 border-4 border-[#E8EAED] dark:border-dark-border border-t-[#4285F4] dark:border-t-[#4285F4]"
             ></div>
         </div>
     {:else}
         <main
-            class="max-w-7xl mx-auto w-full p-8 flex-1 grid grid-cols-12 gap-8 items-start"
+            class="max-w-7xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start relative"
         >
+            <!-- Mobile Step Navigation Toggle -->
+            <div class="lg:hidden flex items-center justify-between bg-white dark:bg-dark-surface p-4 rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm mb-2">
+                <span class="font-bold text-sm">{$t("editor.step_navigation")}</span>
+                <button 
+                    onclick={() => isSidebarOpen = !isSidebarOpen}
+                    class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/5 rounded-lg transition-colors"
+                >
+                    <List size={20} />
+                </button>
+            </div>
+
             <!-- Sidebar Navigation -->
-            <div class="col-span-3 sticky top-28">
+            <div 
+                class="fixed inset-0 z-50 lg:relative lg:inset-auto lg:col-span-3 lg:block transition-all duration-300 {isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100 lg:sticky lg:top-28'}"
+            >
+                <!-- Overlay for mobile -->
+                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div 
+                    class="absolute inset-0 bg-black/50 backdrop-blur-sm lg:hidden"
+                    onclick={() => isSidebarOpen = false}
+                ></div>
+
                 <div
-                    class="bg-white rounded-2xl border border-[#E8EAED] overflow-hidden shadow-sm"
+                    class="relative bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border overflow-hidden shadow-xl lg:shadow-sm w-4/5 max-w-xs h-[90vh] lg:h-auto m-4 lg:m-0 flex flex-col"
                 >
                     <div
-                        class="p-5 border-b border-[#F1F3F4] bg-[#F8F9FA] flex justify-between items-center"
+                        class="p-5 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA] dark:bg-white/5 flex justify-between items-center"
                     >
                         <span
-                            class="text-xs font-bold text-[#5F6368] uppercase tracking-widest"
+                            class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-widest"
                             >{$t("editor.step_navigation")}</span
                         >
-                        <button
-                            onclick={addStep}
-                            class="text-[#4285F4] hover:bg-[#E8F0FE] p-1.5 rounded-full transition-colors"
-                            title={$t("editor.add_step")}
-                        >
-                            <Plus size={18} />
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <button
+                                onclick={addStep}
+                                class="text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 p-1.5 rounded-full transition-colors"
+                                title={$t("editor.add_step")}
+                            >
+                                <Plus size={18} />
+                            </button>
+                            <button 
+                                onclick={() => isSidebarOpen = false}
+                                class="lg:hidden p-1.5 hover:bg-[#E8EAED] dark:hover:bg-white/5 rounded-full transition-colors"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
                     </div>
-                    <div class="max-h-[50vh] overflow-y-auto">
+                    <div class="flex-1 overflow-y-auto max-h-[50vh] lg:max-h-[60vh]">
                         {#each steps as step, i}
                             <div
                                 role="listitem"
@@ -1003,10 +1036,13 @@
                                 ondragend={handleDragEnd}
                             >
                                 <button
-                                    onclick={() => (activeStepIndex = i)}
-                                    class="w-full text-left px-5 py-4 hover:bg-[#F8F9FA] transition-all flex items-start gap-4 border-l-4 cursor-pointer {activeStepIndex ===
+                                    onclick={() => {
+                                        activeStepIndex = i;
+                                        isSidebarOpen = false;
+                                    }}
+                                    class="w-full text-left px-5 py-4 hover:bg-[#F8F9FA] dark:hover:bg-white/5 transition-all flex items-start gap-4 border-l-4 cursor-pointer {activeStepIndex ===
                                     i
-                                        ? 'border-[#4285F4] bg-[#E8F0FE]/30'
+                                        ? 'border-[#4285F4] bg-[#E8F0FE]/30 dark:bg-[#4285F4]/10'
                                         : 'border-transparent'} {draggedStepIndex ===
                                     i
                                         ? 'opacity-50'
@@ -1016,20 +1052,20 @@
                                         class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 {activeStepIndex ===
                                         i
                                             ? 'bg-[#4285F4] text-white'
-                                            : 'bg-[#F1F3F4] text-[#5F6368]'}"
+                                            : 'bg-[#F1F3F4] dark:bg-white/10 text-[#5F6368] dark:text-dark-text-muted'}"
                                         >{i + 1}</span
                                     >
                                     <span
                                         class="text-sm font-bold {activeStepIndex ===
                                         i
-                                            ? 'text-[#1967D2]'
-                                            : 'text-[#5F6368]'} line-clamp-1 pt-0.5 pr-6"
+                                            ? 'text-[#1967D2] dark:text-[#4285F4]'
+                                            : 'text-[#5F6368] dark:text-dark-text-muted'} line-clamp-1 pt-0.5 pr-6"
                                         >{step.title}</span
                                     >
                                 </button>
                                 <button
                                     onclick={() => removeStep(i)}
-                                    class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#BDC1C6] hover:text-red-500 hover:bg-red-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#BDC1C6] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg lg:opacity-0 lg:group-hover:opacity-100 transition-all"
                                     title={$t("editor.delete_step")}
                                 >
                                     <Trash2 size={14} />
@@ -1039,31 +1075,31 @@
                     </div>
 
                     <div
-                        class="p-6 border-t border-[#F1F3F4] bg-[#F8F9FA]/50 flex flex-col items-center"
+                        class="p-6 border-t border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/50 dark:bg-white/5 flex flex-col items-center"
                     >
                         <div
-                            class="bg-white p-3 rounded-2xl border border-[#E8EAED] shadow-sm mb-4"
+                            class="bg-white p-3 rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm mb-4"
                         >
                             <QRCode value={attendeeUrl} size={140} />
                         </div>
                         <p
-                            class="text-[11px] text-[#5F6368] text-center uppercase tracking-widest font-bold mb-3"
+                            class="text-[11px] text-[#5F6368] dark:text-dark-text-muted text-center uppercase tracking-widest font-bold mb-3"
                         >
                             {$t("editor.attendee_access")}
                         </p>
 
                         <div
-                            class="w-full flex items-center gap-2 p-2 bg-white border border-[#E8EAED] rounded-xl shadow-sm overflow-hidden"
+                            class="w-full flex items-center gap-2 p-2 bg-white dark:bg-dark-bg border border-[#E8EAED] dark:border-dark-border rounded-xl shadow-sm overflow-hidden"
                         >
                             <input
                                 type="text"
                                 readonly
                                 value={attendeeUrl}
-                                class="flex-1 text-[10px] text-[#5F6368] font-mono outline-none bg-transparent overflow-hidden text-ellipsis"
+                                class="flex-1 text-[10px] text-[#5F6368] dark:text-dark-text-muted font-mono outline-none bg-transparent overflow-hidden text-ellipsis"
                             />
                             <button
                                 onclick={copyUrl}
-                                class="p-2 hover:bg-[#F1F3F4] rounded-lg transition-colors {copySuccess
+                                class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/5 rounded-lg transition-colors {copySuccess
                                     ? 'text-[#1E8E3E]'
                                     : 'text-[#4285F4]'}"
                                 title={$t("editor.copy_url")}
@@ -1080,61 +1116,61 @@
             </div>
 
             <!-- Content Area -->
-            <div class="col-span-9" in:fade>
+            <div class="lg:col-span-9 w-full min-w-0" in:fade>
                 {#if steps.length > 0}
                     <div
-                        class="bg-white rounded-2xl border border-[#E8EAED] shadow-sm overflow-hidden min-h-[70vh] flex flex-col"
+                        class="bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden min-h-[70vh] flex flex-col transition-colors"
                     >
                         <div
-                            class="p-8 border-b border-[#F1F3F4] bg-[#F8F9FA]/30"
+                            class="p-6 sm:p-8 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/30 dark:bg-white/5"
                         >
                             <input
                                 type="text"
                                 bind:value={steps[activeStepIndex].title}
-                                class="text-3xl font-bold text-[#202124] w-full bg-transparent outline-none placeholder-[#DADCE0] border-b-2 border-transparent focus:border-[#4285F4] transition-all pb-2"
+                                class="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-dark-text w-full bg-transparent outline-none placeholder-[#DADCE0] dark:placeholder-dark-text-muted border-b-2 border-transparent focus:border-[#4285F4] transition-all pb-2"
                                 placeholder="Untitled Step"
                             />
                         </div>
 
-                        <div class="flex-1 p-8 flex flex-col">
+                        <div class="flex-1 p-4 sm:p-8 flex flex-col">
                             {#if mode === "edit"}
                                 <div
-                                    class="flex items-center gap-2 mb-4 p-2 bg-[#F8F9FA] rounded-xl border border-[#E8EAED]"
+                                    class="flex flex-wrap items-center gap-1 sm:gap-2 mb-4 p-2 bg-[#F8F9FA] dark:bg-white/5 rounded-xl border border-[#E8EAED] dark:border-dark-border"
                                 >
                                     <button
                                         onclick={() => insertMarkdown("h1")}
-                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        class="p-2 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-colors text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4]"
                                         title="Heading"
                                         ><Heading1 size={20} /></button
                                     >
                                     <button
                                         onclick={() => insertMarkdown("bold")}
-                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        class="p-2 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-colors text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4]"
                                         title="Bold"><Bold size={20} /></button
                                     >
                                     <button
                                         onclick={() => insertMarkdown("italic")}
-                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        class="p-2 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-colors text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4]"
                                         title="Italic"
                                         ><Italic size={20} /></button
                                     >
                                     <div
-                                        class="w-px h-6 bg-[#DADCE0] mx-1"
+                                        class="w-px h-6 bg-[#DADCE0] dark:bg-dark-border mx-1"
                                     ></div>
                                     <button
                                         onclick={() => insertMarkdown("list")}
-                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        class="p-2 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-colors text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4]"
                                         title="List"><List size={20} /></button
                                     >
                                     <button
                                         onclick={() => insertMarkdown("code")}
-                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        class="p-2 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-colors text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4]"
                                         title="Code Block"
                                         ><Code size={20} /></button
                                     >
                                     <button
                                         onclick={() => insertMarkdown("image")}
-                                        class="p-2 hover:bg-white rounded-lg transition-colors text-[#5F6368]"
+                                        class="p-2 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-colors text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4]"
                                         title="Image"
                                         ><ImageIcon size={20} /></button
                                     >
@@ -1152,7 +1188,7 @@
                                     }
                                     onkeydown={handleKeydown}
                                     onpaste={handlePaste}
-                                    class="w-full flex-1 min-h-[50vh] outline-none text-[#3C4043] font-mono text-base leading-relaxed resize-none bg-transparent"
+                                    class="w-full flex-1 min-h-[50vh] outline-none text-[#3C4043] dark:text-dark-text font-mono text-base leading-relaxed resize-none bg-transparent"
                                     placeholder="Write your markdown here..."
                                     onmouseup={handleMouseUp}
                                 ></textarea>
@@ -1164,7 +1200,7 @@
                                     >
                                         <button
                                             onclick={improveWithAi}
-                                            class="bg-white text-[#4285F4] px-4 py-2 rounded-full shadow-xl border border-[#D2E3FC] flex items-center gap-2 font-bold text-sm hover:bg-[#F8F9FA] transition-all hover:scale-105"
+                                            class="bg-white dark:bg-dark-surface text-[#4285F4] px-4 py-2 rounded-full shadow-xl border border-[#D2E3FC] dark:border-[#4285F4]/30 flex items-center gap-2 font-bold text-sm hover:bg-[#F8F9FA] dark:hover:bg-white/10 transition-all hover:scale-105"
                                         >
                                             <Sparkles size={16} />
                                             Improve with Gemini
@@ -1174,7 +1210,7 @@
 
                                 {#if aiLoading}
                                     <div
-                                        class="fixed z-50 top-4 right-4 bg-white px-4 py-3 rounded-xl shadow-lg border border-[#E8EAED] flex items-center gap-3 animate-in slide-in-from-right"
+                                        class="fixed z-50 top-4 right-4 bg-white dark:bg-dark-surface px-4 py-3 rounded-xl shadow-lg border border-[#E8EAED] dark:border-dark-border flex items-center gap-3 animate-in slide-in-from-right"
                                     >
                                         <Loader2
                                             class="animate-spin text-[#4285F4]"
@@ -1182,11 +1218,11 @@
                                         />
                                         <div>
                                             <p
-                                                class="text-sm font-bold text-[#202124]"
+                                                class="text-sm font-bold text-[#202124] dark:text-dark-text"
                                             >
                                                 Gemini is writing...
                                             </p>
-                                            <p class="text-xs text-[#5F6368]">
+                                            <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
                                                 Improving your content
                                             </p>
                                         </div>
@@ -1201,16 +1237,16 @@
                                 </div>
                             {:else if mode === "live"}
                                 <div
-                                    class="grid grid-cols-2 gap-8 h-full"
+                                    class="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 h-full"
                                     in:fade
                                 >
                                     <!-- Left: Activity & Help -->
-                                    <div class="space-y-6 flex flex-col h-full">
+                                    <div class="space-y-6 flex flex-col h-full min-w-0">
                                         <div
-                                            class="bg-white border border-[#E8EAED] rounded-2xl overflow-hidden shadow-sm flex flex-col"
+                                            class="bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl overflow-hidden shadow-sm flex flex-col"
                                         >
                                             <div
-                                                class="p-4 bg-red-50 border-b border-red-100 flex items-center gap-2"
+                                                class="p-4 bg-red-50 dark:bg-red-500/10 border-b border-red-100 dark:border-red-500/20 flex items-center gap-2"
                                             >
                                                 <Bell
                                                     size={18}
@@ -1227,12 +1263,12 @@
                                             >
                                                 {#each helpRequests as hr}
                                                     <div
-                                                        class="p-3 bg-red-50/50 rounded-xl border border-red-100 flex justify-between items-center"
+                                                        class="p-3 bg-red-50/50 dark:bg-red-500/5 rounded-xl border border-red-100 dark:border-red-500/10 flex justify-between items-center"
                                                         in:slide
                                                     >
                                                         <div>
                                                             <p
-                                                                class="font-bold text-[#202124] text-sm"
+                                                                class="font-bold text-[#202124] dark:text-dark-text text-sm"
                                                             >
                                                                 {hr.attendee_name}
                                                             </p>
@@ -1247,13 +1283,13 @@
                                                                 handleResolveHelp(
                                                                     hr.id,
                                                                 )}
-                                                            class="text-xs font-bold text-white bg-[#EA4335] px-3 py-1.5 rounded-full hover:bg-[#D93025] transition-colors"
+                                                            class="text-xs font-bold text-white bg-[#EA4335] px-3 py-1.5 rounded-full hover:bg-[#D93025] transition-colors shadow-sm"
                                                             >Resolve</button
                                                         >
                                                     </div>
                                                 {:else}
                                                     <p
-                                                        class="text-center py-6 text-[#9AA0A6] text-sm"
+                                                        class="text-center py-6 text-[#9AA0A6] dark:text-dark-text-muted text-sm"
                                                     >
                                                         No pending help requests
                                                     </p>
@@ -1262,17 +1298,17 @@
                                         </div>
 
                                         <div
-                                            class="flex-1 bg-white border border-[#E8EAED] rounded-2xl overflow-hidden shadow-sm flex flex-col min-h-[400px]"
+                                            class="flex-1 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl overflow-hidden shadow-sm flex flex-col min-h-[300px] lg:min-h-[400px]"
                                         >
                                             <div
-                                                class="p-4 bg-[#F8F9FA] border-b border-[#E8EAED] flex items-center gap-2"
+                                                class="p-4 bg-[#F8F9FA] dark:bg-white/5 border-b border-[#E8EAED] dark:border-dark-border flex items-center gap-2"
                                             >
                                                 <Users
                                                     size={18}
                                                     class="text-[#4285F4]"
                                                 />
                                                 <h3
-                                                    class="font-bold text-[#3C4043]"
+                                                    class="font-bold text-[#3C4043] dark:text-dark-text"
                                                 >
                                                     {$t("common.attendee")} ({attendees.length})
                                                 </h3>
@@ -1282,13 +1318,13 @@
                                             >
                                                 {#each attendees as attendee}
                                                     <div
-                                                        class="flex items-center justify-between p-2 hover:bg-[#F8F9FA] rounded-lg transition-colors group"
+                                                        class="flex items-center justify-between p-2 hover:bg-[#F8F9FA] dark:hover:bg-white/5 rounded-lg transition-colors group"
                                                     >
                                                         <div
                                                             class="flex items-center gap-3"
                                                         >
                                                             <div
-                                                                class="w-8 h-8 rounded-full bg-[#E8EAED] flex items-center justify-center text-[#5F6368] text-xs font-bold uppercase"
+                                                                class="w-8 h-8 rounded-full bg-[#E8EAED] dark:bg-white/10 flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted text-xs font-bold uppercase"
                                                             >
                                                                 {attendee.name.charAt(
                                                                     0,
@@ -1296,12 +1332,12 @@
                                                             </div>
                                                             <div>
                                                                 <p
-                                                                    class="text-sm font-bold text-[#202124]"
+                                                                    class="text-sm font-bold text-[#202124] dark:text-dark-text"
                                                                 >
                                                                     {attendee.name}
                                                                 </p>
                                                                 <p
-                                                                    class="text-[10px] text-[#9AA0A6]"
+                                                                    class="text-[10px] text-[#9AA0A6] dark:text-dark-text-muted"
                                                                 >
                                                                     Code: {attendee.code}
                                                                     {#if attendee.current_step}
@@ -1315,7 +1351,7 @@
                                                             onclick={() =>
                                                                 (dmTarget =
                                                                     attendee)}
-                                                            class="p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                                                            class="p-2 text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-lg opacity-0 lg:opacity-0 group-hover:opacity-100 transition-all"
                                                             title={$t("editor.send_dm")}
                                                         >
                                                             <MessageSquare
@@ -1330,18 +1366,18 @@
 
                                     <!-- Right: Live Chat -->
                                     <div
-                                        class="bg-white border border-[#E8EAED] rounded-2xl overflow-hidden shadow-sm flex flex-col h-full min-h-[600px]"
+                                        class="bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl overflow-hidden shadow-sm flex flex-col h-full min-h-[500px] lg:min-h-[600px]"
                                     >
                                         <div
-                                            class="flex border-b border-[#E8EAED]"
+                                            class="flex border-b border-[#E8EAED] dark:border-dark-border"
                                         >
                                             <button
                                                 onclick={() =>
                                                     (chatTab = "public")}
                                                 class="flex-1 py-3 text-sm font-bold transition-all flex justify-center items-center gap-2 {chatTab ===
                                                 'public'
-                                                    ? 'text-[#4285F4] border-b-2 border-[#4285F4] bg-[#F8F9FA]'
-                                                    : 'text-[#5F6368] hover:bg-[#F1F3F4]'}"
+                                                    ? 'text-[#4285F4] border-b-2 border-[#4285F4] bg-[#F8F9FA] dark:bg-white/5'
+                                                    : 'text-[#5F6368] dark:text-dark-text-muted hover:bg-[#F1F3F4] dark:hover:bg-white/5'}"
                                             >
                                                 <Users size={16} /> Public Chat
                                             </button>
@@ -1350,8 +1386,8 @@
                                                     (chatTab = "direct")}
                                                 class="flex-1 py-3 text-sm font-bold transition-all flex justify-center items-center gap-2 {chatTab ===
                                                 'direct'
-                                                    ? 'text-[#4285F4] border-b-2 border-[#4285F4] bg-[#F8F9FA]'
-                                                    : 'text-[#5F6368] hover:bg-[#F1F3F4]'}"
+                                                    ? 'text-[#4285F4] border-b-2 border-[#4285F4] bg-[#F8F9FA] dark:bg-white/5'
+                                                    : 'text-[#5F6368] dark:text-dark-text-muted hover:bg-[#F1F3F4] dark:hover:bg-white/5'}"
                                             >
                                                 <MessageSquare size={16} /> Direct
                                                 Messages
@@ -1359,7 +1395,7 @@
                                         </div>
 
                                         <div
-                                            class="flex-1 p-4 space-y-4 overflow-y-auto bg-[#F8F9FA]"
+                                            class="flex-1 p-4 space-y-4 overflow-y-auto bg-[#F8F9FA] dark:bg-dark-bg/50"
                                             id="chat-messages"
                                         >
                                             {#each filteredMessages as msg}
@@ -1369,13 +1405,13 @@
                                                         : 'items-start'}"
                                                 >
                                                     <span
-                                                        class="text-[10px] text-[#5F6368] font-bold mb-1 mx-1 uppercase"
+                                                        class="text-[10px] text-[#5F6368] dark:text-dark-text-muted font-bold mb-1 mx-1 uppercase"
                                                         >{msg.sender} &bull; {msg.time}</span
                                                     >
                                                     <div
                                                         class="px-4 py-2 rounded-2xl text-sm max-w-[85%] whitespace-pre-wrap break-words {msg.self
-                                                            ? 'bg-[#4285F4] text-white rounded-tr-none'
-                                                            : 'bg-white border border-[#E8EAED] text-[#3C4043] shadow-sm rounded-tl-none'}"
+                                                            ? 'bg-[#4285F4] text-white rounded-tr-none shadow-md'
+                                                            : 'bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border text-[#3C4043] dark:text-dark-text shadow-sm rounded-tl-none'}"
                                                     >
                                                         {msg.text}
                                                     </div>
@@ -1383,7 +1419,7 @@
                                             {/each}
                                             {#if filteredMessages.length === 0}
                                                 <div
-                                                    class="h-full flex flex-col items-center justify-center text-[#9AA0A6]"
+                                                    class="h-full flex flex-col items-center justify-center text-[#9AA0A6] dark:text-dark-text-muted"
                                                 >
                                                     <MessageSquare
                                                         size={32}
@@ -1397,7 +1433,7 @@
                                         </div>
 
                                         <div
-                                            class="p-4 border-t border-[#E8EAED] bg-white"
+                                            class="p-4 border-t border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface"
                                         >
                                             <form
                                                 onsubmit={(e) => {
@@ -1412,7 +1448,7 @@
                                             >
                                                 {#if chatTab === "direct" && !dmTarget}
                                                     <div
-                                                        class="absolute inset-0 bg-white/80 z-10 flex items-center justify-center text-sm text-[#5F6368] font-bold"
+                                                        class="absolute inset-0 bg-white/80 dark:bg-dark-surface/80 z-10 flex items-center justify-center text-sm text-[#5F6368] dark:text-dark-text-muted font-bold"
                                                     >
                                                         Select an attendee to
                                                         message
@@ -1423,7 +1459,7 @@
                                                 >
                                                     {#if chatTab === "direct" && dmTarget}
                                                         <span
-                                                            class="bg-[#E8F0FE] text-[#1967D2] px-2 py-1 rounded text-xs font-bold whitespace-nowrap"
+                                                            class="bg-[#E8F0FE] dark:bg-[#4285F4]/20 text-[#1967D2] dark:text-[#4285F4] px-2 py-1 rounded text-xs font-bold whitespace-nowrap"
                                                         >
                                                             To: {dmTarget.name}
                                                         </span>
@@ -1435,7 +1471,7 @@
                                                                 chatMessage
                                                             }
                                                             placeholder="Broadcast to all..."
-                                                            class="flex-1 pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] text-sm"
+                                                            class="flex-1 pl-4 pr-12 py-3 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] text-sm text-[#202124] dark:text-dark-text"
                                                         />
                                                     {:else}
                                                         <input
@@ -1444,12 +1480,12 @@
                                                                 dmMessage
                                                             }
                                                             placeholder="Type a message..."
-                                                            class="flex-1 pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] text-sm"
+                                                            class="flex-1 pl-4 pr-12 py-3 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] text-sm text-[#202124] dark:text-dark-text"
                                                         />
                                                     {/if}
                                                     <button
                                                         type="submit"
-                                                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-lg transition-all"
+                                                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-lg transition-all"
                                                         disabled={chatTab ===
                                                             "direct" &&
                                                             !dmTarget}
@@ -1463,17 +1499,17 @@
                                 </div>
                             {:else if mode === "feedback"}
                                 <div
-                                    class="bg-white rounded-2xl border border-[#E8EAED] shadow-sm overflow-hidden min-h-[70vh] flex flex-col"
+                                    class="bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden min-h-[70vh] flex flex-col"
                                     in:fade
                                 >
                                     <div
-                                        class="p-8 border-b border-[#F1F3F4] bg-[#F8F9FA]/30 grid grid-cols-1 md:grid-cols-3 gap-8"
+                                        class="p-6 sm:p-8 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/30 dark:bg-white/5 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-8"
                                     >
                                         <div
-                                            class="bg-white p-4 rounded-xl border border-[#E8EAED] shadow-sm"
+                                            class="bg-white dark:bg-dark-surface p-4 rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm"
                                         >
                                             <p
-                                                class="text-xs text-[#5F6368] font-bold uppercase tracking-wider mb-2"
+                                                class="text-xs text-[#5F6368] dark:text-dark-text-muted font-bold uppercase tracking-wider mb-2"
                                             >
                                                 Avg Satisfaction
                                             </p>
@@ -1492,16 +1528,16 @@
                                                           ) / feedbacks.length
                                                       ).toFixed(1)
                                                     : "N/A"}<span
-                                                    class="text-base text-[#5F6368] font-normal"
+                                                    class="text-base text-[#5F6368] dark:text-dark-text-muted font-normal"
                                                     >/5</span
                                                 >
                                             </div>
                                         </div>
                                         <div
-                                            class="bg-white p-4 rounded-xl border border-[#E8EAED] shadow-sm"
+                                            class="bg-white dark:bg-dark-surface p-4 rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm"
                                         >
                                             <p
-                                                class="text-xs text-[#5F6368] font-bold uppercase tracking-wider mb-2"
+                                                class="text-xs text-[#5F6368] dark:text-dark-text-muted font-bold uppercase tracking-wider mb-2"
                                             >
                                                 Avg Difficulty
                                             </p>
@@ -1520,16 +1556,16 @@
                                                           ) / feedbacks.length
                                                       ).toFixed(1)
                                                     : "N/A"}<span
-                                                    class="text-base text-[#5F6368] font-normal"
+                                                    class="text-base text-[#5F6368] dark:text-dark-text-muted font-normal"
                                                     >/5</span
                                                 >
                                             </div>
                                         </div>
                                         <div
-                                            class="bg-white p-4 rounded-xl border border-[#E8EAED] shadow-sm"
+                                            class="bg-white dark:bg-dark-surface p-4 rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm sm:col-span-2 md:col-span-1"
                                         >
                                             <p
-                                                class="text-xs text-[#5F6368] font-bold uppercase tracking-wider mb-2"
+                                                class="text-xs text-[#5F6368] dark:text-dark-text-muted font-bold uppercase tracking-wider mb-2"
                                             >
                                                 Total Responses
                                             </p>
@@ -1542,29 +1578,29 @@
                                     </div>
 
                                     <div
-                                        class="flex-1 p-8 overflow-y-auto space-y-4"
+                                        class="flex-1 p-4 sm:p-8 overflow-y-auto space-y-4"
                                     >
                                         {#each feedbacks as f}
                                             <div
-                                                class="p-6 bg-white border border-[#E8EAED] rounded-xl shadow-sm hover:shadow-md transition-shadow"
+                                                class="p-6 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl shadow-sm hover:shadow-md transition-shadow"
                                             >
                                                 <div
-                                                    class="flex justify-between items-start mb-4"
+                                                    class="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4"
                                                 >
-                                                    <div class="flex gap-4">
+                                                    <div class="flex flex-wrap gap-3">
                                                         <div
-                                                            class="bg-[#E6F4EA] text-[#137333] px-3 py-1 rounded-full text-xs font-bold"
+                                                            class="bg-[#E6F4EA] dark:bg-green-500/10 text-[#137333] dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold"
                                                         >
                                                             Satisfaction: {f.satisfaction}/5
                                                         </div>
                                                         <div
-                                                            class="bg-[#FEF7E0] text-[#B06000] px-3 py-1 rounded-full text-xs font-bold"
+                                                            class="bg-[#FEF7E0] dark:bg-yellow-500/10 text-[#B06000] dark:text-yellow-400 px-3 py-1 rounded-full text-xs font-bold"
                                                         >
                                                             Difficulty: {f.difficulty}/5
                                                         </div>
                                                     </div>
                                                     <span
-                                                        class="text-xs text-[#5F6368]"
+                                                        class="text-xs text-[#5F6368] dark:text-dark-text-muted"
                                                     >
                                                         {f.created_at
                                                             ? new Date(
@@ -1575,13 +1611,13 @@
                                                 </div>
                                                 {#if f.comment}
                                                     <p
-                                                        class="text-[#3C4043] text-sm leading-relaxed bg-[#F8F9FA] p-4 rounded-lg"
+                                                        class="text-[#3C4043] dark:text-dark-text text-sm leading-relaxed bg-[#F8F9FA] dark:bg-white/5 p-4 rounded-lg border border-transparent dark:border-dark-border"
                                                     >
                                                         "{f.comment}"
                                                     </p>
                                                 {:else}
                                                     <p
-                                                        class="text-[#9AA0A6] text-sm italic"
+                                                        class="text-[#9AA0A6] dark:text-dark-text-muted text-sm italic"
                                                     >
                                                         No comments provided
                                                     </p>
@@ -1589,13 +1625,13 @@
                                             </div>
                                         {:else}
                                             <div
-                                                class="text-center py-20 text-[#5F6368]"
+                                                class="text-center py-20 text-[#5F6368] dark:text-dark-text-muted"
                                             >
                                                 <MessageSquare
                                                     size={48}
                                                     class="mx-auto mb-4 opacity-20"
                                                 />
-                                                <p class="text-lg font-medium">
+                                                <p class="text-lg font-medium dark:text-dark-text">
                                                     No feedback yet
                                                 </p>
                                                 <p class="text-sm opacity-70">
@@ -1611,19 +1647,19 @@
                     </div>
                 {:else}
                     <div
-                        class="bg-white rounded-3xl border-2 border-dashed border-[#DADCE0] p-24 text-center"
+                        class="bg-white dark:bg-dark-surface rounded-3xl border-2 border-dashed border-[#DADCE0] dark:border-dark-border p-12 sm:p-24 text-center shadow-sm"
                         in:fly={{ y: 20 }}
                     >
                         <div
-                            class="w-20 h-20 bg-[#F1F3F4] rounded-full flex items-center justify-center mx-auto mb-8"
+                            class="w-20 h-20 bg-[#F1F3F4] dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8"
                         >
-                            <Plus size={40} class="text-[#BDC1C6]" />
+                            <Plus size={40} class="text-[#BDC1C6] dark:text-dark-text-muted" />
                         </div>
-                        <h3 class="text-2xl font-bold text-[#202124] mb-3">
+                        <h3 class="text-2xl font-bold text-[#202124] dark:text-dark-text mb-3">
                             {$t("editor.empty_codelab")}
                         </h3>
                         <p
-                            class="text-[#5F6368] text-lg mb-10 max-w-sm mx-auto"
+                            class="text-[#5F6368] dark:text-dark-text-muted text-lg mb-10 max-w-sm mx-auto"
                         >
                             {$t("editor.empty_desc")}
                         </p>
