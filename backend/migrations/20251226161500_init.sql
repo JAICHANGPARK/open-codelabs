@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS codelabs (
     title VARCHAR(255) NOT NULL,
     description TEXT NOT NULL,
     author VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create steps table
