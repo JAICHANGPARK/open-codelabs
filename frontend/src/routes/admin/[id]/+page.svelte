@@ -125,6 +125,41 @@
     let isSidebarOpen = $state(false);
     let isSplitView = $state(false);
 
+    let editorEl = $state<HTMLTextAreaElement | null>(null);
+    let previewEl = $state<HTMLDivElement | null>(null);
+    let isScrollingEditor = false;
+    let isScrollingPreview = false;
+
+    function syncEditorScroll() {
+        if (isScrollingPreview || !editorEl || !previewEl) return;
+        isScrollingEditor = true;
+        const maxEditor = editorEl.scrollHeight - editorEl.clientHeight;
+        const maxPreview = previewEl.scrollHeight - previewEl.clientHeight;
+        
+        if (maxEditor > 0 && maxPreview > 0) {
+            const percentage = editorEl.scrollTop / maxEditor;
+            previewEl.scrollTop = percentage * maxPreview;
+        }
+        
+        // Debounce to prevent feedback loop
+        setTimeout(() => (isScrollingEditor = false), 50);
+    }
+
+    function syncPreviewScroll() {
+        if (isScrollingEditor || !editorEl || !previewEl) return;
+        isScrollingPreview = true;
+        const maxEditor = editorEl.scrollHeight - editorEl.clientHeight;
+        const maxPreview = previewEl.scrollHeight - previewEl.clientHeight;
+        
+        if (maxEditor > 0 && maxPreview > 0) {
+            const percentage = previewEl.scrollTop / maxPreview;
+            editorEl.scrollTop = percentage * maxEditor;
+        }
+        
+        // Debounce to prevent feedback loop
+        setTimeout(() => (isScrollingPreview = false), 50);
+    }
+
     // Sync mode to URL and load data
     $effect(() => {
         if (!browser) return;
@@ -1087,7 +1122,7 @@
         </div>
     {:else}
         <main
-            class="max-w-screen-2xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start relative"
+            class="max-w-screen-2xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2 items-start relative"
         >
             <!-- Mobile Step Navigation Toggle -->
             <div class="lg:hidden flex items-center justify-between bg-white dark:bg-dark-surface p-4 rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm mb-2">
@@ -1102,7 +1137,7 @@
 
             <!-- Sidebar Navigation -->
             <div 
-                class="fixed inset-0 z-50 lg:relative lg:inset-auto lg:col-span-4 lg:block transition-all duration-300 {isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100 lg:sticky lg:top-28'}"
+                class="fixed inset-0 z-50 lg:z-30 lg:relative lg:inset-auto lg:col-span-4 lg:block transition-all duration-300 {isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100 lg:sticky lg:top-28'}"
             >
                 <!-- Overlay for mobile -->
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -1236,23 +1271,26 @@
             <div class="lg:col-span-8 w-full min-w-0" in:fade>
                 {#if steps.length > 0}
                     <div
-                        class="bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden min-h-[70vh] flex flex-col transition-colors"
+                        class="bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm min-h-[70vh] flex flex-col transition-colors"
                     >
-                        <div
-                            class="p-6 sm:p-8 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/30 dark:bg-white/5"
-                        >
-                            <input
-                                type="text"
-                                bind:value={steps[activeStepIndex].title}
-                                class="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-dark-text w-full bg-transparent outline-none placeholder-[#DADCE0] dark:placeholder-dark-text-muted border-b-2 border-transparent focus:border-[#4285F4] transition-all pb-2"
-                                placeholder={$t("editor.untitled_step")}
-                            />
-                        </div>
+                        {#if mode === "edit" || mode === "preview"}
+                            <div
+                                class="p-6 sm:p-8 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/30 dark:bg-white/5 sticky top-[73px] z-20 backdrop-blur-md rounded-t-2xl"
+                            >
+                                <input
+                                    type="text"
+                                    bind:value={steps[activeStepIndex].title}
+                                    readonly={mode === "preview"}
+                                    class="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-dark-text w-full bg-transparent outline-none placeholder-[#DADCE0] dark:placeholder-dark-text-muted border-b-2 border-transparent focus:border-[#4285F4] transition-all pb-2"
+                                    placeholder={$t("editor.untitled_step")}
+                                />
+                            </div>
+                        {/if}
 
                         <div class="flex-1 p-4 sm:p-8 flex flex-col">
                             {#if mode === "edit"}
                                 <div
-                                    class="flex flex-wrap items-center gap-1 sm:gap-2 mb-4 p-2 bg-[#F8F9FA] dark:bg-white/5 rounded-xl border border-[#E8EAED] dark:border-dark-border"
+                                    class="flex flex-wrap items-center gap-1 sm:gap-2 mb-4 p-2 bg-[#F8F9FA]/90 dark:bg-white/5 backdrop-blur-sm rounded-xl border border-[#E8EAED] dark:border-dark-border sticky top-[166px] z-20"
                                 >
                                     <button
                                         onclick={() => insertMarkdown("h1")}
@@ -1309,20 +1347,26 @@
                                     onchange={handleFileSelect}
                                 />
                                 <div class="flex-1 flex flex-col min-h-[60vh]">
-                                    <div class="flex-1 grid {isSplitView ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'} gap-8">
+                                    <div class="flex-1 grid {isSplitView ? 'grid-cols-1 lg:grid-cols-2 lg:h-[75vh]' : 'grid-cols-1'} gap-8">
                                         <textarea
+                                            bind:this={editorEl}
+                                            onscroll={syncEditorScroll}
                                             bind:value={
                                                 steps[activeStepIndex].content_markdown
                                             }
                                             onkeydown={handleKeydown}
                                             onpaste={handlePaste}
-                                            class="w-full h-full outline-none text-[#3C4043] dark:text-dark-text font-mono text-base leading-relaxed resize-none bg-transparent"
+                                            class="w-full h-full outline-none text-[#3C4043] dark:text-dark-text font-mono text-base leading-relaxed resize-none bg-transparent {isSplitView ? 'overflow-y-auto pr-2' : ''}"
                                             placeholder={$t("editor.start_writing")}
                                             onmouseup={handleMouseUp}
                                         ></textarea>
 
                                         {#if isSplitView}
-                                            <div class="hidden lg:block border-l border-[#F1F3F4] dark:border-dark-border pl-8 overflow-y-auto max-h-[70vh]">
+                                            <div 
+                                                bind:this={previewEl}
+                                                onscroll={syncPreviewScroll}
+                                                class="hidden lg:block border-l border-[#F1F3F4] dark:border-dark-border pl-8 overflow-y-auto"
+                                            >
                                                 <div class="prose dark:prose-invert prose-blue max-w-none markdown-body">
                                                     {@html renderedContent}
                                                 </div>
