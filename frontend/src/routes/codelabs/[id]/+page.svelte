@@ -6,9 +6,11 @@
     import { browser } from "$app/environment";
     import {
         getCodelab,
+        getMaterials,
         requestHelp,
         getWsUrl,
         getChatHistory,
+        ASSET_URL,
         submitFeedback,
         isFirebaseMode,
         listenToWsReplacement,
@@ -18,6 +20,7 @@
         type Step,
         type Attendee,
         type ChatMessage,
+        type Material,
     } from "$lib/api";
     import { loadProgress, saveProgress } from "$lib/Progress";
     import { attendeeMarked as marked } from "$lib/markdown";
@@ -43,6 +46,9 @@
         FileText,
         Volume2,
         Square,
+        Paperclip,
+        ExternalLink,
+        Download,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
     import AskGemini from "$lib/components/AskGemini.svelte";
@@ -74,6 +80,7 @@
     let showSidebar = $state(true);
     let showChat = $state(false);
     let isFinished = $state(false);
+    let materials = $state<Material[]>([]);
 
     let attendee = $state<Attendee | null>(null);
 
@@ -193,6 +200,11 @@
             steps = data[1];
             currentStepIndex = loadProgress(id);
             if (currentStepIndex >= steps.length) currentStepIndex = 0;
+
+            // Load materials
+            getMaterials(id).then((m) => {
+                materials = m;
+            }).catch(e => console.error("Failed to load materials", e));
 
             await loadChatHistory();
             wsCleanup = initWebSocket();
@@ -646,6 +658,46 @@
                         >
                     </button>
                 {/each}
+
+                {#if materials.length > 0}
+                    <div
+                        class="mt-8 pt-8 border-t border-[#E8EAED] dark:border-dark-border px-2 pb-8"
+                    >
+                        <h3
+                            class="text-[11px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-widest mb-4 px-2 flex items-center gap-2"
+                        >
+                            <Paperclip size={14} />
+                            {$t("editor.materials_tab")}
+                        </h3>
+                        <div class="space-y-1">
+                            {#each materials as mat}
+                                <a
+                                    href={mat.material_type === "link"
+                                        ? mat.link_url
+                                        : `${ASSET_URL}${mat.file_path}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[#F1F3F4] dark:hover:bg-white/5 transition-all group"
+                                >
+                                    <div
+                                        class="p-2 bg-white dark:bg-white/10 rounded-lg text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4] transition-colors shadow-sm shrink-0"
+                                    >
+                                        {#if mat.material_type === "link"}
+                                            <ExternalLink size={16} />
+                                        {:else}
+                                            <Download size={16} />
+                                        {/if}
+                                    </div>
+                                    <span
+                                        class="text-sm text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#202124] dark:group-hover:text-dark-text transition-colors truncate font-medium"
+                                    >
+                                        {mat.title}
+                                    </span>
+                                </a>
+                            {/each}
+                        </div>
+                    </div>
+                {/if}
             </nav>
         </aside>
 
