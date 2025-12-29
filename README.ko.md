@@ -23,6 +23,28 @@
 
 ---
 
+## ⚡ 퀵스타트 (Quickstart)
+
+단 몇 초 만에 시스템을 실행해보세요:
+
+```bash
+# 저장소 복제
+git clone https://github.com/JAICHANGPARK/open-codelabs.git
+cd open-codelabs
+
+# Docker Compose로 시작
+docker compose up --build
+```
+
+### 🦭 Podman 사용자 가이드
+Podman을 사용하는 경우 `podman-compose`를 사용할 수 있습니다:
+```bash
+podman-compose up --build
+```
+또는 Podman의 Docker 호환 레이어를 사용하세요.
+
+---
+
 ## 🛠 기술 스택
 
 ### Frontend
