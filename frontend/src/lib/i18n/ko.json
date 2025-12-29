@@ -108,7 +108,19 @@
         "export_codelab": "코드랩 내보내기",
         "save_changes": "변경사항 저장",
         "stuck_on_step": "단계 {step}에서 멈춤",
-        "split_view": "분할 뷰"
+        "split_view": "분할 뷰",
+        "materials_tab": "첨부파일",
+        "materials_title": "파일 및 링크 관리",
+        "add_material": "Material 추가",
+        "material_name": "이름",
+        "material_type": "유형",
+        "material_link": "링크 URL",
+        "material_file": "파일",
+        "material_placeholder_name": "예: Starter 파일, 슬라이드 링크 등",
+        "material_placeholder_link": "https://github.com/...",
+        "no_materials": "추가된 Material이 없습니다.",
+        "delete_material_confirm": "이 자료를 삭제하시겠습니까?",
+        "upload_file": "파일 업로드"
     },
     "attendee": {
         "join_title": "코드랩 참여하기",
