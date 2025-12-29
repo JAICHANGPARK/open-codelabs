@@ -108,7 +108,19 @@
         "export_codelab": "コードラボをエクスポート",
         "save_changes": "変更を保存",
         "stuck_on_step": "ステップ {step} で止まっています",
-        "split_view": "分割表示"
+        "split_view": "分割表示",
+        "materials_tab": "教材",
+        "materials_title": "教材・リンク管理",
+        "add_material": "教材を追加",
+        "material_name": "名前",
+        "material_type": "タイプ",
+        "material_link": "リンク URL",
+        "material_file": "ファイル",
+        "material_placeholder_name": "例：スターターファイル、スライドのリンクなど",
+        "material_placeholder_link": "https://github.com/...",
+        "no_materials": "追加された教材はありません。",
+        "delete_material_confirm": "この教材を削除してもよろしいですか？",
+        "upload_file": "ファイルをアップロード"
     },
     "attendee": {
         "join_title": "コードラボに参加",
