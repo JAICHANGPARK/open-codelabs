@@ -23,6 +23,28 @@
 
 ---
 
+## ⚡ Quickstart
+
+Get the system up and running in seconds:
+
+```bash
+# Clone the repository
+git clone https://github.com/JAICHANGPARK/open-codelabs.git
+cd open-codelabs
+
+# Start with Docker Compose
+docker compose up --build
+```
+
+### 🦭 For Podman Users
+If you are using Podman, you can use `podman-compose`:
+```bash
+podman-compose up --build
+```
+Or use the Podman Docker compatibility layer.
+
+---
+
 ## 🛠 Tech Stack
 
 ### Frontend
