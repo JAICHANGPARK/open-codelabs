@@ -228,6 +228,9 @@
         "ask_question_placeholder": "코드에 대해 궁금한 점을 물어보세요...",
         "improve_with_gemini": "Gemini로 개선하기",
         "gemini_is_writing": "Gemini가 작성 중...",
-        "improving_content": "콘텐츠를 개선하고 있습니다"
+        "improving_content": "콘텐츠를 개선하고 있습니다",
+        "improvement_instruction": "어떻게 개선할까요?",
+        "improvement_placeholder": "예: 더 친절하게, 짧게 요약, 코드 설명 추가 등...",
+        "ai_improve_submit": "개선하기"
     }
 }
