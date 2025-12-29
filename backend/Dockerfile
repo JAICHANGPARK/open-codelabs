@@ -16,7 +16,7 @@ RUN cargo build --release
 FROM debian:bookworm-slim
 RUN apt-get update && apt-get install -y libssl3 ca-certificates && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-RUN mkdir -p /app/data && chmod 777 /app/data
+RUN mkdir -p /app/data /app/static/uploads && chmod -R 777 /app/static /app/data
 COPY --from=builder /app/target/release/backend /usr/local/bin/backend
 
 EXPOSE 8080
