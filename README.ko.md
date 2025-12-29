@@ -92,8 +92,10 @@ bun install
 bun run dev
 ```
 
-### 3. Firebase 배포 (서버리스 모드)
-로컬 Rust 서버 없이 운영하려면 Firebase를 사용할 수 있습니다. 자세한 방법은 [DEPLOY_FIREBASE.md](DEPLOY_FIREBASE.md)를 참조하세요.
+### 3. 클라우드 배포 (GCP / Firebase)
+서버리스 환경이나 클라우드 인프라에서 운영하려면 Firebase 또는 Google Cloud Platform (GCP)을 사용할 수 있습니다.
+- **Firebase**: 가장 빠른 서버리스 설정. [DEPLOY_FIREBASE.md](DEPLOY_FIREBASE.md) 참조.
+- **GCP (Cloud Run)**: 컨테이너 기반 배포. [DEPLOY_GCP.md](DEPLOY_GCP.md) 참조.
 
 ---
 
