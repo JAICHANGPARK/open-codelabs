@@ -91,6 +91,10 @@ open-codelabs/
 ### 1. Run with Docker (Recommended)
 The simplest way to get the full system up and running.
 
+> **Note**: By default, data is stored in `~/open-codelabs` on your host machine. You can customize this by editing `DATA_VOLUME_PATH` in the `.env` file at the root directory.
+> - **macOS/Linux**: `~/open-codelabs`
+> - **Windows**: `C:/open-codelabs` (Use forward slashes `/`)
+
 ```bash
 docker-compose up --build
 ```
