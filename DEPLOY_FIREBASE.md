@@ -73,5 +73,6 @@ Firebase Hosting에 정적 사이트로 배포하려면 `adapter-static`을 사�
 
 - **실시간 기능**: Firebase 모드에서는 Firebase Realtime Database를 사용하여 실시간 채팅, 도움 요청 및 진행 상황 공유를 구현합니다.
 - **구글 로그인**: Firebase 인증의 구글 로그인을 지원하며, 로그인한 사용자는 코드랩 생성 및 참여가 가능합니다.
-- **보안 규칙**: `firestore.rules`와 Realtime Database 보안 규칙을 적절히 수정하여 데이터 보안을 강화하세요.
+- **보안 규칙**: `firestore.rules`, `database.rules.json`, `storage.rules`가 프로젝트 루트에 포함되어 있습니다. 필요에 따라 규칙을 수정하여 데이터 보안을 강화하세요.
+- **인덱스**: `firestore.indexes.json`에 필요한 복합 인덱스가 정의되어 있습니다.
 - **제한 사항**: 현재 Firebase 모드에서는 코드랩 내보내기/가져오기 기능이 지원되지 않습니다.
