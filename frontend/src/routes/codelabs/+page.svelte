@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { fade, fly } from "svelte/transition";
-    import { listCodelabs, type Codelab } from "$lib/api";
+    import { listCodelabs, getJoinedCodelabs, onAuthChange, type Codelab, isFirebaseMode } from "$lib/api";
     import {
         BookOpen,
         User,
@@ -9,14 +9,24 @@
         Search,
         ArrowRight,
         Loader2,
+        Star,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
 
     let codelabs: Codelab[] = $state([]);
+    let joinedCodelabs: Codelab[] = $state([]);
     let loading = $state(true);
     let searchQuery = $state("");
+    let user = $state<any>(null);
 
     onMount(async () => {
+        onAuthChange((u) => {
+            user = u;
+            if (isFirebaseMode() && u) {
+                loadJoinedCodelabs();
+            }
+        });
+
         try {
             codelabs = await listCodelabs();
         } catch (e) {
@@ -25,6 +35,14 @@
             loading = false;
         }
     });
+
+    async function loadJoinedCodelabs() {
+        try {
+            joinedCodelabs = await getJoinedCodelabs();
+        } catch (e) {
+            console.error("Failed to load joined codelabs", e);
+        }
+    }
 
     let filteredCodelabs = $derived(
         codelabs.filter(
@@ -88,7 +106,44 @@
                 <Loader2 class="w-10 h-10 text-[#34A853] animate-spin" />
                 <p class="text-[#5F6368] font-medium">{$t("common.loading")}</p>
             </div>
-        {:else if filteredCodelabs.length === 0}
+        {:else}
+            {#if isFirebaseMode() && user && joinedCodelabs.length > 0}
+                <section class="mb-16">
+                    <div class="flex items-center gap-2 mb-8">
+                        <Star class="text-[#FBBC04] fill-[#FBBC04]" size={24} />
+                        <h2 class="text-2xl font-bold text-[#202124]">Joined Codelabs</h2>
+                        <span class="bg-[#FBBC04]/10 text-[#FBBC04] px-3 py-1 rounded-full text-xs font-bold">
+                            {joinedCodelabs.length}
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {#each joinedCodelabs as codelab}
+                            <div in:fade>
+                                <a
+                                    href="/codelabs/{codelab.id}"
+                                    class="group block bg-[#FBBC04]/5 border border-[#FBBC04]/20 rounded-3xl p-8 hover:shadow-xl transition-all duration-300 hover:border-[#FBBC04] h-full flex flex-col"
+                                >
+                                    <h3 class="text-xl font-bold text-[#202124] group-hover:text-[#FBBC04] mb-3 line-clamp-2">
+                                        {codelab.title}
+                                    </h3>
+                                    <p class="text-[#5F6368] text-sm line-clamp-2 mb-6">
+                                        {codelab.description}
+                                    </p>
+                                    <div class="mt-auto flex items-center justify-between">
+                                        <span class="text-xs font-bold text-[#5F6368]">{codelab.author}</span>
+                                        <div class="text-[#FBBC04] font-bold text-sm flex items-center gap-1">
+                                            Continue <ArrowRight size={14} />
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        {/each}
+                    </div>
+                </section>
+                <div class="h-px bg-[#E8EAED] w-full mb-16"></div>
+            {/if}
+
+            {#if filteredCodelabs.length === 0}
             <div
                 class="bg-white border border-[#E8EAED] rounded-3xl p-20 text-center shadow-sm"
                 in:fade
@@ -157,7 +212,8 @@
                 {/each}
             </div>
         {/if}
-    </main>
+    {/if}
+</main>
 
     <footer class="py-12 text-center text-[#9AA0A6] text-sm font-medium">
         <p>&copy; 2025 JAICHANGPARK &bull; Built for Learning</p>
