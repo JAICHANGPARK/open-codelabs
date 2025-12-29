@@ -61,6 +61,7 @@
         Github,
         Sparkles,
         Loader2,
+        Columns2,
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
 
@@ -122,6 +123,7 @@
     );
 
     let isSidebarOpen = $state(false);
+    let isSplitView = $state(false);
 
     // Sync mode to URL and load data
     $effect(() => {
@@ -1289,6 +1291,15 @@
                                         title="Image"
                                         ><ImageIcon size={20} /></button
                                     >
+                                    <div
+                                        class="w-px h-6 bg-[#DADCE0] dark:bg-dark-border mx-1"
+                                    ></div>
+                                    <button
+                                        onclick={() => (isSplitView = !isSplitView)}
+                                        class="p-2 hover:bg-white dark:hover:bg-white/10 rounded-lg transition-colors {isSplitView ? 'text-[#4285F4] bg-white dark:bg-white/10 shadow-sm' : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4]'}"
+                                        title={$t("editor.split_view")}
+                                        ><Columns2 size={20} /></button
+                                    >
                                 </div>
                                 <input
                                     type="file"
@@ -1297,16 +1308,28 @@
                                     bind:this={fileInput}
                                     onchange={handleFileSelect}
                                 />
-                                <textarea
-                                    bind:value={
-                                        steps[activeStepIndex].content_markdown
-                                    }
-                                    onkeydown={handleKeydown}
-                                    onpaste={handlePaste}
-                                    class="w-full flex-1 min-h-[50vh] outline-none text-[#3C4043] dark:text-dark-text font-mono text-base leading-relaxed resize-none bg-transparent"
-                                    placeholder={$t("editor.start_writing")}
-                                    onmouseup={handleMouseUp}
-                                ></textarea>
+                                <div class="flex-1 flex flex-col min-h-[60vh]">
+                                    <div class="flex-1 grid {isSplitView ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'} gap-8">
+                                        <textarea
+                                            bind:value={
+                                                steps[activeStepIndex].content_markdown
+                                            }
+                                            onkeydown={handleKeydown}
+                                            onpaste={handlePaste}
+                                            class="w-full h-full outline-none text-[#3C4043] dark:text-dark-text font-mono text-base leading-relaxed resize-none bg-transparent"
+                                            placeholder={$t("editor.start_writing")}
+                                            onmouseup={handleMouseUp}
+                                        ></textarea>
+
+                                        {#if isSplitView}
+                                            <div class="hidden lg:block border-l border-[#F1F3F4] dark:border-dark-border pl-8 overflow-y-auto max-h-[70vh]">
+                                                <div class="prose dark:prose-invert prose-blue max-w-none markdown-body">
+                                                    {@html renderedContent}
+                                                </div>
+                                            </div>
+                                        {/if}
+                                    </div>
+                                </div>
 
                                 {#if showAiMenu}
                                     <div
