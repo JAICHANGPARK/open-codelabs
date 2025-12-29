@@ -92,8 +92,10 @@ bun install
 bun run dev
 ```
 
-### 3. Firebase Deployment (Serverless Mode)
-To run without a local Rust server, you can use Firebase. See [DEPLOY_FIREBASE.md](DEPLOY_FIREBASE.md) for detailed instructions.
+### 3. Cloud Deployment (GCP / Firebase)
+To run in a serverless environment or on the cloud, you can use Firebase or Google Cloud Platform (GCP).
+- **Firebase**: Quick serverless setup. See [DEPLOY_FIREBASE.md](DEPLOY_FIREBASE.md).
+- **GCP (Cloud Run)**: Container-based deployment. See [DEPLOY_GCP.md](DEPLOY_GCP.md).
 
 ---
 
