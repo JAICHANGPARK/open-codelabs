@@ -18,8 +18,30 @@
 - **AI コードラボ生成器**: Google Gemini AI を使用して、ソースコードや参照ドキュメントからプロフェッショナルなコードラボを自動生成します。
 - **マルチランタイムサポート**: ローカル/プライベートセッション用の **Rust (Axum) + SQLite** バックエンド、またはサーバーレス環境用の **Firebase (Firestore/Hosting)** デプロイをサポートしています。
 - **Google Codelab Look & Feel**: 慣れ親しんだ、読み取りやすい Google スタイルのデザインを採用しています。
-- **簡単な外部公開**: `ngrok` および `bore` 統合スクリプトにより、ローカルサーバーを即座に外部に公開し、参加者が QR コードでアクセスできるようにサポートします。
+- **簡単な外部公開**: `ngrok` および `bore` 統合スク리プトにより、ローカルサーバーを即座に外部に公開し、参加者が QR コードでアクセスできるようにサポートします。
 - **多言語対応**: グローバルなワークショップ運営のための i18n サポートが組み込まれています。
+
+---
+
+## ⚡ クイックスタート (Quickstart)
+
+数秒でシステムを起動できます：
+
+```bash
+# リポジトリをクローン
+git clone https://github.com/JAICHANGPARK/open-codelabs.git
+cd open-codelabs
+
+# Docker Compose で起動
+docker compose up --build
+```
+
+### 🦭 Podman ユーザーガイド
+Podman を使用している場合は、`podman-compose` を使用できます：
+```bash
+podman-compose up --build
+```
+または Podman の Docker 互換レイヤーを使用してください。
 
 ---
 
