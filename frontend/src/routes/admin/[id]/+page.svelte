@@ -117,6 +117,7 @@
     let showAiMenu = $state(false);
     let menuPos = $state({ x: 0, y: 0 });
     let selectedText = $state("");
+    let aiInstruction = $state("");
     let newMaterial = $state({
         title: "",
         material_type: "link" as "link" | "file",
@@ -126,7 +127,6 @@
     let materialFileInput = $state<HTMLInputElement>();
     let selectionRange = $state<{ start: number; end: number } | null>(null);
     let aiLoading = $state(false);
-    let aiMagicPos = $state({ x: 0, y: 0 });
 
     // Drag & Drop State
     let draggedStepIndex = $state<number | null>(null);
@@ -279,11 +279,9 @@
         // Timeout to let selection settle
         setTimeout(() => {
             const activeElement = document.activeElement as HTMLTextAreaElement;
-            if (
-                activeElement &&
-                activeElement.tagName === "TEXTAREA" &&
-                activeElement.contains(e.target as Node)
-            ) {
+            const isTextArea = activeElement && activeElement.tagName === "TEXTAREA";
+            
+            if (isTextArea) {
                 const start = activeElement.selectionStart;
                 const end = activeElement.selectionEnd;
 
@@ -292,21 +290,44 @@
                     if (text.trim().length > 0) {
                         selectedText = text;
                         selectionRange = { start, end };
+                        aiInstruction = ""; // Reset instruction
 
                         // Calculate position relative to viewport
-                        // A bit hacky for textarea, but we can just use mouse coordinates
-                        menuPos = { x: e.clientX, y: e.clientY - 40 };
+                        // If mouseup is outside textarea, we still show the menu near the mouse
+                        let x = e.clientX;
+                        let y = e.clientY - 40;
+
+                        // Ensure menu stays within viewport
+                        const menuWidth = 288; // w-72 = 18rem = 288px
+                        const menuHeight = 220; 
+                        
+                        if (x + menuWidth > window.innerWidth) {
+                            x = window.innerWidth - menuWidth - 20;
+                        }
+                        if (x < 20) x = 20;
+                        
+                        if (y + menuHeight > window.innerHeight) {
+                            y = window.innerHeight - menuHeight - 20;
+                        }
+                        if (y < 20) y = 20;
+
+                        menuPos = { x, y };
                         showAiMenu = true;
                         return;
                     }
                 }
             }
-            // Hide if clicked elsewhere and not loading
-            if (!aiLoading) {
-                showAiMenu = false;
+            
+            // Hide if clicked elsewhere and not loading and not clicking inside AI menu
+            if (!aiLoading && showAiMenu) {
+                const target = e.target as HTMLElement;
+                if (!target.closest('.ai-menu-container')) {
+                    showAiMenu = false;
+                }
             }
         }, 10);
     }
+
 
     async function improveWithAi() {
         if (!geminiApiKey) {
@@ -318,59 +339,47 @@
         aiLoading = true;
         showAiMenu = false; // Hide menu
 
-        // Calculate relative position for the magic glow
-        if (editorEl) {
-            const rect = editorEl.getBoundingClientRect();
-            aiMagicPos = {
-                x: menuPos.x - rect.left,
-                y: menuPos.y - rect.top
-            };
-        }
-
         const originalMarkdown = steps[activeStepIndex].content_markdown;
         const { start, end } = selectionRange;
 
-        const prompt = `Improve the following technical writing/markdown content. Make it clearer, correct grammar, and better formatted. Maintain the original meaning. Only return the improved content, no explanations.\n\nContent:\n${selectedText}`;
+        let prompt = `Improve the following technical writing/markdown content. Make it clearer, correct grammar, and better formatted. Maintain the original meaning. Only return the improved content, no explanations.\n\nContent:\n${selectedText}`;
+        if (aiInstruction.trim()) {
+            prompt = `Improve the following technical writing/markdown content based on this instruction: "${aiInstruction}".\nMake it clearer, correct grammar, and better formatted. Maintain the original meaning where possible. Only return the improved content, no explanations.\n\nContent:\n${selectedText}`;
+        }
         const systemPrompt = "You are a helpful technical editor.";
 
         try {
-            let currentCursor = start;
-            let hasStarted = false;
+            let fullImprovedContent = "";
 
             const stream = streamGeminiResponseRobust(prompt, systemPrompt, {
                 apiKey: geminiApiKey,
             });
 
             for await (const chunk of stream) {
-                const currentFullText = steps[activeStepIndex].content_markdown;
-                if (!hasStarted) {
-                    // Replace the selection with the first chunk
-                    steps[activeStepIndex].content_markdown =
-                        currentFullText.substring(0, start) +
-                        chunk +
-                        currentFullText.substring(end);
-                    hasStarted = true;
-                    currentCursor = start + chunk.length;
-                } else {
-                    // Insert subsequent chunks
-                    steps[activeStepIndex].content_markdown =
-                        currentFullText.substring(0, currentCursor) +
-                        chunk +
-                        currentFullText.substring(currentCursor);
-                    currentCursor += chunk.length;
-                }
-
-                // Update visual selection
-                if (editorEl) {
-                    editorEl.setSelectionRange(start, currentCursor);
-                }
+                fullImprovedContent += chunk;
+                // We don't update the text visually during streaming for "tada" effect
             }
 
+            // All finished, apply "tada"
+            const currentFullText = steps[activeStepIndex].content_markdown;
+            steps[activeStepIndex].content_markdown =
+                currentFullText.substring(0, start) +
+                fullImprovedContent +
+                currentFullText.substring(end);
+
             // Update selection to the new content
+            const newEnd = start + fullImprovedContent.length;
             selectionRange = {
                 start: start,
-                end: currentCursor,
+                end: newEnd,
             };
+
+            if (editorEl) {
+                setTimeout(() => {
+                    editorEl.focus();
+                    editorEl.setSelectionRange(start, newEnd);
+                }, 50);
+            }
         } catch (e: any) {
             console.error(e);
 
@@ -1362,7 +1371,7 @@
                 mode === "feedback" ||
                 mode === "materials"
                     ? "lg:col-span-12 w-full min-w-0"
-                    : "lg:col-span-8 w-full min-w-0"}
+                    : "lg:col-span-9 w-full min-w-0"}
                 in:fade
             >
                 {#if steps.length > 0}
@@ -1453,17 +1462,11 @@
                                             onkeydown={handleKeydown}
                                             onpaste={handlePaste}
                                             readonly={aiLoading}
-                                            class="w-full h-full outline-none text-[#3C4043] dark:text-dark-text font-mono text-base leading-relaxed resize-none bg-transparent {isSplitView ? 'overflow-y-auto pr-2' : ''} {aiLoading ? 'ai-generating' : ''}"
+                                            class="w-full h-full outline-none text-[#3C4043] dark:text-dark-text font-mono text-base leading-relaxed resize-none bg-transparent {isSplitView ? 'overflow-y-auto pr-2' : ''}"
+                                            style={aiLoading ? "cursor: wait;" : ""}
                                             placeholder={$t("editor.start_writing")}
                                             onmouseup={handleMouseUp}
                                         ></textarea>
-
-                                        {#if aiLoading}
-                                            <div 
-                                                class="pointer-events-none absolute z-10 blur-3xl opacity-20 bg-gradient-to-r from-[#4285F4] via-[#A855F7] to-[#EA4335] w-64 h-32 rounded-full animate-pulse"
-                                                style="top: {aiMagicPos.y}px; left: {aiMagicPos.x}px; transform: translate(-50%, -50%);"
-                                            ></div>
-                                        {/if}
 
                                         {#if isSplitView}
                                             <div 
@@ -1481,16 +1484,40 @@
 
                                 {#if showAiMenu}
                                     <div
-                                        class="fixed z-50 animate-in fade-in zoom-in-95 duration-200"
+                                        class="fixed z-50 animate-in fade-in zoom-in-95 duration-200 ai-menu-container"
                                         style="top: {menuPos.y}px; left: {menuPos.x}px;"
                                     >
-                                        <button
-                                            onclick={improveWithAi}
-                                            class="bg-white dark:bg-dark-surface text-[#4285F4] px-4 py-2 rounded-full shadow-xl border border-[#D2E3FC] dark:border-[#4285F4]/30 flex items-center gap-2 font-bold text-sm hover:bg-[#F8F9FA] dark:hover:bg-white/10 transition-all hover:scale-105"
-                                        >
-                                            <Sparkles size={16} />
-                                            {$t("gemini.improve_with_gemini")}
-                                        </button>
+                                        <div class="bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-[#D2E3FC] dark:border-[#4285F4]/30 p-4 w-72 flex flex-col gap-3">
+                                             <div class="flex items-center gap-2 text-[#4285F4] mb-1">
+                                                 <Sparkles size={18} />
+                                                 <span class="font-bold text-sm">{$t("gemini.improve_with_gemini")}</span>
+                                             </div>
+                                             
+                                             <div class="space-y-2">
+                                                 <label for="ai-instruction" class="text-[10px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">
+                                                     {$t("gemini.improvement_instruction")}
+                                                 </label>
+                                                 <textarea
+                                                     id="ai-instruction"
+                                                     bind:value={aiInstruction}
+                                                     placeholder={$t("gemini.improvement_placeholder")}
+                                                     class="w-full h-20 p-2 text-xs bg-[#F8F9FA] dark:bg-white/5 border border-[#DADCE0] dark:border-dark-border rounded-lg outline-none focus:border-[#4285F4] dark:focus:border-[#4285F4] resize-none"
+                                                     onkeydown={(e) => {
+                                                         if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                                                             improveWithAi();
+                                                         }
+                                                     }}
+                                                 ></textarea>
+                                             </div>
+                                
+                                             <button
+                                                 onclick={improveWithAi}
+                                                 class="w-full bg-[#4285F4] hover:bg-[#1A73E8] text-white py-2 rounded-xl text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2"
+                                             >
+                                                 <CheckCircle2 size={16} />
+                                                 {$t("gemini.ai_improve_submit")}
+                                             </button>
+                                        </div>
                                     </div>
                                 {/if}
 
@@ -2213,26 +2240,5 @@
     :global(html.dark .markdown-body h2) {
         color: #e8eaed;
         border-bottom-color: #3c4043;
-    }
-
-    textarea.ai-generating {
-        background: linear-gradient(
-            90deg,
-            rgba(66, 133, 244, 0.02) 25%,
-            rgba(168, 85, 247, 0.05) 50%,
-            rgba(66, 133, 244, 0.02) 75%
-        );
-        background-size: 200% 100%;
-        animation: ai-shimmer 2s infinite linear;
-        cursor: wait;
-    }
-
-    @keyframes ai-shimmer {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
-    }
-
-    textarea.ai-generating::selection {
-        background: rgba(66, 133, 244, 0.3);
     }
 </style>
