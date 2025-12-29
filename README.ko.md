@@ -91,6 +91,10 @@ open-codelabs/
 ### 1. Docker로 실행 (권장)
 가장 간단하게 전체 시스템을 실행하는 방법입니다.
 
+> **참고**: 기본적으로 데이터는 호스트 머신의 `~/open-codelabs` 폴더에 저장됩니다. 저장 위치를 변경하려면 루트 디렉토리의 `.env` 파일에서 `DATA_VOLUME_PATH`를 수정하세요.
+> - **macOS/Linux**: `~/open-codelabs`
+> - **Windows**: `C:/open-codelabs` (슬래시 `/` 사용 권장)
+
 ```bash
 docker-compose up --build
 ```
