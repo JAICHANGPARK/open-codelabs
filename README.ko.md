@@ -6,7 +6,8 @@
 [![Docker](https://img.shields.io/badge/docker-blue.svg)](https://www.docker.com/)
 [![Firebase](https://img.shields.io/badge/firebase-yellow.svg)](https://firebase.google.com/)
 
-**Open Codelabs**는 Google Codelab 스타일의 핸즈온 세션을 손쉽게 운영하고 관리할 수 있도록 설계된 오픈 소스 플랫폼입니다. 최신 기술 스택으로 구축되었으며, 퍼실리테이터(관리자)와 참가자 역할을 모두 지원합니다. 콘텐츠는 Markdown으로 직접 관리하거나 AI를 통해 자동으로 생성할 수 있습니다.
+**Open Codelabs**는 Google Codelab 스타일의 핸즈온 세션을 손쉽게 운영하고 관리할 수 있도록 설계된 오픈 소스 플랫폼입니다. 최신 기술 스택으로 구축되었으며, 퍼실리테이터(관리자)와 참가자
+역할을 모두 지원합니다. 콘텐츠는 Markdown으로 직접 관리하거나 AI를 통해 자동으로 생성할 수 있습니다.
 
 [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md)
 
@@ -16,7 +17,8 @@
 
 - **퍼실리테이터 & 참가자 분리**: 관리자는 코드랩을 생성 및 관리하고, 참가자는 정교하게 설계된 UI를 통해 단계를 따라갈 수 있습니다.
 - **AI 코드랩 생성기**: Google Gemini AI를 사용하여 소스 코드나 참조 문서로부터 전문가 수준의 코드랩을 자동으로 생성합니다.
-- **멀티 런타임 지원**: 로컬/프라이빗 세션을 위한 **Rust (Axum) + SQLite** 백엔드 실행 또는 서버리스 환경을 위한 **Firebase (Firestore/Hosting)** 배포를 지원합니다.
+- **멀티 런타임 지원**: 로컬/프라이빗 세션을 위한 **Rust (Axum) + SQLite** 백엔드 실행 또는 서버리스 환경을 위한 **Firebase (Firestore/Hosting)** 배포를
+  지원합니다.
 - **Google Codelab Look & Feel**: 익숙하고 가독성 높은 구글 스타일의 디자인을 차용했습니다.
 - **간편한 외부 공개**: `ngrok` 및 `bore` 통합 스크립트를 통해 로컬 서버를 즉시 외부에 공개하고 QR 코드로 접속할 수 있게 지원합니다.
 - **다국어 지원**: 글로벌 워크숍 운영을 위한 i18n 지원이 내장되어 있습니다.
@@ -37,10 +39,13 @@ docker compose up --build
 ```
 
 ### 🦭 Podman 사용자 가이드
+
 Podman을 사용하는 경우 `podman-compose`를 사용할 수 있습니다:
+
 ```bash
 podman-compose up --build
 ```
+
 또는 Podman의 Docker 호환 레이어를 사용하세요.
 
 ---
@@ -48,6 +53,7 @@ podman-compose up --build
 ## 🛠 기술 스택
 
 ### Frontend
+
 - **Framework**: [SvelteKit 5](https://svelte.dev/) (Vite + TypeScript)
 - **Runtime**: [Bun](https://bun.sh/)
 - **Styling**: Tailwind CSS 4.0
@@ -55,11 +61,13 @@ podman-compose up --build
 - **i18n**: `svelte-i18n`
 
 ### Backend (자체 호스팅)
+
 - **Language**: [Rust](https://www.rust-lang.org/)
 - **Framework**: Axum (Tokio stack)
 - **Database**: SQLite (via [SQLx](https://github.com/launchbadge/sqlx))
 
 ### Cloud (서버리스 옵션)
+
 - **Platform**: [Firebase](https://firebase.google.com/) (Hosting, Firestore, Storage)
 
 ---
@@ -84,11 +92,13 @@ open-codelabs/
 ## 🚦 시작하기
 
 ### 사전 준비 사항
+
 - [Docker](https://www.docker.com/) & Docker Compose
 - [Bun](https://bun.sh/) (로컬 개발용)
 - [Rust](https://www.rust-lang.org/) (로컬 백엔드 개발용)
 
 ### 1. Docker로 실행 (권장)
+
 가장 간단하게 전체 시스템을 실행하는 방법입니다.
 
 > **참고**: 기본적으로 데이터는 호스트 머신의 `~/open-codelabs` 폴더에 저장됩니다. 저장 위치를 변경하려면 루트 디렉토리의 `.env` 파일에서 `DATA_VOLUME_PATH`를 수정하세요.
@@ -98,12 +108,14 @@ open-codelabs/
 ```bash
 docker-compose up --build
 ```
+
 - **Frontend**: [http://localhost:5173](http://localhost:5173)
 - **Backend API**: [http://localhost:8080](http://localhost:8080)
 
 ### 2. 로컬 개발 환경
 
 #### Backend
+
 ```bash
 cd backend
 # .env 파일 생성 (DATABASE_URL=sqlite:data/sqlite.db?mode=rwc)
@@ -111,6 +123,7 @@ cargo run
 ```
 
 #### Frontend
+
 ```bash
 cd frontend
 bun install
@@ -119,7 +132,9 @@ bun run dev
 ```
 
 ### 3. 클라우드 배포 (AWS / GCP / Firebase)
+
 서버리스 환경이나 클라우드 인프라에서 운영하려면 AWS, GCP 또는 Firebase를 사용할 수 있습니다.
+
 - **AWS**: 컨테이너 기반 또는 VM 배포. [AWS 배포 가이드](docs/self-hosting/aws.md) 참조.
 - **GCP (Cloud Run)**: 컨테이너 기반 배포. [GCP 배포 가이드](docs/self-hosting/gcp.md) 참조.
 - **Firebase**: 가장 빠른 서버리스 설정. [Firebase 배포 가이드](docs/self-hosting/firebase.md) 참조.
@@ -127,7 +142,9 @@ bun run dev
 ---
 
 ## 🤖 AI 코드랩 생성기
+
 Open Codelabs에는 코드를 구조화된 튜토리얼로 변환하는 AI 생성기가 내장되어 있습니다.
+
 1. 설정에서 Gemini API 키를 입력합니다.
 2. 소스 코드나 기술 설명을 제공합니다.
 3. AI가 각 단계, 설명 및 검증 과정을 자동으로 생성합니다.
@@ -135,6 +152,7 @@ Open Codelabs에는 코드를 구조화된 튜토리얼로 변환하는 AI 생�
 ---
 
 ## 🌐 외부 공개하기 (ngrok / bore)
+
 로컬 장비에서 워크숍을 진행할 때 `run-public.sh` 스크립트를 사용하여 외부 접속 주소를 생성할 수 있습니다.
 
 ```bash
@@ -147,10 +165,12 @@ chmod +x run-public.sh
 ---
 
 ## 📚 문서
+
 전체 문서는 GitHub Pages에서 확인할 수 있습니다:
 **[📖 Open Codelabs 문서 보기](https://JAICHANGPARK.github.io/open-codelabs/)**
 
 ---
 
 ## 📄 라이선스
+
 이 프로젝트는 [Apache License 2.0](LICENSE)를 따릅니다.
