@@ -1,0 +1,33 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "codelabs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "is_public",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "codelabs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "owner_id",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "created_at",
+          "order": "DESCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
