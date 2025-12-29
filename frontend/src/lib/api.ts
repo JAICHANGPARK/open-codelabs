@@ -9,6 +9,8 @@ const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true';
 export const ASSET_URL = USE_FIREBASE ? '' : backend.ASSET_URL;
 
 export const listCodelabs = USE_FIREBASE ? firebase.listCodelabs : backend.listCodelabs;
+export const getMyCodelabs = USE_FIREBASE ? firebase.getMyCodelabs : async () => [];
+export const getJoinedCodelabs = USE_FIREBASE ? firebase.getJoinedCodelabs : async () => [];
 export const getCodelab = USE_FIREBASE ? firebase.getCodelab : backend.getCodelab;
 export const createCodelab = USE_FIREBASE ? firebase.createCodelab : backend.createCodelab;
 export const updateCodelab = USE_FIREBASE ? firebase.updateCodelab : backend.updateCodelab;
