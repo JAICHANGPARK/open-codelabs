@@ -107,7 +107,8 @@
         "live_tab": "Live",
         "export_codelab": "Export Codelab",
         "save_changes": "Save Changes",
-        "stuck_on_step": "Stuck on Step {step}"
+        "stuck_on_step": "Stuck on step {step}",
+        "split_view": "Split View"
     },
     "attendee": {
         "join_title": "Join Codelab",
