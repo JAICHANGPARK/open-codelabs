@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback } from './types';
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material } from './types';
 export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback };
 
 const envApiUrl = import.meta.env.VITE_API_URL;
@@ -205,4 +205,43 @@ export async function getFeedback(codelabId: string): Promise<Feedback[]> {
 export function getWsUrl(codelabId: string): string {
     const url = new URL(API_URL.replace('http', 'ws'));
     return `${url.protocol}//${url.host}/api/ws/${codelabId}`;
+}
+
+export async function getMaterials(codelabId: string): Promise<Material[]> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/materials`);
+    if (!res.ok) throw new Error('Failed to fetch materials');
+    return res.json();
+}
+
+export async function addMaterial(codelabId: string, payload: { title: string; material_type: 'link' | 'file'; link_url?: string; file_path?: string }): Promise<Material> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/materials`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            ...getAuthHeader()
+        },
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to add material');
+    return res.json();
+}
+
+export async function deleteMaterial(codelabId: string, materialId: string): Promise<void> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/materials/${materialId}`, {
+        method: 'DELETE',
+        headers: getAuthHeader()
+    });
+    if (!res.ok) throw new Error('Failed to delete material');
+}
+
+export async function uploadMaterial(file: File): Promise<{ url: string; original_name: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_URL}/upload/material`, {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: formData,
+    });
+    if (!res.ok) throw new Error('Upload failed');
+    return res.json();
 }
