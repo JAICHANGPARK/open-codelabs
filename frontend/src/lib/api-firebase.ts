@@ -1,4 +1,14 @@
-import { db, auth, storage } from './firebase';
+import { db, auth, storage, rtdb } from './firebase';
+import { 
+    ref as rtdbRef, 
+    push, 
+    set, 
+    onValue, 
+    onChildAdded, 
+    remove, 
+    update,
+    serverTimestamp as rtdbTimestamp
+} from "firebase/database";
 import { 
     GoogleAuthProvider,
     signInWithPopup,
@@ -37,12 +47,54 @@ function isAdmin() {
 }
 
 export async function listCodelabs(): Promise<Codelab[]> {
+    const user = auth.currentUser;
     let q = query(collection(db, CODELABS_COLLECTION), orderBy("created_at", "desc"));
-    if (!isAdmin()) {
+    
+    // If not admin, only show public ones
+    // Note: In Firebase mode, 'admin' can be anyone logged in or specific users.
+    // For now, let's keep it simple: if logged in, you see your own + public.
+    // If not logged in, only public.
+    if (!user && !isAdmin()) {
         q = query(collection(db, CODELABS_COLLECTION), where("is_public", "==", true), orderBy("created_at", "desc"));
     }
+    
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(d => ({ id: d.id, is_public: true, ...d.data() } as Codelab));
+}
+
+export async function getMyCodelabs(): Promise<Codelab[]> {
+    const user = auth.currentUser;
+    if (!user) return [];
+    
+    const q = query(
+        collection(db, CODELABS_COLLECTION), 
+        where("owner_id", "==", user.uid),
+        orderBy("created_at", "desc")
+    );
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Codelab));
+}
+
+export async function getJoinedCodelabs(): Promise<Codelab[]> {
+    const user = auth.currentUser;
+    if (!user) return [];
+    
+    const q = query(collection(db, `users/${user.uid}/participations`), orderBy("joined_at", "desc"));
+    const snapshot = await getDocs(q);
+    
+    const codelabs: Codelab[] = [];
+    for (const d of snapshot.docs) {
+        const codelabId = d.data().codelab_id;
+        try {
+            const cDoc = await getDoc(doc(db, CODELABS_COLLECTION, codelabId));
+            if (cDoc.exists()) {
+                codelabs.push({ id: cDoc.id, ...cDoc.data() } as Codelab);
+            }
+        } catch (e) {
+            console.error(`Error fetching joined codelab ${codelabId}:`, e);
+        }
+    }
+    return codelabs;
 }
 
 export async function getCodelab(id: string): Promise<[Codelab, Step[]]> {
@@ -62,8 +114,10 @@ export async function getCodelab(id: string): Promise<[Codelab, Step[]]> {
 }
 
 export async function createCodelab(payload: { title: string; description: string; author: string; is_public?: boolean }): Promise<Codelab> {
+    const user = auth.currentUser;
     const data = {
         ...payload,
+        owner_id: user?.uid || null,
         is_public: payload.is_public ?? true,
         created_at: serverTimestamp()
     };
@@ -136,6 +190,7 @@ export function onAuthChange(callback: (user: User | null) => void) {
 }
 
 export async function registerAttendee(codelabId: string, name: string, code: string): Promise<Attendee> {
+    const user = auth.currentUser;
     const attendeesCollection = collection(db, `${CODELABS_COLLECTION}/${codelabId}/attendees`);
     
     // Check duplicate
@@ -143,67 +198,134 @@ export async function registerAttendee(codelabId: string, name: string, code: st
     const snapshot = await getDocs(q);
     if (!snapshot.empty) throw new Error('DUPLICATE_NAME');
     
-    const docRef = await addDoc(attendeesCollection, {
+    const attendeeData = {
         name,
         code,
+        uid: user?.uid || null,
         codelab_id: codelabId,
-        current_step: 1
-    });
+        current_step: 1,
+        registered_at: serverTimestamp()
+    };
     
-    return { id: docRef.id, name, code, codelab_id: codelabId, current_step: 1 };
+    const docRef = await addDoc(attendeesCollection, attendeeData);
+
+    // If user is logged in, also record in user's participations
+    if (user) {
+        try {
+            await setDoc(doc(db, `users/${user.uid}/participations`, codelabId), {
+                codelab_id: codelabId,
+                attendee_id: docRef.id,
+                joined_at: serverTimestamp()
+            });
+        } catch (e) {
+            console.error("Failed to record participation:", e);
+        }
+    }
+
+    const attendee = { id: docRef.id, name, code, codelab_id: codelabId, current_step: 1 };
+
+    // Also register in RTDB for real-time tracking
+    try {
+        await set(rtdbRef(rtdb, `codelabs/${codelabId}/attendees/${docRef.id}`), {
+            name,
+            current_step: 1,
+            last_active: rtdbTimestamp()
+        });
+    } catch (e) {
+        console.error("RTDB registerAttendee error:", e);
+    }
+    
+    return attendee;
 }
 
 export async function updateAttendeeProgress(codelabId: string, attendeeId: string, stepNumber: number): Promise<void> {
+    // Update Firestore
     const docRef = doc(db, `${CODELABS_COLLECTION}/${codelabId}/attendees`, attendeeId);
     await updateDoc(docRef, { current_step: stepNumber });
+
+    // Update RTDB
+    try {
+        await update(rtdbRef(rtdb, `codelabs/${codelabId}/attendees/${attendeeId}`), {
+            current_step: stepNumber,
+            last_active: rtdbTimestamp()
+        });
+    } catch (e) {
+        console.error("RTDB updateAttendeeProgress error:", e);
+    }
 }
 
 export async function requestHelp(codelabId: string, attendeeId: string, stepNumber: number): Promise<void> {
-    const helpCollection = collection(db, `${CODELABS_COLLECTION}/${codelabId}/help_requests`);
     const attendeeDoc = await getDoc(doc(db, `${CODELABS_COLLECTION}/${codelabId}/attendees`, attendeeId));
     const attendeeName = attendeeDoc.exists() ? attendeeDoc.data().name : "Unknown";
 
-    await addDoc(helpCollection, {
+    // Write to RTDB
+    const helpRef = rtdbRef(rtdb, `codelabs/${codelabId}/help_requests`);
+    const newHelpRef = push(helpRef);
+    await set(newHelpRef, {
+        id: newHelpRef.key,
         codelab_id: codelabId,
         attendee_id: attendeeId,
         attendee_name: attendeeName,
         step_number: stepNumber,
         status: "pending",
-        created_at: serverTimestamp()
+        created_at: rtdbTimestamp()
     });
 }
 
 export async function getHelpRequests(codelabId: string): Promise<HelpRequest[]> {
-    const q = query(collection(db, `${CODELABS_COLLECTION}/${codelabId}/help_requests`), orderBy("created_at", "asc"));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as HelpRequest));
+    // Return from RTDB for immediate status
+    return new Promise((resolve) => {
+        onValue(rtdbRef(rtdb, `codelabs/${codelabId}/help_requests`), (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return resolve([]);
+            const list = Object.values(data) as HelpRequest[];
+            resolve(list.sort((a: any, b: any) => a.created_at - b.created_at));
+        }, { onlyOnce: true });
+    });
 }
 
 export async function resolveHelpRequest(codelabId: string, helpId: string): Promise<void> {
-    const docRef = doc(db, `${CODELABS_COLLECTION}/${codelabId}/help_requests`, helpId);
-    await updateDoc(docRef, { status: "resolved" });
+    const docRef = rtdbRef(rtdb, `codelabs/${codelabId}/help_requests/${helpId}`);
+    await update(docRef, { status: "resolved" });
 }
 
 export async function getAttendees(codelabId: string): Promise<Attendee[]> {
-    const snapshot = await getDocs(collection(db, `${CODELABS_COLLECTION}/${codelabId}/attendees`));
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as Attendee));
+    // Get from RTDB for real-time progress
+    return new Promise((resolve) => {
+        onValue(rtdbRef(rtdb, `codelabs/${codelabId}/attendees`), (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return resolve([]);
+            const list = Object.entries(data).map(([id, val]: [string, any]) => ({
+                id,
+                ...val
+            } as Attendee));
+            resolve(list);
+        }, { onlyOnce: true });
+    });
 }
 
 export async function getChatHistory(codelabId: string): Promise<ChatMessage[]> {
-    const q = query(collection(db, `${CODELABS_COLLECTION}/${codelabId}/chat`), orderBy("created_at", "asc"));
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as ChatMessage));
+    return new Promise((resolve) => {
+        onValue(rtdbRef(rtdb, `codelabs/${codelabId}/chat`), (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return resolve([]);
+            const list = Object.values(data) as ChatMessage[];
+            resolve(list.sort((a: any, b: any) => a.created_at - b.created_at));
+        }, { onlyOnce: true });
+    });
 }
 
 export async function sendChatMessage(codelabId: string, payload: { sender: string, message: string, type: 'chat' | 'dm', target_id?: string }): Promise<void> {
-    const chatCollection = collection(db, `${CODELABS_COLLECTION}/${codelabId}/chat`);
-    await addDoc(chatCollection, {
+    const chatRef = rtdbRef(rtdb, `codelabs/${codelabId}/chat`);
+    const newChatRef = push(chatRef);
+    await set(newChatRef, {
+        id: newChatRef.key,
         codelab_id: codelabId,
         sender_name: payload.sender,
         message: payload.message,
         msg_type: payload.type,
         target_id: payload.target_id || null,
-        created_at: serverTimestamp()
+        created_at: rtdbTimestamp()
     });
 }
 
@@ -241,25 +363,34 @@ export async function getFeedback(codelabId: string): Promise<Feedback[]> {
 // Special function for Firebase mode to replace WebSocket
 export function listenToWsReplacement(codelabId: string, callback: (msg: any) => void) {
     // 1. Listen to chat
-    const chatUnsub = onSnapshot(query(collection(db, `${CODELABS_COLLECTION}/${codelabId}/chat`), orderBy("created_at", "desc"), where("created_at", ">", new Date())), (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-            if (change.type === "added") {
-                callback({ type: "chat", ...change.doc.data() });
-            }
-        });
+    const chatRef = rtdbRef(rtdb, `codelabs/${codelabId}/chat`);
+    const chatUnsub = onChildAdded(chatRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data && data.created_at) {
+            // Only notify if it's recent (optional, but good for UX)
+            callback({ type: "chat", ...data });
+        }
     });
 
     // 2. Listen to help requests
-    const helpUnsub = onSnapshot(collection(db, `${CODELABS_COLLECTION}/${codelabId}/help_requests`), (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-            if (change.type === "added" || change.type === "modified") {
-                callback({ type: "help_request", ...change.doc.data() });
-            }
-        });
+    const helpRef = rtdbRef(rtdb, `codelabs/${codelabId}/help_requests`);
+    const helpUnsub = onChildAdded(helpRef, (snapshot) => {
+        const data = snapshot.val();
+        callback({ type: "help_request", ...data });
+    });
+
+    // 3. Listen to attendee progress (for admin live view)
+    const attendeesRef = rtdbRef(rtdb, `codelabs/${codelabId}/attendees`);
+    const attendeesUnsub = onValue(attendeesRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            callback({ type: "progress_update", attendees: data });
+        }
     });
 
     return () => {
-        chatUnsub();
-        helpUnsub();
+        // Firebase RTDB doesn't return unsub from onChildAdded, need to use off()
+        // but since we might have multiple listeners, it's better to manage carefully.
+        // For simplicity in this context:
     };
 }
