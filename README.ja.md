@@ -93,7 +93,7 @@ bun run dev
 ```
 
 ### 3. Firebase デプロイ (サーバーレスモード)
-ローカルの Rust サーバーなしで運営したい場合は、Firebase を使用できます。詳細は [DEPLOY_FIREBASE.md](DEPLOY_FIREBASE.md) を参照してください。
+ローカルの Rust サーバーなしで運営したい場合は、Firebase を使用できます。詳細は [DEPLOY_FIREBASE.md](docs/deploy/DEPLOY_FIREBASE.md) を参照してください。
 
 ---
 
