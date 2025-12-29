@@ -1,8 +1,8 @@
 import * as backend from './api-backend';
 import * as firebase from './api-firebase';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback } from './types';
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material } from './types';
 
-export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback };
+export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material };
 
 const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true';
 
@@ -32,6 +32,19 @@ export const sendChatMessage = USE_FIREBASE ? firebase.sendChatMessage : async (
 export const uploadImage = USE_FIREBASE ? firebase.uploadImage : backend.uploadImage;
 export const submitFeedback = USE_FIREBASE ? firebase.submitFeedback : backend.submitFeedback;
 export const getFeedback = USE_FIREBASE ? firebase.getFeedback : backend.getFeedback;
+
+export const getMaterials = USE_FIREBASE 
+    ? async () => [] 
+    : backend.getMaterials;
+export const addMaterial = USE_FIREBASE 
+    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    : backend.addMaterial;
+export const deleteMaterial = USE_FIREBASE 
+    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    : backend.deleteMaterial;
+export const uploadMaterial = USE_FIREBASE 
+    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    : backend.uploadMaterial;
 
 // Export specialized functions
 export const getWsUrl = backend.getWsUrl;
