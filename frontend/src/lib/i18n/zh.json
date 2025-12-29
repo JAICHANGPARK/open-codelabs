@@ -107,7 +107,8 @@
         "live_tab": "实时",
         "export_codelab": "导出代码实验室",
         "save_changes": "保存更改",
-        "stuck_on_step": "卡在第 {step} 步"
+        "stuck_on_step": "卡在第 {step} 步",
+        "split_view": "分栏视图"
     },
     "attendee": {
         "join_title": "加入代码实验室",
