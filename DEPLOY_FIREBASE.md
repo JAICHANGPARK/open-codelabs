@@ -28,6 +28,7 @@ VITE_FIREBASE_PROJECT_ID=your_project_id
 VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
 VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_DATABASE_URL=https://your_project.firebaseio.com
 ```
 
 ## 3. SvelteKit Adapter 변경 (권장)
@@ -70,6 +71,7 @@ Firebase Hosting에 정적 사이트로 배포하려면 `adapter-static`을 사�
 
 ## 주의사항
 
-- **실시간 기능**: Firebase 모드에서는 WebSocket 대신 Firestore의 Snapshot 기능을 사용하여 실시간 채팅 및 진행 상황 공유를 구현합니다.
-- **보안 규칙**: `firestore.rules`를 적절히 수정하여 데이터 보안을 강화하세요.
+- **실시간 기능**: Firebase 모드에서는 Firebase Realtime Database를 사용하여 실시간 채팅, 도움 요청 및 진행 상황 공유를 구현합니다.
+- **구글 로그인**: Firebase 인증의 구글 로그인을 지원하며, 로그인한 사용자는 코드랩 생성 및 참여가 가능합니다.
+- **보안 규칙**: `firestore.rules`와 Realtime Database 보안 규칙을 적절히 수정하여 데이터 보안을 강화하세요.
 - **제한 사항**: 현재 Firebase 모드에서는 코드랩 내보내기/가져오기 기능이 지원되지 않습니다.
