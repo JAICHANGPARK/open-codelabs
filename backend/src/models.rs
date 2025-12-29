@@ -123,6 +123,25 @@ pub struct Feedback {
     pub created_at: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, Clone)]
+pub struct Material {
+    pub id: String,
+    pub codelab_id: String,
+    pub title: String,
+    pub material_type: String, // "link" or "file"
+    pub link_url: Option<String>,
+    pub file_path: Option<String>,
+    pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateMaterial {
+    pub title: String,
+    pub material_type: String,
+    pub link_url: Option<String>,
+    pub file_path: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
