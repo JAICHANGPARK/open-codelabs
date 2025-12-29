@@ -11,7 +11,8 @@ use tower_http::services::ServeDir;
 use crate::handlers::{
     admin::login,
     attendees::{
-        get_attendees, get_help_requests, register_attendee, request_help, resolve_help_request,
+        complete_codelab, get_attendees, get_certificate, get_help_requests, register_attendee,
+        request_help, resolve_help_request,
     },
     codelabs::{
         create_codelab, delete_codelab, export_codelab, get_chat_history, get_codelab,
@@ -19,6 +20,7 @@ use crate::handlers::{
     },
     feedback::{get_feedback, submit_feedback},
     materials::{add_material, delete_material, get_materials, upload_material_file},
+    quizzes::{get_quizzes, update_quizzes},
     upload::upload_image,
     websocket::ws_handler,
 };
@@ -38,7 +40,9 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/api/codelabs/{id}/export", get(export_codelab))
         .route("/api/codelabs/import", post(import_codelab))
         .route("/api/codelabs/{id}/register", post(register_attendee))
+        .route("/api/codelabs/{id}/complete", post(complete_codelab))
         .route("/api/codelabs/{id}/attendees", get(get_attendees))
+        .route("/api/certificates/{id}", get(get_certificate))
         .route(
             "/api/codelabs/{id}/help",
             post(request_help).get(get_help_requests),
@@ -59,6 +63,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             "/api/codelabs/{id}/materials/{material_id}",
             delete(delete_material),
         )
+        .route("/api/codelabs/{id}/quizzes", get(get_quizzes).put(update_quizzes))
         .route("/api/codelabs/{id}/chat", get(get_chat_history))
         .route("/api/upload/image", post(upload_image))
         .route("/api/upload/material", post(upload_material_file))

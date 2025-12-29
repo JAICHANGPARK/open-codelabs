@@ -31,6 +31,7 @@
         type ChatMessage,
         type Feedback,
         type Material,
+        type Quiz,
     } from "$lib/api";
     import { streamGeminiResponseRobust } from "$lib/gemini";
     import { decrypt } from "$lib/crypto";
@@ -38,6 +39,10 @@
     import QRCode from "svelte-qrcode";
     import { adminMarked as marked } from "$lib/markdown";
     import DOMPurify from "dompurify";
+    import { 
+        getQuizzes, 
+        updateQuizzes, 
+    } from "$lib/api";
     // ... icons imports ...
     import {
         ChevronLeft,
@@ -76,11 +81,12 @@
 
     // Initialize mode from URL or default to 'edit'
     let initialMode = page.url.searchParams.get("mode");
-    let mode = $state<"edit" | "preview" | "live" | "feedback" | "materials">(
+    let mode = $state<"edit" | "preview" | "live" | "feedback" | "materials" | "quiz">(
         initialMode === "preview" ||
             initialMode === "live" ||
             initialMode === "feedback" ||
-            initialMode === "materials"
+            initialMode === "materials" ||
+            initialMode === "quiz"
             ? (initialMode as any)
             : "edit",
     );
@@ -96,6 +102,9 @@
     let helpRequests = $state<HelpRequest[]>([]);
     let feedbacks = $state<Feedback[]>([]); // Feedback
     let materials = $state<Material[]>([]);
+    let quizzes = $state<Quiz[]>([]);
+    let isQuizGenerating = $state(false);
+    let numQuizToGenerate = $state(5);
     let ws = $state<WebSocket | null>(null);
     let chatMessage = $state("");
     let messages = $state<
@@ -189,6 +198,8 @@
             loadFeedback();
         } else if (mode === "materials") {
             loadMaterials();
+        } else if (mode === "quiz") {
+            loadQuizzes();
         } else if (mode === "live") {
             refreshLiveData();
             scrollToBottom();
@@ -376,8 +387,10 @@
 
             if (editorEl) {
                 setTimeout(() => {
-                    editorEl.focus();
-                    editorEl.setSelectionRange(start, newEnd);
+                    if (editorEl) {
+                        editorEl.focus();
+                        editorEl.setSelectionRange(start, newEnd);
+                    }
                 }, 50);
             }
         } catch (e: any) {
@@ -405,6 +418,97 @@
             alert(errorMessage);
         } finally {
             aiLoading = false;
+        }
+    }
+
+    async function loadQuizzes() {
+        try {
+            const rawQuizzes = await getQuizzes(id);
+            quizzes = rawQuizzes.map(q => ({
+                ...q,
+                options: JSON.parse(q.options)
+            }));
+        } catch (e) {
+            console.error("Failed to load quizzes:", e);
+        }
+    }
+
+    function addEmptyQuiz() {
+        quizzes = [...quizzes, {
+            id: "",
+            codelab_id: id,
+            question: "",
+            options: ["", "", "", "", ""],
+            correct_answer: 0
+        } as any];
+    }
+
+    function removeQuiz(index: number) {
+        quizzes = quizzes.filter((_, i) => i !== index);
+    }
+
+    async function handleQuizSave() {
+        if (!codelab) return;
+        isSaving = true;
+        try {
+            await updateQuizzes(id, quizzes.map(q => ({
+                question: q.question,
+                options: Array.isArray(q.options) ? q.options : JSON.parse(q.options as any),
+                correct_answer: q.correct_answer
+            })));
+            saveSuccess = true;
+            setTimeout(() => (saveSuccess = false), 3000);
+        } catch (e) {
+            console.error("Failed to save quizzes:", e);
+            alert("Failed to save quizzes");
+        } finally {
+            isSaving = false;
+        }
+    }
+
+    async function generateQuizWithAi() {
+        if (!geminiApiKey) {
+            alert($t("ai_generator.api_key_required"));
+            return;
+        }
+        isQuizGenerating = true;
+        
+        try {
+            const context = steps.map(s => `Step ${s.step_number}: ${s.title}\n${s.content_markdown}`).join("\n\n");
+            const prompt = `Based on the following codelab content, generate ${numQuizToGenerate} multiple-choice questions. 
+            Each question must have exactly 5 options. 
+            Return ONLY a valid JSON array of objects with this structure:
+            [{"question": "string", "options": ["string", "string", "string", "string", "string"], "correct_answer": number (0-4)}]
+            
+            Codelab Content:
+            ${context}`;
+
+            const stream = streamGeminiResponseRobust(prompt, "You are a helpful education assistant that generates quizzes.", {
+                apiKey: geminiApiKey
+            });
+
+            let responseText = "";
+            for await (const chunk of stream) {
+                responseText += chunk;
+            }
+
+            // Extract JSON from response (sometimes Gemini adds markdown code blocks)
+            const jsonMatch = responseText.match(/\[.*\]/s);
+            if (jsonMatch) {
+                const newQuizzes = JSON.parse(jsonMatch[0]);
+                quizzes = [...quizzes, ...newQuizzes.map((q: any) => ({
+                    ...q,
+                    id: "",
+                    codelab_id: id
+                }))];
+            } else {
+                throw new Error("Failed to parse AI response as JSON");
+            }
+        } catch (e) {
+            console.error("Quiz generation failed:", e);
+            alert("Quiz generation failed: " + e);
+        } finally {
+            isQuizGenerating = false;
         }
     }
 
@@ -1181,6 +1285,16 @@
                         <Paperclip size={14} />
                         <span class="hidden sm:inline">{$t("editor.materials_tab")}</span>
                     </button>
+                    <button
+                        onclick={() => (mode = "quiz")}
+                        class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                        'quiz'
+                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
+                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
+                    >
+                        <Sparkles size={14} />
+                        <span class="hidden sm:inline">{$t("editor.quiz_tab")}</span>
+                    </button>
                 </div>
                 <button
                     onclick={handleSave}
@@ -1371,7 +1485,7 @@
                 mode === "feedback" ||
                 mode === "materials"
                     ? "lg:col-span-12 w-full min-w-0"
-                    : "lg:col-span-9 w-full min-w-0"}
+                    : "lg:col-span-8 w-full min-w-0"}
                 in:fade
             >
                 {#if steps.length > 0}
@@ -2168,6 +2282,127 @@
                                                 </p>
                                             </div>
                                         {/if}
+                                    </div>
+                                </div>
+                            {:else if mode === "quiz"}
+                                <div
+                                    class="bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden min-h-[70vh] flex flex-col"
+                                    in:fade
+                                >
+                                    <div class="p-6 sm:p-8 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/30 dark:bg-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
+                                        <div>
+                                            <h3 class="text-xl font-bold text-[#202124] dark:text-dark-text">{$t("editor.quiz_tab")}</h3>
+                                            <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">{$t("editor.quiz_settings")}</p>
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <div class="flex items-center gap-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border px-3 py-1.5 rounded-xl shadow-sm">
+                                                <span class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted">{$t("editor.num_questions")}</span>
+                                                <input type="number" bind:value={numQuizToGenerate} min="1" max="10" class="w-12 text-center font-bold outline-none bg-transparent" />
+                                            </div>
+                                            <button
+                                                onclick={generateQuizWithAi}
+                                                disabled={isQuizGenerating}
+                                                class="bg-[#4285F4] hover:bg-[#1A73E8] disabled:opacity-50 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-md flex items-center gap-2"
+                                            >
+                                                {#if isQuizGenerating}
+                                                    <Loader2 size={16} class="animate-spin" />
+                                                {:else}
+                                                    <Sparkles size={16} />
+                                                {/if}
+                                                {$t("editor.generate_quiz")}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="p-6 sm:p-8 flex-1 overflow-y-auto space-y-8">
+                                        {#if codelab}
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                                                <div class="bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-2xl border border-[#E8EAED] dark:border-dark-border">
+                                                    <h4 class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-widest mb-4">{$t("editor.cert_requirements")}</h4>
+                                                    <div class="space-y-4">
+                                                        <label class="flex items-center gap-3 cursor-pointer group">
+                                                            <div class="relative flex items-center">
+                                                                <input type="checkbox" bind:checked={codelab.require_quiz} class="peer sr-only" />
+                                                                <div class="h-6 w-11 rounded-full bg-[#DADCE0] after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-[#4285F4] peer-checked:after:translate-x-full peer-focus:ring-2 peer-focus:ring-[#4285F4]/20"></div>
+                                                            </div>
+                                                            <span class="text-sm font-bold text-[#3C4043] dark:text-dark-text group-hover:text-[#4285F4] transition-colors">{$t("editor.require_quiz")}</span>
+                                                        </label>
+                                                        <label class="flex items-center gap-3 cursor-pointer group">
+                                                            <div class="relative flex items-center">
+                                                                <input type="checkbox" bind:checked={codelab.require_feedback} class="peer sr-only" />
+                                                                <div class="h-6 w-11 rounded-full bg-[#DADCE0] after:absolute after:left-[2px] after:top-[2px] after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all peer-checked:bg-[#34A853] peer-checked:after:translate-x-full peer-focus:ring-2 peer-focus:ring-[#34A853]/20"></div>
+                                                            </div>
+                                                            <span class="text-sm font-bold text-[#3C4043] dark:text-dark-text group-hover:text-[#34A853] transition-colors">{$t("editor.require_feedback")}</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {/if}
+
+                                        <div class="space-y-6">
+                                            {#each quizzes as quiz, qIndex}
+                                                <div class="bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl shadow-sm overflow-hidden group">
+                                                    <div class="p-4 bg-[#F8F9FA] dark:bg-white/5 border-b border-[#F1F3F4] dark:border-dark-border flex justify-between items-center">
+                                                        <span class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-tighter">Question {qIndex + 1}</span>
+                                                        <button onclick={() => removeQuiz(qIndex)} class="p-1.5 text-[#5F6368] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all">
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    </div>
+                                                    <div class="p-6 space-y-6">
+                                                        <div class="space-y-2">
+                                                            <label class="text-[10px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">{$t("editor.quiz_question")}</label>
+                                                            <input type="text" bind:value={quiz.question} placeholder="Enter your question here..." class="w-full text-lg font-bold outline-none bg-transparent border-b-2 border-transparent focus:border-[#4285F4] transition-all" />
+                                                        </div>
+                                                        <div class="space-y-3">
+                                                            <label class="text-[10px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">{$t("editor.quiz_options")}</label>
+                                                            <div class="grid grid-cols-1 gap-2">
+                                                                {#each quiz.options as option, oIndex}
+                                                                    <div class="flex items-center gap-3 group/opt">
+                                                                        <button 
+                                                                            onclick={() => quiz.correct_answer = oIndex}
+                                                                            class="w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all {quiz.correct_answer === oIndex ? 'bg-[#34A853] border-[#34A853] text-white' : 'border-[#DADCE0] dark:border-dark-border text-transparent hover:border-[#34A853]'}"
+                                                                        >
+                                                                            <Check size={14} />
+                                                                        </button>
+                                                                        <input 
+                                                                            type="text" 
+                                                                            bind:value={quiz.options[oIndex]} 
+                                                                            placeholder="Option {oIndex + 1}"
+                                                                            class="flex-1 bg-[#F8F9FA] dark:bg-white/5 border border-transparent focus:border-[#DADCE0] dark:focus:border-dark-border rounded-xl px-4 py-2 text-sm transition-all {quiz.correct_answer === oIndex ? 'font-bold text-[#137333] dark:text-green-400' : ''}"
+                                                                        />
+                                                                    </div>
+                                                                {/each}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {/each}
+                                            
+                                            <button
+                                                onclick={addEmptyQuiz}
+                                                class="w-full py-4 border-2 border-dashed border-[#DADCE0] dark:border-dark-border rounded-2xl text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:border-[#4285F4] hover:bg-[#F8F9FA] dark:hover:bg-white/5 transition-all flex items-center justify-center gap-2 font-bold"
+                                            >
+                                                <Plus size={20} />
+                                                {$t("editor.add_quiz")}
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="p-6 border-t border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface flex justify-end">
+                                        <button
+                                            onclick={handleQuizSave}
+                                            disabled={isSaving}
+                                            class="bg-[#1E8E3E] hover:bg-[#137333] disabled:opacity-50 text-white px-8 py-3 rounded-full font-bold shadow-lg transition-all active:scale-95 flex items-center gap-2"
+                                        >
+                                            {#if isSaving}
+                                                <Loader2 size={20} class="animate-spin" />
+                                            {:else if saveSuccess}
+                                                <CheckCircle2 size={20} />
+                                            {:else}
+                                                <Save size={20} />
+                                            {/if}
+                                            {$t("editor.save_content")}
+                                        </button>
                                     </div>
                                 </div>
                             {/if}

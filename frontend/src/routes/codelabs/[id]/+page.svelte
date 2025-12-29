@@ -12,6 +12,8 @@
         getChatHistory,
         ASSET_URL,
         submitFeedback,
+        completeCodelab,
+        getQuizzes,
         isFirebaseMode,
         listenToWsReplacement,
         sendChatMessage,
@@ -83,6 +85,13 @@
     let materials = $state<Material[]>([]);
 
     let attendee = $state<Attendee | null>(null);
+
+    // Quiz State
+    let quizzes = $state<any[]>([]);
+    let quizAnswers = $state<number[]>([]);
+    let quizSubmitted = $state(false);
+    let quizCorrectCount = $state(0);
+    let isQuizPassed = $derived(quizSubmitted && quizCorrectCount === quizzes.length);
 
     // Feedback State
     let feedbackDifficulty = $state(3);
@@ -205,6 +214,15 @@
             getMaterials(id).then((m) => {
                 materials = m;
             }).catch(e => console.error("Failed to load materials", e));
+
+            // Load Quizzes
+            getQuizzes(id).then(q => {
+                quizzes = q.map(i => ({
+                    ...i, 
+                    options: typeof i.options === 'string' ? JSON.parse(i.options) : i.options
+                }));
+                quizAnswers = new Array(quizzes.length).fill(-1);
+            }).catch(e => console.error("Failed to load quizzes", e));
 
             await loadChatHistory();
             wsCleanup = initWebSocket();
@@ -460,6 +478,21 @@
         }
     }
 
+    function handleQuizSubmit() {
+        let correct = 0;
+        quizzes.forEach((q, i) => {
+            if (quizAnswers[i] === q.correct_answer) {
+                correct++;
+            }
+        });
+        quizCorrectCount = correct;
+        quizSubmitted = true;
+        
+        if (correct === quizzes.length) {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
+    }
+
     async function handleFeedbackSubmit() {
         if (feedbackSubmitting || !attendee) return;
         feedbackSubmitting = true;
@@ -470,6 +503,14 @@
                 comments: feedbackComment,
                 attendee_id: attendee.id,
             });
+            
+            // Mark as completed in backend
+            try {
+                await completeCodelab(id, attendee.id);
+            } catch (ce) {
+                console.error("Complete codelab error", ce);
+            }
+
             feedbackSubmitted = true;
         } catch (e: any) {
             console.error("Feedback error", e);
@@ -754,7 +795,69 @@
                             {$t("feedback.done_desc", { values: { title: codelab?.title } })}
                         </p>
 
-                        {#if !feedbackSubmitted}
+                        {#if quizzes.length > 0 && !isQuizPassed}
+                            <div class="max-w-2xl w-full bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-3xl p-8 mb-12 text-left shadow-lg transition-all">
+                                <div class="flex items-center gap-3 mb-8">
+                                    <div class="p-2 bg-[#4285F4]/10 rounded-xl text-[#4285F4]">
+                                        <Sparkles size={24} />
+                                    </div>
+                                    <h2 class="text-2xl font-bold text-[#202124] dark:text-dark-text">{$t("editor.quiz_tab")}</h2>
+                                </div>
+                                
+                                <div class="space-y-10">
+                                    {#each quizzes as q, i}
+                                        <div class="space-y-4">
+                                            <p class="font-bold text-lg text-[#3C4043] dark:text-dark-text flex gap-3">
+                                                <span class="text-[#4285F4]">Q{i+1}.</span>
+                                                {q.question}
+                                            </p>
+                                            <div class="grid grid-cols-1 gap-3 pl-8">
+                                                {#each q.options as opt, oi}
+                                                    <button 
+                                                        onclick={() => { if(!quizSubmitted) quizAnswers[i] = oi }}
+                                                        class="w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-4 {quizAnswers[i] === oi ? 'border-[#4285F4] bg-[#E8F0FE]/50 dark:bg-[#4285F4]/10 text-[#1967D2] dark:text-[#4285F4]' : 'border-[#F1F3F4] dark:border-dark-border hover:border-[#DADCE0] dark:hover:border-dark-border'}"
+                                                        disabled={quizSubmitted}
+                                                    >
+                                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 {quizAnswers[i] === oi ? 'border-[#4285F4] bg-[#4285F4] text-white' : 'border-[#DADCE0] dark:border-dark-border text-transparent'}">
+                                                            <Check size={14} />
+                                                        </div>
+                                                        <span class="font-medium">{opt}</span>
+                                                    </button>
+                                                {/each}
+                                            </div>
+                                            {#if quizSubmitted && quizAnswers[i] !== q.correct_answer}
+                                                <p class="text-[#EA4335] text-sm font-bold pl-8 flex items-center gap-2">
+                                                    <AlertCircle size={16} />
+                                                    Correct answer: {q.options[q.correct_answer]}
+                                                </p>
+                                            {/if}
+                                        </div>
+                                    {/each}
+                                </div>
+
+                                <div class="mt-12 flex flex-col items-center gap-4">
+                                    <button 
+                                        onclick={handleQuizSubmit}
+                                        disabled={quizAnswers.includes(-1) || quizSubmitted}
+                                        class="bg-[#4285F4] text-white px-12 py-4 rounded-full font-bold text-lg shadow-md hover:bg-[#1A73E8] disabled:opacity-50 transition-all active:scale-95 flex items-center gap-2"
+                                    >
+                                        <CheckCircle2 size={24} />
+                                        Submit Answers
+                                    </button>
+                                    {#if quizSubmitted && !isQuizPassed}
+                                        <p class="text-[#EA4335] font-bold">You got {quizCorrectCount} / {quizzes.length} correct. Please try again!</p>
+                                        <button 
+                                            onclick={() => { quizSubmitted = false; quizAnswers = new Array(quizzes.length).fill(-1); }}
+                                            class="text-[#4285F4] font-bold hover:underline"
+                                        >
+                                            Retry Quiz
+                                        </button>
+                                    {/if}
+                                </div>
+                            </div>
+                        {/if}
+
+                        {#if !feedbackSubmitted && (isQuizPassed || quizzes.length === 0 || !codelab?.require_quiz)}
                             <div
                                 class="max-w-md w-full bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-6 mb-8 text-left shadow-sm transition-colors"
                             >
@@ -857,6 +960,14 @@
                         {/if}
 
                         <div class="flex flex-wrap justify-center gap-4">
+                            <a
+                                href="/certificate/{attendee?.id}"
+                                target="_blank"
+                                class="bg-[#4285F4] text-white hover:bg-[#1A73E8] px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
+                            >
+                                <FileText size={20} />
+                                {$t("feedback.get_certificate")}
+                            </a>
                             <a
                                 href="/codelabs/{id}/live"
                                 class="bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border text-[#4285F4] hover:bg-[#F8F9FA] dark:hover:bg-white/5 px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"

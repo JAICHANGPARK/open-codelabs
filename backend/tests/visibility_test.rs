@@ -42,6 +42,9 @@ async fn test_codelab_visibility() {
         description: "Public".to_string(),
         author: "Author".to_string(),
         is_public: Some(true),
+        quiz_enabled: None,
+        require_quiz: None,
+        require_feedback: None,
     };
     app.clone()
         .oneshot(
@@ -61,6 +64,9 @@ async fn test_codelab_visibility() {
         description: "Private".to_string(),
         author: "Author".to_string(),
         is_public: Some(false),
+        quiz_enabled: None,
+        require_quiz: None,
+        require_feedback: None,
     };
     let res = app.clone()
         .oneshot(

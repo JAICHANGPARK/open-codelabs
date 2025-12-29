@@ -76,13 +76,19 @@ pub async fn create_codelab(
 ) -> Result<Json<Codelab>, (StatusCode, String)> {
     let id = uuid::Uuid::new_v4().to_string();
     let is_public = payload.is_public.unwrap_or(true);
+    let quiz_enabled = payload.quiz_enabled.unwrap_or(false);
+    let require_quiz = payload.require_quiz.unwrap_or(false);
+    let require_feedback = payload.require_feedback.unwrap_or(false);
 
-    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public) VALUES (?, ?, ?, ?, ?)"))
+    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public, quiz_enabled, require_quiz, require_feedback) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"))
         .bind(&id)
         .bind(&payload.title)
         .bind(&payload.description)
         .bind(&payload.author)
         .bind(is_public as i32)
+        .bind(quiz_enabled as i32)
+        .bind(require_quiz as i32)
+        .bind(require_feedback as i32)
         .execute(&state.pool)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
@@ -102,11 +108,18 @@ pub async fn update_codelab_info(
     Json(payload): Json<CreateCodelab>,
 ) -> Result<Json<Codelab>, (StatusCode, String)> {
     let is_public = payload.is_public.unwrap_or(true);
-    sqlx::query(&state.q("UPDATE codelabs SET title = ?, description = ?, author = ?, is_public = ? WHERE id = ?"))
+    let quiz_enabled = payload.quiz_enabled.unwrap_or(false);
+    let require_quiz = payload.require_quiz.unwrap_or(false);
+    let require_feedback = payload.require_feedback.unwrap_or(false);
+
+    sqlx::query(&state.q("UPDATE codelabs SET title = ?, description = ?, author = ?, is_public = ?, quiz_enabled = ?, require_quiz = ?, require_feedback = ? WHERE id = ?"))
         .bind(&payload.title)
         .bind(&payload.description)
         .bind(&payload.author)
         .bind(is_public as i32)
+        .bind(quiz_enabled as i32)
+        .bind(require_quiz as i32)
+        .bind(require_feedback as i32)
         .bind(&id)
         .execute(&state.pool)
         .await
@@ -292,12 +305,15 @@ pub async fn import_codelab(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public) VALUES (?, ?, ?, ?, ?)"))
+    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public, quiz_enabled, require_quiz, require_feedback) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"))
         .bind(&codelab.id)
         .bind(&codelab.title)
         .bind(&codelab.description)
         .bind(&codelab.author)
         .bind(codelab.is_public)
+        .bind(codelab.quiz_enabled)
+        .bind(codelab.require_quiz)
+        .bind(codelab.require_feedback)
         .execute(&mut *tx)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;

@@ -4,6 +4,18 @@ export interface Codelab {
     description: string;
     author: string;
     is_public: boolean;
+    quiz_enabled: boolean;
+    require_quiz: boolean;
+    require_feedback: boolean;
+    created_at?: string;
+}
+
+export interface Quiz {
+    id: string;
+    codelab_id: string;
+    question: string;
+    options: string; // JSON string
+    correct_answer: number;
     created_at?: string;
 }
 
@@ -59,4 +71,12 @@ export interface Material {
     link_url?: string;
     file_path?: string;
     created_at?: string;
+}
+
+export interface CertificateInfo {
+    attendee_name: string;
+    codelab_title: string;
+    author: string;
+    completed_at: string;
+    verification_url: string;
 }

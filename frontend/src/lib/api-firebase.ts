@@ -113,26 +113,46 @@ export async function getCodelab(id: string): Promise<[Codelab, Step[]]> {
     return [codelab, steps];
 }
 
-export async function createCodelab(payload: { title: string; description: string; author: string; is_public?: boolean }): Promise<Codelab> {
+export async function createCodelab(payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean }): Promise<Codelab> {
     const user = auth.currentUser;
     const data = {
         ...payload,
         owner_id: user?.uid || null,
         is_public: payload.is_public ?? true,
+        quiz_enabled: payload.quiz_enabled ?? false,
+        require_quiz: payload.require_quiz ?? false,
+        require_feedback: payload.require_feedback ?? false,
         created_at: serverTimestamp()
     };
     const docRef = await addDoc(collection(db, CODELABS_COLLECTION), data);
-    return { id: docRef.id, is_public: data.is_public, ...payload };
+    return { 
+        id: docRef.id, 
+        is_public: data.is_public, 
+        quiz_enabled: data.quiz_enabled,
+        require_quiz: data.require_quiz,
+        require_feedback: data.require_feedback,
+        ...payload 
+    } as Codelab;
 }
 
-export async function updateCodelab(id: string, payload: { title: string; description: string; author: string; is_public?: boolean }): Promise<Codelab> {
+export async function updateCodelab(id: string, payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean }): Promise<Codelab> {
     const docRef = doc(db, CODELABS_COLLECTION, id);
     const data = {
         ...payload,
-        is_public: payload.is_public ?? true
+        is_public: payload.is_public ?? true,
+        quiz_enabled: payload.quiz_enabled ?? false,
+        require_quiz: payload.require_quiz ?? false,
+        require_feedback: payload.require_feedback ?? false,
     };
     await updateDoc(docRef, data);
-    return { id, is_public: data.is_public, ...payload };
+    return { 
+        id, 
+        is_public: data.is_public, 
+        quiz_enabled: data.quiz_enabled,
+        require_quiz: data.require_quiz,
+        require_feedback: data.require_feedback,
+        ...payload 
+    } as Codelab;
 }
 
 export async function saveSteps(codelabId: string, steps: { title: string, content_markdown: string }[]): Promise<void> {

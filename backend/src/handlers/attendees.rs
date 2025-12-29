@@ -1,4 +1,4 @@
-use crate::models::{Attendee, HelpRequest, HelpRequestPayload, RegistrationPayload, Codelab};
+use crate::models::{Attendee, HelpRequest, HelpRequestPayload, RegistrationPayload, Codelab, CertificateInfo};
 use crate::state::AppState;
 use axum::{
     extract::{Path, State},
@@ -140,24 +140,58 @@ pub async fn get_help_requests(
 }
 
 pub async fn resolve_help_request(
-    Path((codelab_id, help_id)): Path<(String, String)>,
     State(state): State<Arc<AppState>>,
+    Path((_id, help_id)): Path<(String, String)>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
     sqlx::query(&state.q("UPDATE help_requests SET status = 'resolved' WHERE id = ?"))
-        .bind(&help_id)
+        .bind(help_id)
         .execute(&state.pool)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    // Notify via WebSocket
-    if let Some(res) = state.channels.get(&codelab_id) {
-        let msg = serde_json::json!({
-            "type": "help_resolved",
-            "id": help_id,
-        })
-        .to_string();
-        let _ = res.send(msg);
-    }
+    Ok(Json(serde_json::json!({ "status": "ok" })))
+}
+
+pub async fn complete_codelab(
+    Path(id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+    let attendee_id = headers
+        .get("X-Attendee-ID")
+        .and_then(|h| h.to_str().ok())
+        .ok_or((StatusCode::UNAUTHORIZED, "Missing Attendee ID".to_string()))?;
+
+    sqlx::query(&state.q("UPDATE attendees SET is_completed = 1, completed_at = CURRENT_TIMESTAMP WHERE id = ? AND codelab_id = ?"))
+        .bind(attendee_id)
+        .bind(&id)
+        .execute(&state.pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     Ok(Json(serde_json::json!({ "status": "ok" })))
+}
+
+pub async fn get_certificate(
+    Path(attendee_id): Path<String>,
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<CertificateInfo>, (StatusCode, String)> {
+    let row: (String, String, String, String) = sqlx::query_as(&state.q(
+        "SELECT a.name as attendee_name, c.title as codelab_title, c.author, a.completed_at 
+         FROM attendees a 
+         JOIN codelabs c ON a.codelab_id = c.id 
+         WHERE a.id = ? AND a.is_completed = 1"
+    ))
+    .bind(&attendee_id)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    Ok(Json(CertificateInfo {
+        attendee_name: row.0,
+        codelab_title: row.1,
+        author: row.2,
+        completed_at: row.3,
+        verification_url: format!("/verify/{}", attendee_id),
+    }))
 }

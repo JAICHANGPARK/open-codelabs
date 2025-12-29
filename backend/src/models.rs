@@ -8,7 +8,30 @@ pub struct Codelab {
     pub author: String,
     #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
     pub is_public: i32,
+    #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
+    pub quiz_enabled: i32,
+    #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
+    pub require_quiz: i32,
+    #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
+    pub require_feedback: i32,
     pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, Clone)]
+pub struct Quiz {
+    pub id: String,
+    pub codelab_id: String,
+    pub question: String,
+    pub options: String, // JSON string
+    pub correct_answer: i32,
+    pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateQuiz {
+    pub question: String,
+    pub options: Vec<String>,
+    pub correct_answer: i32,
 }
 
 fn to_bool<S>(v: &i32, s: S) -> Result<S::Ok, S::Error>
@@ -42,6 +65,9 @@ pub struct CreateCodelab {
     pub description: String,
     pub author: String,
     pub is_public: Option<bool>,
+    pub quiz_enabled: Option<bool>,
+    pub require_quiz: Option<bool>,
+    pub require_feedback: Option<bool>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -74,7 +100,19 @@ pub struct Attendee {
     pub name: String,
     pub code: String,
     pub current_step: i32,
+    #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
+    pub is_completed: i32,
+    pub completed_at: Option<String>,
     pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CertificateInfo {
+    pub attendee_name: String,
+    pub codelab_title: String,
+    pub author: String,
+    pub completed_at: String,
+    pub verification_url: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -154,6 +192,9 @@ mod tests {
             description: "Test Description".to_string(),
             author: "Test Author".to_string(),
             is_public: 1,
+            quiz_enabled: 0,
+            require_quiz: 0,
+            require_feedback: 0,
             created_at: Some("2023-01-01".to_string()),
         };
 

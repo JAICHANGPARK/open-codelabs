@@ -1,8 +1,8 @@
 import * as backend from './api-backend';
 import * as firebase from './api-firebase';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material } from './types';
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz } from './types';
 
-export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material };
+export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz };
 
 const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true';
 
@@ -33,6 +33,14 @@ export const uploadImage = USE_FIREBASE ? firebase.uploadImage : backend.uploadI
 export const submitFeedback = USE_FIREBASE ? firebase.submitFeedback : backend.submitFeedback;
 export const getFeedback = USE_FIREBASE ? firebase.getFeedback : backend.getFeedback;
 
+export const completeCodelab = USE_FIREBASE 
+    ? async () => { /* Firebase logic needed */ } 
+    : backend.completeCodelab;
+
+export const getCertificate = USE_FIREBASE 
+    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    : backend.getCertificate;
+
 export const getMaterials = USE_FIREBASE 
     ? async () => [] 
     : backend.getMaterials;
@@ -45,6 +53,13 @@ export const deleteMaterial = USE_FIREBASE
 export const uploadMaterial = USE_FIREBASE 
     ? async () => { throw new Error('Not supported in Firebase mode'); } 
     : backend.uploadMaterial;
+
+export const getQuizzes = USE_FIREBASE
+    ? async () => []
+    : backend.getQuizzes;
+export const updateQuizzes = USE_FIREBASE
+    ? async () => { throw new Error('Not supported in Firebase mode'); }
+    : backend.updateQuizzes;
 
 // Export specialized functions
 export const getWsUrl = backend.getWsUrl;

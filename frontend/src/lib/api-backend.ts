@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material } from './types';
-export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback };
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz } from './types';
+export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz };
 
 const envApiUrl = import.meta.env.VITE_API_URL;
 let BASE_URL = envApiUrl || 'http://localhost:8080';
@@ -44,7 +44,7 @@ export async function getCodelab(id: string): Promise<[Codelab, Step[]]> {
     return res.json();
 }
 
-export async function createCodelab(payload: { title: string; description: string; author: string; is_public?: boolean }): Promise<Codelab> {
+export async function createCodelab(payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean }): Promise<Codelab> {
     const res = await fetch(`${API_URL}/codelabs`, {
         method: 'POST',
         headers: { 
@@ -57,7 +57,7 @@ export async function createCodelab(payload: { title: string; description: strin
     return res.json();
 }
 
-export async function updateCodelab(id: string, payload: { title: string; description: string; author: string; is_public?: boolean }): Promise<Codelab> {
+export async function updateCodelab(id: string, payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean }): Promise<Codelab> {
     const res = await fetch(`${API_URL}/codelabs/${id}`, {
         method: 'PUT',
         headers: { 
@@ -202,6 +202,22 @@ export async function getFeedback(codelabId: string): Promise<Feedback[]> {
     return res.json();
 }
 
+export async function completeCodelab(codelabId: string, attendeeId: string): Promise<void> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/complete`, {
+        method: 'POST',
+        headers: { 
+            'X-Attendee-ID': attendeeId
+        },
+    });
+    if (!res.ok) throw new Error('Failed to complete codelab');
+}
+
+export async function getCertificate(attendeeId: string): Promise<CertificateInfo> {
+    const res = await fetch(`${API_URL}/certificates/${attendeeId}`);
+    if (!res.ok) throw new Error('Failed to fetch certificate');
+    return res.json();
+}
+
 export function getWsUrl(codelabId: string): string {
     const url = new URL(API_URL.replace('http', 'ws'));
     return `${url.protocol}//${url.host}/api/ws/${codelabId}`;
@@ -211,6 +227,21 @@ export async function getMaterials(codelabId: string): Promise<Material[]> {
     const res = await fetch(`${API_URL}/codelabs/${codelabId}/materials`);
     if (!res.ok) throw new Error('Failed to fetch materials');
     return res.json();
+}
+
+export async function getQuizzes(codelabId: string): Promise<Quiz[]> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/quizzes`);
+    if (!res.ok) throw new Error('Failed to fetch quizzes');
+    return res.json();
+}
+
+export async function updateQuizzes(codelabId: string, quizzes: { question: string, options: string[], correct_answer: number }[]): Promise<void> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/quizzes`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(quizzes)
+    });
+    if (!res.ok) throw new Error('Failed to update quizzes');
 }
 
 export async function addMaterial(codelabId: string, payload: { title: string; material_type: 'link' | 'file'; link_url?: string; file_path?: string }): Promise<Material> {
