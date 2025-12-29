@@ -50,3 +50,13 @@ export interface Feedback {
     comment?: string;
     created_at?: string;
 }
+
+export interface Material {
+    id: string;
+    codelab_id: string;
+    title: string;
+    material_type: 'link' | 'file';
+    link_url?: string;
+    file_path?: string;
+    created_at?: string;
+}
