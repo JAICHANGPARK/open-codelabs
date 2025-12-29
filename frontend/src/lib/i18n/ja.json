@@ -228,6 +228,9 @@
         "ask_question_placeholder": "コードについて質問する...",
         "improve_with_gemini": "Geminiで改善",
         "gemini_is_writing": "Geminiが書き込み中...",
-        "improving_content": "コンテンツを改善しています"
+        "improving_content": "コンテンツを改善しています",
+        "improvement_instruction": "どのように改善しますか？",
+        "improvement_placeholder": "例：より親切に、短く要約、コードの説明を追加など...",
+        "ai_improve_submit": "改善する"
     }
 }
