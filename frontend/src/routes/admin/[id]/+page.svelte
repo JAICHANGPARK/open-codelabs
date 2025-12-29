@@ -111,6 +111,7 @@
     let selectedText = $state("");
     let selectionRange = $state<{ start: number; end: number } | null>(null);
     let aiLoading = $state(false);
+    let aiMagicPos = $state({ x: 0, y: 0 });
 
     // Drag & Drop State
     let draggedStepIndex = $state<number | null>(null);
@@ -298,61 +299,66 @@
         if (!selectedText || !selectionRange) return;
 
         aiLoading = true;
-        showAiMenu = false; // Hide menu, show loading state inline maybe?
+        showAiMenu = false; // Hide menu
 
-        // We will replace the text with a placeholder or just start streaming content into it?
-        // Let's stream directly into the replacement.
+        // Calculate relative position for the magic glow
+        if (editorEl) {
+            const rect = editorEl.getBoundingClientRect();
+            aiMagicPos = {
+                x: menuPos.x - rect.left,
+                y: menuPos.y - rect.top
+            };
+        }
+
+        const originalMarkdown = steps[activeStepIndex].content_markdown;
+        const { start, end } = selectionRange;
 
         const prompt = `Improve the following technical writing/markdown content. Make it clearer, correct grammar, and better formatted. Maintain the original meaning. Only return the improved content, no explanations.\n\nContent:\n${selectedText}`;
         const systemPrompt = "You are a helpful technical editor.";
 
-        let newContent = "";
-
         try {
-            // 1. We replace the selection with "Generating..." or keep it and replace at end?
-            // User requested "stream response". Replacing in real-time is cool.
-
-            // Initial replacement to clear selection
-            const textarea = document.querySelector("textarea");
-            if (textarea) {
-                textarea.setRangeText(
-                    "",
-                    selectionRange.start,
-                    selectionRange.end,
-                    "select",
-                );
-            }
-
-            let currentCursor = selectionRange.start;
+            let currentCursor = start;
+            let hasStarted = false;
 
             const stream = streamGeminiResponseRobust(prompt, systemPrompt, {
                 apiKey: geminiApiKey,
             });
 
             for await (const chunk of stream) {
-                steps[activeStepIndex].content_markdown =
-                    steps[activeStepIndex].content_markdown.substring(
-                        0,
-                        currentCursor,
-                    ) +
-                    chunk +
-                    steps[activeStepIndex].content_markdown.substring(
-                        currentCursor,
-                    );
+                const currentFullText = steps[activeStepIndex].content_markdown;
+                if (!hasStarted) {
+                    // Replace the selection with the first chunk
+                    steps[activeStepIndex].content_markdown =
+                        currentFullText.substring(0, start) +
+                        chunk +
+                        currentFullText.substring(end);
+                    hasStarted = true;
+                    currentCursor = start + chunk.length;
+                } else {
+                    // Insert subsequent chunks
+                    steps[activeStepIndex].content_markdown =
+                        currentFullText.substring(0, currentCursor) +
+                        chunk +
+                        currentFullText.substring(currentCursor);
+                    currentCursor += chunk.length;
+                }
 
-                currentCursor += chunk.length;
-
-                // Force update textarea if needed? Svelte bind should handle it but might lose cursor?
-                // We need to keep focus?
+                // Update visual selection
+                if (editorEl) {
+                    editorEl.setSelectionRange(start, currentCursor);
+                }
             }
 
             // Update selection to the new content
             selectionRange = {
-                start: selectionRange.start,
+                start: start,
                 end: currentCursor,
             };
         } catch (e: any) {
             console.error(e);
+
+            // Restore original text if generation failed
+            steps[activeStepIndex].content_markdown = originalMarkdown;
 
             // Provide specific error messages
             let errorMessage = "AI Improvement failed: ";
@@ -371,17 +377,6 @@
             }
 
             alert(errorMessage);
-
-            // Restore original text if generation failed
-            const textarea = document.querySelector("textarea");
-            if (textarea && selectedText) {
-                textarea.setRangeText(
-                    selectedText,
-                    selectionRange.start,
-                    selectionRange.start,
-                    "end",
-                );
-            }
         } finally {
             aiLoading = false;
         }
@@ -1346,8 +1341,8 @@
                                     bind:this={fileInput}
                                     onchange={handleFileSelect}
                                 />
-                                <div class="flex-1 flex flex-col min-h-[60vh]">
-                                    <div class="flex-1 grid {isSplitView ? 'grid-cols-1 lg:grid-cols-2 lg:h-[75vh]' : 'grid-cols-1'} gap-8">
+                                <div class="flex-1 flex flex-col min-h-[60vh] relative">
+                                    <div class="flex-1 grid {isSplitView ? 'grid-cols-1 lg:grid-cols-2 lg:h-[75vh]' : 'grid-cols-1'} gap-8 relative">
                                         <textarea
                                             bind:this={editorEl}
                                             onscroll={syncEditorScroll}
@@ -1356,10 +1351,18 @@
                                             }
                                             onkeydown={handleKeydown}
                                             onpaste={handlePaste}
-                                            class="w-full h-full outline-none text-[#3C4043] dark:text-dark-text font-mono text-base leading-relaxed resize-none bg-transparent {isSplitView ? 'overflow-y-auto pr-2' : ''}"
+                                            readonly={aiLoading}
+                                            class="w-full h-full outline-none text-[#3C4043] dark:text-dark-text font-mono text-base leading-relaxed resize-none bg-transparent {isSplitView ? 'overflow-y-auto pr-2' : ''} {aiLoading ? 'ai-generating' : ''}"
                                             placeholder={$t("editor.start_writing")}
                                             onmouseup={handleMouseUp}
                                         ></textarea>
+
+                                        {#if aiLoading}
+                                            <div 
+                                                class="pointer-events-none absolute z-10 blur-3xl opacity-20 bg-gradient-to-r from-[#4285F4] via-[#A855F7] to-[#EA4335] w-64 h-32 rounded-full animate-pulse"
+                                                style="top: {aiMagicPos.y}px; left: {aiMagicPos.x}px; transform: translate(-50%, -50%);"
+                                            ></div>
+                                        {/if}
 
                                         {#if isSplitView}
                                             <div 
@@ -1894,5 +1897,26 @@
     :global(html.dark .markdown-body h2) {
         color: #e8eaed;
         border-bottom-color: #3c4043;
+    }
+
+    textarea.ai-generating {
+        background: linear-gradient(
+            90deg,
+            rgba(66, 133, 244, 0.02) 25%,
+            rgba(168, 85, 247, 0.05) 50%,
+            rgba(66, 133, 244, 0.02) 75%
+        );
+        background-size: 200% 100%;
+        animation: ai-shimmer 2s infinite linear;
+        cursor: wait;
+    }
+
+    @keyframes ai-shimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+
+    textarea.ai-generating::selection {
+        background: rgba(66, 133, 244, 0.3);
     }
 </style>
