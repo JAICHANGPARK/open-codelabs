@@ -108,7 +108,19 @@
         "export_codelab": "Export Codelab",
         "save_changes": "Save Changes",
         "stuck_on_step": "Stuck on step {step}",
-        "split_view": "Split View"
+        "split_view": "Split View",
+        "materials_tab": "Materials",
+        "materials_title": "Materials & Links Management",
+        "add_material": "Add Material",
+        "material_name": "Name",
+        "material_type": "Type",
+        "material_link": "Link URL",
+        "material_file": "File",
+        "material_placeholder_name": "e.g., Starter File, Slide Link",
+        "material_placeholder_link": "https://github.com/...",
+        "no_materials": "No materials added yet.",
+        "delete_material_confirm": "Are you sure you want to delete this material?",
+        "upload_file": "Upload File"
     },
     "attendee": {
         "join_title": "Join Codelab",
