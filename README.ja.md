@@ -91,6 +91,8 @@ open-codelabs/
 ### 1. Docker で実行 (推奨)
 システム全体を起動する最も簡単な方法です。
 
+> **注意**: デフォルトでは、データはホストマシンの `~/open-codelabs` フォルダに保存されます。保存場所をカスタマイズするには、ルートディレクトリの `.env` ファイルで `DATA_VOLUME_PATH` を編集してください。
+
 ```bash
 docker-compose up --build
 ```
