@@ -11,6 +11,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
+  html, body {
+    overscroll-behavior: none;
+  }
+
   body {
     @apply bg-white text-[#3C4043] transition-colors duration-200;
   }
