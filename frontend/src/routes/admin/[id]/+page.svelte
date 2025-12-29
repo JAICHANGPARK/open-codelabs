@@ -17,6 +17,10 @@
         ASSET_URL,
         uploadImage,
         getFeedback,
+        getMaterials,
+        addMaterial,
+        deleteMaterial,
+        uploadMaterial,
         isFirebaseMode,
         listenToWsReplacement,
         sendChatMessage,
@@ -26,6 +30,7 @@
         type HelpRequest,
         type ChatMessage,
         type Feedback,
+        type Material,
     } from "$lib/api";
     import { streamGeminiResponseRobust } from "$lib/gemini";
     import { decrypt } from "$lib/crypto";
@@ -62,6 +67,7 @@
         Sparkles,
         Loader2,
         Columns2,
+        Paperclip,
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
 
@@ -70,11 +76,12 @@
 
     // Initialize mode from URL or default to 'edit'
     let initialMode = page.url.searchParams.get("mode");
-    let mode = $state<"edit" | "preview" | "live" | "feedback">(
+    let mode = $state<"edit" | "preview" | "live" | "feedback" | "materials">(
         initialMode === "preview" ||
             initialMode === "live" ||
-            initialMode === "feedback"
-            ? initialMode
+            initialMode === "feedback" ||
+            initialMode === "materials"
+            ? (initialMode as any)
             : "edit",
     );
 
@@ -88,6 +95,7 @@
     let attendees = $state<Attendee[]>([]);
     let helpRequests = $state<HelpRequest[]>([]);
     let feedbacks = $state<Feedback[]>([]); // Feedback
+    let materials = $state<Material[]>([]);
     let ws = $state<WebSocket | null>(null);
     let chatMessage = $state("");
     let messages = $state<
@@ -109,6 +117,13 @@
     let showAiMenu = $state(false);
     let menuPos = $state({ x: 0, y: 0 });
     let selectedText = $state("");
+    let newMaterial = $state({
+        title: "",
+        material_type: "link" as "link" | "file",
+        link_url: "",
+        file_path: "",
+    });
+    let materialFileInput = $state<HTMLInputElement>();
     let selectionRange = $state<{ start: number; end: number } | null>(null);
     let aiLoading = $state(false);
     let aiMagicPos = $state({ x: 0, y: 0 });
@@ -172,6 +187,8 @@
 
         if (mode === "feedback") {
             loadFeedback();
+        } else if (mode === "materials") {
+            loadMaterials();
         } else if (mode === "live") {
             refreshLiveData();
             scrollToBottom();
@@ -387,6 +404,63 @@
             feedbacks = await getFeedback(id);
         } catch (e) {
             console.error("Failed to load feedback", e);
+        }
+    }
+
+    async function loadMaterials() {
+        try {
+            materials = await getMaterials(id);
+        } catch (e) {
+            console.error("Failed to load materials:", e);
+        }
+    }
+
+    async function handleAddMaterial() {
+        try {
+            const material = await addMaterial(id, {
+                title: newMaterial.title,
+                material_type: newMaterial.material_type,
+                link_url: newMaterial.material_type === "link" ? newMaterial.link_url : undefined,
+                file_path: newMaterial.material_type === "file" ? newMaterial.file_path : undefined,
+            });
+            materials = [...materials, material];
+            newMaterial = {
+                title: "",
+                material_type: "link",
+                link_url: "",
+                file_path: "",
+            };
+        } catch (e) {
+            console.error("Failed to add material:", e);
+            alert("Failed to add material");
+        }
+    }
+
+    async function handleDeleteMaterial(materialId: string) {
+        if (!confirm($t("editor.delete_material_confirm"))) return;
+        try {
+            await deleteMaterial(id, materialId);
+            materials = materials.filter((m) => m.id !== materialId);
+        } catch (e) {
+            console.error("Failed to delete material:", e);
+        }
+    }
+
+    async function handleMaterialFileSelect(e: Event) {
+        const input = e.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) return;
+        
+        const file = input.files[0];
+        try {
+            const res = await uploadMaterial(file);
+            newMaterial.file_path = res.url;
+            // 만약 제목이 비어있다면 파일 이름으로 채워줍니다.
+            if (!newMaterial.title) {
+                newMaterial.title = res.original_name;
+            }
+        } catch (e) {
+            console.error("Upload failed:", e);
+            alert("File upload failed");
         }
     }
 
@@ -1088,6 +1162,16 @@
                         <MessageSquare size={14} />
                         <span class="hidden sm:inline">{$t("editor.feedback_tab")}</span>
                     </button>
+                    <button
+                        onclick={() => (mode = "materials")}
+                        class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                        'materials'
+                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
+                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
+                    >
+                        <Paperclip size={14} />
+                        <span class="hidden sm:inline">{$t("editor.materials_tab")}</span>
+                    </button>
                 </div>
                 <button
                     onclick={handleSave}
@@ -1120,20 +1204,29 @@
             class="max-w-screen-2xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2 items-start relative"
         >
             <!-- Mobile Step Navigation Toggle -->
-            <div class="lg:hidden flex items-center justify-between bg-white dark:bg-dark-surface p-4 rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm mb-2">
-                <span class="font-bold text-sm">{$t("editor.step_navigation")}</span>
-                <button 
-                    onclick={() => isSidebarOpen = !isSidebarOpen}
-                    class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/5 rounded-lg transition-colors"
+            {#if mode !== "live" && mode !== "feedback" && mode !== "materials"}
+                <div
+                    class="lg:hidden flex items-center justify-between bg-white dark:bg-dark-surface p-4 rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm mb-2"
                 >
-                    <List size={20} />
-                </button>
-            </div>
+                    <span class="font-bold text-sm"
+                        >{$t("editor.step_navigation")}</span
+                    >
+                    <button
+                        onclick={() => (isSidebarOpen = !isSidebarOpen)}
+                        class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/5 rounded-lg transition-colors"
+                    >
+                        <List size={20} />
+                    </button>
+                </div>
+            {/if}
 
             <!-- Sidebar Navigation -->
-            <div 
-                class="fixed inset-0 z-50 lg:z-30 lg:relative lg:inset-auto lg:col-span-4 lg:block transition-all duration-300 {isSidebarOpen ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100 lg:sticky lg:top-28'}"
-            >
+            {#if mode !== "live" && mode !== "feedback" && mode !== "materials"}
+                <div
+                    class="fixed inset-0 z-50 lg:z-30 lg:relative lg:inset-auto lg:col-span-4 lg:block transition-all duration-300 {isSidebarOpen
+                        ? 'translate-x-0 opacity-100'
+                        : '-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100 lg:sticky lg:top-28'}"
+                >
                 <!-- Overlay for mobile -->
                 <!-- svelte-ignore a11y_click_events_have_key_events -->
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -1261,9 +1354,17 @@
                     </div>
                 </div>
             </div>
+            {/if}
 
             <!-- Content Area -->
-            <div class="lg:col-span-8 w-full min-w-0" in:fade>
+            <div
+                class={mode === "live" ||
+                mode === "feedback" ||
+                mode === "materials"
+                    ? "lg:col-span-12 w-full min-w-0"
+                    : "lg:col-span-8 w-full min-w-0"}
+                in:fade
+            >
                 {#if steps.length > 0}
                     <div
                         class="bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm min-h-[70vh] flex flex-col transition-colors"
@@ -1825,6 +1926,221 @@
                                                 </p>
                                             </div>
                                         {/each}
+                                    </div>
+                                </div>
+                            {/if}
+
+                            {#if mode === "materials"}
+                                <div
+                                    class="flex-1 flex flex-col p-6 sm:p-8 space-y-8 overflow-y-auto max-h-[75vh]"
+                                >
+                                    <div
+                                        class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+                                    >
+                                        <div>
+                                            <h2
+                                                class="text-2xl font-bold text-[#202124] dark:text-dark-text mb-1"
+                                            >
+                                                {$t("editor.materials_title")}
+                                            </h2>
+                                        </div>
+                                    </div>
+
+                                    <!-- Material Form -->
+                                    <div
+                                        class="bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-2xl border border-[#E8EAED] dark:border-dark-border space-y-4 shadow-sm"
+                                    >
+                                        <div
+                                            class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                        >
+                                            <div class="space-y-2">
+                                                <label
+                                                    for="mat-name"
+                                                    class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider"
+                                                    >{$t(
+                                                        "editor.material_name",
+                                                    )}</label
+                                                >
+                                                <input
+                                                    id="mat-name"
+                                                    type="text"
+                                                    bind:value={newMaterial.title}
+                                                    placeholder={$t(
+                                                        "editor.material_placeholder_name",
+                                                    )}
+                                                    class="w-full bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#4285F4] transition-all dark:text-dark-text shadow-sm"
+                                                />
+                                            </div>
+                                            <div class="space-y-2">
+                                                <label
+                                                    for="mat-type"
+                                                    class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider"
+                                                    >{$t(
+                                                        "editor.material_type",
+                                                    )}</label
+                                                >
+                                                <select
+                                                    id="mat-type"
+                                                    bind:value={newMaterial.material_type}
+                                                    class="w-full bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#4285F4] transition-all dark:text-dark-text shadow-sm"
+                                                >
+                                                    <option value="link"
+                                                        >Link</option
+                                                    >
+                                                    <option value="file"
+                                                        >File</option
+                                                    >
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        {#if newMaterial.material_type === "link"}
+                                            <div class="space-y-2">
+                                                <label
+                                                    for="mat-link"
+                                                    class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider"
+                                                    >{$t(
+                                                        "editor.material_link",
+                                                    )}</label
+                                                >
+                                                <input
+                                                    id="mat-link"
+                                                    type="text"
+                                                    bind:value={newMaterial.link_url}
+                                                    placeholder={$t(
+                                                        "editor.material_placeholder_link",
+                                                    )}
+                                                    class="w-full bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-3 outline-none focus:ring-2 focus:ring-[#4285F4] transition-all dark:text-dark-text shadow-sm"
+                                                />
+                                            </div>
+                                        {:else}
+                                            <div class="space-y-2">
+                                                <label
+                                                    for="mat-file-upload"
+                                                    class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider"
+                                                    >{$t(
+                                                        "editor.material_file",
+                                                    )}</label
+                                                >
+                                                <div
+                                                    class="flex items-center gap-4"
+                                                >
+                                                    <button
+                                                        id="mat-file-upload"
+                                                        onclick={() =>
+                                                            materialFileInput?.click()}
+                                                        class="flex items-center gap-2 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border hover:bg-[#F1F3F4] dark:hover:bg-white/10 px-4 py-2.5 rounded-xl transition-all shadow-sm text-sm"
+                                                    >
+                                                        <Plus size={18} />
+                                                        <span
+                                                            >{$t(
+                                                                "editor.upload_file",
+                                                            )}</span
+                                                        >
+                                                    </button>
+                                                    {#if newMaterial.file_path}
+                                                        <span
+                                                            class="text-sm text-[#1E8E3E] flex items-center gap-1"
+                                                            ><CheckCircle2
+                                                                size={14}
+                                                            /> Uploaded</span
+                                                        >
+                                                    {/if}
+                                                </div>
+                                                <input
+                                                    type="file"
+                                                    bind:this={materialFileInput}
+                                                    onchange={handleMaterialFileSelect}
+                                                    class="hidden"
+                                                />
+                                            </div>
+                                        {/if}
+
+                                        <div class="flex justify-end pt-2">
+                                            <button
+                                                onclick={handleAddMaterial}
+                                                disabled={!newMaterial.title ||
+                                                    (newMaterial.material_type ===
+                                                    "link"
+                                                        ? !newMaterial.link_url
+                                                        : !newMaterial.file_path)}
+                                                class="bg-[#4285F4] hover:bg-[#1A73E8] disabled:opacity-50 text-white px-8 py-3 rounded-xl font-bold transition-all shadow-md active:scale-95 flex items-center gap-2"
+                                            >
+                                                <Plus size={18} />
+                                                {$t("editor.add_material")}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Material List -->
+                                    <div class="space-y-4">
+                                        {#if materials.length > 0}
+                                            <div
+                                                class="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                            >
+                                                {#each materials as mat}
+                                                    <div
+                                                        class="flex items-center justify-between p-4 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl shadow-sm hover:shadow-md transition-all group"
+                                                    >
+                                                        <div
+                                                            class="flex items-center gap-3 min-w-0"
+                                                        >
+                                                            <div
+                                                                class="p-2.5 bg-[#F1F3F4] dark:bg-white/10 rounded-xl text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4] transition-colors shrink-0"
+                                                            >
+                                                                {#if mat.material_type === "link"}
+                                                                    <ExternalLink
+                                                                        size={20}
+                                                                    />
+                                                                {:else}
+                                                                    <Download
+                                                                        size={20}
+                                                                    />
+                                                                {/if}
+                                                            </div>
+                                                            <div class="min-w-0">
+                                                                <h4
+                                                                    class="font-bold text-[#202124] dark:text-dark-text truncate"
+                                                                >
+                                                                    {mat.title}
+                                                                </h4>
+                                                                <p
+                                                                    class="text-xs text-[#5F6368] dark:text-dark-text-muted truncate"
+                                                                >
+                                                                    {mat.material_type ===
+                                                                    "link"
+                                                                        ? mat.link_url
+                                                                        : mat.file_path
+                                                                              ?.split("/")
+                                                                              .pop()}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        <button
+                                                            onclick={() =>
+                                                                handleDeleteMaterial(
+                                                                    mat.id,
+                                                                )}
+                                                            class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#EA4335] hover:bg-[#FCE8E6] dark:hover:bg-[#EA4335]/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                                                        >
+                                                            <Trash2 size={18} />
+                                                        </button>
+                                                    </div>
+                                                {/each}
+                                            </div>
+                                        {:else}
+                                            <div
+                                                class="text-center py-12 border-2 border-dashed border-[#DADCE0] dark:border-dark-border rounded-3xl opacity-50"
+                                            >
+                                                <Paperclip
+                                                    size={40}
+                                                    class="mx-auto mb-3 text-[#DADCE0] dark:text-dark-border"
+                                                />
+                                                <p>
+                                                    {$t("editor.no_materials")}
+                                                </p>
+                                            </div>
+                                        {/if}
                                     </div>
                                 </div>
                             {/if}
