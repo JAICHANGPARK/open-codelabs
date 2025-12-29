@@ -92,10 +92,11 @@ bun install
 bun run dev
 ```
 
-### 3. Cloud Deployment (GCP / Firebase)
-To run in a serverless environment or on the cloud, you can use Firebase or Google Cloud Platform (GCP).
-- **Firebase**: Quick serverless setup. See [DEPLOY_FIREBASE.md](DEPLOY_FIREBASE.md).
+### 3. Cloud Deployment (AWS / GCP / Firebase)
+To run in a serverless environment or on the cloud, you can use AWS, GCP or Firebase.
+- **AWS**: Container-based or VM deployment. See [DEPLOY_AWS.md](DEPLOY_AWS.md).
 - **GCP (Cloud Run)**: Container-based deployment. See [DEPLOY_GCP.md](DEPLOY_GCP.md).
+- **Firebase**: Quick serverless setup. See [DEPLOY_FIREBASE.md](DEPLOY_FIREBASE.md).
 
 ---
 
