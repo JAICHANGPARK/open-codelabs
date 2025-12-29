@@ -3,6 +3,9 @@
     import { fade, slide, fly } from "svelte/transition";
     import {
         listCodelabs,
+        getMyCodelabs,
+        onAuthChange,
+        isFirebaseMode,
         createCodelab,
         importCodelab,
         deleteCodelab,
@@ -66,9 +69,26 @@
     let geminiApiKey = $state("");
     let apiKeySaved = $state(false);
 
+    let user = $state<any>(null);
+
     onMount(async () => {
+        onAuthChange((u) => {
+            user = u;
+            if (isFirebaseMode() && u) {
+                loadMyCodelabs();
+                if (u.displayName) newCodelab.author = u.displayName;
+            }
+        });
+
         try {
-            codelabs = await listCodelabs();
+            if (isFirebaseMode()) {
+                // If in firebase mode, listCodelabs might return everything (if admin)
+                // but we might prefer showing only 'My Codelabs' by default.
+                // For now, let's load all if we can, but also provide 'My Codelabs'.
+                codelabs = await listCodelabs();
+            } else {
+                codelabs = await listCodelabs();
+            }
 
             // Load API Key
             const encryptedKey = localStorage.getItem("gemini_api_key");
@@ -85,6 +105,18 @@
             loading = false;
         }
     });
+
+    async function loadMyCodelabs() {
+        try {
+            const mine = await getMyCodelabs();
+            // If we want to strictly show only 'My' codelabs in Firebase mode
+            if (isFirebaseMode()) {
+                codelabs = mine;
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    }
 
     function saveSettings() {
         if (geminiApiKey.trim()) {
