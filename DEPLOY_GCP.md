@@ -26,8 +26,9 @@ Firebase는 GCP의 개발자 친화적인 하위 서비스군입니다. 프로�
 *   **Frontend**: SvelteKit (Node.js/Bun) -> Cloud Run 서비스 1
 *   **Backend**: Rust Axum -> Cloud Run 서비스 2
 *   **Database**:
-    *   간이 배포: Cloud Run의 로컬 볼륨에 SQLite 저장 (재시작 시 데이터 초기화 위험 있음)
-    *   권장: Cloud SQL (PostgreSQL/MySQL)로 전환 또는 Cloud Firestore 사용
+    *   간이 배포: Cloud Run의 로컬 볼륨에 SQLite 저장.
+        > ⚠️ **주의**: Cloud Run은 Stateless 환경이므로 컨테이너가 재시작되면 SQLite 파일이 초기화됩니다. 일시적인 테스트 용도가 아니라면 아래의 권장 방식을 사용하세요.
+    *   권장: Cloud SQL (PostgreSQL/MySQL)로 백엔드 DB 전환 또는 **Firebase 모드** 사용.
 
 #### 🛠 배포 단계
 
