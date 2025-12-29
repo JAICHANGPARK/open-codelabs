@@ -79,9 +79,12 @@ nav:
       - 참석자 가이드: user-guide/attendee.md
   - Self-Hosting:
       - Docker로 배포하기: self-hosting/docker.md
+      - GCP (Google Cloud): self-hosting/gcp.md
+      - AWS (Amazon Web Services): self-hosting/aws.md
+      - 파이어베이스 (Firebase): self-hosting/firebase.md
+#      - GitHub Pages (Docs): self-hosting/github-pages.md
       - 로컬 개발 환경: self-hosting/local-development.md
       - 공개 배포 (ngrok/bore): self-hosting/public-deployment.md
-      - 파이어베이스 (Firebase): self-hosting/firebase.md
       - 환경 변수 설정: self-hosting/environment.md
   - 프로젝트 명세:
       - 개요: specification/overview.md
