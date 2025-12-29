@@ -8,7 +8,8 @@ services:
       - ADMIN_ID=${ADMIN_ID}
       - ADMIN_PW=${ADMIN_PW}
     volumes:
-      - ./backend/data:/app/data
+      - ${DATA_VOLUME_PATH}/data:/app/data
+      - ${DATA_VOLUME_PATH}/uploads:/app/static/uploads
 
   frontend:
     build: ./frontend
