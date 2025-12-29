@@ -3,7 +3,7 @@ pub mod models;
 pub mod state;
 
 use axum::{
-    routing::{get, post, put},
+    routing::{delete, get, post, put},
     Router,
 };
 use std::sync::Arc;
@@ -18,6 +18,7 @@ use crate::handlers::{
         import_codelab, list_codelabs, update_codelab_info, update_codelab_steps,
     },
     feedback::{get_feedback, submit_feedback},
+    materials::{add_material, delete_material, get_materials, upload_material_file},
     upload::upload_image,
     websocket::ws_handler,
 };
@@ -50,8 +51,17 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             "/api/codelabs/{id}/feedback",
             post(submit_feedback).get(get_feedback),
         )
+        .route(
+            "/api/codelabs/{id}/materials",
+            get(get_materials).post(add_material),
+        )
+        .route(
+            "/api/codelabs/{id}/materials/{material_id}",
+            delete(delete_material),
+        )
         .route("/api/codelabs/{id}/chat", get(get_chat_history))
         .route("/api/upload/image", post(upload_image))
+        .route("/api/upload/material", post(upload_material_file))
         .route("/api/ws/{id}", get(ws_handler))
         .nest_service("/assets", ServeDir::new("static/assets"))
         .fallback_service(ServeDir::new("static"))
