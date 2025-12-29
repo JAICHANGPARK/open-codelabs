@@ -228,6 +228,9 @@
         "ask_question_placeholder": "Ask a question about the code...",
         "improve_with_gemini": "Improve with Gemini",
         "gemini_is_writing": "Gemini is writing...",
-        "improving_content": "Improving your content"
+        "improving_content": "Improving your content",
+        "improvement_instruction": "How should I improve it?",
+        "improvement_placeholder": "e.g., More friendly, summarize, add code comments...",
+        "ai_improve_submit": "Improve"
     }
 }
