@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz } from './types';
-export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz };
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee } from './types';
+export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee };
 
 const envApiUrl = import.meta.env.VITE_API_URL;
 let BASE_URL = envApiUrl || 'http://localhost:8080';
@@ -232,6 +232,23 @@ export async function getMaterials(codelabId: string): Promise<Material[]> {
 export async function getQuizzes(codelabId: string): Promise<Quiz[]> {
     const res = await fetch(`${API_URL}/codelabs/${codelabId}/quizzes`);
     if (!res.ok) throw new Error('Failed to fetch quizzes');
+    return res.json();
+}
+
+export async function submitQuiz(codelabId: string, payload: QuizSubmissionPayload): Promise<void> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/quizzes/submit`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Quiz submission failed');
+}
+
+export async function getQuizSubmissions(codelabId: string): Promise<QuizSubmissionWithAttendee[]> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/quizzes/submissions`, {
+        headers: getAuthHeader()
+    });
+    if (!res.ok) throw new Error('Failed to fetch quiz submissions');
     return res.json();
 }
 
