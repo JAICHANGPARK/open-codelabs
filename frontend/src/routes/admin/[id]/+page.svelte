@@ -35,9 +35,11 @@
     import { streamGeminiResponseRobust } from "$lib/gemini";
     import { adminMarked as marked } from "$lib/markdown";
     import DOMPurify from "dompurify";
+    import { decrypt } from "$lib/crypto";
     import { 
         getQuizzes, 
         updateQuizzes, 
+        getQuizSubmissions,
     } from "$lib/api";
     // ... icons imports ...
     import {
@@ -84,6 +86,7 @@
     let feedbacks = $state<Feedback[]>([]); // Feedback
     let materials = $state<Material[]>([]);
     let quizzes = $state<Quiz[]>([]);
+    let quizSubmissions = $state<any[]>([]);
     let isQuizGenerating = $state(false);
     let numQuizToGenerate = $state(5);
     let ws = $state<WebSocket | null>(null);
@@ -181,6 +184,7 @@
             loadMaterials();
         } else if (mode === "quiz") {
             loadQuizzes();
+            loadQuizSubmissions();
         } else if (mode === "live") {
             refreshLiveData();
             scrollToBottom();
@@ -414,12 +418,21 @@
         }
     }
 
+    async function loadQuizSubmissions() {
+        try {
+            quizSubmissions = await getQuizSubmissions(id);
+        } catch (e) {
+            console.error("Failed to load quiz submissions:", e);
+        }
+    }
+
     function addEmptyQuiz() {
         quizzes = [...quizzes, {
             id: "",
             codelab_id: id,
             question: "",
-            options: ["", "", "", "", ""],
+            quiz_type: "multiple_choice",
+            options: ["", "", "", ""],
             correct_answer: 0
         } as any];
     }
@@ -434,6 +447,7 @@
         try {
             await updateQuizzes(id, quizzes.map(q => ({
                 question: q.question,
+                quiz_type: q.quiz_type || 'multiple_choice',
                 options: Array.isArray(q.options) ? q.options : JSON.parse(q.options as any),
                 correct_answer: q.correct_answer
             })));
@@ -885,6 +899,15 @@
         dragOverIndex = null;
     }
 
+    async function handleUniversalSave() {
+        if (mode === "quiz") {
+            await handleQuizSave();
+        } else {
+            // handleSave handles both "edit" and "settings" modes
+            await handleSave();
+        }
+    }
+
     async function handleSave() {
         if (isSaving || !codelab) return;
         isSaving = true;
@@ -1125,7 +1148,7 @@
     onkeydown={(e) => {
         if ((e.ctrlKey || e.metaKey) && e.key === "s") {
             e.preventDefault();
-            handleSave();
+            handleUniversalSave();
         }
     }}
 />
@@ -1140,7 +1163,7 @@
         {saveSuccess}
         {toggleVisibility}
         {handleExport}
-        {handleSave}
+        handleSave={handleUniversalSave}
     />
 
     {#if loading}
@@ -1258,6 +1281,7 @@
                             {:else if mode === "quiz"}
                                 <QuizMode
                                     bind:quizzes
+                                    {quizSubmissions}
                                     bind:numQuizToGenerate
                                     {isQuizGenerating}
                                     {isSaving}
