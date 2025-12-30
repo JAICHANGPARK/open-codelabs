@@ -14,6 +14,7 @@ export interface Quiz {
     id: string;
     codelab_id: string;
     question: string;
+    quiz_type: 'multiple_choice' | 'descriptive';
     options: string; // JSON string
     correct_answer: number;
     created_at?: string;
@@ -76,7 +77,31 @@ export interface Material {
 export interface CertificateInfo {
     attendee_name: string;
     codelab_title: string;
+    codelab_id: string;
     author: string;
     completed_at: string;
     verification_url: string;
+}
+
+export interface QuizSubmission {
+    id: string;
+    codelab_id: string;
+    attendee_id: string;
+    quiz_id: string;
+    answer: string;
+    is_correct: boolean;
+    created_at?: string;
+}
+
+export interface QuizSubmissionWithAttendee extends QuizSubmission {
+    attendee_name: string;
+}
+
+export interface QuizSubmissionPayload {
+    attendee_id: string;
+    submissions: {
+        quiz_id: string;
+        answer: string;
+        is_correct: boolean;
+    }[];
 }
