@@ -5,6 +5,28 @@
     import type { Feedback } from "$lib/api";
 
     let { feedbacks } = $props<{ feedbacks: Feedback[] }>();
+
+    let avgSatisfaction = $derived(
+        feedbacks.length > 0
+            ? (
+                  feedbacks.reduce(
+                      (acc: number, f: Feedback) => acc + parseInt(f.satisfaction),
+                      0,
+                  ) / feedbacks.length
+              ).toFixed(1)
+            : "N/A",
+    );
+
+    let avgDifficulty = $derived(
+        feedbacks.length > 0
+            ? (
+                  feedbacks.reduce(
+                      (acc: number, f: Feedback) => acc + parseInt(f.difficulty),
+                      0,
+                  ) / feedbacks.length
+              ).toFixed(1)
+            : "N/A",
+    );
 </script>
 
 <div
@@ -25,18 +47,7 @@
             <div
                 class="text-3xl font-bold text-[#1E8E3E]"
             >
-                {feedbacks.length > 0
-                    ? (
-                          feedbacks.reduce(
-                              (acc, f) =>
-                                  acc +
-                                  parseInt(
-                                      f.satisfaction,
-                                  ),
-                              0,
-                          ) / feedbacks.length
-                      ).toFixed(1)
-                    : "N/A"}<span
+                {avgSatisfaction}<span
                     class="text-base text-[#5F6368] dark:text-dark-text-muted font-normal"
                     >/5</span
                 >
@@ -53,18 +64,7 @@
             <div
                 class="text-3xl font-bold text-[#F9AB00]"
             >
-                {feedbacks.length > 0
-                    ? (
-                          feedbacks.reduce(
-                              (acc, f) =>
-                                  acc +
-                                  parseInt(
-                                      f.difficulty,
-                                  ),
-                              0,
-                          ) / feedbacks.length
-                      ).toFixed(1)
-                    : "N/A"}<span
+                {avgDifficulty}<span
                     class="text-base text-[#5F6368] dark:text-dark-text-muted font-normal"
                     >/5</span
                 >
