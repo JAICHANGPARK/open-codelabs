@@ -1,8 +1,8 @@
 import * as backend from './api-backend';
 import * as firebase from './api-firebase';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz } from './types';
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee } from './types';
 
-export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz };
+export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee };
 
 const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true';
 
@@ -60,6 +60,12 @@ export const getQuizzes = USE_FIREBASE
 export const updateQuizzes = USE_FIREBASE
     ? async () => { throw new Error('Not supported in Firebase mode'); }
     : backend.updateQuizzes;
+export const submitQuiz = USE_FIREBASE
+    ? async () => { /* Not supported */ }
+    : backend.submitQuiz;
+export const getQuizSubmissions = USE_FIREBASE
+    ? async () => []
+    : backend.getQuizSubmissions;
 
 // Export specialized functions
 export const getWsUrl = backend.getWsUrl;
