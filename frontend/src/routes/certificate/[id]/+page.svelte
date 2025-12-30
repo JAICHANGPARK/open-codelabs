@@ -16,9 +16,13 @@
     onMount(async () => {
         try {
             info = await getCertificate(id);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            error = "Certificate not found";
+            if (e.message && e.message.includes("REQUIREMENTS_NOT_MET")) {
+                error = "REQUIREMENTS_NOT_MET";
+            } else {
+                error = "NOT_FOUND";
+            }
         } finally {
             loading = false;
         }
@@ -41,30 +45,47 @@
         </div>
     {:else if error}
         <div class="flex-1 flex flex-col items-center justify-center gap-6 text-center max-w-md">
-            <div class="w-20 h-20 bg-red-50 dark:bg-red-500/10 rounded-full flex items-center justify-center text-[#EA4335]">
+            <div class="w-20 h-20 {error === 'REQUIREMENTS_NOT_MET' ? 'bg-amber-50 dark:bg-amber-500/10 text-[#FBBC04]' : 'bg-red-50 dark:bg-red-500/10 text-[#EA4335]'} rounded-full flex items-center justify-center">
                 <ShieldCheck size={48} />
             </div>
             <div>
-                <h1 class="text-2xl font-bold text-[#202124] dark:text-dark-text mb-2">{$t("certificate.not_found")}</h1>
-                <p class="text-[#5F6368] dark:text-dark-text-muted">{$t("attendee.error_registration_failed")}</p>
+                <h1 class="text-2xl font-bold text-[#202124] dark:text-dark-text mb-2">
+                    {error === 'REQUIREMENTS_NOT_MET' ? $t("certificate.not_earned") : $t("certificate.not_found")}
+                </h1>
+                <p class="text-[#5F6368] dark:text-dark-text-muted">
+                    {error === 'REQUIREMENTS_NOT_MET' ? $t("certificate.requirements_guide") : $t("attendee.error_registration_failed")}
+                </p>
             </div>
-            <a href="/" class="text-[#4285F4] font-bold hover:underline">{$t("attendee.return_home")}</a>
+            <div class="flex flex-col gap-3 w-full">
+                <a href="/" class="text-[#4285F4] font-bold hover:underline">{$t("attendee.return_home")}</a>
+                <button 
+                    onclick={() => window.history.back()}
+                    class="text-sm text-[#5F6368] dark:text-dark-text-muted hover:underline"
+                >
+                    {$t("editor.back")}
+                </button>
+            </div>
         </div>
     {:else if info}
         <div class="w-full max-w-4xl space-y-8 no-print" in:fade>
             <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
-                <a href="/" class="flex items-center gap-2 group">
+                <a href="/codelabs/{info.codelab_id}" class="flex items-center gap-2 group">
                     <div class="w-8 h-8 bg-[#4285F4] rounded flex items-center justify-center text-white font-bold group-hover:scale-110 transition-transform">OC</div>
                     <span class="font-bold text-xl dark:text-dark-text">Open-Codelabs</span>
                 </a>
-                <div class="flex gap-3">
-                    <button 
-                        onclick={handlePrint}
-                        class="flex items-center gap-2 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border px-6 py-2.5 rounded-xl font-bold text-[#3C4043] dark:text-dark-text hover:bg-[#F8F9FA] dark:hover:bg-white/5 shadow-sm transition-all"
-                    >
-                        <Printer size={18} />
-                        {$t("certificate.download_pdf")}
-                    </button>
+                <div class="flex gap-4 items-center">
+                    <a href="/codelabs/{info.codelab_id}" class="text-sm font-bold text-[#4285F4] hover:underline">
+                        {$t("certificate.return_to_codelab")}
+                    </a>
+                    <div class="flex gap-3">
+                        <button 
+                            onclick={handlePrint}
+                            class="flex items-center gap-2 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border px-6 py-2.5 rounded-xl font-bold text-[#3C4043] dark:text-dark-text hover:bg-[#F8F9FA] dark:hover:bg-white/5 shadow-sm transition-all"
+                        >
+                            <Printer size={18} />
+                            {$t("certificate.download_pdf")}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
