@@ -20,7 +20,7 @@ use crate::handlers::{
     },
     feedback::{get_feedback, submit_feedback},
     materials::{add_material, delete_material, get_materials, upload_material_file},
-    quizzes::{get_quizzes, update_quizzes},
+    quizzes::{get_quizzes, update_quizzes, submit_quiz, get_quiz_submissions},
     upload::upload_image,
     websocket::ws_handler,
 };
@@ -64,6 +64,8 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             delete(delete_material),
         )
         .route("/api/codelabs/{id}/quizzes", get(get_quizzes).put(update_quizzes))
+        .route("/api/codelabs/{id}/quizzes/submit", post(submit_quiz))
+        .route("/api/codelabs/{id}/quizzes/submissions", get(get_quiz_submissions))
         .route("/api/codelabs/{id}/chat", get(get_chat_history))
         .route("/api/upload/image", post(upload_image))
         .route("/api/upload/material", post(upload_material_file))
