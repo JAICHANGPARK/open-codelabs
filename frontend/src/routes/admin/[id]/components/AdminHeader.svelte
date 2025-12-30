@@ -153,6 +153,26 @@
                     <span class="hidden sm:inline">{$t("editor.preview")}</span>
                 </button>
                 <button
+                        onclick={() => (mode = "materials")}
+                        class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    'materials'
+                        ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
+                        : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
+                >
+                    <Paperclip size={14} />
+                    <span class="hidden sm:inline">{$t("editor.materials_tab")}</span>
+                </button>
+                <button
+                        onclick={() => (mode = "quiz")}
+                        class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    'quiz'
+                        ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
+                        : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
+                >
+                    <Sparkles size={14} />
+                    <span class="hidden sm:inline">{$t("editor.quiz_tab")}</span>
+                </button>
+                <button
                     onclick={() => (mode = "live")}
                     class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
                     'live'
@@ -173,26 +193,6 @@
                     <span class="hidden sm:inline">{$t("editor.feedback_tab")}</span>
                 </button>
                 <button
-                    onclick={() => (mode = "materials")}
-                    class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
-                    'materials'
-                        ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                        : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                >
-                    <Paperclip size={14} />
-                    <span class="hidden sm:inline">{$t("editor.materials_tab")}</span>
-                </button>
-                <button
-                    onclick={() => (mode = "quiz")}
-                    class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
-                    'quiz'
-                        ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                        : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                >
-                    <Sparkles size={14} />
-                    <span class="hidden sm:inline">{$t("editor.quiz_tab")}</span>
-                </button>
-                <button
                     onclick={() => (mode = "settings")}
                     class="px-2 sm:px-4 py-1.5 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
                     'settings'
@@ -205,7 +205,7 @@
             </div>
             <button
                 onclick={handleSave}
-                disabled={isSaving || mode !== "edit"}
+                disabled={isSaving || (mode !== "edit" && mode !== "quiz" && mode !== "settings")}
                 class="bg-[#4285F4] hover:bg-[#1A73E8] disabled:opacity-50 text-white p-2 sm:px-6 sm:py-2.5 rounded-full flex items-center gap-2 text-sm font-bold transition-all shadow-md active:scale-95 {saveSuccess
                     ? 'bg-[#1E8E3E]'
                     : ''}"
