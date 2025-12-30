@@ -176,22 +176,30 @@ pub async fn get_certificate(
     Path(attendee_id): Path<String>,
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<CertificateInfo>, (StatusCode, String)> {
-    let row: (String, String, String, String) = sqlx::query_as(&state.q(
-        "SELECT a.name as attendee_name, c.title as codelab_title, c.author, a.completed_at 
+    let row: Option<(String, String, String, String, String, i32)> = sqlx::query_as(&state.q(
+        "SELECT a.name as attendee_name, c.title as codelab_title, c.author, 
+                COALESCE(a.completed_at, ''), c.id as codelab_id, a.is_completed
          FROM attendees a 
          JOIN codelabs c ON a.codelab_id = c.id 
-         WHERE a.id = ? AND a.is_completed = 1"
+         WHERE a.id = ?"
     ))
     .bind(&attendee_id)
-    .fetch_one(&state.pool)
+    .fetch_optional(&state.pool)
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    Ok(Json(CertificateInfo {
-        attendee_name: row.0,
-        codelab_title: row.1,
-        author: row.2,
-        completed_at: row.3,
-        verification_url: format!("/verify/{}", attendee_id),
-    }))
+    match row {
+        Some(r) if r.5 == 1 => {
+            Ok(Json(CertificateInfo {
+                attendee_name: r.0,
+                codelab_title: r.1,
+                codelab_id: r.4,
+                author: r.2,
+                completed_at: r.3,
+                verification_url: format!("/verify/{}", attendee_id),
+            }))
+        }
+        Some(_) => Err((StatusCode::FORBIDDEN, "REQUIREMENTS_NOT_MET".to_string())),
+        None => Err((StatusCode::NOT_FOUND, "Certificate not found".to_string())),
+    }
 }
