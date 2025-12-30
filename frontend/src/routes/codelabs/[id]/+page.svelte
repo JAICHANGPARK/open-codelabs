@@ -14,6 +14,7 @@
         submitFeedback,
         completeCodelab,
         getQuizzes,
+        submitQuiz,
         isFirebaseMode,
         listenToWsReplacement,
         sendChatMessage,
@@ -88,7 +89,7 @@
 
     // Quiz State
     let quizzes = $state<any[]>([]);
-    let quizAnswers = $state<number[]>([]);
+    let quizAnswers = $state<any[]>([]); // number for MC, string for Descriptive
     let quizSubmitted = $state(false);
     let quizCorrectCount = $state(0);
     let isQuizPassed = $derived(quizSubmitted && quizCorrectCount === quizzes.length);
@@ -129,6 +130,22 @@
             ? messages.filter((m) => m.type === "chat")
             : messages.filter((m) => m.type === "dm"),
     );
+
+    let canGetCertificate = $derived(
+        (!codelab?.require_quiz || isQuizPassed) &&
+        (!codelab?.require_feedback || feedbackSubmitted)
+    );
+
+    function handleCertificateClick(e: MouseEvent) {
+        if (!canGetCertificate) {
+            e.preventDefault();
+            let missing = [];
+            if (codelab?.require_quiz && !isQuizPassed) missing.push($t("certificate.quiz_required"));
+            if (codelab?.require_feedback && !feedbackSubmitted) missing.push($t("certificate.feedback_required"));
+            
+            alert(`${$t("certificate.not_earned")}\n\n${$t("certificate.requirements_guide")}\n- ${missing.join("\n- ")}`);
+        }
+    }
 
     $effect(() => {
         if (attendee) {
@@ -219,9 +236,10 @@
             getQuizzes(id).then(q => {
                 quizzes = q.map(i => ({
                     ...i, 
+                    quiz_type: i.quiz_type || 'multiple_choice',
                     options: typeof i.options === 'string' ? JSON.parse(i.options) : i.options
                 }));
-                quizAnswers = new Array(quizzes.length).fill(-1);
+                quizAnswers = quizzes.map(i => i.quiz_type === 'descriptive' ? "" : -1);
             }).catch(e => console.error("Failed to load quizzes", e));
 
             await loadChatHistory();
@@ -478,15 +496,45 @@
         }
     }
 
-    function handleQuizSubmit() {
+    async function handleQuizSubmit() {
         let correct = 0;
-        quizzes.forEach((q, i) => {
-            if (quizAnswers[i] === q.correct_answer) {
-                correct++;
+        const submissions = quizzes.map((q, i) => {
+            let is_correct = false;
+            let answer = "";
+            if (q.quiz_type === 'descriptive') {
+                answer = quizAnswers[i] || "";
+                if (answer.trim().length > 0) {
+                    is_correct = true;
+                    correct++;
+                }
+            } else {
+                answer = quizAnswers[i].toString();
+                if (quizAnswers[i] === q.correct_answer) {
+                    is_correct = true;
+                    correct++;
+                }
             }
+            return {
+                quiz_id: q.id,
+                answer: answer,
+                is_correct: is_correct
+            };
         });
+
         quizCorrectCount = correct;
         quizSubmitted = true;
+        
+        // Send to backend
+        if (attendee) {
+            try {
+                await submitQuiz(id, {
+                    attendee_id: attendee.id,
+                    submissions: submissions
+                });
+            } catch (e) {
+                console.error("Failed to submit quiz results", e);
+            }
+        }
         
         if (correct === quizzes.length) {
             window.scrollTo({ top: 0, behavior: "smooth" });
@@ -811,21 +859,34 @@
                                                 <span class="text-[#4285F4]">Q{i+1}.</span>
                                                 {q.question}
                                             </p>
-                                            <div class="grid grid-cols-1 gap-3 pl-8">
-                                                {#each q.options as opt, oi}
-                                                    <button 
-                                                        onclick={() => { if(!quizSubmitted) quizAnswers[i] = oi }}
-                                                        class="w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-4 {quizAnswers[i] === oi ? 'border-[#4285F4] bg-[#E8F0FE]/50 dark:bg-[#4285F4]/10 text-[#1967D2] dark:text-[#4285F4]' : 'border-[#F1F3F4] dark:border-dark-border hover:border-[#DADCE0] dark:hover:border-dark-border'}"
+                                            
+                                            {#if q.quiz_type === 'descriptive'}
+                                                <div class="pl-8">
+                                                    <textarea
+                                                        bind:value={quizAnswers[i]}
                                                         disabled={quizSubmitted}
-                                                    >
-                                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 {quizAnswers[i] === oi ? 'border-[#4285F4] bg-[#4285F4] text-white' : 'border-[#DADCE0] dark:border-dark-border text-transparent'}">
-                                                            <Check size={14} />
-                                                        </div>
-                                                        <span class="font-medium">{opt}</span>
-                                                    </button>
-                                                {/each}
-                                            </div>
-                                            {#if quizSubmitted && quizAnswers[i] !== q.correct_answer}
+                                                        placeholder="Type your answer here..."
+                                                        class="w-full p-4 rounded-2xl border-2 border-[#F1F3F4] dark:border-dark-border bg-white dark:bg-dark-surface focus:border-[#4285F4] outline-none transition-all min-h-[100px] text-sm"
+                                                    ></textarea>
+                                                </div>
+                                            {:else}
+                                                <div class="grid grid-cols-1 gap-3 pl-8">
+                                                    {#each q.options as opt, oi}
+                                                        <button 
+                                                            onclick={() => { if(!quizSubmitted) quizAnswers[i] = oi }}
+                                                            class="w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-4 {quizAnswers[i] === oi ? 'border-[#4285F4] bg-[#E8F0FE]/50 dark:bg-[#4285F4]/10 text-[#1967D2] dark:text-[#4285F4]' : 'border-[#F1F3F4] dark:border-dark-border hover:border-[#DADCE0] dark:hover:border-dark-border'}"
+                                                            disabled={quizSubmitted}
+                                                        >
+                                                            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 {quizAnswers[i] === oi ? 'border-[#4285F4] bg-[#4285F4] text-white' : 'border-[#DADCE0] dark:border-dark-border text-transparent'}">
+                                                                <Check size={14} />
+                                                            </div>
+                                                            <span class="font-medium">{opt}</span>
+                                                        </button>
+                                                    {/each}
+                                                </div>
+                                            {/if}
+
+                                            {#if quizSubmitted && q.quiz_type !== 'descriptive' && quizAnswers[i] !== q.correct_answer}
                                                 <p class="text-[#EA4335] text-sm font-bold pl-8 flex items-center gap-2">
                                                     <AlertCircle size={16} />
                                                     Correct answer: {q.options[q.correct_answer]}
@@ -847,7 +908,10 @@
                                     {#if quizSubmitted && !isQuizPassed}
                                         <p class="text-[#EA4335] font-bold">You got {quizCorrectCount} / {quizzes.length} correct. Please try again!</p>
                                         <button 
-                                            onclick={() => { quizSubmitted = false; quizAnswers = new Array(quizzes.length).fill(-1); }}
+                                            onclick={() => { 
+                                                quizSubmitted = false; 
+                                                quizAnswers = quizzes.map(i => i.quiz_type === 'descriptive' ? "" : -1);
+                                            }}
                                             class="text-[#4285F4] font-bold hover:underline"
                                         >
                                             Retry Quiz
@@ -857,97 +921,98 @@
                             </div>
                         {/if}
 
-                        {#if !feedbackSubmitted && (isQuizPassed || quizzes.length === 0 || !codelab?.require_quiz)}
-                            <div
-                                class="max-w-md w-full bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-6 mb-8 text-left shadow-sm transition-colors"
-                            >
-                                <h3
-                                    class="font-bold text-lg mb-4 text-[#202124] dark:text-dark-text"
+                        {#if !feedbackSubmitted}
+                            {#if isQuizPassed || quizzes.length === 0 || !codelab?.require_quiz}
+                                <div
+                                    class="max-w-md w-full bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-6 mb-8 text-left shadow-sm transition-colors"
                                 >
-                                    {$t("feedback.experience_title")}
-                                </h3>
-
-                                <!-- ... (keep feedback form inputs) -->
-                                <div class="mb-4">
-                                    <span
-                                        class="block text-sm font-bold text-[#5F6368] dark:text-dark-text-muted mb-2"
-                                        >{$t("feedback.satisfaction")}</span
+                                    <h3
+                                        class="font-bold text-lg mb-4 text-[#202124] dark:text-dark-text"
                                     >
-                                    <div class="flex gap-2">
-                                        {#each [1, 2, 3, 4, 5] as s}
-                                            <button
-                                                onclick={() =>
-                                                    (feedbackSatisfaction = s)}
-                                                class="p-1 rounded-lg transition-all hover:bg-yellow-50 dark:hover:bg-yellow-500/10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                                                aria-label="Rate {s} out of 5 stars"
-                                                aria-pressed={feedbackSatisfaction >= s}
-                                            >
-                                                <Star
-                                                    size={28}
-                                                    fill={feedbackSatisfaction >=
-                                                    s
-                                                        ? "#F9AB00"
-                                                        : "none"}
-                                                    class={feedbackSatisfaction >=
-                                                    s
-                                                        ? "text-[#F9AB00]"
-                                                        : "text-[#BDC1C6] dark:text-dark-text-muted/30"}
-                                                    aria-hidden="true"
-                                                />
-                                            </button>
-                                        {/each}
+                                        {$t("feedback.experience_title")}
+                                    </h3>
+
+                                    <div class="mb-4">
+                                        <span
+                                            class="block text-sm font-bold text-[#5F6368] dark:text-dark-text-muted mb-2"
+                                            >{$t("feedback.satisfaction")}</span
+                                        >
+                                        <div class="flex gap-2">
+                                            {#each [1, 2, 3, 4, 5] as s}
+                                                <button
+                                                    onclick={() =>
+                                                        (feedbackSatisfaction = s)}
+                                                    class="p-1 rounded-lg transition-all hover:bg-yellow-50 dark:hover:bg-yellow-500/10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                                                    aria-label="Rate {s} out of 5 stars"
+                                                    aria-pressed={feedbackSatisfaction >= s}
+                                                >
+                                                    <Star
+                                                        size={28}
+                                                        fill={feedbackSatisfaction >=
+                                                        s
+                                                            ? "#F9AB00"
+                                                            : "none"}
+                                                        class={feedbackSatisfaction >=
+                                                        s
+                                                            ? "text-[#F9AB00]"
+                                                            : "text-[#BDC1C6] dark:text-dark-text-muted/30"}
+                                                        aria-hidden="true"
+                                                    />
+                                                </button>
+                                            {/each}
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="mb-4">
-                                    <label
-                                        for="difficulty-slider"
-                                        class="block text-sm font-bold text-[#5F6368] dark:text-dark-text-muted mb-2"
-                                        >{$t("feedback.difficulty")}</label
-                                    >
-                                    <input
-                                        id="difficulty-slider"
-                                        type="range"
-                                        min="1"
-                                        max="5"
-                                        step="1"
-                                        bind:value={feedbackDifficulty}
-                                        class="w-full accent-[#4285F4] h-2 bg-gray-200 dark:bg-dark-border rounded-lg appearance-none cursor-pointer"
-                                    />
-                                    <div
-                                        class="flex justify-between text-xs text-[#9AA0A6] dark:text-dark-text-muted mt-2 font-medium"
-                                    >
-                                        <span>{$t("feedback.too_easy")}</span>
-                                        <span>{$t("feedback.just_right")}</span>
-                                        <span>{$t("feedback.too_hard")}</span>
+                                    <div class="mb-4">
+                                        <label
+                                            for="difficulty-slider"
+                                            class="block text-sm font-bold text-[#5F6368] dark:text-dark-text-muted mb-2"
+                                            >{$t("feedback.difficulty")}</label
+                                        >
+                                        <input
+                                            id="difficulty-slider"
+                                            type="range"
+                                            min="1"
+                                            max="5"
+                                            step="1"
+                                            bind:value={feedbackDifficulty}
+                                            class="w-full accent-[#4285F4] h-2 bg-gray-200 dark:bg-dark-border rounded-lg appearance-none cursor-pointer"
+                                        />
+                                        <div
+                                            class="flex justify-between text-xs text-[#9AA0A6] dark:text-dark-text-muted mt-2 font-medium"
+                                        >
+                                            <span>{$t("feedback.too_easy")}</span>
+                                            <span>{$t("feedback.just_right")}</span>
+                                            <span>{$t("feedback.too_hard")}</span>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div class="mb-6">
-                                    <label
-                                        for="feedback-comments"
-                                        class="block text-sm font-bold text-[#5F6368] dark:text-dark-text-muted mb-2"
-                                        >{$t("feedback.comments_optional")}</label
+                                    <div class="mb-6">
+                                        <label
+                                            for="feedback-comments"
+                                            class="block text-sm font-bold text-[#5F6368] dark:text-dark-text-muted mb-2"
+                                            >{$t("feedback.comments_optional")}</label
+                                        >
+                                        <textarea
+                                            id="feedback-comments"
+                                            bind:value={feedbackComment}
+                                            class="w-full bg-transparent border border-[#DADCE0] dark:border-dark-border rounded-lg p-3 text-sm text-[#3C4043] dark:text-dark-text focus:border-[#4285F4] outline-none transition-colors"
+                                            rows="3"
+                                            placeholder={$t("feedback.comments_placeholder")}
+                                        ></textarea>
+                                    </div>
+
+                                    <button
+                                        onclick={handleFeedbackSubmit}
+                                        disabled={feedbackSubmitting}
+                                        class="w-full bg-[#4285F4] text-white py-3 rounded-full font-bold hover:bg-[#1A73E8] disabled:opacity-50 transition-all shadow-md active:scale-95"
                                     >
-                                    <textarea
-                                        id="feedback-comments"
-                                        bind:value={feedbackComment}
-                                        class="w-full bg-transparent border border-[#DADCE0] dark:border-dark-border rounded-lg p-3 text-sm text-[#3C4043] dark:text-dark-text focus:border-[#4285F4] outline-none transition-colors"
-                                        rows="3"
-                                        placeholder={$t("feedback.comments_placeholder")}
-                                    ></textarea>
+                                        {feedbackSubmitting
+                                            ? $t("feedback.submitting")
+                                            : $t("feedback.submit")}
+                                    </button>
                                 </div>
-
-                                <button
-                                    onclick={handleFeedbackSubmit}
-                                    disabled={feedbackSubmitting}
-                                    class="w-full bg-[#4285F4] text-white py-3 rounded-full font-bold hover:bg-[#1A73E8] disabled:opacity-50 transition-all shadow-md active:scale-95"
-                                >
-                                    {feedbackSubmitting
-                                        ? $t("feedback.submitting")
-                                        : $t("feedback.submit")}
-                                </button>
-                            </div>
+                            {/if}
                         {:else}
                             <div
                                 class="bg-[#E6F4EA] dark:bg-green-500/10 text-[#137333] dark:text-green-400 px-8 py-6 rounded-2xl mb-12 flex flex-col items-center gap-2 border border-[#CEEAD6] dark:border-green-500/20"
@@ -963,7 +1028,8 @@
                             <a
                                 href="/certificate/{attendee?.id}"
                                 target="_blank"
-                                class="bg-[#4285F4] text-white hover:bg-[#1A73E8] px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2"
+                                onclick={handleCertificateClick}
+                                class="bg-[#4285F4] text-white hover:bg-[#1A73E8] px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2 {!canGetCertificate ? 'opacity-70' : ''}"
                             >
                                 <FileText size={20} />
                                 {$t("feedback.get_certificate")}
