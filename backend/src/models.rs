@@ -22,6 +22,7 @@ pub struct Quiz {
     pub id: String,
     pub codelab_id: String,
     pub question: String,
+    pub quiz_type: Option<String>,
     pub options: String, // JSON string
     pub correct_answer: i32,
     pub created_at: Option<String>,
@@ -30,6 +31,7 @@ pub struct Quiz {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateQuiz {
     pub question: String,
+    pub quiz_type: Option<String>,
     pub options: Vec<String>,
     pub correct_answer: i32,
 }
@@ -110,6 +112,7 @@ pub struct Attendee {
 pub struct CertificateInfo {
     pub attendee_name: String,
     pub codelab_title: String,
+    pub codelab_id: String,
     pub author: String,
     pub completed_at: String,
     pub verification_url: String,
@@ -178,6 +181,44 @@ pub struct CreateMaterial {
     pub material_type: String,
     pub link_url: Option<String>,
     pub file_path: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct QuizSubmission {
+    pub id: String,
+    pub codelab_id: String,
+    pub attendee_id: String,
+    pub quiz_id: String,
+    pub answer: String,
+    #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
+    pub is_correct: i32,
+    pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateQuizSubmission {
+    pub quiz_id: String,
+    pub answer: String,
+    pub is_correct: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct QuizSubmissionPayload {
+    pub attendee_id: String,
+    pub submissions: Vec<CreateQuizSubmission>,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct QuizSubmissionWithAttendee {
+    pub id: String,
+    pub codelab_id: String,
+    pub attendee_id: String,
+    pub attendee_name: String,
+    pub quiz_id: String,
+    pub answer: String,
+    #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
+    pub is_correct: i32,
+    pub created_at: Option<String>,
 }
 
 #[cfg(test)]
