@@ -246,14 +246,20 @@ Follow these strict guidelines to create the content:
 
             // With structured outputs, we get guaranteed valid JSON
             try {
-                parsedData = JSON.parse(generatedContent);
+                // Remove markdown code blocks if present
+                let cleanContent = generatedContent.trim();
+                if (cleanContent.startsWith("```")) {
+                    cleanContent = cleanContent.replace(/^```json\n?/, "").replace(/```$/, "").trim();
+                }
+                
+                parsedData = JSON.parse(cleanContent);
                 generationStep = "review";
             } catch (e) {
                 console.error(
-                    "JSON Parse Error (should not happen with structured outputs)",
+                    "JSON Parse Error:",
                     e,
                 );
-                console.error("Response:", generatedContent);
+                console.error("Raw Response:", generatedContent);
                 alert(
                     $t("ai_generator.error_parse"),
                 );

@@ -35,6 +35,7 @@ export async function* streamGeminiResponseRobust(
     config: GeminiConfig
 ): AsyncGenerator<string, void, unknown> {
     if (USE_FIREBASE) {
+        if (!config.apiKey) throw new Error("API Key is required for Firebase mode");
         // Direct call for Firebase mode
         const model = config.model || "gemini-3-flash-preview";
         // alt=sse is required to use parseGoogleStream logic
@@ -59,7 +60,7 @@ export async function* streamGeminiResponseRobust(
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 prompt: `Context:\n${context}\n\nQuestion:\n${prompt}`,
-                api_key: config.apiKey,
+                api_key: config.apiKey || undefined, // Only send if we have it locally
                 model: config.model || "gemini-3-flash-preview"
             }),
         });
@@ -120,6 +121,7 @@ export async function* streamGeminiStructuredOutput(
     };
 
     if (USE_FIREBASE) {
+        if (!config.apiKey) throw new Error("API Key is required for Firebase mode");
         const model = config.model || "gemini-3-flash-preview";
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
 
@@ -152,7 +154,7 @@ export async function* streamGeminiStructuredOutput(
             body: JSON.stringify({
                 prompt: prompt,
                 system_instruction: systemPrompt,
-                api_key: config.apiKey,
+                api_key: config.apiKey || undefined,
                 model: config.model || "gemini-3-flash-preview",
                 generation_config: generationConfig,
                 tools: config.tools

@@ -29,11 +29,12 @@
         FileText,
         X,
         Copy,
+        Loader2,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
     import { encrypt, decrypt } from "$lib/crypto";
     import AiCodelabGenerator from "$lib/components/admin/AiCodelabGenerator.svelte";
-    import { copyCodelab as apiCopyCodelab } from "$lib/api";
+    import { copyCodelab as apiCopyCodelab, saveAdminSettings } from "$lib/api";
 
     let codelabs: Codelab[] = $state([]);
     let loading = $state(true);
@@ -79,6 +80,7 @@
 
     // AI & Settings State
     let showSettingsModal = $state(false);
+    let isSavingSettings = $state(false);
     let showAiGenerator = $state(false);
     let geminiApiKey = $state("");
     let apiKeySaved = $state(false);
@@ -132,15 +134,28 @@
         }
     }
 
-    function saveSettings() {
-        if (geminiApiKey.trim()) {
-            const encrypted = encrypt(geminiApiKey.trim());
-            localStorage.setItem("gemini_api_key", encrypted);
-            apiKeySaved = true;
-            showSettingsModal = false;
-        } else {
-            localStorage.removeItem("gemini_api_key");
-            apiKeySaved = false;
+    async function saveSettings() {
+        isSavingSettings = true;
+        try {
+            // 1. Save to server (for proxy use)
+            await saveAdminSettings({ gemini_api_key: geminiApiKey.trim() });
+            
+            // 2. Save locally
+            if (geminiApiKey.trim()) {
+                const encrypted = encrypt(geminiApiKey.trim());
+                localStorage.setItem("gemini_api_key", encrypted);
+                apiKeySaved = true;
+                showSettingsModal = false;
+            } else {
+                localStorage.removeItem("gemini_api_key");
+                apiKeySaved = false;
+            }
+            alert($t("dashboard.settings.save_success"));
+        } catch (e) {
+            console.error(e);
+            alert("Failed to save settings to server");
+        } finally {
+            isSavingSettings = false;
         }
     }
 
@@ -608,8 +623,12 @@
                 </button>
                 <button
                     onclick={saveSettings}
-                    class="px-6 py-2 bg-[#4285F4] text-white rounded-lg font-bold hover:bg-[#1A73E8] text-sm transition-all shadow-sm"
+                    disabled={isSavingSettings}
+                    class="px-6 py-2 bg-[#4285F4] text-white rounded-lg font-bold hover:bg-[#1A73E8] text-sm transition-all shadow-sm flex items-center gap-2"
                 >
+                    {#if isSavingSettings}
+                        <Loader2 size={16} class="animate-spin" />
+                    {/if}
                     {$t("common.save")}
                 </button>
             </div>
