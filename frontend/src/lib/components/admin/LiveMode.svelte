@@ -91,9 +91,6 @@
                                 </p>
                                 <p class="text-[10px] text-[#9AA0A6] dark:text-dark-text-muted">
                                     Code: {attendee.code}
-                                    {#if attendee.current_step}
-                                        &bull; Step {attendee.current_step}
-                                    {/if}
                                 </p>
                             </div>
                         </div>

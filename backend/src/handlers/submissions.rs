@@ -6,9 +6,13 @@ use axum::{
     response::Json,
 };
 use axum_extra::extract::Multipart;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
+use std::io::Cursor;
+use std::path::Path as StdPath;
 use tokio::fs;
 use uuid::Uuid;
+use image::{codecs::webp::WebPEncoder, ExtendedColorType};
 
 const MAX_TOTAL_SIZE: i64 = 10 * 1024 * 1024; // 10MB
 
@@ -38,7 +42,20 @@ pub async fn submit_file(
             .await
             .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-        let file_size = data.len() as i64;
+        // Convert images to webp to reduce size
+        let (stored_bytes, stored_name, stored_ext) = match convert_image_to_webp(&file_name, &data) {
+            Some((bytes, new_name)) => (bytes, new_name, "webp".to_string()),
+            None => {
+                let ext = std::path::Path::new(&file_name)
+                    .extension()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("bin")
+                    .to_string();
+                (data.to_vec(), file_name.clone(), ext)
+            }
+        };
+
+        let file_size = stored_bytes.len() as i64;
 
         if total_size + file_size > MAX_TOTAL_SIZE {
             return Err((
@@ -48,11 +65,7 @@ pub async fn submit_file(
         }
 
         // Generate a unique filename to avoid collisions
-        let file_ext = std::path::Path::new(&file_name)
-            .extension()
-            .and_then(|s| s.to_str())
-            .unwrap_or("bin");
-        let new_filename = format!("{}.{}", Uuid::new_v4(), file_ext);
+        let new_filename = format!("{}.{}", Uuid::new_v4(), stored_ext);
         let upload_dir = "static/uploads/submissions";
         let file_path = format!("{}/{}", upload_dir, new_filename);
 
@@ -60,7 +73,7 @@ pub async fn submit_file(
             .await
             .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-        fs::write(&file_path, data)
+        fs::write(&file_path, &stored_bytes)
             .await
             .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
@@ -74,7 +87,7 @@ pub async fn submit_file(
         .bind(&codelab_id)
         .bind(&attendee_id)
         .bind(&db_path)
-        .bind(&file_name)
+        .bind(&stored_name)
         .bind(&file_size)
         .execute(&state.pool)
         .await
@@ -85,7 +98,7 @@ pub async fn submit_file(
             codelab_id,
             attendee_id,
             file_path: db_path,
-            file_name,
+            file_name: stored_name,
             file_size,
             created_at: Some(chrono::Utc::now().to_rfc3339()),
         };
@@ -101,11 +114,11 @@ pub async fn get_submissions(
     Path(codelab_id): Path<String>,
 ) -> Result<Json<Vec<SubmissionWithAttendee>>, (StatusCode, String)> {
     tracing::debug!("Fetching submissions for codelab: {}", codelab_id);
-    let submissions = sqlx::query_as::<_, SubmissionWithAttendee>(
+    let raw = sqlx::query_as::<_, SubmissionWithAttendeeRaw>(
         &state.q(r#"
         SELECT 
             s.id, s.codelab_id, s.attendee_id, COALESCE(a.name, 'Unknown') as attendee_name, 
-            s.file_path, s.file_name, s.file_size, s.created_at
+            s.file_path, s.file_name, s.file_size, CAST(s.created_at AS TEXT) AS created_at
         FROM submissions s
         LEFT JOIN attendees a ON s.attendee_id = a.id
         WHERE s.codelab_id = ?
@@ -120,8 +133,52 @@ pub async fn get_submissions(
         (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
     })?;
 
+    let submissions: Vec<SubmissionWithAttendee> = raw
+        .into_iter()
+        .map(|r| SubmissionWithAttendee {
+            id: r.id,
+            codelab_id: r.codelab_id,
+            attendee_id: r.attendee_id,
+            attendee_name: r.attendee_name,
+            file_path: r.file_path,
+            file_name: r.file_name,
+            file_size: r.file_size,
+            created_at: r.created_at,
+        })
+        .collect();
+
     tracing::debug!("Found {} submissions", submissions.len());
     Ok(Json(submissions))
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+struct SubmissionWithAttendeeRaw {
+    pub id: String,
+    pub codelab_id: String,
+    pub attendee_id: String,
+    pub attendee_name: String,
+    pub file_path: String,
+    pub file_name: String,
+    pub file_size: i64,
+    pub created_at: Option<String>,
+}
+
+fn convert_image_to_webp(original_name: &str, data: &[u8]) -> Option<(Vec<u8>, String)> {
+    let img = image::load_from_memory(data).ok()?;
+    let rgba = img.to_rgba8();
+    let (width, height) = (rgba.width(), rgba.height());
+
+    let mut out = Cursor::new(Vec::new());
+    let mut encoder = WebPEncoder::new_lossless(&mut out);
+    encoder.encode(&rgba, width, height, ExtendedColorType::Rgba8).ok()?;
+
+    let stem = StdPath::new(original_name)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("submission");
+    let new_name = format!("{}.webp", stem);
+
+    Some((out.into_inner(), new_name))
 }
 
 pub async fn delete_submission(

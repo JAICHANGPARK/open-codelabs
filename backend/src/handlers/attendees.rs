@@ -5,6 +5,7 @@ use axum::{
     http::{header, HeaderMap, StatusCode},
     Json,
 };
+use magic_crypt::{new_magic_crypt, MagicCryptTrait};
 use serde_json;
 use sqlx;
 use std::sync::Arc;
@@ -47,6 +48,8 @@ pub async fn register_attendee(
     }
 
     let attendee_id = uuid::Uuid::new_v4().to_string();
+    let mc = new_magic_crypt!(&state.admin_pw, 256);
+    let encrypted_code = mc.encrypt_str_to_base64(&payload.code);
 
     sqlx::query(
         &state.q("INSERT INTO attendees (id, codelab_id, name, code, current_step) VALUES (?, ?, ?, ?, 1)"),
@@ -54,16 +57,19 @@ pub async fn register_attendee(
     .bind(&attendee_id)
     .bind(&id)
     .bind(&payload.name)
-    .bind(&payload.code)
+    .bind(&encrypted_code)
     .execute(&state.pool)
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    let attendee = sqlx::query_as::<_, Attendee>(&state.q("SELECT * FROM attendees WHERE id = ?"))
+    let mut attendee = sqlx::query_as::<_, Attendee>(&state.q("SELECT * FROM attendees WHERE id = ?"))
         .bind(&attendee_id)
         .fetch_one(&state.pool)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    attendee.code = mc
+        .decrypt_base64_to_string(&attendee.code)
+        .unwrap_or_else(|_| attendee.code.clone());
 
     Ok(Json(attendee))
 }
@@ -72,13 +78,20 @@ pub async fn get_attendees(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
 ) -> Result<Json<Vec<Attendee>>, (StatusCode, String)> {
-    let attendees = sqlx::query_as::<_, Attendee>(
+    let mut attendees = sqlx::query_as::<_, Attendee>(
         &state.q("SELECT * FROM attendees WHERE codelab_id = ? ORDER BY created_at DESC"),
     )
     .bind(&id)
     .fetch_all(&state.pool)
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let mc = new_magic_crypt!(&state.admin_pw, 256);
+    for attendee in attendees.iter_mut() {
+        attendee.code = mc
+            .decrypt_base64_to_string(&attendee.code)
+            .unwrap_or_else(|_| attendee.code.clone());
+    }
 
     Ok(Json(attendees))
 }

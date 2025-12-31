@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { encryptForBackend } from './crypto';
+import { encryptForBackend, getEncryptionPassword } from './crypto';
 import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee } from './types';
 export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee };
 
@@ -111,7 +111,7 @@ export async function saveAdminSettings(payload: { gemini_api_key: string }): Pr
     
     // Encrypt the API key using admin password if available
     if (browser) {
-        const adminPw = sessionStorage.getItem("adminPassword");
+        const adminPw = getEncryptionPassword();
         if (payload.gemini_api_key) {
             if (!adminPw) {
                 throw new Error('ENCRYPTION_PASSWORD_MISSING');

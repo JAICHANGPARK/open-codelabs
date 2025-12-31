@@ -12,11 +12,16 @@ services:
       - ${DATA_VOLUME_PATH}/uploads:/app/static/uploads
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_ADMIN_ENCRYPTION_PASSWORD: ${ADMIN_PW}
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     environment:
       - VITE_API_URL=${VITE_API_URL}
+      - VITE_ADMIN_ENCRYPTION_PASSWORD=${ADMIN_PW}
       - PORT=${FRONTEND_PORT}
       - HOST=${FRONTEND_HOST}
     depends_on:

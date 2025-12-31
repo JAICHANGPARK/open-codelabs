@@ -14,6 +14,7 @@
 		MessageSquare,
 		Award,
 		CheckCircle2,
+		Sparkles,
 	} from "lucide-svelte";
 
 	let lang = $state("ko");
@@ -57,6 +58,45 @@
 			ctaPrimary:
 				lang === "ko" ? "5분 만에 시작하기" : "Get Started in 5m",
 			ctaSecondary: lang === "ko" ? "문서 보기" : "View Docs",
+		},
+		valueProps: {
+			title: lang === "ko" ? "왜 Open Codelabs인가?" : "Why Open Codelabs",
+			desc:
+				lang === "ko"
+					? "AI 작성, 실시간 운영, 보안을 한 번에 갖춘 실습 플랫폼입니다."
+					: "AI-native authoring, live operations, and security in one platform.",
+			items: [
+				{
+					icon: Sparkles,
+					title: lang === "ko" ? "AI-우선 작성" : "AI-first authoring",
+					description:
+						lang === "ko"
+							? "Gemini 기반 코드랩 생성·요약·리뷰로 워크숍 콘텐츠를 빠르게 반복합니다."
+							: "Gemini-powered generation, summaries, and reviews accelerate workshop content.",
+				},
+				{
+					icon: BarChart3,
+					title:
+						lang === "ko"
+							? "운영 콘트롤 타워"
+							: "Operational control tower",
+					description:
+						lang === "ko"
+							? "실시간 참석자 상태, 도움 요청, 제출물, 퀴즈를 한 화면에서 모니터링합니다."
+							: "Monitor attendee status, help requests, submissions, and quizzes in one view.",
+				},
+				{
+					icon: Shield,
+					title:
+						lang === "ko"
+							? "보안과 데이터 주권"
+							: "Security & data ownership",
+					description:
+						lang === "ko"
+							? "암호화된 API 키, 프라이빗 워크숍, 자체 호스팅 옵션으로 데이터 통제권을 유지하세요."
+							: "Encrypted keys, private workshops, and self-hosting keep you in control.",
+				},
+			],
 		},
 		quickstart: {
 			title:
@@ -208,6 +248,31 @@
 				},
 			],
 		},
+		deployment: {
+			title: lang === "ko" ? "원하는 방식으로 배포" : "Deploy your way",
+			desc:
+				lang === "ko"
+					? "로컬 Docker, 클라우드, 또는 Firebase 서버리스까지 팀 환경에 맞춰 선택하세요."
+					: "Run locally with Docker, in your cloud, or serverless with Firebase—pick what fits your team.",
+			options: [
+				{
+					title: lang === "ko" ? "자체 호스팅" : "Self-hosted",
+					description:
+						lang === "ko"
+							? "Rust + SQLite 조합으로 가볍고 빠른 단일 바이너리. 사내 네트워크에 띄워도 됩니다."
+							: "Rust + SQLite, lightweight single binary. Perfect for on-prem or locked-down networks.",
+					badges: ["Docker", "Podman", "Axum"],
+				},
+				{
+					title: "Firebase",
+					description:
+						lang === "ko"
+							? "서버리스 배포로 인증, DB, 스토리지를 간단히 운영. 최소한의 인프라 관리."
+							: "Serverless deployment with auth, DB, and storage—minimal infra to manage.",
+					badges: ["Hosting", "Firestore", "Storage"],
+				},
+			],
+		},
 	});
 
 	function toggleLang() {
@@ -337,6 +402,41 @@
 			></div>
 		</div>
 	</header>
+
+	<!-- Value Props -->
+	<section class="py-20 bg-neutral-50">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="text-center mb-12 reveal">
+				<p class="text-blue-600 font-bold uppercase tracking-[0.2em] text-xs mb-3">
+					{lang === "ko" ? "핵심 가치" : "VALUE PILLARS"}
+				</p>
+				<h2 class="text-3xl sm:text-4xl font-black mb-4 tracking-tight">
+					{content.valueProps.title}
+				</h2>
+				<p class="text-neutral-600 max-w-2xl mx-auto">
+					{content.valueProps.desc}
+				</p>
+			</div>
+
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+				{#each content.valueProps.items as item, i}
+					<div
+						class="p-8 rounded-3xl bg-white border border-neutral-100 shadow-sm hover:shadow-xl transition-all reveal"
+						style={`transition-delay:${i * 100}ms`}
+					>
+						<div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-5">
+							<item.icon class="w-6 h-6" />
+						</div>
+						<h3 class="text-xl font-bold mb-3">{item.title}</h3>
+						<p class="text-neutral-600 leading-relaxed text-sm">
+							{item.description}
+						</p>
+					</div>
+				{/each}
+			</div>
+		</div>
+	</section>
+
 	<!-- Features Grid -->
 	<section id="features" class="py-24 bg-white">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -433,6 +533,45 @@
 						{/each}
 					</ul>
 				</div>
+			</div>
+		</div>
+	</section>
+
+	<!-- Deployment -->
+	<section class="py-24 bg-white">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="text-center mb-12 reveal">
+				<h2 class="text-3xl sm:text-4xl font-black mb-4 tracking-tight">
+					{content.deployment.title}
+				</h2>
+				<p class="text-neutral-600 max-w-2xl mx-auto">
+					{content.deployment.desc}
+				</p>
+			</div>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				{#each content.deployment.options as opt, i}
+					<div
+						class="p-8 rounded-3xl border border-neutral-100 bg-neutral-50 hover:bg-white hover:border-blue-200 transition-all shadow-sm hover:shadow-xl reveal"
+						style={`transition-delay:${i * 120}ms`}
+					>
+						<div class="flex items-center justify-between mb-4">
+							<h3 class="text-2xl font-black">{opt.title}</h3>
+							<span class="px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-full bg-blue-50 text-blue-700">
+								{lang === "ko" ? "배포" : "Deploy"}
+							</span>
+						</div>
+						<p class="text-neutral-700 mb-4 leading-relaxed">
+							{opt.description}
+						</p>
+						<div class="flex flex-wrap gap-2">
+							{#each opt.badges as b}
+								<span class="px-3 py-1 rounded-full bg-white border border-neutral-200 text-xs font-bold text-neutral-700">
+									{b}
+								</span>
+							{/each}
+						</div>
+					</div>
+				{/each}
 			</div>
 		</div>
 	</section>

@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { encryptForBackend } from './crypto';
+import { encryptForBackend, getEncryptionPassword } from './crypto';
 
 export interface GeminiConfig {
     apiKey: string;
@@ -35,6 +35,10 @@ export async function* streamGeminiResponseRobust(
     context: string,
     config: GeminiConfig
 ): AsyncGenerator<string, void, unknown> {
+    const apiKeyRequired = () => {
+        if (!config.apiKey) throw new Error("API Key is required for backend mode");
+    };
+
     if (USE_FIREBASE) {
         if (!config.apiKey) throw new Error("API Key is required for Firebase mode");
         // Direct call for Firebase mode
@@ -56,9 +60,15 @@ export async function* streamGeminiResponseRobust(
         yield* parseGoogleStream(response);
     } else {
         // Proxy through our backend
+        apiKeyRequired();
         let apiKey = config.apiKey;
-        if (apiKey && browser) {
-            const adminPw = sessionStorage.getItem("adminPassword");
+        if (browser) {
+            const adminPw = getEncryptionPassword({ interactive: false });
+            if (adminPw) {
+                apiKey = encryptForBackend(apiKey, adminPw);
+            }
+        } else {
+            const adminPw = getEncryptionPassword();
             if (adminPw) {
                 apiKey = encryptForBackend(apiKey, adminPw);
             }
@@ -119,6 +129,10 @@ export async function* streamGeminiStructuredOutput(
     schema: object,
     config: GeminiStructuredConfig
 ): AsyncGenerator<ThinkingContent, void, unknown> {
+    const apiKeyRequired = () => {
+        if (!config.apiKey) throw new Error("API Key is required for backend mode");
+    };
+
     const generationConfig = {
         responseMimeType: "application/json",
         responseJsonSchema: schema,
@@ -157,9 +171,15 @@ export async function* streamGeminiStructuredOutput(
         if (!response.ok) throw new Error(`API Error ${response.status}`);
         yield* parseStructuredStream(response);
     } else {
+        apiKeyRequired();
         let apiKey = config.apiKey;
-        if (apiKey && browser) {
-            const adminPw = sessionStorage.getItem("adminPassword");
+        if (browser) {
+            const adminPw = getEncryptionPassword({ interactive: false });
+            if (adminPw) {
+                apiKey = encryptForBackend(apiKey, adminPw);
+            }
+        } else {
+            const adminPw = getEncryptionPassword();
             if (adminPw) {
                 apiKey = encryptForBackend(apiKey, adminPw);
             }

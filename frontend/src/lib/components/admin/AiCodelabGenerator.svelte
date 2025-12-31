@@ -1,6 +1,17 @@
 <script lang="ts">
     import { fade, fly } from "svelte/transition";
-    import { X, Sparkles, Loader2, ArrowRight, Info, Clock, FileCode, Upload, Trash2, FileText } from "lucide-svelte";
+    import {
+        X,
+        Sparkles,
+        Loader2,
+        ArrowRight,
+        Info,
+        Clock,
+        FileCode,
+        Upload,
+        Trash2,
+        FileText,
+    } from "lucide-svelte";
     import {
         streamGeminiStructuredOutput,
         type GeminiStructuredConfig,
@@ -33,6 +44,9 @@
     } | null>(null);
 
     let fileInput = $state<HTMLInputElement>();
+    const MAX_FILES = 10;
+    const MAX_ZIP_FILES = 10;
+    const MAX_FILE_SIZE_BYTES = 1024 * 1024 * 1024; // 1GB per file/zip
 
     const SYSTEM_PROMPT = `
 You are a world-class Technical Content Engineer and Developer Advocate. 
@@ -65,6 +79,8 @@ Follow these strict guidelines to create the content:
 - Use clear Markdown headings and syntax highlighting.
 - Provide shell commands for installation (e.g., npm install, brew install).
 - If specific IDE settings (settings.json) or plugin IDs are relevant, include them.
+- For every code block: include inline comments for each logical line AND add a numbered line-by-line explanation right after the block in the same language as the content.
+- Before each code block, state the filename/path being edited.
 
 4. TONE & STYLE:
 - Professional, encouraging, and action-oriented.
@@ -96,27 +112,133 @@ Follow these strict guidelines to create the content:
 - Use clear Markdown.
 - Use callout boxes (Note, Caution, Tip) to highlight important information.
 - Always specify the filename above the code blocks.
+- After each code block, add a short list like "1) line -> explanation" with concise reasons (not just restating the code).
 
 `;
 
     const IGNORED_EXTENSIONS = new Set([
-        '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.pdf', '.zip', '.tar', '.gz', '.mp3', '.mp4', '.woff', '.woff2', '.ttf', '.eot'
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".gif",
+        ".svg",
+        ".ico",
+        ".pdf",
+        ".zip",
+        ".tar",
+        ".gz",
+        ".mp3",
+        ".mp4",
+        ".apk",
+        ".aab",
+        ".ipa",
+        ".exe",
+        ".dll",
+        ".so",
+        ".dylib",
+        ".o",
+        ".class",
+        ".jar",
+        ".aar",
+        ".woff",
+        ".woff2",
+        ".ttf",
+        ".eot",
     ]);
-    const IGNORED_PATHS = ['node_modules/', '.git/', 'dist/', 'build/', '.svelte-kit/', 'target/', 'venv/'];
+    const IGNORED_PATHS = [
+        "node_modules/",
+        ".git/",
+        "dist/",
+        "build/",
+        "out/",
+        "bin/",
+        "obj/",
+        "app/build/",
+        "android/app/build/",
+        "ios/build/",
+        ".dart_tool/",
+        ".pub-cache/",
+        ".flutter-plugins",
+        ".flutter-plugins-dependencies",
+        ".fvm/",
+        ".gradle/",
+        ".idea/",
+        ".svelte-kit/",
+        "target/",
+        "venv/",
+    ];
+    const MEDIA_EXTENSIONS = new Set([
+        ".mp3",
+        ".wav",
+        ".aac",
+        ".flac",
+        ".ogg",
+        ".m4a",
+        ".mp4",
+        ".mov",
+        ".avi",
+        ".mkv",
+        ".webm",
+    ]);
+    const ENV_PATTERNS = [/^\.env(\..+)?$/];
 
     async function handleFileUpload(event: Event) {
         const target = event.target as HTMLInputElement;
         if (!target.files) return;
 
+        const pendingFiles: { name: string; content: string }[] = [];
+        const remainingSlots = () => MAX_FILES - (uploadedFiles.length + pendingFiles.length);
+
+        if (remainingSlots() <= 0) {
+            alert("You can upload up to 10 files per prompt.");
+            return;
+        }
+
         loading = true;
         try {
             for (const file of Array.from(target.files)) {
-                if (file.name.endsWith('.zip')) {
-                    await extractCodeFromZip(file);
+                if (remainingSlots() <= 0) {
+                    alert("You can upload up to 10 files per prompt.");
+                    break;
+                }
+
+                if (isEnvFile(file.name)) {
+                    alert(`${file.name} contains environment variables and will be skipped.`);
+                    continue;
+                }
+
+                if (file.size > MAX_FILE_SIZE_BYTES) {
+                    alert(`${file.name} exceeds the 1GB file size limit.`);
+                    continue;
+                }
+
+                if (isMediaFile(file.name)) {
+                    alert(`${file.name} is an audio/video file and is not allowed.`);
+                    continue;
+                }
+
+                if (file.name.endsWith(".zip")) {
+                    const { added, truncated } = await extractCodeFromZip(
+                        file,
+                        remainingSlots(),
+                    );
+                    pendingFiles.push(...added);
+                    if (truncated) {
+                        alert(
+                            `ZIP upload limit reached (max ${MAX_ZIP_FILES} files per zip and ${MAX_FILES} per prompt). Extra files were skipped.`,
+                        );
+                    }
                 } else {
                     const content = await file.text();
-                    uploadedFiles = [...uploadedFiles, { name: file.name, content }];
+                    pendingFiles.push({ name: file.name, content });
                 }
+            }
+
+            if (pendingFiles.length > 0) {
+                uploadedFiles = [
+                    ...uploadedFiles,
+                    ...pendingFiles,
+                ].slice(0, MAX_FILES);
             }
         } catch (e) {
             console.error("File upload failed", e);
@@ -127,22 +249,50 @@ Follow these strict guidelines to create the content:
         }
     }
 
-    async function extractCodeFromZip(file: File) {
+    function isMediaFile(name: string): boolean {
+        const lower = name.toLowerCase();
+        return Array.from(MEDIA_EXTENSIONS).some((ext) => lower.endsWith(ext));
+    }
+
+    function isEnvFile(name: string): boolean {
+        const normalized = name.toLowerCase().replace(/\\/g, "/");
+        return ENV_PATTERNS.some((re) => re.test(normalized.split("/").pop() || ""));
+    }
+
+    async function extractCodeFromZip(
+        file: File,
+        allowedCount: number,
+    ): Promise<{ added: { name: string; content: string }[]; truncated: boolean }> {
         const zip = new JSZip();
         const content = await zip.loadAsync(file);
-        
+        const added: { name: string; content: string }[] = [];
+        let truncated = false;
+
         for (const [path, zipEntry] of Object.entries(content.files)) {
             if (zipEntry.dir) continue;
-            
+            const lowerPath = path.toLowerCase();
+
             // Filter out binary and ignored files
-            const isIgnored = IGNORED_PATHS.some(p => path.includes(p)) || 
-                             Array.from(IGNORED_EXTENSIONS).some(ext => path.toLowerCase().endsWith(ext));
-            
+            const isIgnored =
+                IGNORED_PATHS.some((p) => lowerPath.includes(p)) ||
+                Array.from(IGNORED_EXTENSIONS).some((ext) =>
+                    lowerPath.endsWith(ext),
+                );
+
+            if (isIgnored || isMediaFile(path) || isEnvFile(lowerPath)) continue;
+
+            if (added.length >= Math.min(MAX_ZIP_FILES, allowedCount)) {
+                truncated = true;
+                break;
+            }
+
             if (!isIgnored) {
                 const text = await zipEntry.async("text");
-                uploadedFiles = [...uploadedFiles, { name: path, content: text }];
+                added.push({ name: path, content: text });
             }
         }
+
+        return { added, truncated };
     }
 
     function removeFile(index: number) {
@@ -153,8 +303,12 @@ Follow these strict guidelines to create the content:
         // Combine manually entered code and uploaded files
         let fullContext = sourceCode.trim();
         if (uploadedFiles.length > 0) {
-            const filesContext = uploadedFiles.map(f => `File: ${f.name}\n\`\`\`\n${f.content}\n\`\`\``).join('\n\n');
-            fullContext = fullContext ? `${fullContext}\n\nUploaded Files:\n${filesContext}` : filesContext;
+            const filesContext = uploadedFiles
+                .map((f) => `File: ${f.name}\n\`\`\`\n${f.content}\n\`\`\``)
+                .join("\n\n");
+            fullContext = fullContext
+                ? `${fullContext}\n\nUploaded Files:\n${filesContext}`
+                : filesContext;
         }
 
         if (!fullContext || !apiKey) return;
@@ -198,7 +352,7 @@ Follow these strict guidelines to create the content:
                             },
                             content: {
                                 type: "string",
-                                description: `Markdown content in ${targetLanguage} for this step. Explain the code clearly. Use code blocks.`,
+                                description: `Markdown content in ${targetLanguage} for this step. Explain the code clearly. Use code blocks with inline comments and add a numbered line-by-line explanation list after each block.`,
                             },
                         },
                         required: ["title", "content"],
@@ -208,10 +362,13 @@ Follow these strict guidelines to create the content:
             required: ["title", "description", "steps"],
         };
 
-        const durationValue = handsOnDuration === 'custom' ? customDuration : handsOnDuration;
-        const durationText = durationValue ? `The target duration for this hands-on session is approximately ${durationValue} minutes. Please adjust the depth and number of steps to fit this timeframe.` : "";
+        const durationValue =
+            handsOnDuration === "custom" ? customDuration : handsOnDuration;
+        const durationText = durationValue
+            ? `The target duration for this hands-on session is approximately ${durationValue} minutes. Please adjust the depth and number of steps to fit this timeframe.`
+            : "";
 
-        const prompt = `Create a codelab tutorial from the following source code and context. ${durationText} Write ALL content in ${targetLanguage}.\n\nSource code/Context:\n${fullContext}`;
+        const prompt = `Create a codelab tutorial from the following source code and context. ${durationText} Write ALL content in ${targetLanguage}. For every code block, include inline comments on each logical line, specify the filename before the block, and append a numbered line-by-line explanation list immediately after the block (same language).\n\nSource code/Context:\n${fullContext}`;
 
         // Build tools array
         const tools: GeminiStructuredConfig["tools"] = [];
@@ -248,24 +405,22 @@ Follow these strict guidelines to create the content:
             try {
                 // Find first '{' and last '}' to extract JSON
                 let cleanContent = generatedContent.trim();
-                const firstBrace = cleanContent.indexOf('{');
-                const lastBrace = cleanContent.lastIndexOf('}');
-                
+                const firstBrace = cleanContent.indexOf("{");
+                const lastBrace = cleanContent.lastIndexOf("}");
+
                 if (firstBrace !== -1 && lastBrace !== -1) {
-                    cleanContent = cleanContent.substring(firstBrace, lastBrace + 1);
+                    cleanContent = cleanContent.substring(
+                        firstBrace,
+                        lastBrace + 1,
+                    );
                 }
-                
+
                 parsedData = JSON.parse(cleanContent);
                 generationStep = "review";
             } catch (e) {
-                console.error(
-                    "JSON Parse Error:",
-                    e,
-                );
+                console.error("JSON Parse Error:", e);
                 console.error("Raw Response:", generatedContent);
-                alert(
-                    $t("ai_generator.error_parse"),
-                );
+                alert($t("ai_generator.error_parse"));
                 generationStep = "input";
             }
         } catch (e: any) {
@@ -316,9 +471,7 @@ Follow these strict guidelines to create the content:
         in:fly={{ y: 20, duration: 400 }}
     >
         <!-- Header -->
-        <div
-            class="bg-[#8E24AA] p-6 text-white shrink-0"
-        >
+        <div class="bg-[#8E24AA] p-6 text-white shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="bg-white/20 p-2 rounded-lg" aria-hidden="true">
@@ -353,12 +506,12 @@ Follow these strict guidelines to create the content:
                             class="text-[#5F6368] dark:text-dark-text-muted font-bold text-lg"
                             >{$t("ai_generator.input_label")}</label
                         >
-                        
+
                         <div class="flex items-center gap-2">
                             <input
                                 type="file"
                                 multiple
-                                accept=".zip,.js,.ts,.py,.rs,.java,.c,.cpp,.h,.html,.css,.json,.md"
+                                accept=".zip,.js,.ts,.py,.rs,.go,.mod,.sum,.kt,.kts,.java,.c,.cpp,.h,.html,.css,.xml,.gradle,.json,.yml,.yaml,.toml,.proto,.md,.ipynb,.dart,.lock"
                                 bind:this={fileInput}
                                 onchange={handleFileUpload}
                                 class="hidden"
@@ -368,18 +521,31 @@ Follow these strict guidelines to create the content:
                                 class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-xl text-sm font-bold text-[#8E24AA] hover:bg-[#8E24AA]/5 transition-all shadow-sm"
                             >
                                 <Upload size={18} />
-                                {$t("ai_generator.upload_files") || "Upload Files / Zip"}
+                                {$t("ai_generator.upload_files") ||
+                                    "Upload Files / Zip"}
                             </button>
                         </div>
                     </div>
+                    <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
+                        Limit: up to 10 files per prompt (zip may contain max 10 files), max 1GB each, no audio/video files.
+                    </p>
 
                     <!-- Uploaded Files List -->
                     {#if uploadedFiles.length > 0}
-                        <div class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-white/50 dark:bg-dark-surface/50 rounded-xl border border-dashed border-[#DADCE0] dark:border-dark-border">
+                        <div
+                            class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-white/50 dark:bg-dark-surface/50 rounded-xl border border-dashed border-[#DADCE0] dark:border-dark-border"
+                        >
                             {#each uploadedFiles as file, i}
-                                <div class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-lg text-xs font-medium text-[#3C4043] dark:text-dark-text shadow-sm group">
-                                    <FileCode size={14} class="text-[#8E24AA]" />
-                                    <span class="max-w-[150px] truncate">{file.name}</span>
+                                <div
+                                    class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-lg text-xs font-medium text-[#3C4043] dark:text-dark-text shadow-sm group"
+                                >
+                                    <FileCode
+                                        size={14}
+                                        class="text-[#8E24AA]"
+                                    />
+                                    <span class="max-w-[150px] truncate"
+                                        >{file.name}</span
+                                    >
                                     <button
                                         onclick={() => removeFile(i)}
                                         class="text-[#9AA0A6] hover:text-[#EA4335] transition-colors"
@@ -500,8 +666,13 @@ Follow these strict guidelines to create the content:
                                 size={16}
                                 class="text-[#F9AB00] mt-0.5 shrink-0"
                             />
-                            <p class="text-xs text-[#3C4043] dark:text-dark-text">
-                                <strong>{$t("ai_generator.billing_notice")}</strong> {$t("ai_generator.billing_desc")}
+                            <p
+                                class="text-xs text-[#3C4043] dark:text-dark-text"
+                            >
+                                <strong
+                                    >{$t("ai_generator.billing_notice")}</strong
+                                >
+                                {$t("ai_generator.billing_desc")}
                             </p>
                         </div>
                     {/if}
@@ -529,7 +700,8 @@ Follow these strict guidelines to create the content:
                         {:else}
                             <button
                                 onclick={handleGenerate}
-                                disabled={!sourceCode.trim() && uploadedFiles.length === 0}
+                                disabled={!sourceCode.trim() &&
+                                    uploadedFiles.length === 0}
                                 class="bg-[#8E24AA] text-white px-8 py-3 rounded-full font-bold hover:shadow-lg hover:scale-105 transition-all text-lg flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
                             >
                                 <Sparkles size={20} />
@@ -554,11 +726,18 @@ Follow these strict guidelines to create the content:
                             aria-hidden="true"
                         />
                     </div>
-                    <h3 class="text-xl font-bold text-[#3C4043] dark:text-dark-text">
+                    <h3
+                        class="text-xl font-bold text-[#3C4043] dark:text-dark-text"
+                    >
                         {$t("ai_generator.analyzing")}
                     </h3>
-                    <p class="text-[#5F6368] dark:text-dark-text-muted text-center">
-                        {@html $t("ai_generator.analyzing_desc").replace("\n", "<br />")}
+                    <p
+                        class="text-[#5F6368] dark:text-dark-text-muted text-center"
+                    >
+                        {@html $t("ai_generator.analyzing_desc").replace(
+                            "\n",
+                            "<br />",
+                        )}
                     </p>
 
                     <!-- Thinking Display -->
@@ -602,10 +781,14 @@ Follow these strict guidelines to create the content:
                         class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
                     >
                         <div>
-                            <h3 class="text-xl font-bold text-[#202124] dark:text-dark-text">
+                            <h3
+                                class="text-xl font-bold text-[#202124] dark:text-dark-text"
+                            >
                                 {$t("ai_generator.preview_title")}
                             </h3>
-                            <p class="text-[#5F6368] dark:text-dark-text-muted text-sm">
+                            <p
+                                class="text-[#5F6368] dark:text-dark-text-muted text-sm"
+                            >
                                 {$t("ai_generator.preview_subtitle")}
                             </p>
                         </div>
@@ -635,10 +818,14 @@ Follow these strict guidelines to create the content:
                     <div
                         class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-8 shadow-sm"
                     >
-                        <h1 class="text-3xl font-bold text-[#202124] dark:text-dark-text mb-4">
+                        <h1
+                            class="text-3xl font-bold text-[#202124] dark:text-dark-text mb-4"
+                        >
                             {parsedData.title}
                         </h1>
-                        <p class="text-lg text-[#5F6368] dark:text-dark-text-muted mb-8">
+                        <p
+                            class="text-lg text-[#5F6368] dark:text-dark-text-muted mb-8"
+                        >
                             {parsedData.description}
                         </p>
 

@@ -17,6 +17,10 @@ RUN cd /temp/prod && bun install --frozen-lockfile --production
 # copy node_modules from temp directory
 # then copy all project files into the image
 FROM base AS prerelease
+ARG VITE_API_URL
+ARG VITE_ADMIN_ENCRYPTION_PASSWORD
+ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_ADMIN_ENCRYPTION_PASSWORD=${VITE_ADMIN_ENCRYPTION_PASSWORD}
 COPY --from=install /temp/dev/node_modules node_modules
 COPY . .
 
