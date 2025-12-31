@@ -20,6 +20,7 @@
         "status": "ステータス",
         "error": "エラー",
         "success": "成功",
+        "failed": "失敗",
         "toggle_colorblind": "色覚サポートモードを切り替え",
         "tts_read": "このステップを読み上げる",
         "tts_stop": "読み上げを停止",
@@ -33,7 +34,11 @@
         "close": "閉じる",
         "visibility": "公開設定",
         "public": "公開",
-        "private": "非公開"
+        "private": "非公開",
+        "skip_to_main": "本文へスキップ",
+        "download": "ダウンロード",
+        "open_new_tab": "新しいタブで開く",
+        "confirm_delete": "本当に削除しますか？この操作は元に戻せません。"
     },
     "dashboard": {
         "title": "ファシリテーターダッシュボード",
@@ -60,7 +65,8 @@
             "gemini_api_key": "Gemini API キー",
             "api_key_placeholder": "Gemini APIキーを入力してください",
             "api_key_desc": "APIキーはブラウザに暗호化されてローカルに保存され、サーバーには送信されません。",
-            "save_success": "設定を保存しました。"
+            "save_success": "設定を保存しました。",
+            "save_failed": "設定の保存に失敗しました。"
         }
     },
     "editor": {
@@ -87,6 +93,7 @@
         "chat_placeholder": "メッセージを入力...",
         "no_messages": "メッセージはまだありません。",
         "no_messages_desc": "ファシリテーターからのメッセージはまだありません。",
+        "dm_select_prompt": "参加者を選択してDMを送信してください。",
         "feedback_tab": "フィードバック",
         "delete_step": "ステップを削除",
         "copy_url": "URLをコピー",
@@ -99,6 +106,12 @@
         "send_dm": "メッセージを送信",
         "to_facilitator": "ファシリテーターへ",
         "from_facilitator": "ファシリテーター",
+        "avg_satisfaction": "平均満足度",
+        "avg_difficulty": "平均難易度",
+        "total_responses": "総回答数",
+        "no_comments": "コメントはありません",
+        "no_feedback_yet": "まだフィードバックがありません",
+        "wait_for_feedback": "参加者のコードラボ完了をお待ちください。",
         "ai_menu": {
             "explain": "AIで説明",
             "summarize": "AIで要約",
@@ -106,8 +119,14 @@
             "improve_writing": "文章を改善"
         },
         "live_tab": "ライブ",
+        "raffle_tab": "抽選",
         "guide_tab": "事前準備ガイド",
         "guide_description": "参加者がセッションを開始する前に準備すべき環境やツールの案内を作成してください。",
+        "markdown_editor": "Markdownエディタ",
+        "live_preview": "ライブプレビュー",
+        "parse_error": "コンテンツの解析中にエラーが発生しました",
+        "pdf_export_failed": "PDFのエクスポートに失敗しました",
+        "docx_export_failed": "DOCXのエクスポートに失敗しました。エディタに直接コピーしてください。",
         "generate_guide": "AIでガイドを生成",
         "generating_guide": "ガイドを生成中...",
         "guide_placeholder": "ここに事前準備の案内をMarkdownで入力してください...",
@@ -155,7 +174,8 @@
         "error_registration_failed": "登録に失敗しました。接続を確認してもう一度お試しください。",
         "error_private_codelab": "このコードラボは非公開です。ファシリテーターにお問い合わせください。",
         "return_home": "ホームに戻る",
-        "codelab_not_found": "コードラボが見つかりませんでした"
+        "codelab_not_found": "コードラボが見つかりませんでした",
+        "anonymous_user": "匿名"
     },
     "feedback": {
         "done_title": "完了しました！",
@@ -175,6 +195,21 @@
         "failed_submit": "フィードバックの送信に失敗しました。",
         "view_live_status": "リアルタイム状況を表示",
         "get_certificate": "修了証を発行する"
+    },
+    "submission_panel": {
+        "title": "課題提出",
+        "upload": "提出物をアップロード",
+        "uploading": "アップロード中...",
+        "upload_btn": "提出ファイルを選択",
+        "size_label": "{used}MB / 10MB",
+        "delete": "削除",
+        "download": "ダウンロード",
+        "open_new_tab": "新しいタブで開く",
+        "upload_failed": "アップロードに失敗しました",
+        "delete_failed": "削除に失敗しました",
+        "upload_failed_material": "ファイルのアップロードに失敗しました",
+        "add_material_failed": "教材の追加に失敗しました",
+        "attendee_code": "参加コード"
     },
     "certificate": {
         "title": "修 了 証",
@@ -267,6 +302,24 @@
         "improvement_instruction": "どのように改善しますか？",
         "improvement_placeholder": "例：より親しみやすく、要約する、コードコメントを追加...",
         "ai_improve_submit": "改善する"
+    },
+    "raffle": {
+        "tab_label": "ファシリテーター抽選",
+        "title": "修了者ルーレット",
+        "description": "修了証を受け取った参加者だけでルーレット抽選します。",
+        "refresh": "名簿を更新",
+        "no_eligible": "まだ修了者がいません。",
+        "spin": "ルーレットを回す",
+        "spinning": "抽選中...",
+        "eligible_count": "{count}名 参加可",
+        "winner": "当選者",
+        "certificate_badge": "修了証保持者の中から選出",
+        "eligible_title": "抽選対象",
+        "completed_only": "修了証保持者のみ",
+        "completed_at": "{time} 完了",
+        "eligible_badge": "対象",
+        "waiting_for_completion": "まだ修了した参加者がいません。修了証を発行すると抽選に参加できます。",
+        "recent_winners": "最近の当選者"
     },
     "submission": {
         "title": "課題提出",
