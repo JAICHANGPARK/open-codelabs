@@ -358,9 +358,9 @@
                                             class="flex items-start justify-between gap-4 mb-4"
                                         >
                                             <h3
-                                                class="text-xl font-bold text-[#202124] dark:text-dark-text group-hover:text-[#4285F4] transition-colors flex flex-wrap items-center gap-2 min-w-0"
+                                                class="text-xl font-bold text-[#202124] dark:text-dark-text group-hover:text-[#4285F4] transition-colors flex flex-wrap items-center gap-2 flex-1"
                                             >
-                                                <span class="truncate">{codelab.title}</span>
+                                                <span>{codelab.title}</span>
                                                 {#if !codelab.is_public}
                                                     <span class="bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-dark-text-muted text-[10px] px-2 py-0.5 rounded-full border dark:border-dark-border flex items-center gap-1 font-bold shrink-0">
                                                         <X size={10} />
