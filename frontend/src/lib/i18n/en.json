@@ -20,6 +20,7 @@
         "status": "Status",
         "error": "Error",
         "success": "Success",
+        "failed": "failed",
         "toggle_colorblind": "Toggle Colorblind Mode",
         "tts_read": "Read this step",
         "tts_stop": "Stop reading",
@@ -33,7 +34,11 @@
         "close": "Close",
         "visibility": "Visibility",
         "public": "Public",
-        "private": "Private"
+        "private": "Private",
+        "skip_to_main": "Skip to main content",
+        "download": "Download",
+        "open_new_tab": "Open in new tab",
+        "confirm_delete": "Are you sure you want to delete this item? This action cannot be undone."
     },
     "dashboard": {
         "title": "Facilitator Dashboard",
@@ -60,7 +65,8 @@
             "gemini_api_key": "Gemini API Key",
             "api_key_placeholder": "Enter your Gemini API Key",
             "api_key_desc": "Your key is stored locally in your browser and encrypted. It is never sent to our servers.",
-            "save_success": "Settings saved successfully."
+            "save_success": "Settings saved successfully.",
+            "save_failed": "Failed to save settings to server."
         }
     },
     "editor": {
@@ -87,6 +93,7 @@
         "chat_placeholder": "Type a message...",
         "no_messages": "No messages yet.",
         "no_messages_desc": "No messages from the facilitator yet.",
+        "dm_select_prompt": "Select an attendee from the list to send a direct message",
         "feedback_tab": "Feedback",
         "delete_step": "Delete Step",
         "copy_url": "Copy URL",
@@ -99,6 +106,12 @@
         "send_dm": "Send Message",
         "to_facilitator": "To Facilitator",
         "from_facilitator": "Facilitator",
+        "avg_satisfaction": "Avg Satisfaction",
+        "avg_difficulty": "Avg Difficulty",
+        "total_responses": "Total Responses",
+        "no_comments": "No comments provided",
+        "no_feedback_yet": "No feedback yet",
+        "wait_for_feedback": "Wait for attendees to finish the codelab.",
         "ai_menu": {
             "explain": "AI Explain",
             "summarize": "AI Summarize",
@@ -106,8 +119,14 @@
             "improve_writing": "Improve Writing"
         },
         "live_tab": "Live",
+        "raffle_tab": "Raffle",
         "guide_tab": "Preparation Guide",
         "guide_description": "Create a guide for attendees on what to prepare before starting the session (e.g., tools, software, environment).",
+        "markdown_editor": "Markdown Editor",
+        "live_preview": "Live Preview",
+        "parse_error": "Error parsing content",
+        "pdf_export_failed": "PDF export failed",
+        "docx_export_failed": "DOCX export failed. Try copying the content directly to your document editor.",
         "generate_guide": "Generate Guide with AI",
         "generating_guide": "Generating Guide...",
         "guide_placeholder": "Write the preparation instructions here in Markdown...",
@@ -172,7 +191,8 @@
         "error_registration_failed": "Registration failed. Please check your connection and try again.",
         "error_private_codelab": "This codelab is currently private and inaccessible. Please contact the facilitator.",
         "return_home": "Return to Home",
-        "codelab_not_found": "Codelab not found"
+        "codelab_not_found": "Codelab not found",
+        "anonymous_user": "Anonymous"
     },
     "feedback": {
         "done_title": "You're all done!",
@@ -192,6 +212,21 @@
         "failed_submit": "Failed to submit feedback",
         "view_live_status": "View Live Status",
         "get_certificate": "Get Certificate"
+    },
+    "submission_panel": {
+        "title": "Assignments",
+        "upload": "Upload Submission",
+        "uploading": "Uploading...",
+        "upload_btn": "Upload Submission",
+        "size_label": "{used}MB / 10MB",
+        "delete": "Delete",
+        "download": "Download",
+        "open_new_tab": "Open in new tab",
+        "upload_failed": "Upload failed",
+        "delete_failed": "Delete failed",
+        "upload_failed_material": "File upload failed",
+        "add_material_failed": "Failed to add material",
+        "attendee_code": "Code"
     },
     "certificate": {
         "title": "CERTIFICATE",
@@ -290,6 +325,24 @@
                 "improvement_placeholder": "e.g., More friendly, summarize, add code comments...",
                 "ai_improve_submit": "Improve"
             },
+    "raffle": {
+        "tab_label": "Facilitator Raffle",
+        "title": "Completion Roulette",
+        "description": "Spin the wheel with attendees who have received certificates.",
+        "refresh": "Refresh list",
+        "no_eligible": "Waiting for certificate holders...",
+        "spin": "Spin the wheel",
+        "spinning": "Spinning...",
+        "eligible_count": "{count} eligible",
+        "winner": "Winner",
+        "certificate_badge": "Selected from certificate holders",
+        "eligible_title": "Eligible Attendees",
+        "completed_only": "Certificate issued only",
+        "completed_at": "Completed at {time}",
+        "eligible_badge": "Eligible",
+        "waiting_for_completion": "No one has completed yet. Issue certificates to join the draw.",
+        "recent_winners": "Recent winners"
+    },
             "submission": {
                 "title": "Submissions",
                 "description": "Please upload your results here (Max 10MB).",
