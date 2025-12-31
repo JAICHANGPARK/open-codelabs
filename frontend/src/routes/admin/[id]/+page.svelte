@@ -59,6 +59,7 @@
     import SettingsMode from "$lib/components/admin/SettingsMode.svelte";
     import GuideMode from "$lib/components/admin/GuideMode.svelte";
     import SubmissionsMode from "$lib/components/admin/SubmissionsMode.svelte";
+    import RaffleMode from "$lib/components/admin/RaffleMode.svelte";
 
     import { 
         getSubmissions,
@@ -70,7 +71,7 @@
 
     // Initialize mode from URL or default to 'edit'
     let initialMode = page.url.searchParams.get("mode");
-    let mode = $state<"edit" | "preview" | "guide" | "live" | "feedback" | "materials" | "quiz" | "submissions" | "settings">(
+    let mode = $state<"edit" | "preview" | "guide" | "live" | "feedback" | "materials" | "quiz" | "submissions" | "settings" | "raffle">(
         initialMode === "preview" ||
             initialMode === "guide" ||
             initialMode === "live" ||
@@ -78,7 +79,8 @@
             initialMode === "materials" ||
             initialMode === "quiz" ||
             initialMode === "submissions" ||
-            initialMode === "settings"
+            initialMode === "settings" ||
+            initialMode === "raffle"
             ? (initialMode as any)
             : "edit",
     );
@@ -201,6 +203,8 @@
         } else if (mode === "live") {
             refreshLiveData();
             scrollToBottom();
+        } else if (mode === "raffle") {
+            refreshLiveData();
         }
     });
 
@@ -1266,7 +1270,7 @@
             class="max-w-screen-2xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2 items-start relative"
         >
             <!-- Sidebar Navigation -->
-            {#if mode !== "live" && mode !== "feedback" && mode !== "materials" && mode !== "quiz" && mode !== "settings" && mode !== "guide"}
+            {#if mode !== "live" && mode !== "feedback" && mode !== "materials" && mode !== "quiz" && mode !== "settings" && mode !== "guide" && mode !== "submissions" && mode !== "raffle"}
                 <AdminSidebar
                     bind:steps
                     bind:activeStepIndex
@@ -1286,7 +1290,9 @@
                 mode === "materials" ||
                 mode === "quiz" ||
                 mode === "settings" ||
-                mode === "guide"
+                mode === "guide" ||
+                mode === "submissions" ||
+                mode === "raffle"
                     ? "lg:col-span-12 w-full min-w-0"
                     : "lg:col-span-8 w-full min-w-0"}
                 in:fade
@@ -1356,6 +1362,11 @@
                                     {isSaving}
                                     {saveSuccess}
                                     handleSave={handleUniversalSave}
+                                />
+                            {:else if mode === "raffle"}
+                                <RaffleMode
+                                    {attendees}
+                                    onRefresh={refreshLiveData}
                                 />
                             {/if}
 
