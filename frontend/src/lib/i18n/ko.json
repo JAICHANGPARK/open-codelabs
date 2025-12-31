@@ -20,6 +20,7 @@
         "status": "상태",
         "error": "오류",
         "success": "성공",
+        "failed": "실패",
         "toggle_colorblind": "색맹 모드 토글",
         "tts_read": "이 단계 읽어주기",
         "tts_stop": "읽기 중단",
@@ -33,7 +34,11 @@
         "close": "닫기",
         "visibility": "공개 설정",
         "public": "공개",
-        "private": "비공개"
+        "private": "비공개",
+        "skip_to_main": "본문으로 바로가기",
+        "download": "다운로드",
+        "open_new_tab": "새 탭에서 열기",
+        "confirm_delete": "정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
     },
     "dashboard": {
         "title": "퍼실리테이터 대시보드",
@@ -60,7 +65,8 @@
             "gemini_api_key": "Gemini API 키",
             "api_key_placeholder": "Gemini API 키를 입력하세요",
             "api_key_desc": "API 키는 브라우저에 암호화되어 로컬로 저장되며, 서버로 전송되지 않습니다.",
-            "save_success": "설정이 저장되었습니다."
+            "save_success": "설정이 저장되었습니다.",
+            "save_failed": "설정 저장에 실패했습니다."
         }
     },
     "editor": {
@@ -87,6 +93,7 @@
         "chat_placeholder": "메시지를 입력하세요...",
         "no_messages": "메시지가 없습니다.",
         "no_messages_desc": "퍼실리테이터로부터 아직 메시지가 없습니다.",
+        "dm_select_prompt": "DM을 보내려면 참가자를 선택하세요.",
         "feedback_tab": "피드백",
         "delete_step": "단계 삭제",
         "copy_url": "URL 복사",
@@ -99,6 +106,12 @@
         "send_dm": "메시지 보내기",
         "to_facilitator": "퍼실리테이터에게",
         "from_facilitator": "퍼실리테이터",
+        "avg_satisfaction": "평균 만족도",
+        "avg_difficulty": "평균 난이도",
+        "total_responses": "총 응답 수",
+        "no_comments": "작성된 코멘트가 없습니다",
+        "no_feedback_yet": "아직 피드백이 없습니다",
+        "wait_for_feedback": "참석자들이 코드랩을 완료할 때까지 기다려주세요.",
         "ai_menu": {
             "explain": "AI 설명",
             "summarize": "AI 요약",
@@ -106,8 +119,14 @@
             "improve_writing": "문장 개선"
         },
         "live_tab": "라이브",
+        "raffle_tab": "추첨",
         "guide_tab": "사전 준비 가이드",
         "guide_description": "참가자들이 세션을 시작하기 전에 준비해야 할 환경 및 도구 안내를 작성하세요.",
+        "markdown_editor": "마크다운 에디터",
+        "live_preview": "라이브 미리보기",
+        "parse_error": "내용을 해석하는 중 오류가 발생했습니다",
+        "pdf_export_failed": "PDF 내보내기에 실패했습니다",
+        "docx_export_failed": "DOCX 내보내기에 실패했습니다. 문서 편집기에 직접 복사해 보세요.",
         "generate_guide": "AI로 가이드 생성",
         "generating_guide": "가이드 생성 중...",
         "guide_placeholder": "여기에 사전 준비 안내사항을 Markdown으로 작성하세요...",
@@ -172,7 +191,8 @@
         "error_registration_failed": "등록에 실패했습니다. 연결을 확인하고 다시 시도해주세요.",
         "error_private_codelab": "이 코드랩은 현재 비공개 상태로 접근이 불가능합니다. 관리자에게 문의하세요.",
         "return_home": "홈으로 돌아가기",
-        "codelab_not_found": "코드랩을 찾을 수 없습니다"
+        "codelab_not_found": "코드랩을 찾을 수 없습니다",
+        "anonymous_user": "익명"
     },
     "feedback": {
         "done_title": "모든 단계를 완료했습니다!",
@@ -192,6 +212,21 @@
         "failed_submit": "피드백 제출에 실패했습니다.",
         "view_live_status": "실시간 현황 보기",
         "get_certificate": "이수증 발급 받기"
+    },
+    "submission_panel": {
+        "title": "과제 제출",
+        "upload": "제출물 업로드",
+        "uploading": "업로드 중...",
+        "upload_btn": "제출 파일 선택",
+        "size_label": "{used}MB / 10MB",
+        "delete": "삭제",
+        "download": "다운로드",
+        "open_new_tab": "새 탭에서 열기",
+        "upload_failed": "업로드에 실패했습니다",
+        "delete_failed": "삭제에 실패했습니다",
+        "upload_failed_material": "파일 업로드에 실패했습니다",
+        "add_material_failed": "자료 추가에 실패했습니다",
+        "attendee_code": "참석 코드"
     },
     "certificate": {
         "title": "이 수 증",
@@ -289,6 +324,24 @@
         "improvement_instruction": "어떻게 개선할까요?",
         "improvement_placeholder": "예: 더 친근하게, 요약하기, 코드 주석 추가...",
         "ai_improve_submit": "개선하기"
+    },
+    "raffle": {
+        "tab_label": "퍼실리테이터 추첨",
+        "title": "이수자 룰렛",
+        "description": "수료증이 발급된 참석자만 대상으로 공정하게 추첨합니다.",
+        "refresh": "명단 새로고침",
+        "no_eligible": "아직 수료증 보유자가 없어요.",
+        "spin": "룰렛 돌리기",
+        "spinning": "추첨 중...",
+        "eligible_count": "{count}명 참여 가능",
+        "winner": "당첨자",
+        "certificate_badge": "수료증 발급 완료자 중 선정",
+        "eligible_title": "추첨 대상자",
+        "completed_only": "수료증 발급자만",
+        "completed_at": "{time} 완료",
+        "eligible_badge": "참여 가능",
+        "waiting_for_completion": "아직 수료한 참석자가 없습니다. 이수증을 발급하면 자동으로 참여합니다.",
+        "recent_winners": "최근 당첨자"
     },
     "submission": {
         "title": "과제 제출",
