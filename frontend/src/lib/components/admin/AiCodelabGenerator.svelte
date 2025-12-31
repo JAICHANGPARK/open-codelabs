@@ -19,6 +19,7 @@
     import { createCodelab, saveSteps, type Codelab } from "$lib/api";
     import { t, locale } from "svelte-i18n";
     import JSZip from "jszip";
+    import UploadedFileList from "$lib/components/admin/UploadedFileList.svelte";
 
     let { apiKey, onClose, onCodelabCreated } = $props<{
         apiKey: string;
@@ -116,71 +117,14 @@ Follow these strict guidelines to create the content:
 
 `;
 
-    const IGNORED_EXTENSIONS = new Set([
-        ".png",
-        ".jpg",
-        ".jpeg",
-        ".gif",
-        ".svg",
-        ".ico",
-        ".pdf",
-        ".zip",
-        ".tar",
-        ".gz",
-        ".mp3",
-        ".mp4",
-        ".apk",
-        ".aab",
-        ".ipa",
-        ".exe",
-        ".dll",
-        ".so",
-        ".dylib",
-        ".o",
-        ".class",
-        ".jar",
-        ".aar",
-        ".woff",
-        ".woff2",
-        ".ttf",
-        ".eot",
-    ]);
-    const IGNORED_PATHS = [
-        "node_modules/",
-        ".git/",
-        "dist/",
-        "build/",
-        "out/",
-        "bin/",
-        "obj/",
-        "app/build/",
-        "android/app/build/",
-        "ios/build/",
-        ".dart_tool/",
-        ".pub-cache/",
-        ".flutter-plugins",
-        ".flutter-plugins-dependencies",
-        ".fvm/",
-        ".gradle/",
-        ".idea/",
-        ".svelte-kit/",
-        "target/",
-        "venv/",
-    ];
-    const MEDIA_EXTENSIONS = new Set([
-        ".mp3",
-        ".wav",
-        ".aac",
-        ".flac",
-        ".ogg",
-        ".m4a",
-        ".mp4",
-        ".mov",
-        ".avi",
-        ".mkv",
-        ".webm",
-    ]);
-    const ENV_PATTERNS = [/^\.env(\..+)?$/];
+    import {
+        getBlocklists,
+        isEnvFile,
+        isMediaFile,
+        isBlockedByPath,
+        isBlockedByExt,
+        shouldSkipFile,
+    } from "$lib/uploadFilters";
 
     async function handleFileUpload(event: Event) {
         const target = event.target as HTMLInputElement;
@@ -202,18 +146,13 @@ Follow these strict guidelines to create the content:
                     break;
                 }
 
-                if (isEnvFile(file.name)) {
-                    alert(`${file.name} contains environment variables and will be skipped.`);
-                    continue;
-                }
-
                 if (file.size > MAX_FILE_SIZE_BYTES) {
                     alert(`${file.name} exceeds the 1GB file size limit.`);
                     continue;
                 }
 
-                if (isMediaFile(file.name)) {
-                    alert(`${file.name} is an audio/video file and is not allowed.`);
+                if (shouldSkipFile(file.name)) {
+                    alert(`${file.name} is skipped (env/media/build/binary artifact).`);
                     continue;
                 }
 
@@ -249,16 +188,6 @@ Follow these strict guidelines to create the content:
         }
     }
 
-    function isMediaFile(name: string): boolean {
-        const lower = name.toLowerCase();
-        return Array.from(MEDIA_EXTENSIONS).some((ext) => lower.endsWith(ext));
-    }
-
-    function isEnvFile(name: string): boolean {
-        const normalized = name.toLowerCase().replace(/\\/g, "/");
-        return ENV_PATTERNS.some((re) => re.test(normalized.split("/").pop() || ""));
-    }
-
     async function extractCodeFromZip(
         file: File,
         allowedCount: number,
@@ -273,13 +202,8 @@ Follow these strict guidelines to create the content:
             const lowerPath = path.toLowerCase();
 
             // Filter out binary and ignored files
-            const isIgnored =
-                IGNORED_PATHS.some((p) => lowerPath.includes(p)) ||
-                Array.from(IGNORED_EXTENSIONS).some((ext) =>
-                    lowerPath.endsWith(ext),
-                );
-
-            if (isIgnored || isMediaFile(path) || isEnvFile(lowerPath)) continue;
+            const isIgnored = shouldSkipFile(lowerPath);
+            if (isIgnored) continue;
 
             if (added.length >= Math.min(MAX_ZIP_FILES, allowedCount)) {
                 truncated = true;
@@ -531,32 +455,7 @@ Follow these strict guidelines to create the content:
                     </p>
 
                     <!-- Uploaded Files List -->
-                    {#if uploadedFiles.length > 0}
-                        <div
-                            class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-white/50 dark:bg-dark-surface/50 rounded-xl border border-dashed border-[#DADCE0] dark:border-dark-border"
-                        >
-                            {#each uploadedFiles as file, i}
-                                <div
-                                    class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-lg text-xs font-medium text-[#3C4043] dark:text-dark-text shadow-sm group"
-                                >
-                                    <FileCode
-                                        size={14}
-                                        class="text-[#8E24AA]"
-                                    />
-                                    <span class="max-w-[150px] truncate"
-                                        >{file.name}</span
-                                    >
-                                    <button
-                                        onclick={() => removeFile(i)}
-                                        class="text-[#9AA0A6] hover:text-[#EA4335] transition-colors"
-                                        aria-label="Remove file"
-                                    >
-                                        <Trash2 size={14} />
-                                    </button>
-                                </div>
-                            {/each}
-                        </div>
-                    {/if}
+                    <UploadedFileList files={uploadedFiles} onRemove={removeFile} />
 
                     <!-- Advanced Options -->
                     <div
