@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { encryptForBackend } from './crypto';
 
 export interface GeminiConfig {
     apiKey: string;
@@ -55,12 +56,20 @@ export async function* streamGeminiResponseRobust(
         yield* parseGoogleStream(response);
     } else {
         // Proxy through our backend
+        let apiKey = config.apiKey;
+        if (apiKey && browser) {
+            const adminPw = sessionStorage.getItem("adminPassword");
+            if (adminPw) {
+                apiKey = encryptForBackend(apiKey, adminPw);
+            }
+        }
+
         const response = await fetch(AI_PROXY_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 prompt: `Context:\n${context}\n\nQuestion:\n${prompt}`,
-                api_key: config.apiKey || undefined, // Only send if we have it locally
+                api_key: apiKey || undefined, // Send encrypted if we have it
                 model: config.model || "gemini-3-flash-preview"
             }),
         });
@@ -148,13 +157,21 @@ export async function* streamGeminiStructuredOutput(
         if (!response.ok) throw new Error(`API Error ${response.status}`);
         yield* parseStructuredStream(response);
     } else {
+        let apiKey = config.apiKey;
+        if (apiKey && browser) {
+            const adminPw = sessionStorage.getItem("adminPassword");
+            if (adminPw) {
+                apiKey = encryptForBackend(apiKey, adminPw);
+            }
+        }
+
         const response = await fetch(AI_PROXY_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 prompt: prompt,
                 system_instruction: systemPrompt,
-                api_key: config.apiKey || undefined,
+                api_key: apiKey || undefined,
                 model: config.model || "gemini-3-flash-preview",
                 generation_config: generationConfig,
                 tools: config.tools

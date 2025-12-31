@@ -1,4 +1,5 @@
 import { browser } from '$app/environment';
+import { encryptForBackend } from './crypto';
 import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee } from './types';
 export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee };
 
@@ -106,13 +107,26 @@ export async function login(admin_id: string, admin_pw: string): Promise<{ token
 }
 
 export async function saveAdminSettings(payload: { gemini_api_key: string }): Promise<void> {
+    let finalPayload = { ...payload };
+    
+    // Encrypt the API key using admin password if available
+    if (browser) {
+        const adminPw = sessionStorage.getItem("adminPassword");
+        if (payload.gemini_api_key) {
+            if (!adminPw) {
+                throw new Error('ENCRYPTION_PASSWORD_MISSING');
+            }
+            finalPayload.gemini_api_key = encryptForBackend(payload.gemini_api_key, adminPw);
+        }
+    }
+
     const res = await fetch(`${API_URL}/admin/settings`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
             ...getAuthHeader()
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(finalPayload),
     });
     if (!res.ok) throw new Error('Failed to save settings to server');
 }

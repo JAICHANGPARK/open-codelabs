@@ -246,10 +246,13 @@ Follow these strict guidelines to create the content:
 
             // With structured outputs, we get guaranteed valid JSON
             try {
-                // Remove markdown code blocks if present
+                // Find first '{' and last '}' to extract JSON
                 let cleanContent = generatedContent.trim();
-                if (cleanContent.startsWith("```")) {
-                    cleanContent = cleanContent.replace(/^```json\n?/, "").replace(/```$/, "").trim();
+                const firstBrace = cleanContent.indexOf('{');
+                const lastBrace = cleanContent.lastIndexOf('}');
+                
+                if (firstBrace !== -1 && lastBrace !== -1) {
+                    cleanContent = cleanContent.substring(firstBrace, lastBrace + 1);
                 }
                 
                 parsedData = JSON.parse(cleanContent);

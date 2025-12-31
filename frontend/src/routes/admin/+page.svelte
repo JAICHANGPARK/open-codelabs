@@ -151,9 +151,18 @@
                 apiKeySaved = false;
             }
             alert($t("dashboard.settings.save_success"));
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert("Failed to save settings to server");
+            if (e.message === 'ENCRYPTION_PASSWORD_MISSING') {
+                const pw = prompt($t("login.password") + " required for encryption:");
+                if (pw) {
+                    sessionStorage.setItem("adminPassword", pw);
+                    saveSettings();
+                    return;
+                }
+            } else {
+                alert("Failed to save settings to server");
+            }
         } finally {
             isSavingSettings = false;
         }

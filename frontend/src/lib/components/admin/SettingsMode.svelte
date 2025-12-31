@@ -52,9 +52,18 @@
 
             adminSaveSuccess = true;
             setTimeout(() => adminSaveSuccess = false, 3000);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
-            alert("Failed to save admin settings");
+            if (e.message === 'ENCRYPTION_PASSWORD_MISSING') {
+                const pw = prompt($t("login.password") + " required for encryption:");
+                if (pw) {
+                    sessionStorage.setItem("adminPassword", pw);
+                    handleSaveAdminSettings();
+                    return;
+                }
+            } else {
+                alert("Failed to save admin settings");
+            }
         } finally {
             isSavingAdminSettings = false;
         }

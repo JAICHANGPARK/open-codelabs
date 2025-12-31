@@ -20,6 +20,7 @@
         try {
             const { token } = await login(admin_id, admin_pw);
             localStorage.setItem("adminToken", token);
+            sessionStorage.setItem("adminPassword", admin_pw);
             goto("/admin");
         } catch (e) {
             error = $t("login.error_credentials");
