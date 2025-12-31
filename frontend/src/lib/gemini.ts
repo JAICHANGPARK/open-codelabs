@@ -37,7 +37,8 @@ export async function* streamGeminiResponseRobust(
     if (USE_FIREBASE) {
         // Direct call for Firebase mode
         const model = config.model || "gemini-3-flash-preview";
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${config.apiKey}`;
+        // alt=sse is required to use parseGoogleStream logic
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
 
         const payload = {
             contents: [{ role: "user", parts: [{ text: `Context:\n${context}\n\nQuestion:\n${prompt}` }] }]
@@ -120,7 +121,7 @@ export async function* streamGeminiStructuredOutput(
 
     if (USE_FIREBASE) {
         const model = config.model || "gemini-3-flash-preview";
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${config.apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
 
         const payload: any = {
             contents: [
