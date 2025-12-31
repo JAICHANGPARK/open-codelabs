@@ -8,6 +8,7 @@
     import { fly, fade } from "svelte/transition";
     import Prism from "prismjs";
     import { t } from "svelte-i18n";
+    import FocusTrap from "$lib/components/FocusTrap.svelte";
 
     let { context = "", onClose } = $props<{
         context: string;
@@ -20,6 +21,7 @@
     let loading = $state(false);
     let hasKey = $state(false);
     let inputRef = $state<HTMLTextAreaElement | null>(null);
+    let dialogRef: HTMLDivElement | null = null;
 
     onMount(() => {
         const storedKey = localStorage.getItem("gemini_api_key");
@@ -50,6 +52,13 @@
         apiKey = "";
         hasKey = false;
         response = "";
+    }
+
+    function handleKeydown(event: KeyboardEvent) {
+        if (event.key === "Escape") {
+            event.preventDefault();
+            onClose();
+        }
     }
 
     async function handleSubmit() {
@@ -88,21 +97,23 @@
 <div
     class="fixed inset-0 bg-black/5 z-50 flex justify-end"
     transition:fade={{ duration: 200 }}
+    onkeydown={handleKeydown}
 >
-    <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div
+    <button
         class="absolute inset-0"
         onclick={onClose}
-    ></div>
+        aria-label={$t("common.close")}
+    ></button>
 
-    <div
-        class="bg-white dark:bg-dark-surface shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden border-l border-[#E8EAED] dark:border-dark-border relative"
-        transition:fly={{ x: 500, duration: 300 }}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="gemini-title"
-    >
+    <FocusTrap>
+        <div
+            bind:this={dialogRef}
+            class="bg-white dark:bg-dark-surface shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden border-l border-[#E8EAED] dark:border-dark-border relative"
+            transition:fly={{ x: 500, duration: 300 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gemini-title"
+        >
         <!-- Header -->
         <div
             class="flex items-center justify-between p-4 border-b border-[#E8EAED] dark:border-dark-border bg-[#F8F9FA] dark:bg-dark-surface"
@@ -251,6 +262,7 @@
             </div>
         {/if}
     </div>
+    </FocusTrap>
 </div>
 
 <style>
