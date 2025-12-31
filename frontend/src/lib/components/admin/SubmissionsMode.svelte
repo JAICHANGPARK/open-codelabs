@@ -22,6 +22,10 @@
         onDelete: (attendeeId: string, submissionId: string) => void;
     }>();
 
+    $effect(() => {
+        console.log("SubmissionsMode received submissions:", submissions);
+    });
+
     let searchTerm = $state("");
     let filteredSubmissions = $derived(
         submissions.filter(s => 
@@ -42,16 +46,50 @@
         const ext = fileName.split('.').pop()?.toLowerCase();
         return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '');
     }
+
+    function formatDate(dateStr?: string) {
+        if (!dateStr) return "";
+        try {
+            return new Date(dateStr).toLocaleString();
+        } catch (e) {
+            return dateStr;
+        }
+    }
 </script>
 
 <div class="space-y-6" in:fade>
-    <!-- ... (keep header) -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-2xl border border-[#E8EAED] dark:border-dark-border">
-        <!-- ... -->
+        <div>
+            <h2 class="text-xl font-bold text-[#202124] dark:text-dark-text flex items-center gap-2">
+                <FileUp size={24} class="text-[#4285F4]" />
+                {$t("submission.facilitator_title")}
+            </h2>
+            <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mt-1">
+                {submissions.length} {$t("submission.total_count")}
+            </p>
+        </div>
+
+        <div class="relative max-w-xs w-full">
+            <Search size={18} class="absolute left-3 top-1/2 -translate-y-1/2 text-[#9AA0A6]" />
+            <input
+                type="text"
+                bind:value={searchTerm}
+                placeholder={$t("submission.search_placeholder")}
+                class="w-full pl-10 pr-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-full text-sm outline-none focus:ring-2 focus:ring-[#4285F4]/20 focus:border-[#4285F4] transition-all"
+            />
+        </div>
     </div>
 
     {#if filteredSubmissions.length === 0}
-        <!-- ... -->
+        <div class="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-dark-surface rounded-3xl border-2 border-dashed border-[#DADCE0] dark:border-dark-border">
+            <div class="w-20 h-20 bg-[#F1F3F4] dark:bg-white/5 rounded-full flex items-center justify-center mb-6">
+                <FileUp size={40} class="text-[#BDC1C6]" />
+            </div>
+            <h3 class="text-lg font-bold text-[#202124] dark:text-dark-text">{$t("submission.no_submissions")}</h3>
+            <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mt-2">
+                {searchTerm ? $t("submission.no_search_results") : $t("submission.waiting_submissions")}
+            </p>
+        </div>
     {:else}
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {#each filteredSubmissions as sub, i}
@@ -114,7 +152,7 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-2 mt-auto">
                         <a 
                             href={`${ASSET_URL}${sub.file_path}`} 
                             target="_blank"

@@ -61,7 +61,7 @@
     import AskGemini from "$lib/components/codelabs/AskGemini.svelte";
     import { createTtsPlayer } from "$lib/tts";
     import { themeState } from "$lib/theme.svelte";
-    import { submitFile, deleteSubmission as apiDeleteSubmission } from "$lib/api";
+    import { submitFile, getSubmissions, deleteSubmission as apiDeleteSubmission } from "$lib/api";
 
     // Prism.js for syntax highlighting
     import Prism from "prismjs";
@@ -265,8 +265,11 @@
 
             // Load My Submissions
             if (!isFirebaseMode()) {
+                console.log("Fetching submissions for attendee:", attendee?.id);
                 const allSubmissions = await getSubmissions(id);
+                console.log("All submissions for this codelab:", allSubmissions);
                 mySubmissions = allSubmissions.filter(s => s.attendee_id === attendee?.id);
+                console.log("My filtered submissions:", mySubmissions);
             }
 
             await loadChatHistory();
@@ -535,7 +538,9 @@
 
         submittingFile = true;
         try {
+            console.log("Submitting file for attendee:", attendee.id);
             const submission = await submitFile(id, attendee.id, file);
+            console.log("File submitted successfully:", submission);
             mySubmissions = [...mySubmissions, submission];
         } catch (err: any) {
             alert(err.message || "Upload failed");

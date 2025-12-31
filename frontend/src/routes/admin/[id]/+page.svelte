@@ -206,7 +206,9 @@
 
     async function loadSubmissions() {
         try {
+            console.log("Loading submissions for codelab:", id);
             submissions = await getSubmissions(id);
+            console.log("Loaded submissions:", submissions);
         } catch (e) {
             console.error("Failed to load submissions:", e);
         }

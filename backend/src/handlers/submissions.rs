@@ -100,13 +100,14 @@ pub async fn get_submissions(
     State(state): State<Arc<AppState>>,
     Path(codelab_id): Path<String>,
 ) -> Result<Json<Vec<SubmissionWithAttendee>>, (StatusCode, String)> {
+    tracing::debug!("Fetching submissions for codelab: {}", codelab_id);
     let submissions = sqlx::query_as::<_, SubmissionWithAttendee>(
         &state.q(r#"
         SELECT 
-            s.id, s.codelab_id, s.attendee_id, a.name as attendee_name, 
+            s.id, s.codelab_id, s.attendee_id, COALESCE(a.name, 'Unknown') as attendee_name, 
             s.file_path, s.file_name, s.file_size, s.created_at
         FROM submissions s
-        JOIN attendees a ON s.attendee_id = a.id
+        LEFT JOIN attendees a ON s.attendee_id = a.id
         WHERE s.codelab_id = ?
         ORDER BY s.created_at DESC
         "#)
@@ -114,8 +115,12 @@ pub async fn get_submissions(
     .bind(&codelab_id)
     .fetch_all(&state.pool)
     .await
-    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    .map_err(|e| {
+        tracing::error!("Error fetching submissions: {}", e);
+        (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
+    })?;
 
+    tracing::debug!("Found {} submissions", submissions.len());
     Ok(Json(submissions))
 }
 
