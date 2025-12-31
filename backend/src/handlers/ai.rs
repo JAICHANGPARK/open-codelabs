@@ -17,14 +17,15 @@ pub struct AiRequest {
     pub prompt: String,
     pub system_instruction: Option<String>,
     pub api_key: Option<String>,
+    pub model: Option<String>,
+    pub generation_config: Option<serde_json::Value>,
+    pub tools: Option<serde_json::Value>,
 }
 
 pub async fn proxy_gemini_stream(
     State(_state): State<Arc<AppState>>,
     Json(payload): Json<AiRequest>,
 ) -> impl IntoResponse {
-    // 1. 요청 페이로드의 키 확인
-    // 2. 없으면 서버 환경변수의 GEMINI_API_KEY 확인
     let api_key = match payload.api_key {
         Some(key) if !key.is_empty() => key,
         _ => std::env::var("GEMINI_API_KEY").unwrap_or_default(),
@@ -33,12 +34,12 @@ pub async fn proxy_gemini_stream(
     if api_key.is_empty() {
         return (
             StatusCode::BAD_REQUEST,
-            "Gemini API key is required (either in request or server config)".to_string(),
+            "Gemini API key is required".to_string(),
         )
             .into_response();
     }
 
-    let model = "gemini-1.5-flash"; // 기본 모델
+    let model = payload.model.unwrap_or_else(|| "gemini-3-flash-preview".to_string());
     let url = format!(
         "https://generativelanguage.googleapis.com/v1beta/models/{}:streamGenerateContent?alt=sse&key={}",
         model, api_key
@@ -46,24 +47,30 @@ pub async fn proxy_gemini_stream(
 
     let client = reqwest::Client::new();
     
-    // Google API에 보낼 페이로드 구성
-    let mut contents = serde_json::json!([
+    let contents = serde_json::json!([
         {
+            "role": "user",
             "parts": [{ "text": payload.prompt }]
         }
     ]);
 
-    // 시스템 명령어가 있는 경우 추가
-    let body = if let Some(sys) = payload.system_instruction {
-        serde_json::json!({
-            "contents": contents,
-            "system_instruction": {
-                "parts": [{ "text": sys }]
-            }
-        })
-    } else {
-        serde_json::json!({ "contents": contents })
-    };
+    let mut body = serde_json::json!({
+        "contents": contents,
+    });
+
+    if let Some(sys) = payload.system_instruction {
+        body["system_instruction"] = serde_json::json!({
+            "parts": [{ "text": sys }]
+        });
+    }
+
+    if let Some(config) = payload.generation_config {
+        body["generationConfig"] = config;
+    }
+
+    if let Some(tools) = payload.tools {
+        body["tools"] = tools;
+    }
 
     let response = match client.post(&url).json(&body).send().await {
         Ok(res) => res,

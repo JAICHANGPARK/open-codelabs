@@ -576,7 +576,8 @@
             ${context}`;
 
             const stream = streamGeminiResponseRobust(prompt, `You are a professional developer advocate writing a preparation guide for a workshop. You MUST write everything in ${targetLanguage}.`, {
-                apiKey: geminiApiKey
+                apiKey: geminiApiKey,
+                model: "gemini-3-flash-preview"
             });
 
             let responseText = "";

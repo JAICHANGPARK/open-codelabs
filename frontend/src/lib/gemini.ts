@@ -35,8 +35,8 @@ export async function* streamGeminiResponseRobust(
     config: GeminiConfig
 ): AsyncGenerator<string, void, unknown> {
     if (USE_FIREBASE) {
-        // Direct call for Firebase mode (as before, or could be proxied through Cloud Functions)
-        const model = config.model || "gemini-1.5-flash";
+        // Direct call for Firebase mode
+        const model = config.model || "gemini-3-flash-preview";
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${config.apiKey}`;
 
         const payload = {
@@ -58,7 +58,8 @@ export async function* streamGeminiResponseRobust(
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 prompt: `Context:\n${context}\n\nQuestion:\n${prompt}`,
-                api_key: config.apiKey
+                api_key: config.apiKey,
+                model: config.model || "gemini-3-flash-preview"
             }),
         });
 
@@ -107,8 +108,18 @@ export async function* streamGeminiStructuredOutput(
     schema: object,
     config: GeminiStructuredConfig
 ): AsyncGenerator<ThinkingContent, void, unknown> {
+    const generationConfig = {
+        responseMimeType: "application/json",
+        responseJsonSchema: schema,
+        ...(config.thinkingConfig && {
+            thinkingConfig: {
+                thinkingLevel: config.thinkingConfig.thinkingLevel
+            }
+        })
+    };
+
     if (USE_FIREBASE) {
-        const model = config.model || "gemini-2.0-flash-exp";
+        const model = config.model || "gemini-3-flash-preview";
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?key=${config.apiKey}`;
 
         const payload: any = {
@@ -118,15 +129,7 @@ export async function* streamGeminiStructuredOutput(
                     parts: [{ text: `${systemPrompt}\n\n${prompt}` }]
                 }
             ],
-            generationConfig: {
-                responseMimeType: "application/json",
-                responseJsonSchema: schema,
-                ...(config.thinkingConfig && {
-                    thinkingConfig: {
-                        thinkingLevel: config.thinkingConfig.thinkingLevel
-                    }
-                })
-            }
+            generationConfig
         };
 
         if (config.tools && config.tools.length > 0) {
@@ -142,21 +145,16 @@ export async function* streamGeminiStructuredOutput(
         if (!response.ok) throw new Error(`API Error ${response.status}`);
         yield* parseStructuredStream(response);
     } else {
-        // Since the backend proxy currently only supports simple prompt/system_instruction,
-        // we might need to adjust the proxy to handle full generationConfig if we want full logic.
-        // For now, let's keep it simple but use the proxy for basic security.
-        
-        // However, structured output requires specific parameters.
-        // Let's update backend proxy to be more generic if needed, or just send the full payload.
-        
         const response = await fetch(AI_PROXY_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 prompt: prompt,
                 system_instruction: systemPrompt,
-                api_key: config.apiKey
-                // Note: backend currently doesn't handle generationConfig/schema
+                api_key: config.apiKey,
+                model: config.model || "gemini-3-flash-preview",
+                generation_config: generationConfig,
+                tools: config.tools
             }),
         });
 
