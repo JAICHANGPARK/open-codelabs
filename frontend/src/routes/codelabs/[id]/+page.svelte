@@ -794,14 +794,42 @@
                 : '-translate-x-full'} lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-20 w-72 bg-[#F8F9FA] dark:bg-dark-surface border-r border-[#E8EAED] dark:border-dark-border overflow-y-auto pt-16 lg:pt-0"
         >
             <nav class="p-4 space-y-1">
+                {#if codelab?.guide_markdown}
+                    <button
+                        onclick={() => {
+                            isFinished = false;
+                            showGuide = true;
+                            if (window.innerWidth < 1024) showSidebar = false;
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                        class="w-full text-left p-3 rounded-lg flex items-start gap-4 transition-all duration-200 {showGuide && !isFinished
+                            ? 'bg-[#4285F4]/10 dark:bg-[#4285F4]/20 text-[#1967D2] dark:text-[#4285F4]'
+                            : 'hover:bg-[#F1F3F4] dark:hover:bg-white/5 text-[#5F6368] dark:text-dark-text-muted'}"
+                    >
+                        <span
+                            class="text-xs font-bold mt-1 w-5 h-5 rounded-full flex items-center justify-center shrink-0 {showGuide && !isFinished
+                                ? 'bg-[#4285F4] text-white'
+                                : 'bg-[#E8EAED] dark:bg-white/10 text-[#5F6368] dark:text-dark-text-muted'}"
+                        >
+                            <Info size={12} />
+                        </span>
+                        <span class="text-sm font-bold leading-tight pt-1"
+                            >{$t("editor.guide_tab")}</span
+                        >
+                    </button>
+
+                    <div class="h-px bg-[#E8EAED] dark:bg-dark-border my-4 mx-2"></div>
+                {/if}
+
                 {#each steps as step, i}
                     <button
                         onclick={() => {
                             isFinished = false;
+                            showGuide = false;
                             jumpToStep(i);
                         }}
                         class="w-full text-left p-3 rounded-lg flex items-start gap-4 transition-all duration-200 {currentStepIndex ===
-                            i && !isFinished
+                            i && !isFinished && !showGuide
                             ? 'bg-[#E8F0FE] dark:bg-[#4285F4]/20 text-[#1967D2] dark:text-[#4285F4]'
                             : 'hover:bg-[#F1F3F4] dark:hover:bg-white/5 text-[#5F6368] dark:text-dark-text-muted'}"
                     >
