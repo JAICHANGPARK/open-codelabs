@@ -19,6 +19,7 @@
         "status": "状态",
         "error": "错误",
         "success": "成功",
+        "failed": "失败",
         "toggle_colorblind": "切换色觉辅助模式",
         "tts_read": "朗读本步骤",
         "tts_stop": "停止朗读",
@@ -32,7 +33,11 @@
         "close": "关闭",
         "visibility": "可见性",
         "public": "公开",
-        "private": "私有"
+        "private": "私有",
+        "skip_to_main": "跳到主要内容",
+        "download": "下载",
+        "open_new_tab": "新标签页打开",
+        "confirm_delete": "确定要删除吗？此操作无法撤销。"
     },
     "dashboard": {
         "title": "协调员仪表板",
@@ -59,7 +64,8 @@
             "gemini_api_key": "Gemini API 密钥",
             "api_key_placeholder": "请输入您的 Gemini API 密钥",
             "api_key_desc": "您的密钥将加密存储在浏览器本地，不会发送到我们的服务器。",
-            "save_success": "设置保存成功。"
+            "save_success": "设置保存成功。",
+            "save_failed": "保存设置失败。"
         }
     },
     "editor": {
@@ -86,6 +92,7 @@
         "chat_placeholder": "输入消息...",
         "no_messages": "暂无消息。",
         "no_messages_desc": "协调员尚未发送消息。",
+        "dm_select_prompt": "请选择一位参与者以发送私信。",
         "feedback_tab": "反馈",
         "delete_step": "删除步骤",
         "copy_url": "复制 URL",
@@ -98,6 +105,12 @@
         "send_dm": "发送消息",
         "to_facilitator": "致协调员",
         "from_facilitator": "协调员",
+        "avg_satisfaction": "平均满意度",
+        "avg_difficulty": "平均难度",
+        "total_responses": "总反馈数",
+        "no_comments": "没有填写评论",
+        "no_feedback_yet": "暂无反馈",
+        "wait_for_feedback": "请等待参与者完成代码实验室。",
         "ai_menu": {
             "explain": "AI 解释",
             "summarize": "AI 总结",
@@ -105,10 +118,18 @@
             "improve_writing": "改进写作"
         },
         "live_tab": "实时",
+        "raffle_tab": "抽奖",
         "export_codelab": "导出代码实验室",
         "save_changes": "保存更改",
         "stuck_on_step": "卡在第 {step} 步",
-        "split_view": "分栏视图"
+        "split_view": "分栏视图",
+        "guide_tab": "准备指南",
+        "guide_description": "为参与者编写在开始前需要准备的工具和环境说明。",
+        "markdown_editor": "Markdown 编辑器",
+        "live_preview": "实时预览",
+        "parse_error": "解析内容时出错",
+        "pdf_export_failed": "导出 PDF 失败",
+        "docx_export_failed": "导出 DOCX 失败。请尝试直接复制到文档编辑器。"
     },
     "attendee": {
         "join_title": "加入代码实验室",
@@ -124,7 +145,8 @@
         "error_registration_failed": "注册失败。请检查您的网络连接并重试。",
         "error_private_codelab": "此代码实验室目前为私有状态，无法访问。请联系管理员。",
         "return_home": "返回首页",
-        "codelab_not_found": "找不到代码实验室"
+        "codelab_not_found": "找不到代码实验室",
+        "anonymous_user": "匿名"
     },
     "feedback": {
         "done_title": "您已完成！",
@@ -142,7 +164,23 @@
         "thanks": "感谢您的反馈！",
         "already_submitted": "您已经为此代码实验室提交过反馈。",
         "failed_submit": "提交反馈失败。",
-        "view_live_status": "查看实时状态"
+        "view_live_status": "查看实时状态",
+        "get_certificate": "获取结业证书"
+    },
+    "submission_panel": {
+        "title": "作业提交",
+        "upload": "上传提交物",
+        "uploading": "上传中...",
+        "upload_btn": "选择提交文件",
+        "size_label": "{used}MB / 10MB",
+        "delete": "删除",
+        "download": "下载",
+        "open_new_tab": "新标签页打开",
+        "upload_failed": "上传失败",
+        "delete_failed": "删除失败",
+        "upload_failed_material": "文件上传失败",
+        "add_material_failed": "添加资料失败",
+        "attendee_code": "参与码"
     },
     "help": {
         "request": "寻求帮助",
@@ -220,6 +258,24 @@
         "improvement_instruction": "如何优化？",
         "improvement_placeholder": "例如：更亲切、总结、添加代码注释...",
         "ai_improve_submit": "优化"
+    },
+    "raffle": {
+        "tab_label": "主持人抽奖",
+        "title": "结业者轮盘",
+        "description": "只在已领取结业证书的参与者中抽取。",
+        "refresh": "刷新名单",
+        "no_eligible": "还没有结业证书持有者。",
+        "spin": "开始抽奖",
+        "spinning": "抽奖中...",
+        "eligible_count": "可抽取 {count} 人",
+        "winner": "中奖者",
+        "certificate_badge": "从已发证人员中选出",
+        "eligible_title": "抽奖候选人",
+        "completed_only": "仅限已发证",
+        "completed_at": "{time} 完成",
+        "eligible_badge": "可参与",
+        "waiting_for_completion": "还没有完成的参与者。发放结业证后会自动加入抽奖。",
+        "recent_winners": "最近中奖记录"
     },
     "submission": {
         "title": "提交作业",
