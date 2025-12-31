@@ -90,7 +90,7 @@
                                     {attendee.name}
                                 </p>
                                 <p class="text-[10px] text-[#9AA0A6] dark:text-dark-text-muted">
-                                    Code: {attendee.code}
+                                    {$t("submission_panel.attendee_code")}: {attendee.code}
                                 </p>
                             </div>
                         </div>
@@ -143,7 +143,7 @@
             {:else}
                 <div class="h-full flex flex-col items-center justify-center text-[#BDC1C6] space-y-2 opacity-60">
                     <MessageSquare size={48} strokeWidth={1} />
-                    <p class="text-sm font-medium">No messages yet</p>
+                    <p class="text-sm font-medium">{$t("editor.no_messages")}</p>
                 </div>
             {/each}
         </div>
@@ -152,8 +152,8 @@
             <form onsubmit={(e) => { e.preventDefault(); chatTab === "public" ? sendChat() : sendDM(); }}>
                 {#if chatTab === "direct" && !dmTarget}
                     <div class="mb-3 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-xl flex items-center gap-3 text-amber-700 dark:text-amber-400 text-xs font-bold">
-                        <MessageSquare size={14} />
-                        Select an attendee from the list to send a direct message
+                        <MessageSquare size={14} aria-hidden="true" />
+                        {$t("editor.dm_select_prompt")}
                     </div>
                 {/if}
 
