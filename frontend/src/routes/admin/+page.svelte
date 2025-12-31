@@ -161,7 +161,7 @@
                     return;
                 }
             } else {
-                alert("Failed to save settings to server");
+                alert($t("dashboard.settings.save_failed"));
             }
         } finally {
             isSavingSettings = false;
@@ -234,7 +234,7 @@
             }, 2000);
         } catch (err) {
             console.error("Failed to copy!", err);
-            alert($t("editor.copy_url") + " failed");
+            alert($t("editor.copy_url") + " " + $t("common.failed"));
         }
     }
 </script>
