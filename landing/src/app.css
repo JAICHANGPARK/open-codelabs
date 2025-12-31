@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@layer utilities {
+	.reveal {
+		opacity: 0;
+		transform: translateY(30px);
+		transition: all 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+	}
+
+	.reveal-visible {
+		opacity: 1 !important;
+		transform: translateY(0) !important;
+	}
+}
+
+:root {
+	--font-sans: "Inter", system-ui, -apple-system, sans-serif;
+}
