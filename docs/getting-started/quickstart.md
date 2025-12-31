@@ -34,7 +34,7 @@ docker-compose up --build
 
 - **Facilitator (관리자)**: [http://localhost:5173/login](http://localhost:5173/login)
   - ID: `admin`
-  - PW: `admin123`
+  - PW: `admin`
 - **Attendee (참가자)**: [http://localhost:5173](http://localhost:5173)
 
 ## 로컬 개발 환경 실행
