@@ -11,7 +11,7 @@
 
     let { 
         guide_markdown = $bindable(), 
-        codelab_title = "Codelab Guide",
+        codelab_title = $t("editor.guide_tab"),
         isSaving, 
         handleSave,
         generateGuideWithAi,
@@ -37,7 +37,7 @@
             return html;
         } catch (e) {
             console.error("Markdown parse error", e);
-            return "Error parsing markdown";
+            return $t("editor.parse_error");
         }
     });
 
@@ -73,7 +73,7 @@
             await html2pdf().set(opt).from(element).save();
         } catch (e) {
             console.error("PDF Export failed", e);
-            alert("PDF Export failed");
+            alert($t("editor.pdf_export_failed"));
         }
         showExportMenu = false;
     }
@@ -109,7 +109,7 @@
             downloadFile(docxBlob, `${codelab_title}_Preparation_Guide.docx`, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
         } catch (e) {
             console.error("DOCX Export failed", e);
-            alert("DOCX Export failed. Try copying the content directly to MS Word.");
+            alert($t("editor.docx_export_failed"));
         }
         showExportMenu = false;
     }
@@ -185,7 +185,9 @@
         <!-- Editor Side -->
         <div class="flex flex-col gap-3">
             <div class="flex items-center justify-between px-2">
-                <span class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">Markdown Editor</span>
+                <span class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">
+                    {$t("editor.markdown_editor")}
+                </span>
             </div>
             <textarea
                 bind:value={guide_markdown}
@@ -197,7 +199,9 @@
         <!-- Preview Side -->
         <div class="flex flex-col gap-3">
             <div class="flex items-center justify-between px-2">
-                <span class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">Live Preview</span>
+                <span class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">
+                    {$t("editor.live_preview")}
+                </span>
             </div>
             <div class="flex-1 w-full p-8 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl overflow-y-auto prose dark:prose-invert max-w-none shadow-inner">
                 {#if guide_markdown}
@@ -214,4 +218,3 @@
         </div>
     </div>
 </div>
-
