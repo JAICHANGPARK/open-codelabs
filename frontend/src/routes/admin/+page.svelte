@@ -32,7 +32,7 @@
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
     import { encrypt, decrypt } from "$lib/crypto";
-    import AiCodelabGenerator from "$lib/components/AiCodelabGenerator.svelte";
+    import AiCodelabGenerator from "$lib/components/admin/AiCodelabGenerator.svelte";
     import { copyCodelab as apiCopyCodelab } from "$lib/api";
 
     let codelabs: Codelab[] = $state([]);

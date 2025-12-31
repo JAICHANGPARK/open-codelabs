@@ -58,7 +58,7 @@
         FileUp,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
-    import AskGemini from "$lib/components/AskGemini.svelte";
+    import AskGemini from "$lib/components/codelabs/AskGemini.svelte";
     import { createTtsPlayer } from "$lib/tts";
     import { themeState } from "$lib/theme.svelte";
     import { submitFile, deleteSubmission as apiDeleteSubmission } from "$lib/api";

@@ -48,17 +48,17 @@
     import { t, locale } from "svelte-i18n";
 
     // Components
-    import AdminHeader from "$lib/components/AdminHeader.svelte";
-    import AdminSidebar from "$lib/components/AdminSidebar.svelte";
-    import EditMode from "$lib/components/EditMode.svelte";
-    import PreviewMode from "$lib/components/PreviewMode.svelte";
-    import LiveMode from "$lib/components/LiveMode.svelte";
-    import FeedbackMode from "$lib/components/FeedbackMode.svelte";
-    import MaterialsMode from "$lib/components/MaterialsMode.svelte";
-    import QuizMode from "$lib/components/QuizMode.svelte";
-    import SettingsMode from "$lib/components/SettingsMode.svelte";
-    import GuideMode from "$lib/components/GuideMode.svelte";
-    import SubmissionsMode from "$lib/components/SubmissionsMode.svelte";
+    import AdminHeader from "$lib/components/admin/AdminHeader.svelte";
+    import AdminSidebar from "$lib/components/admin/AdminSidebar.svelte";
+    import EditMode from "$lib/components/admin/EditMode.svelte";
+    import PreviewMode from "$lib/components/admin/PreviewMode.svelte";
+    import LiveMode from "$lib/components/admin/LiveMode.svelte";
+    import FeedbackMode from "$lib/components/admin/FeedbackMode.svelte";
+    import MaterialsMode from "$lib/components/admin/MaterialsMode.svelte";
+    import QuizMode from "$lib/components/admin/QuizMode.svelte";
+    import SettingsMode from "$lib/components/admin/SettingsMode.svelte";
+    import GuideMode from "$lib/components/admin/GuideMode.svelte";
+    import SubmissionsMode from "$lib/components/admin/SubmissionsMode.svelte";
 
     import { 
         getSubmissions,
