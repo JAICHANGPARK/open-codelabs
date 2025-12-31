@@ -2,70 +2,79 @@ import { browser } from "$app/environment";
 
 export type Theme = "light" | "dark";
 
-function createThemeState() {
-    let theme = $state<Theme>("light");
-    let colorblindMode = $state<boolean>(false);
+class ThemeState {
+    theme = $state<Theme>("light");
+    colorblindMode = $state<boolean>(false);
 
-    if (browser) {
-        // Load initial state
-        const savedTheme = localStorage.getItem("theme") as Theme;
-        if (savedTheme) {
-            theme = savedTheme;
-        } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-            theme = "dark";
+    constructor() {
+        if (browser) {
+            // Load initial state
+            const savedTheme = localStorage.getItem("theme") as Theme;
+            if (savedTheme) {
+                this.theme = savedTheme;
+            } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                this.theme = "dark";
+            }
+            
+            const savedColorblind = localStorage.getItem("colorblindMode") === "true";
+            this.colorblindMode = savedColorblind;
+
+            // Apply initially - will be tracked by effects if used in components,
+            // but for global side effects we use the setters.
+            this.applyTheme(this.theme);
+            this.applyColorblind(this.colorblindMode);
         }
-        
-        const savedColorblind = localStorage.getItem("colorblindMode") === "true";
-        colorblindMode = savedColorblind;
+    }
 
-        // Apply theme initially
-        if (theme === "dark") {
+    private applyTheme(value: Theme) {
+        if (!browser) return;
+        if (value === "dark") {
             document.documentElement.classList.add("dark");
         } else {
             document.documentElement.classList.remove("dark");
         }
+    }
 
-        if (colorblindMode) {
+    private applyColorblind(value: boolean) {
+        if (!browser) return;
+        if (value) {
             document.documentElement.classList.add("colorblind");
+        } else {
+            document.documentElement.classList.remove("colorblind");
         }
     }
 
-    return {
-        get current() {
-            return theme;
-        },
-        set current(value: Theme) {
-            theme = value;
-            if (browser) {
-                localStorage.setItem("theme", value);
-                if (value === "dark") {
-                    document.documentElement.classList.add("dark");
-                } else {
-                    document.documentElement.classList.remove("dark");
-                }
-            }
-        },
-        get colorblindMode() {
-            return colorblindMode;
-        },
-        set colorblindMode(value: boolean) {
-            colorblindMode = value;
-            if (browser) {
-                localStorage.setItem("colorblindMode", String(value));
-                if (value) {
-                    document.documentElement.classList.add("colorblind");
-                } else {
-                    document.documentElement.classList.remove("colorblind");
-                }
-            }
-        },
-        toggle() {
-            this.current = theme === "light" ? "dark" : "light";
-        },
-        toggleColorblind() {
-            this.colorblindMode = !colorblindMode;
+    get current() {
+        return this.theme;
+    }
+
+    set current(value: Theme) {
+        this.theme = value;
+        if (browser) {
+            localStorage.setItem("theme", value);
+            this.applyTheme(value);
         }
-    };
+    }
+
+    get isColorblind() {
+        return this.colorblindMode;
+    }
+
+    set isColorblind(value: boolean) {
+        this.colorblindMode = value;
+        if (browser) {
+            localStorage.setItem("colorblindMode", String(value));
+            this.applyColorblind(value);
+        }
+    }
+
+    toggle() {
+        this.current = this.theme === "light" ? "dark" : "light";
+    }
+
+    toggleColorblind() {
+        this.isColorblind = !this.colorblindMode;
+    }
 }
 
-export const themeState = createThemeState();
+export const themeState = new ThemeState();

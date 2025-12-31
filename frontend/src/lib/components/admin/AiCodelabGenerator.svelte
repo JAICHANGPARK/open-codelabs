@@ -32,7 +32,7 @@
         steps: { title: string; content: string }[];
     } | null>(null);
 
-    let fileInput: HTMLInputElement;
+    let fileInput = $state<HTMLInputElement>();
 
     const SYSTEM_PROMPT = `
 You are a world-class Technical Content Engineer and Developer Advocate. 

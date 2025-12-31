@@ -786,8 +786,8 @@
     <!-- Progress Bar -->
     <div class="h-1 bg-[#F1F3F4] dark:bg-dark-border transition-all sticky top-16 z-30">
         <div
-            class="h-full bg-[#4285F4] transition-all duration-700 ease-out {themeState.colorblindMode ? 'opacity-80' : ''}"
-            style="width: {isFinished ? 100 : progressPercent}%; {themeState.colorblindMode ? 'background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.3) 10px, rgba(255,255,255,0.3) 20px); border-bottom: 2px solid #000;' : ''}"
+            class="h-full bg-[#4285F4] transition-all duration-700 ease-out {themeState.isColorblind ? 'opacity-80' : ''}"
+            style="width: {isFinished ? 100 : progressPercent}%; {themeState.isColorblind ? 'background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.3) 10px, rgba(255,255,255,0.3) 20px); border-bottom: 2px solid #000;' : ''}"
         ></div>
     </div>
 

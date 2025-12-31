@@ -186,13 +186,13 @@
         <!-- Colorblind Mode Toggle -->
         <button
             onclick={() => themeState.toggleColorblind()}
-            class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all {themeState.colorblindMode ? 'ring-2 ring-[#4285F4] border-transparent' : ''}"
+            class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all {themeState.isColorblind ? 'ring-2 ring-[#4285F4] border-transparent' : ''}"
             title={$t("common.toggle_colorblind")}
             aria-label={$t("common.toggle_colorblind")}
-            aria-pressed={themeState.colorblindMode}
+            aria-pressed={themeState.isColorblind}
         >
             <span class="sr-only">{$t("common.toggle_colorblind")}</span>
-            <Eye size={20} class={themeState.colorblindMode ? "text-[#4285F4]" : ""} />
+            <Eye size={20} class={themeState.isColorblind ? "text-[#4285F4]" : ""} />
         </button>
 
         <!-- Theme Toggle -->

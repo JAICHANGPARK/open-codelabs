@@ -1,9 +1,9 @@
-    import {
-        Loader2,
-        CheckCircle2,
+<script lang="ts">
+    import { 
+        Loader2, 
+        CheckCircle2, 
         Save,
         Settings,
-        User,
         Key,
         FileEdit
     } from "lucide-svelte";
@@ -11,6 +11,7 @@
     import { saveAdminSettings, type Codelab } from "$lib/api";
     import { onMount } from "svelte";
     import { decrypt, encrypt } from "$lib/crypto";
+    import { fade } from "svelte/transition";
 
     let {
         codelab = $bindable(),
@@ -64,7 +65,6 @@
     class="bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden min-h-[70vh] flex flex-col"
     in:fade
 >
-    <!-- ... (keep header) -->
     <div class="p-6 sm:p-8 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/30 dark:bg-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-3">
             <div class="p-2 bg-[#4285F4]/10 rounded-lg text-[#4285F4]">
@@ -125,7 +125,6 @@
                     </h4>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- ... (keep existing requirements check cards) -->
                         <div class="bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-2xl border border-[#E8EAED] dark:border-dark-border group hover:border-[#4285F4] transition-all">
                             <label class="flex items-center justify-between cursor-pointer">
                                 <div class="space-y-1">
