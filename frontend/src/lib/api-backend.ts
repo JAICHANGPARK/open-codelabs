@@ -105,6 +105,18 @@ export async function login(admin_id: string, admin_pw: string): Promise<{ token
     return res.json();
 }
 
+export async function saveAdminSettings(payload: { gemini_api_key: string }): Promise<void> {
+    const res = await fetch(`${API_URL}/admin/settings`, {
+        method: 'POST',
+        headers: { 
+            'Content-Type': 'application/json',
+            ...getAuthHeader()
+        },
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to save settings to server');
+}
+
 export async function exportCodelab(id: string): Promise<void> {
     const res = await fetch(`${API_URL}/codelabs/${id}/export`);
     if (!res.ok) throw new Error('Export failed');

@@ -1355,7 +1355,7 @@
                                     bind:codelab
                                     {isSaving}
                                     {saveSuccess}
-                                    handleSave={handleSave}
+                                    handleSave={handleUniversalSave}
                                 />
                             {/if}
 

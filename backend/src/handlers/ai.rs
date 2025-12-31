@@ -23,12 +23,18 @@ pub struct AiRequest {
 }
 
 pub async fn proxy_gemini_stream(
-    State(_state): State<Arc<AppState>>,
+    State(state): State<Arc<AppState>>,
     Json(payload): Json<AiRequest>,
 ) -> impl IntoResponse {
-    let api_key = match payload.api_key {
-        Some(key) if !key.is_empty() => key,
-        _ => std::env::var("GEMINI_API_KEY").unwrap_or_default(),
+    // 1. Check for admin-provided key in memory (stored via settings)
+    // 2. Fallback to request payload (for legacy/custom)
+    // 3. Fallback to server env var
+    let api_key = match state.admin_api_keys.get("global_admin") {
+        Some(entry) => entry.value().clone(),
+        None => match payload.api_key {
+            Some(key) if !key.is_empty() => key,
+            _ => std::env::var("GEMINI_API_KEY").unwrap_or_default(),
+        },
     };
 
     if api_key.is_empty() {

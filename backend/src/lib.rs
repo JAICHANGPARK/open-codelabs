@@ -9,7 +9,7 @@ use axum::{
 use std::sync::Arc;
 use tower_http::services::ServeDir;
 use crate::handlers::{
-    admin::login,
+    admin::{login, update_settings},
     ai::proxy_gemini_stream,
     attendees::{
         complete_codelab, get_attendees, get_certificate, get_help_requests, register_attendee,
@@ -31,6 +31,7 @@ pub use crate::state::{AppState, DbKind};
 pub fn create_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/api/login", post(login))
+        .route("/api/admin/settings", post(update_settings))
         .route("/api/codelabs", get(list_codelabs).post(create_codelab))
         .route(
             "/api/codelabs/{id}",

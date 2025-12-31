@@ -56,6 +56,7 @@ async fn main() -> anyhow::Result<()> {
         db_kind,
         admin_id,
         admin_pw,
+        admin_api_keys: Arc::new(dashmap::DashMap::new()),
         channels: Arc::new(dashmap::DashMap::new()),
         sessions: Arc::new(dashmap::DashMap::new()),
     });

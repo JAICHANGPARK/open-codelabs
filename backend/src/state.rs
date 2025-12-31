@@ -16,6 +16,8 @@ pub struct AppState {
     pub db_kind: DbKind,
     pub admin_id: String,
     pub admin_pw: String,
+    // Map of session/admin -> Gemini API Key
+    pub admin_api_keys: Arc<DashMap<String, String>>,
     // Map of codelab_id -> broadcast sender
     pub channels: Arc<DashMap<String, broadcast::Sender<String>>>,
     // Map of (codelab_id, attendee_id) -> sender for DMs

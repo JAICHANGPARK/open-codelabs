@@ -18,6 +18,7 @@ export const copyCodelab = USE_FIREBASE ? async () => { throw new Error('Not sup
 export const saveSteps = USE_FIREBASE ? firebase.saveSteps : backend.saveSteps;
 export const deleteCodelab = USE_FIREBASE ? firebase.deleteCodelab : backend.deleteCodelab;
 export const login = USE_FIREBASE ? firebase.login : backend.login;
+export const saveAdminSettings = USE_FIREBASE ? async () => { /* not needed for firebase */ } : backend.saveAdminSettings;
 export const loginWithGoogle = USE_FIREBASE ? firebase.loginWithGoogle : async () => { throw new Error('Not supported in backend mode'); };
 export const logout = USE_FIREBASE ? firebase.logout : async () => { localStorage.removeItem('adminToken'); };
 export const onAuthChange = USE_FIREBASE ? firebase.onAuthChange : (cb: any) => { /* no-op */ };
