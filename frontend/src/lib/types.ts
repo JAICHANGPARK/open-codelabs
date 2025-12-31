@@ -35,6 +35,9 @@ export interface Attendee {
     name: string;
     code: string;
     current_step?: number;
+    is_completed?: boolean;
+    completed_at?: string;
+    created_at?: string;
 }
 
 export interface HelpRequest {
