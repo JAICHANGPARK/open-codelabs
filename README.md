@@ -16,6 +16,9 @@
 
 - **Facilitator & Attendee Separation**: Admins can create and manage codelabs, while participants follow steps through a refined UI.
 - **AI Codelab Generator**: Automatically generate professional-grade codelabs from source code or reference documents using Google Gemini AI.
+- **Quizzes, Feedback, and Certificates**: Gate certificate issuance with quiz scores and feedback submission; auto-generate verification URLs.
+- **Prep Guide & Materials**: Author or AI-generate preparation guides and manage downloadable links/files per codelab.
+- **Live Tools for Workshops**: Live chat/DM, help-queue, submissions panel, and a roulette raffle that draws only from certificate holders.
 - **Multi-Runtime Support**: Run using a **Rust (Axum) + SQLite** backend for local/private sessions, or deploy with **Firebase (Firestore/Hosting)** for a serverless experience.
 - **Google Codelab Look & Feel**: Familiar and highly readable design inspired by Google's own codelabs.
 - **Easy Public Access**: Integrated scripts for `ngrok` and `bore` to instantly expose your local server with QR code support for participants.
@@ -131,6 +134,15 @@ Open Codelabs features a built-in AI generator that transforms your code into st
 1. Enter your Gemini API Key in the settings.
 2. Provide source code or a technical description.
 3. Let AI generate the steps, explanations, and verification audits for you.
+
+---
+
+## 🧭 Facilitator Toolkit (New)
+- **Live tab**: Monitor attendees, chat/DM, and resolve help requests in real time.
+- **Quiz & Feedback**: Configure completion requirements; results are aggregated per attendee.
+- **Prep Guide & Materials**: Draft a preparation guide and attach links/files for the session.
+- **Submissions**: Collect and review uploaded artifacts from attendees.
+- **Certificate Raffle**: Spin a roulette that selects only certificate-issued attendees (fair giveaways).
 
 ---
 
