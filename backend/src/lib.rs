@@ -10,6 +10,7 @@ use std::sync::Arc;
 use tower_http::services::ServeDir;
 use crate::handlers::{
     admin::login,
+    ai::proxy_gemini_stream,
     attendees::{
         complete_codelab, get_attendees, get_certificate, get_help_requests, register_attendee,
         request_help, resolve_help_request,
@@ -74,6 +75,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/api/codelabs/{id}/chat", get(get_chat_history))
         .route("/api/upload/image", post(upload_image))
         .route("/api/upload/material", post(upload_material_file))
+        .route("/api/ai/stream", post(proxy_gemini_stream))
         .route("/api/ws/{id}", get(ws_handler))
         .nest_service("/assets", ServeDir::new("static/assets"))
         .fallback_service(ServeDir::new("static"))

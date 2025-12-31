@@ -1,4 +1,5 @@
 pub mod admin;
+pub mod ai;
 pub mod attendees;
 pub mod codelabs;
 pub mod feedback;
