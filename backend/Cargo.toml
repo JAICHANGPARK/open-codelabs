@@ -22,7 +22,8 @@ axum-extra = { version = "0.12.3", features = ["multipart"] }
 dashmap = "6.0"
 futures-util = "0.3"
 image = "0.25.9"
-reqwest = { version = "0.12", features = ["json", "stream"] }
+reqwest = { version = "0.13.1", features = ["json", "stream"] }
+magic-crypt = "4.0.1"
 
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }

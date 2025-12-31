@@ -1,15 +1,13 @@
 use crate::state::AppState;
 use axum::{
+    body::Body,
     extract::State,
-    http::StatusCode,
-    response::{
-        sse::{Event, KeepAlive, Sse},
-        IntoResponse,
-    },
+    http::{header, StatusCode},
+    response::{IntoResponse, Response},
     Json,
 };
-use futures_util::StreamExt;
-use serde::{Deserialize, Serialize};
+use magic_crypt::{new_magic_crypt, MagicCryptTrait};
+use serde::Deserialize;
 use std::sync::Arc;
 
 #[derive(Deserialize)]
@@ -29,13 +27,21 @@ pub async fn proxy_gemini_stream(
     // 1. Check for admin-provided key in memory (stored via settings)
     // 2. Fallback to request payload (for legacy/custom)
     // 3. Fallback to server env var
-    let api_key = match state.admin_api_keys.get("global_admin") {
+    let mut api_key = match state.admin_api_keys.get("global_admin") {
         Some(entry) => entry.value().clone(),
         None => match payload.api_key {
             Some(key) if !key.is_empty() => key,
             _ => std::env::var("GEMINI_API_KEY").unwrap_or_default(),
         },
     };
+
+    // Try to decrypt if it seems encrypted
+    if !api_key.is_empty() && api_key.len() > 10 {
+        let mc = new_magic_crypt!(&state.admin_pw, 256);
+        if let Ok(decrypted) = mc.decrypt_base64_to_string(&api_key) {
+            api_key = decrypted;
+        }
+    }
 
     if api_key.is_empty() {
         return (
@@ -85,19 +91,12 @@ pub async fn proxy_gemini_stream(
         }
     };
 
-    let stream = response.bytes_stream().map(|result| {
-        match result {
-            Ok(bytes) => {
-                let text = String::from_utf8_lossy(&bytes).to_string();
-                // Google API는 SSE 형식을 따르므로 그대로 전달하거나 가공 가능
-                // 여기서는 클라이언트에 그대로 Event로 감싸서 전달
-                Ok(Event::default().data(text))
-            }
-            Err(e) => Err(e),
-        }
-    });
-
-    Sse::new(stream)
-        .keep_alive(KeepAlive::default())
-        .into_response()
+    let stream = response.bytes_stream();
+    
+    Response::builder()
+        .header(header::CONTENT_TYPE, "text/event-stream")
+        .header(header::CACHE_CONTROL, "no-cache")
+        .header(header::CONNECTION, "keep-alive")
+        .body(Body::from_stream(stream))
+        .unwrap()
 }

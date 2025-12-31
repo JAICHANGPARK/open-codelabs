@@ -27,6 +27,7 @@ async fn setup_test_app() -> axum::Router {
         db_kind: DbKind::Sqlite,
         admin_id: "admin".to_string(),
         admin_pw: "admin123".to_string(),
+        admin_api_keys: Arc::new(dashmap::DashMap::new()),
         channels: Arc::new(dashmap::DashMap::new()),
         sessions: Arc::new(dashmap::DashMap::new()),
     });
@@ -68,6 +69,7 @@ async fn test_create_and_get_codelab() {
         quiz_enabled: None,
         require_quiz: None,
         require_feedback: None,
+        guide_markdown: None,
     };
 
     let response = app

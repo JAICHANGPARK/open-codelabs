@@ -83,6 +83,7 @@ mod tests {
             db_kind: DbKind::Sqlite,
             admin_id: "admin".to_string(),
             admin_pw: "pass".to_string(),
+            admin_api_keys: Arc::new(DashMap::new()),
             channels: Arc::new(DashMap::new()),
             sessions: Arc::new(DashMap::new()),
         };
@@ -92,6 +93,7 @@ mod tests {
             db_kind: DbKind::Postgres,
             admin_id: "admin".to_string(),
             admin_pw: "pass".to_string(),
+            admin_api_keys: Arc::new(DashMap::new()),
             channels: Arc::new(DashMap::new()),
             sessions: Arc::new(DashMap::new()),
         };
@@ -115,6 +117,7 @@ mod tests {
             db_kind: DbKind::Postgres,
             admin_id: "admin".to_string(),
             admin_pw: "pass".to_string(),
+            admin_api_keys: Arc::new(DashMap::new()),
             channels: Arc::new(DashMap::new()),
             sessions: Arc::new(DashMap::new()),
         };

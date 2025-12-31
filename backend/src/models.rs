@@ -261,6 +261,7 @@ mod tests {
             quiz_enabled: 0,
             require_quiz: 0,
             require_feedback: 0,
+            guide_markdown: None,
             created_at: Some("2023-01-01".to_string()),
         };
 
