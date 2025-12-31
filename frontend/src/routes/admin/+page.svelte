@@ -28,16 +28,30 @@
         Github,
         FileText,
         X,
+        Copy,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
     import { encrypt, decrypt } from "$lib/crypto";
     import AiCodelabGenerator from "$lib/components/AiCodelabGenerator.svelte";
+    import { copyCodelab as apiCopyCodelab } from "$lib/api";
 
     let codelabs: Codelab[] = $state([]);
     let loading = $state(true);
     let showCreateModal = $state(false);
     let newCodelab = $state({ title: "", description: "", author: "", is_public: true });
     let copyTarget: string | null = $state(null);
+
+    async function handleCopy(id: string) {
+        try {
+            loading = true;
+            const copied = await apiCopyCodelab(id);
+            codelabs = [copied, ...codelabs];
+        } catch (e: any) {
+            alert(`${$t("common.error")}: ${e.message || e}`);
+        } finally {
+            loading = false;
+        }
+    }
 
     // Grouping logic
     let groupedCodelabs = $derived.by(() => {
@@ -341,50 +355,65 @@
                                         class="group block bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl p-6 sm:p-8 hover:shadow-xl transition-all duration-300 hover:border-[#4285F4] dark:hover:border-[#4285F4] relative overflow-hidden h-full flex flex-col"
                                     >
                                         <div
-                                            class="absolute top-4 right-4 flex items-center gap-1 sm:gap-2 z-20"
+                                            class="flex items-start justify-between gap-4 mb-4"
                                         >
-                                            <button
-                                                onclick={(e) => {
-                                                    e.preventDefault();
-                                                    copyLink(codelab.id);
-                                                }}
-                                                class="p-2 transition-all rounded-full {copyTarget ===
-                                                codelab.id
-                                                    ? 'bg-[#E6F4EA] dark:bg-[#34A853]/20 text-[#1E8E3E] dark:text-[#34A853]'
-                                                    : 'bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 hover:text-[#4285F4]'}"
-                                                title={$t("dashboard.share_link")}
-                                                aria-label={$t("dashboard.share_link")}
+                                            <h3
+                                                class="text-xl font-bold text-[#202124] dark:text-dark-text group-hover:text-[#4285F4] transition-colors flex flex-wrap items-center gap-2 min-w-0"
                                             >
-                                                {#if copyTarget === codelab.id}
-                                                    <Check size={18} />
-                                                {:else}
-                                                    <Share2 size={18} />
+                                                <span class="truncate">{codelab.title}</span>
+                                                {#if !codelab.is_public}
+                                                    <span class="bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-dark-text-muted text-[10px] px-2 py-0.5 rounded-full border dark:border-dark-border flex items-center gap-1 font-bold shrink-0">
+                                                        <X size={10} />
+                                                        {$t("common.private")}
+                                                    </span>
                                                 {/if}
-                                            </button>
-                                            <button
-                                                onclick={(e) => {
-                                                    e.preventDefault();
-                                                    handleDelete(codelab.id);
-                                                }}
-                                                class="p-2 bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:text-[#EA4335] hover:bg-[#FEECEB] dark:hover:bg-[#EA4335]/10 rounded-full transition-all"
-                                                title={$t("common.delete") || "Delete"}
-                                                aria-label={$t("common.delete") || "Delete"}
+                                            </h3>
+                                            <div
+                                                class="flex items-center gap-1 sm:gap-2 shrink-0"
                                             >
-                                                <Trash2 size={18} />
-                                            </button>
+                                                <button
+                                                    onclick={(e) => {
+                                                        e.preventDefault();
+                                                        copyLink(codelab.id);
+                                                    }}
+                                                    class="p-2 transition-all rounded-full {copyTarget ===
+                                                    codelab.id
+                                                        ? 'bg-[#E6F4EA] dark:bg-[#34A853]/20 text-[#1E8E3E] dark:text-[#34A853]'
+                                                        : 'bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 hover:text-[#4285F4]'}"
+                                                    title={$t("dashboard.share_link")}
+                                                    aria-label={$t("dashboard.share_link")}
+                                                >
+                                                    {#if copyTarget === codelab.id}
+                                                        <Check size={18} />
+                                                    {:else}
+                                                        <Share2 size={18} />
+                                                    {/if}
+                                                </button>
+                                                <button
+                                                    onclick={(e) => {
+                                                        e.preventDefault();
+                                                        handleCopy(codelab.id);
+                                                    }}
+                                                    class="p-2 bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
+                                                    title={$t("common.copy") || "Copy"}
+                                                    aria-label={$t("common.copy") || "Copy"}
+                                                >
+                                                    <Copy size={18} />
+                                                </button>
+                                                <button
+                                                    onclick={(e) => {
+                                                        e.preventDefault();
+                                                        handleDelete(codelab.id);
+                                                    }}
+                                                    class="p-2 bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:text-[#EA4335] hover:bg-[#FEECEB] dark:hover:bg-[#EA4335]/10 rounded-full transition-all"
+                                                    title={$t("common.delete") || "Delete"}
+                                                    aria-label={$t("common.delete") || "Delete"}
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
                                         </div>
 
-                                        <h3
-                                            class="text-xl font-bold text-[#202124] dark:text-dark-text group-hover:text-[#4285F4] transition-colors mb-3 line-clamp-2 pr-20 flex items-center gap-2"
-                                        >
-                                            {codelab.title}
-                                            {#if !codelab.is_public}
-                                                <span class="bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-dark-text-muted text-[10px] px-2 py-0.5 rounded-full border dark:border-dark-border flex items-center gap-1 font-bold">
-                                                    <X size={10} />
-                                                    {$t("common.private")}
-                                                </span>
-                                            {/if}
-                                        </h3>
                                         <p
                                             class="text-[#5F6368] dark:text-dark-text-muted text-base line-clamp-2 mb-8 flex-1"
                                         >

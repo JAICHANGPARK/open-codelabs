@@ -1,8 +1,8 @@
 import * as backend from './api-backend';
 import * as firebase from './api-firebase';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee } from './types';
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee } from './types';
 
-export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee };
+export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee };
 
 const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true';
 
@@ -14,6 +14,7 @@ export const getJoinedCodelabs = USE_FIREBASE ? firebase.getJoinedCodelabs : asy
 export const getCodelab = USE_FIREBASE ? firebase.getCodelab : backend.getCodelab;
 export const createCodelab = USE_FIREBASE ? firebase.createCodelab : backend.createCodelab;
 export const updateCodelab = USE_FIREBASE ? firebase.updateCodelab : backend.updateCodelab;
+export const copyCodelab = USE_FIREBASE ? async () => { throw new Error('Not supported in Firebase mode'); } : backend.copyCodelab;
 export const saveSteps = USE_FIREBASE ? firebase.saveSteps : backend.saveSteps;
 export const deleteCodelab = USE_FIREBASE ? firebase.deleteCodelab : backend.deleteCodelab;
 export const login = USE_FIREBASE ? firebase.login : backend.login;
@@ -53,6 +54,16 @@ export const deleteMaterial = USE_FIREBASE
 export const uploadMaterial = USE_FIREBASE 
     ? async () => { throw new Error('Not supported in Firebase mode'); } 
     : backend.uploadMaterial;
+
+export const submitFile = USE_FIREBASE 
+    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    : backend.submitFile;
+export const getSubmissions = USE_FIREBASE 
+    ? async () => [] 
+    : backend.getSubmissions;
+export const deleteSubmission = USE_FIREBASE 
+    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    : backend.deleteSubmission;
 
 export const getQuizzes = USE_FIREBASE
     ? async () => []

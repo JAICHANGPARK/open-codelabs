@@ -14,6 +14,7 @@ pub struct Codelab {
     pub require_quiz: i32,
     #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
     pub require_feedback: i32,
+    pub guide_markdown: Option<String>,
     pub created_at: Option<String>,
 }
 
@@ -70,6 +71,7 @@ pub struct CreateCodelab {
     pub quiz_enabled: Option<bool>,
     pub require_quiz: Option<bool>,
     pub require_feedback: Option<bool>,
+    pub guide_markdown: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -218,6 +220,29 @@ pub struct QuizSubmissionWithAttendee {
     pub answer: String,
     #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
     pub is_correct: i32,
+    pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct Submission {
+    pub id: String,
+    pub codelab_id: String,
+    pub attendee_id: String,
+    pub file_path: String,
+    pub file_name: String,
+    pub file_size: i64,
+    pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct SubmissionWithAttendee {
+    pub id: String,
+    pub codelab_id: String,
+    pub attendee_id: String,
+    pub attendee_name: String,
+    pub file_path: String,
+    pub file_name: String,
+    pub file_size: i64,
     pub created_at: Option<String>,
 }
 

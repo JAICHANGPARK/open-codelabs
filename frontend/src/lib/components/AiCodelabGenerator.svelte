@@ -1,12 +1,13 @@
 <script lang="ts">
     import { fade, fly } from "svelte/transition";
-    import { X, Sparkles, Loader2, ArrowRight, Info, Clock } from "lucide-svelte";
+    import { X, Sparkles, Loader2, ArrowRight, Info, Clock, FileCode, Upload, Trash2, FileText } from "lucide-svelte";
     import {
         streamGeminiStructuredOutput,
         type GeminiStructuredConfig,
     } from "$lib/gemini";
     import { createCodelab, saveSteps, type Codelab } from "$lib/api";
     import { t, locale } from "svelte-i18n";
+    import JSZip from "jszip";
 
     let { apiKey, onClose, onCodelabCreated } = $props<{
         apiKey: string;
@@ -15,6 +16,7 @@
     }>();
 
     let sourceCode = $state("");
+    let uploadedFiles = $state<{ name: string; content: string }[]>([]);
     let loading = $state(false);
     let generationStep = $state<"input" | "generating" | "review">("input");
     let generatedContent = $state("");
@@ -30,15 +32,7 @@
         steps: { title: string; content: string }[];
     } | null>(null);
 
-    //     const SYSTEM_PROMPT = `
-    // You are an expert technical writer and developer advocate.
-    // Your goal is to convert the provided source code into an engaging, step-by-step generic "Codelab" or tutorial.
-
-    // - Break down the code into logical steps.
-    // - Explain "why" we are doing this, not just "what".
-    // - Use clear markdown with code blocks.
-    // - Create comprehensive, educational content.
-    // `;
+    let fileInput: HTMLInputElement;
 
     const SYSTEM_PROMPT = `
 You are a world-class Technical Content Engineer and Developer Advocate. 
@@ -105,8 +99,65 @@ Follow these strict guidelines to create the content:
 
 `;
 
+    const IGNORED_EXTENSIONS = new Set([
+        '.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.pdf', '.zip', '.tar', '.gz', '.mp3', '.mp4', '.woff', '.woff2', '.ttf', '.eot'
+    ]);
+    const IGNORED_PATHS = ['node_modules/', '.git/', 'dist/', 'build/', '.svelte-kit/', 'target/', 'venv/'];
+
+    async function handleFileUpload(event: Event) {
+        const target = event.target as HTMLInputElement;
+        if (!target.files) return;
+
+        loading = true;
+        try {
+            for (const file of Array.from(target.files)) {
+                if (file.name.endsWith('.zip')) {
+                    await extractCodeFromZip(file);
+                } else {
+                    const content = await file.text();
+                    uploadedFiles = [...uploadedFiles, { name: file.name, content }];
+                }
+            }
+        } catch (e) {
+            console.error("File upload failed", e);
+            alert($t("ai_generator.error_upload") || "Failed to upload files");
+        } finally {
+            loading = false;
+            target.value = "";
+        }
+    }
+
+    async function extractCodeFromZip(file: File) {
+        const zip = new JSZip();
+        const content = await zip.loadAsync(file);
+        
+        for (const [path, zipEntry] of Object.entries(content.files)) {
+            if (zipEntry.dir) continue;
+            
+            // Filter out binary and ignored files
+            const isIgnored = IGNORED_PATHS.some(p => path.includes(p)) || 
+                             Array.from(IGNORED_EXTENSIONS).some(ext => path.toLowerCase().endsWith(ext));
+            
+            if (!isIgnored) {
+                const text = await zipEntry.async("text");
+                uploadedFiles = [...uploadedFiles, { name: path, content: text }];
+            }
+        }
+    }
+
+    function removeFile(index: number) {
+        uploadedFiles = uploadedFiles.filter((_, i) => i !== index);
+    }
+
     async function handleGenerate() {
-        if (!sourceCode.trim() || !apiKey) return;
+        // Combine manually entered code and uploaded files
+        let fullContext = sourceCode.trim();
+        if (uploadedFiles.length > 0) {
+            const filesContext = uploadedFiles.map(f => `File: ${f.name}\n\`\`\`\n${f.content}\n\`\`\``).join('\n\n');
+            fullContext = fullContext ? `${fullContext}\n\nUploaded Files:\n${filesContext}` : filesContext;
+        }
+
+        if (!fullContext || !apiKey) return;
 
         loading = true;
         generationStep = "generating";
@@ -160,7 +211,7 @@ Follow these strict guidelines to create the content:
         const durationValue = handsOnDuration === 'custom' ? customDuration : handsOnDuration;
         const durationText = durationValue ? `The target duration for this hands-on session is approximately ${durationValue} minutes. Please adjust the depth and number of steps to fit this timeframe.` : "";
 
-        const prompt = `Create a codelab tutorial from the following source code. ${durationText} Write ALL content in ${targetLanguage}.\n\nSource code:\n${sourceCode}`;
+        const prompt = `Create a codelab tutorial from the following source code and context. ${durationText} Write ALL content in ${targetLanguage}.\n\nSource code/Context:\n${fullContext}`;
 
         // Build tools array
         const tools: GeminiStructuredConfig["tools"] = [];
@@ -287,11 +338,50 @@ Follow these strict guidelines to create the content:
         <div class="flex-1 overflow-hidden p-6 bg-[#F8F9FA] dark:bg-dark-bg">
             {#if generationStep === "input"}
                 <div class="h-full flex flex-col gap-4" in:fade>
-                    <label
-                        for="source-code"
-                        class="text-[#5F6368] dark:text-dark-text-muted font-bold text-lg"
-                        >{$t("ai_generator.input_label")}</label
-                    >
+                    <div class="flex items-center justify-between">
+                        <label
+                            for="source-code"
+                            class="text-[#5F6368] dark:text-dark-text-muted font-bold text-lg"
+                            >{$t("ai_generator.input_label")}</label
+                        >
+                        
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="file"
+                                multiple
+                                accept=".zip,.js,.ts,.py,.rs,.java,.c,.cpp,.h,.html,.css,.json,.md"
+                                bind:this={fileInput}
+                                onchange={handleFileUpload}
+                                class="hidden"
+                            />
+                            <button
+                                onclick={() => fileInput.click()}
+                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-xl text-sm font-bold text-[#8E24AA] hover:bg-[#8E24AA]/5 transition-all shadow-sm"
+                            >
+                                <Upload size={18} />
+                                {$t("ai_generator.upload_files") || "Upload Files / Zip"}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Uploaded Files List -->
+                    {#if uploadedFiles.length > 0}
+                        <div class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-white/50 dark:bg-dark-surface/50 rounded-xl border border-dashed border-[#DADCE0] dark:border-dark-border">
+                            {#each uploadedFiles as file, i}
+                                <div class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-lg text-xs font-medium text-[#3C4043] dark:text-dark-text shadow-sm group">
+                                    <FileCode size={14} class="text-[#8E24AA]" />
+                                    <span class="max-w-[150px] truncate">{file.name}</span>
+                                    <button
+                                        onclick={() => removeFile(i)}
+                                        class="text-[#9AA0A6] hover:text-[#EA4335] transition-colors"
+                                        aria-label="Remove file"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            {/each}
+                        </div>
+                    {/if}
 
                     <!-- Advanced Options -->
                     <div
@@ -430,7 +520,7 @@ Follow these strict guidelines to create the content:
                         {:else}
                             <button
                                 onclick={handleGenerate}
-                                disabled={!sourceCode.trim()}
+                                disabled={!sourceCode.trim() && uploadedFiles.length === 0}
                                 class="bg-[#8E24AA] text-white px-8 py-3 rounded-full font-bold hover:shadow-lg hover:scale-105 transition-all text-lg flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
                             >
                                 <Sparkles size={20} />

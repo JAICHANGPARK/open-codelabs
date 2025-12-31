@@ -216,6 +216,24 @@
         "ask_question_placeholder": "向 AI 提问有关代码的问题...",
         "improve_with_gemini": "使用 Gemini 改进",
         "gemini_is_writing": "Gemini 正在写作...",
-        "improving_content": "正在改进您的内容"
+        "improving_content": "正在优化内容",
+        "improvement_instruction": "如何优化？",
+        "improvement_placeholder": "例如：更亲切、总结、添加代码注释...",
+        "ai_improve_submit": "优化"
+    },
+    "submission": {
+        "title": "提交作业",
+        "description": "请在此上传您的练习结果或文件（最大 10MB）。",
+        "upload_btn": "上传文件",
+        "uploading": "正在上传...",
+        "size_limit_exceeded": "总大小超过 10MB 限制。",
+        "facilitator_title": "参与者提交管理",
+        "total_count": "个提交",
+        "search_placeholder": "按参与者姓名或文件名搜索...",
+        "no_submissions": "暂无提交。",
+        "no_search_results": "没有符合搜索条件的提交。",
+        "waiting_submissions": "正在等待参与者上传练习结果。",
+        "file_size": "文件大小",
+        "submitted_at": "提交时间"
     }
 }

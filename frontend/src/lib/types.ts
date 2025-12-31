@@ -7,6 +7,7 @@ export interface Codelab {
     quiz_enabled: boolean;
     require_quiz: boolean;
     require_feedback: boolean;
+    guide_markdown?: string;
     created_at?: string;
 }
 
@@ -104,4 +105,18 @@ export interface QuizSubmissionPayload {
         answer: string;
         is_correct: boolean;
     }[];
+}
+
+export interface Submission {
+    id: string;
+    codelab_id: string;
+    attendee_id: string;
+    file_path: string;
+    file_name: string;
+    file_size: number;
+    created_at?: string;
+}
+
+export interface SubmissionWithAttendee extends Submission {
+    attendee_name: string;
 }

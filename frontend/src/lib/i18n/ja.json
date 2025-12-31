@@ -12,6 +12,7 @@
         "create": "作成",
         "import": "インポート",
         "export": "エクスポート",
+        "copy": "コピー",
         "loading": "読み込み中...",
         "actions": "アクション",
         "author": "著者",
@@ -105,6 +106,12 @@
             "improve_writing": "文章を改善"
         },
         "live_tab": "ライブ",
+        "guide_tab": "事前準備ガイド",
+        "guide_description": "参加者がセッションを開始する前に準備すべき環境やツールの案内を作成してください。",
+        "generate_guide": "AIでガイドを生成",
+        "generating_guide": "ガイドを生成中...",
+        "guide_placeholder": "ここに事前準備の案内をMarkdownで入力してください...",
+        "guide_empty_preview": "ガイドがまだ作成されていません。AIで生成するか、直接入力してください。",
         "export_codelab": "コードラボをエクスポート",
         "save_changes": "変更を保存",
         "stuck_on_step": "ステップ {step} で止まっています",
@@ -238,6 +245,8 @@
         "back": "戻る",
         "saving": "保存中...",
         "create_button": "コードラボを作成",
+        "upload_files": "ファイル / Zipをアップロード",
+        "error_upload": "ファイルのアップロードに失敗しました。",
         "error_parse": "AIの応答を解析中に予期しないエラーが発生しました。もう一度お試しください。",
         "error_generate": "生成に失敗しました",
         "error_save": "コードラボの保存に失敗しました。"
@@ -254,9 +263,24 @@
         "ask_question_placeholder": "コードについて質問する...",
         "improve_with_gemini": "Geminiで改善",
         "gemini_is_writing": "Geminiが書き込み中...",
-        "improving_content": "コンテンツを改善しています",
+        "improving_content": "コンテンツを改善中",
         "improvement_instruction": "どのように改善しますか？",
-        "improvement_placeholder": "例：より親切に、短く要約、コードの説明を追加など...",
+        "improvement_placeholder": "例：より親しみやすく、要約する、コードコメントを追加...",
         "ai_improve_submit": "改善する"
+    },
+    "submission": {
+        "title": "課題提出",
+        "description": "実習の結果やファイルをここにアップロードしてください（最大10MB）。",
+        "upload_btn": "ファイルをアップロード",
+        "uploading": "アップロード中...",
+        "size_limit_exceeded": "合計サイズが10MBの制限を超えています。",
+        "facilitator_title": "参加者の提出物管理",
+        "total_count": "個の提出物",
+        "search_placeholder": "参加者名またはファイル名で検索...",
+        "no_submissions": "提出された課題はまだありません。",
+        "no_search_results": "検索条件に一致する提出物はありません。",
+        "waiting_submissions": "参加者が実習結果をアップロードするのを待っています。",
+        "file_size": "ファイルサイズ",
+        "submitted_at": "提出日時"
     }
 }

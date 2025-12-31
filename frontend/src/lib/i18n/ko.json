@@ -12,6 +12,7 @@
         "create": "생성",
         "import": "가져오기",
         "export": "내보내기",
+        "copy": "복사",
         "loading": "로딩 중...",
         "actions": "작업",
         "author": "작성자",
@@ -105,6 +106,12 @@
             "improve_writing": "문장 개선"
         },
         "live_tab": "라이브",
+        "guide_tab": "사전 준비 가이드",
+        "guide_description": "참가자들이 세션을 시작하기 전에 준비해야 할 환경 및 도구 안내를 작성하세요.",
+        "generate_guide": "AI로 가이드 생성",
+        "generating_guide": "가이드 생성 중...",
+        "guide_placeholder": "여기에 사전 준비 안내사항을 Markdown으로 작성하세요...",
+        "guide_empty_preview": "작성된 가이드가 없습니다. AI로 생성하거나 직접 입력해보세요.",
         "export_codelab": "코드랩 내보내기",
         "save_changes": "변경사항 저장",
         "stuck_on_step": "단계 {step}에서 멈춤",
@@ -260,6 +267,8 @@
         "back": "뒤로",
         "saving": "저장 중...",
         "create_button": "코드랩 만들기",
+        "upload_files": "파일 / Zip 업로드",
+        "error_upload": "파일 업로드에 실패했습니다.",
         "error_parse": "AI 응답을 분석하는 동안 예기치 않은 오류가 발생했습니다. 다시 시도해주세요.",
         "error_generate": "생성 실패",
         "error_save": "코드랩 저장에 실패했습니다."
@@ -276,9 +285,24 @@
         "ask_question_placeholder": "코드에 대해 궁금한 점을 물어보세요...",
         "improve_with_gemini": "Gemini로 개선하기",
         "gemini_is_writing": "Gemini가 작성 중...",
-        "improving_content": "콘텐츠를 개선하고 있습니다",
+        "improving_content": "콘텐츠 개선 중",
         "improvement_instruction": "어떻게 개선할까요?",
-        "improvement_placeholder": "예: 더 친절하게, 짧게 요약, 코드 설명 추가 등...",
+        "improvement_placeholder": "예: 더 친근하게, 요약하기, 코드 주석 추가...",
         "ai_improve_submit": "개선하기"
+    },
+    "submission": {
+        "title": "과제 제출",
+        "description": "실습 결과물이나 파일을 여기에 업로드해주세요 (최대 10MB).",
+        "upload_btn": "파일 업로드",
+        "uploading": "업로드 중...",
+        "size_limit_exceeded": "총 용량이 10MB 제한을 초과했습니다.",
+        "facilitator_title": "참석자 제출물 관리",
+        "total_count": "개의 제출물",
+        "search_placeholder": "참석자 이름 또는 파일명으로 검색...",
+        "no_submissions": "아직 제출된 과제가 없습니다.",
+        "no_search_results": "검색어와 일치하는 제출물이 없습니다.",
+        "waiting_submissions": "참석자들이 실습 결과물을 업로드하기를 기다리고 있습니다.",
+        "file_size": "파일 용량",
+        "submitted_at": "제출 일시"
     }
 }

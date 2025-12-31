@@ -45,30 +45,39 @@
     import {
         Plus,
     } from "lucide-svelte";
-    import { t } from "svelte-i18n";
+    import { t, locale } from "svelte-i18n";
 
     // Components
-    import AdminHeader from "./components/AdminHeader.svelte";
-    import AdminSidebar from "./components/AdminSidebar.svelte";
-    import EditMode from "./components/EditMode.svelte";
-    import PreviewMode from "./components/PreviewMode.svelte";
-    import LiveMode from "./components/LiveMode.svelte";
-    import FeedbackMode from "./components/FeedbackMode.svelte";
-    import MaterialsMode from "./components/MaterialsMode.svelte";
-    import QuizMode from "./components/QuizMode.svelte";
-    import SettingsMode from "./components/SettingsMode.svelte";
+    import AdminHeader from "$lib/components/AdminHeader.svelte";
+    import AdminSidebar from "$lib/components/AdminSidebar.svelte";
+    import EditMode from "$lib/components/EditMode.svelte";
+    import PreviewMode from "$lib/components/PreviewMode.svelte";
+    import LiveMode from "$lib/components/LiveMode.svelte";
+    import FeedbackMode from "$lib/components/FeedbackMode.svelte";
+    import MaterialsMode from "$lib/components/MaterialsMode.svelte";
+    import QuizMode from "$lib/components/QuizMode.svelte";
+    import SettingsMode from "$lib/components/SettingsMode.svelte";
+    import GuideMode from "$lib/components/GuideMode.svelte";
+    import SubmissionsMode from "$lib/components/SubmissionsMode.svelte";
+
+    import { 
+        getSubmissions,
+        deleteSubmission as apiDeleteSubmission
+    } from "$lib/api";
 
     let id = page.params.id as string;
     let activeStepIndex = $state(0);
 
     // Initialize mode from URL or default to 'edit'
     let initialMode = page.url.searchParams.get("mode");
-    let mode = $state<"edit" | "preview" | "live" | "feedback" | "materials" | "quiz" | "settings">(
+    let mode = $state<"edit" | "preview" | "guide" | "live" | "feedback" | "materials" | "quiz" | "submissions" | "settings">(
         initialMode === "preview" ||
+            initialMode === "guide" ||
             initialMode === "live" ||
             initialMode === "feedback" ||
             initialMode === "materials" ||
             initialMode === "quiz" ||
+            initialMode === "submissions" ||
             initialMode === "settings"
             ? (initialMode as any)
             : "edit",
@@ -85,9 +94,11 @@
     let helpRequests = $state<HelpRequest[]>([]);
     let feedbacks = $state<Feedback[]>([]); // Feedback
     let materials = $state<Material[]>([]);
+    let submissions = $state<any[]>([]);
     let quizzes = $state<Quiz[]>([]);
     let quizSubmissions = $state<any[]>([]);
     let isQuizGenerating = $state(false);
+    let isGuideGenerating = $state(false);
     let numQuizToGenerate = $state(5);
     let ws = $state<WebSocket | null>(null);
     let chatMessage = $state("");
@@ -182,6 +193,8 @@
             loadFeedback();
         } else if (mode === "materials") {
             loadMaterials();
+        } else if (mode === "submissions") {
+            loadSubmissions();
         } else if (mode === "quiz") {
             loadQuizzes();
             loadQuizSubmissions();
@@ -190,6 +203,24 @@
             scrollToBottom();
         }
     });
+
+    async function loadSubmissions() {
+        try {
+            submissions = await getSubmissions(id);
+        } catch (e) {
+            console.error("Failed to load submissions:", e);
+        }
+    }
+
+    async function handleDeleteSubmission(attendeeId: string, submissionId: string) {
+        if (!confirm($t("common.confirm_delete"))) return;
+        try {
+            await apiDeleteSubmission(id, attendeeId, submissionId);
+            submissions = submissions.filter(s => s.id !== submissionId);
+        } catch (e) {
+            console.error("Failed to delete submission:", e);
+        }
+    }
 
     $effect(() => {
         return () => {
@@ -504,6 +535,59 @@
             alert("Quiz generation failed: " + e);
         } finally {
             isQuizGenerating = false;
+        }
+    }
+
+    async function generateGuideWithAi() {
+        if (!geminiApiKey || !codelab) {
+            alert($t("ai_generator.api_key_required"));
+            return;
+        }
+        isGuideGenerating = true;
+        
+        try {
+            // Detect user language
+            const userLanguage = $locale || "en";
+            const languageNames: Record<string, string> = {
+                ko: "Korean",
+                en: "English",
+                zh: "Chinese",
+                ja: "Japanese",
+            };
+            const targetLanguage = languageNames[userLanguage] || "English";
+
+            const context = steps.map(s => `Step ${s.step_number}: ${s.title}\n${s.content_markdown}`).join("\n\n");
+            const prompt = `Based on the following codelab content, create a comprehensive "Preparation & Setup Guide" for attendees. 
+            Include:
+            1. System requirements (Prerequisites).
+            2. Required software/tools to install.
+            3. Environment setup instructions.
+            4. Initial project boilerplate setup if necessary.
+            
+            Write ALL content in ${targetLanguage}.
+            Write it in professional markdown. 
+            
+            Codelab Title: ${codelab.title}
+            Description: ${codelab.description}
+            
+            Codelab Content:
+            ${context}`;
+
+            const stream = streamGeminiResponseRobust(prompt, `You are a professional developer advocate writing a preparation guide for a workshop. You MUST write everything in ${targetLanguage}.`, {
+                apiKey: geminiApiKey
+            });
+
+            let responseText = "";
+            codelab.guide_markdown = "";
+            for await (const chunk of stream) {
+                responseText += chunk;
+                codelab.guide_markdown = responseText;
+            }
+        } catch (e) {
+            console.error("Guide generation failed:", e);
+            alert("Guide generation failed: " + e);
+        } finally {
+            isGuideGenerating = false;
         }
     }
 
@@ -926,7 +1010,8 @@
                     author: codelab.author,
                     is_public: codelab.is_public,
                     require_quiz: codelab.require_quiz,
-                    require_feedback: codelab.require_feedback
+                    require_feedback: codelab.require_feedback,
+                    guide_markdown: codelab.guide_markdown
                 })
             ]);
             saveSuccess = true;
@@ -951,7 +1036,8 @@
                 author: codelab.author,
                 is_public: newStatus,
                 require_quiz: codelab.require_quiz,
-                require_feedback: codelab.require_feedback
+                require_feedback: codelab.require_feedback,
+                guide_markdown: codelab.guide_markdown
             });
         } catch (e) {
             // Revert on failure
@@ -1177,7 +1263,7 @@
             class="max-w-screen-2xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2 items-start relative"
         >
             <!-- Sidebar Navigation -->
-            {#if mode !== "live" && mode !== "feedback" && mode !== "materials" && mode !== "quiz" && mode !== "settings"}
+            {#if mode !== "live" && mode !== "feedback" && mode !== "materials" && mode !== "quiz" && mode !== "settings" && mode !== "guide"}
                 <AdminSidebar
                     bind:steps
                     bind:activeStepIndex
@@ -1196,7 +1282,8 @@
                 mode === "feedback" ||
                 mode === "materials" ||
                 mode === "quiz" ||
-                mode === "settings"
+                mode === "settings" ||
+                mode === "guide"
                     ? "lg:col-span-12 w-full min-w-0"
                     : "lg:col-span-8 w-full min-w-0"}
                 in:fade
@@ -1269,6 +1356,17 @@
                                 />
                             {/if}
 
+                            {#if mode === "guide" && codelab}
+                                <GuideMode
+                                    bind:guide_markdown={codelab.guide_markdown}
+                                    codelab_title={codelab.title}
+                                    {isSaving}
+                                    {handleSave}
+                                    {generateGuideWithAi}
+                                    isGenerating={isGuideGenerating}
+                                />
+                            {/if}
+
                             {#if mode === "materials"}
                                 <MaterialsMode
                                     {materials}
@@ -1277,6 +1375,11 @@
                                     {handleMaterialFileSelect}
                                     {handleAddMaterial}
                                     {handleDeleteMaterial}
+                                />
+                            {:else if mode === "submissions"}
+                                <SubmissionsMode
+                                    {submissions}
+                                    onDelete={handleDeleteSubmission}
                                 />
                             {:else if mode === "quiz"}
                                 <QuizMode

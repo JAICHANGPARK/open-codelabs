@@ -80,7 +80,7 @@ pub async fn create_codelab(
     let require_quiz = payload.require_quiz.unwrap_or(false);
     let require_feedback = payload.require_feedback.unwrap_or(false);
 
-    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public, quiz_enabled, require_quiz, require_feedback) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"))
+    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public, quiz_enabled, require_quiz, require_feedback, guide_markdown) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"))
         .bind(&id)
         .bind(&payload.title)
         .bind(&payload.description)
@@ -89,6 +89,7 @@ pub async fn create_codelab(
         .bind(quiz_enabled as i32)
         .bind(require_quiz as i32)
         .bind(require_feedback as i32)
+        .bind(&payload.guide_markdown)
         .execute(&state.pool)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
@@ -102,6 +103,75 @@ pub async fn create_codelab(
     Ok(Json(codelab))
 }
 
+pub async fn copy_codelab(
+    Path(id): Path<String>,
+    State(state): State<Arc<AppState>>,
+) -> Result<Json<Codelab>, (StatusCode, String)> {
+    let codelab = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs WHERE id = ?"))
+        .bind(&id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?
+        .ok_or((StatusCode::NOT_FOUND, "Codelab not found".to_string()))?;
+
+    let steps =
+        sqlx::query_as::<_, Step>(&state.q("SELECT * FROM steps WHERE codelab_id = ? ORDER BY step_number"))
+            .bind(&id)
+            .fetch_all(&state.pool)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let mut tx = state
+        .pool
+        .begin()
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let new_id = uuid::Uuid::new_v4().to_string();
+    let new_title = format!("{} (Copy)", codelab.title);
+
+    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public, quiz_enabled, require_quiz, require_feedback, guide_markdown) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"))
+        .bind(&new_id)
+        .bind(&new_title)
+        .bind(&codelab.description)
+        .bind(&codelab.author)
+        .bind(codelab.is_public)
+        .bind(codelab.quiz_enabled)
+        .bind(codelab.require_quiz)
+        .bind(codelab.require_feedback)
+        .bind(&codelab.guide_markdown)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    for step in steps {
+        let step_id = uuid::Uuid::new_v4().to_string();
+        sqlx::query(
+            &state.q("INSERT INTO steps (id, codelab_id, step_number, title, content_markdown) VALUES (?, ?, ?, ?, ?)"),
+        )
+        .bind(&step_id)
+        .bind(&new_id)
+        .bind(step.step_number)
+        .bind(&step.title)
+        .bind(&step.content_markdown)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    }
+
+    tx.commit()
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let new_codelab = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs WHERE id = ?"))
+        .bind(&new_id)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    Ok(Json(new_codelab))
+}
+
 pub async fn update_codelab_info(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -112,7 +182,7 @@ pub async fn update_codelab_info(
     let require_quiz = payload.require_quiz.unwrap_or(false);
     let require_feedback = payload.require_feedback.unwrap_or(false);
 
-    sqlx::query(&state.q("UPDATE codelabs SET title = ?, description = ?, author = ?, is_public = ?, quiz_enabled = ?, require_quiz = ?, require_feedback = ? WHERE id = ?"))
+    sqlx::query(&state.q("UPDATE codelabs SET title = ?, description = ?, author = ?, is_public = ?, quiz_enabled = ?, require_quiz = ?, require_feedback = ?, guide_markdown = ? WHERE id = ?"))
         .bind(&payload.title)
         .bind(&payload.description)
         .bind(&payload.author)
@@ -120,6 +190,7 @@ pub async fn update_codelab_info(
         .bind(quiz_enabled as i32)
         .bind(require_quiz as i32)
         .bind(require_feedback as i32)
+        .bind(&payload.guide_markdown)
         .bind(&id)
         .execute(&state.pool)
         .await
@@ -305,7 +376,7 @@ pub async fn import_codelab(
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public, quiz_enabled, require_quiz, require_feedback) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"))
+    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public, quiz_enabled, require_quiz, require_feedback, guide_markdown) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"))
         .bind(&codelab.id)
         .bind(&codelab.title)
         .bind(&codelab.description)
@@ -314,6 +385,7 @@ pub async fn import_codelab(
         .bind(codelab.quiz_enabled)
         .bind(codelab.require_quiz)
         .bind(codelab.require_feedback)
+        .bind(&codelab.guide_markdown)
         .execute(&mut *tx)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;

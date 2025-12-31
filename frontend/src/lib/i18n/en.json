@@ -12,6 +12,7 @@
         "create": "Create",
         "import": "Import",
         "export": "Export",
+        "copy": "Copy",
         "loading": "Loading...",
         "actions": "Actions",
         "author": "Author",
@@ -105,6 +106,12 @@
             "improve_writing": "Improve Writing"
         },
         "live_tab": "Live",
+        "guide_tab": "Preparation Guide",
+        "guide_description": "Create a guide for attendees on what to prepare before starting the session (e.g., tools, software, environment).",
+        "generate_guide": "Generate Guide with AI",
+        "generating_guide": "Generating Guide...",
+        "guide_placeholder": "Write the preparation instructions here in Markdown...",
+        "guide_empty_preview": "No guide written yet. Generate one with AI or write your own.",
         "export_codelab": "Export Codelab",
         "save_changes": "Save Changes",
         "stuck_on_step": "Stuck on step {step}",
@@ -260,7 +267,9 @@
         "back": "Back",
         "saving": "Saving...",
         "create_button": "Create Codelab",
-        "error_parse": "Unexpected error parsing AI response. Please try again.",
+        "upload_files": "Upload Files / Zip",
+        "error_upload": "Failed to upload files.",
+        "error_parse": "An unexpected error occurred while parsing the AI response. Please try again.",
         "error_generate": "Generation failed",
         "error_save": "Failed to save codelab."
     },
@@ -276,9 +285,25 @@
         "ask_question_placeholder": "Ask a question about the code...",
         "improve_with_gemini": "Improve with Gemini",
         "gemini_is_writing": "Gemini is writing...",
-        "improving_content": "Improving your content",
-        "improvement_instruction": "How should I improve it?",
-        "improvement_placeholder": "e.g., More friendly, summarize, add code comments...",
-        "ai_improve_submit": "Improve"
-    }
-}
+                "improving_content": "Improving your content",
+                "improvement_instruction": "How should I improve it?",
+                "improvement_placeholder": "e.g., More friendly, summarize, add code comments...",
+                "ai_improve_submit": "Improve"
+            },
+            "submission": {
+                "title": "Submissions",
+                "description": "Please upload your results here (Max 10MB).",
+                "upload_btn": "Upload File",
+                "uploading": "Uploading...",
+                "size_limit_exceeded": "Total size exceeds 10MB limit.",
+                "facilitator_title": "Attendee Submissions",
+                "total_count": "submissions",
+                "search_placeholder": "Search by attendee or file name...",
+                "no_submissions": "No submissions yet.",
+                "no_search_results": "No submissions match your search.",
+                "waiting_submissions": "Waiting for attendees to upload their results.",
+                "file_size": "File Size",
+                "submitted_at": "Submitted At"
+            }
+        }
+        

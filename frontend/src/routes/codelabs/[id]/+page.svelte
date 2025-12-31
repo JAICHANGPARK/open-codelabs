@@ -52,11 +52,16 @@
         Paperclip,
         ExternalLink,
         Download,
+        Info,
+        Upload,
+        Trash2,
+        FileUp,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
     import AskGemini from "$lib/components/AskGemini.svelte";
     import { createTtsPlayer } from "$lib/tts";
     import { themeState } from "$lib/theme.svelte";
+    import { submitFile, deleteSubmission as apiDeleteSubmission } from "$lib/api";
 
     // Prism.js for syntax highlighting
     import Prism from "prismjs";
@@ -82,10 +87,17 @@
     let currentStepIndex = $state(0);
     let showSidebar = $state(true);
     let showChat = $state(false);
+    let showGuide = $state(false);
     let isFinished = $state(false);
     let materials = $state<Material[]>([]);
 
     let attendee = $state<Attendee | null>(null);
+
+    // Submission State
+    let mySubmissions = $state<any[]>([]);
+    let submittingFile = $state(false);
+    let totalSubmissionSize = $derived(mySubmissions.reduce((acc, s) => acc + s.file_size, 0));
+    let submissionProgress = $state(0);
 
     // Quiz State
     let quizzes = $state<any[]>([]);
@@ -227,6 +239,15 @@
             currentStepIndex = loadProgress(id);
             if (currentStepIndex >= steps.length) currentStepIndex = 0;
 
+            // Show guide automatically on first visit if guide exists
+            if (currentStepIndex === 0 && codelab.guide_markdown) {
+                const hasSeenGuide = localStorage.getItem(`seen_guide_${id}`);
+                if (!hasSeenGuide) {
+                    showGuide = true;
+                    localStorage.setItem(`seen_guide_${id}`, "true");
+                }
+            }
+
             // Load materials
             getMaterials(id).then((m) => {
                 materials = m;
@@ -241,6 +262,12 @@
                 }));
                 quizAnswers = quizzes.map(i => i.quiz_type === 'descriptive' ? "" : -1);
             }).catch(e => console.error("Failed to load quizzes", e));
+
+            // Load My Submissions
+            if (!isFirebaseMode()) {
+                const allSubmissions = await getSubmissions(id);
+                mySubmissions = allSubmissions.filter(s => s.attendee_id === attendee?.id);
+            }
 
             await loadChatHistory();
             wsCleanup = initWebSocket();
@@ -496,6 +523,38 @@
         }
     }
 
+    async function handleFileUpload(e: Event) {
+        const input = e.target as HTMLInputElement;
+        if (!input.files || !input.files[0] || !attendee) return;
+
+        const file = input.files[0];
+        if (totalSubmissionSize + file.size > 10 * 1024 * 1024) {
+            alert($t("submission.size_limit_exceeded"));
+            return;
+        }
+
+        submittingFile = true;
+        try {
+            const submission = await submitFile(id, attendee.id, file);
+            mySubmissions = [...mySubmissions, submission];
+        } catch (err: any) {
+            alert(err.message || "Upload failed");
+        } finally {
+            submittingFile = false;
+            input.value = "";
+        }
+    }
+
+    async function handleDeleteSubmission(submissionId: string) {
+        if (!attendee || !confirm($t("common.confirm_delete"))) return;
+        try {
+            await apiDeleteSubmission(id, attendee.id, submissionId);
+            mySubmissions = mySubmissions.filter(s => s.id !== submissionId);
+        } catch (err: any) {
+            alert(err.message || "Delete failed");
+        }
+    }
+
     async function handleQuizSubmit() {
         let correct = 0;
         const submissions = quizzes.map((q, i) => {
@@ -650,6 +709,16 @@
         </div>
 
         <div class="flex items-center gap-2 sm:gap-4">
+            {#if codelab?.guide_markdown}
+                <button
+                    onclick={() => (showGuide = !showGuide)}
+                    class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/10 rounded-full transition-all {showGuide ? 'text-[#4285F4] bg-[#E8F0FE] dark:bg-[#4285F4]/20' : 'text-[#5F6368] dark:text-dark-text-muted'}"
+                    title={$t("editor.guide_tab")}
+                    aria-label={$t("editor.guide_tab")}
+                >
+                    <Info size={20} />
+                </button>
+            {/if}
             <div
                 class="hidden sm:flex items-center gap-2 text-[#5F6368] dark:text-dark-text-muted text-[11px] font-bold uppercase tracking-wider"
             >
@@ -749,8 +818,9 @@
                 {/each}
 
                 {#if materials.length > 0}
+                    <!-- ... (keep existing materials UI) -->
                     <div
-                        class="mt-8 pt-8 border-t border-[#E8EAED] dark:border-dark-border px-2 pb-8"
+                        class="mt-8 pt-8 border-t border-[#E8EAED] dark:border-dark-border px-2"
                     >
                         <h3
                             class="text-[11px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-widest mb-4 px-2 flex items-center gap-2"
@@ -758,35 +828,47 @@
                             <Paperclip size={14} />
                             {$t("editor.materials_tab")}
                         </h3>
-                        <div class="space-y-1">
-                            {#each materials as mat}
-                                <a
-                                    href={mat.material_type === "link"
-                                        ? mat.link_url
-                                        : `${ASSET_URL}${mat.file_path}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    class="flex items-center gap-3 p-2.5 rounded-lg hover:bg-[#F1F3F4] dark:hover:bg-white/5 transition-all group"
-                                >
-                                    <div
-                                        class="p-2 bg-white dark:bg-white/10 rounded-lg text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4] transition-colors shadow-sm shrink-0"
-                                    >
-                                        {#if mat.material_type === "link"}
-                                            <ExternalLink size={16} />
-                                        {:else}
-                                            <Download size={16} />
-                                        {/if}
-                                    </div>
-                                    <span
-                                        class="text-sm text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#202124] dark:group-hover:text-dark-text transition-colors truncate font-medium"
-                                    >
-                                        {mat.title}
-                                    </span>
-                                </a>
-                            {/each}
-                        </div>
+                        <!-- ... -->
                     </div>
                 {/if}
+
+                <div class="mt-8 pt-8 border-t border-[#E8EAED] dark:border-dark-border px-2 pb-8">
+                    <h3
+                        class="text-[11px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-widest mb-4 px-2 flex items-center gap-2"
+                    >
+                        <FileUp size={14} />
+                        {$t("submission.title")}
+                    </h3>
+                    <div class="space-y-2 px-2">
+                        {#each mySubmissions as sub}
+                            <div class="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border group">
+                                <div class="flex items-center gap-2 min-w-0">
+                                    <FileText size={14} class="text-[#5F6368] shrink-0" />
+                                    <span class="text-xs truncate text-[#5F6368] dark:text-dark-text-muted">{sub.file_name}</span>
+                                </div>
+                                <button 
+                                    onclick={() => handleDeleteSubmission(sub.id)}
+                                    class="p-1 text-[#EA4335] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 dark:hover:bg-red-500/10 rounded"
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            </div>
+                        {/each}
+
+                        <label class="flex flex-col items-center justify-center w-full p-4 border-2 border-dashed border-[#DADCE0] dark:border-dark-border rounded-xl hover:bg-[#F8F9FA] dark:hover:bg-white/5 transition-all cursor-pointer group">
+                            <div class="flex flex-col items-center justify-center pt-2 pb-2">
+                                <Upload size={20} class="text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4] transition-colors mb-2" />
+                                <p class="text-[10px] text-[#5F6368] dark:text-dark-text-muted font-bold text-center">
+                                    {submittingFile ? $t("submission.uploading") : $t("submission.upload_btn")}
+                                </p>
+                                <p class="text-[9px] text-[#9AA0A6] mt-1">
+                                    {(totalSubmissionSize / 1024 / 1024).toFixed(1)}MB / 10MB
+                                </p>
+                            </div>
+                            <input type="file" class="hidden" onchange={handleFileUpload} disabled={submittingFile} />
+                        </label>
+                    </div>
+                </div>
             </nav>
         </aside>
 
@@ -802,6 +884,39 @@
         <!-- Content Area -->
         <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-12 bg-white dark:bg-dark-bg relative transition-colors">
             <div class="max-w-3xl mx-auto min-h-full">
+                {#if showGuide && codelab?.guide_markdown}
+                    <div
+                        class="mb-12 bg-[#F8F9FA] dark:bg-dark-surface border border-[#D2E3FC] dark:border-dark-border rounded-3xl overflow-hidden shadow-sm"
+                        in:slide
+                    >
+                        <div class="bg-[#4285F4] px-8 py-4 flex items-center justify-between text-white">
+                            <div class="flex items-center gap-3">
+                                <Info size={20} />
+                                <h3 class="font-bold">{$t("editor.guide_tab")}</h3>
+                            </div>
+                            <button
+                                onclick={() => (showGuide = false)}
+                                class="hover:bg-white/20 p-1 rounded-full transition-colors"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+                        <div class="p-8 prose dark:prose-invert max-w-none">
+                            <div class="markdown-body">
+                                {@html DOMPurify.sanitize(marked.parse(codelab.guide_markdown))}
+                            </div>
+                        </div>
+                        <div class="bg-[#F1F3F4] dark:bg-dark-bg/50 px-8 py-4 flex justify-end">
+                            <button
+                                onclick={() => (showGuide = false)}
+                                class="bg-[#4285F4] text-white px-6 py-2 rounded-full font-bold text-sm shadow-md hover:bg-[#1A73E8] transition-all"
+                            >
+                                {$t("common.close")}
+                            </button>
+                        </div>
+                    </div>
+                {/if}
+
                 {#if loading}
                     <div class="space-y-6" in:fade>
                         <div
@@ -923,6 +1038,61 @@
 
                         {#if !feedbackSubmitted}
                             {#if isQuizPassed || quizzes.length === 0 || !codelab?.require_quiz}
+                                <!-- Submission Card -->
+                                <div class="max-w-md w-full bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-3xl p-8 mb-8 text-left shadow-lg transition-all">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <div class="p-2 bg-[#34A853]/10 rounded-xl text-[#34A853]">
+                                            <FileUp size={24} />
+                                        </div>
+                                        <h3 class="text-xl font-bold text-[#202124] dark:text-dark-text">{$t("submission.title")}</h3>
+                                    </div>
+                                    
+                                    <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mb-6">
+                                        {$t("submission.description")}
+                                    </p>
+
+                                    <div class="space-y-3 mb-6">
+                                        {#each mySubmissions as sub}
+                                            <div class="flex items-center justify-between p-4 rounded-2xl bg-[#F8F9FA] dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border group">
+                                                <div class="flex items-center gap-3 min-w-0">
+                                                    <div class="p-2 bg-white dark:bg-white/10 rounded-lg shadow-sm">
+                                                        <FileText size={18} class="text-[#4285F4]" />
+                                                    </div>
+                                                    <div class="flex flex-col min-w-0">
+                                                        <span class="text-sm font-medium truncate text-[#202124] dark:text-dark-text">{sub.file_name}</span>
+                                                        <span class="text-[10px] text-[#9AA0A6]">{(sub.file_size / 1024).toFixed(1)} KB</span>
+                                                    </div>
+                                                </div>
+                                                <button 
+                                                    onclick={() => handleDeleteSubmission(sub.id)}
+                                                    class="p-2 text-[#EA4335] hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-all"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        {/each}
+                                    </div>
+
+                                    <label class="flex flex-col items-center justify-center w-full p-8 border-2 border-dashed border-[#DADCE0] dark:border-dark-border rounded-3xl hover:bg-[#F8F9FA] dark:hover:bg-white/5 transition-all cursor-pointer group relative overflow-hidden">
+                                        {#if submittingFile}
+                                            <div class="absolute inset-0 bg-white/80 dark:bg-dark-surface/80 flex flex-col items-center justify-center z-10">
+                                                <div class="w-12 h-12 border-4 border-[#4285F4] border-t-transparent rounded-full animate-spin mb-4"></div>
+                                                <p class="text-sm font-bold text-[#4285F4]">{$t("submission.uploading")}</p>
+                                            </div>
+                                        {/if}
+                                        <div class="flex flex-col items-center justify-center">
+                                            <div class="w-16 h-16 bg-[#4285F4]/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                                <Upload size={32} class="text-[#4285F4]" />
+                                            </div>
+                                            <p class="text-base font-bold text-[#202124] dark:text-dark-text mb-1">{$t("submission.upload_btn")}</p>
+                                            <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
+                                                {(totalSubmissionSize / 1024 / 1024).toFixed(1)}MB / 10MB
+                                            </p>
+                                        </div>
+                                        <input type="file" class="hidden" onchange={handleFileUpload} disabled={submittingFile} />
+                                    </label>
+                                </div>
+
                                 <div
                                     class="max-w-md w-full bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-6 mb-8 text-left shadow-sm transition-colors"
                                 >

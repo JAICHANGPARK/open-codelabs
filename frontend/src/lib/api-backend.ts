@@ -1,6 +1,6 @@
 import { browser } from '$app/environment';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee } from './types';
-export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee };
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee } from './types';
+export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee };
 
 const envApiUrl = import.meta.env.VITE_API_URL;
 let BASE_URL = envApiUrl || 'http://localhost:8080';
@@ -44,7 +44,7 @@ export async function getCodelab(id: string): Promise<[Codelab, Step[]]> {
     return res.json();
 }
 
-export async function createCodelab(payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean }): Promise<Codelab> {
+export async function createCodelab(payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean, guide_markdown?: string }): Promise<Codelab> {
     const res = await fetch(`${API_URL}/codelabs`, {
         method: 'POST',
         headers: { 
@@ -57,7 +57,7 @@ export async function createCodelab(payload: { title: string; description: strin
     return res.json();
 }
 
-export async function updateCodelab(id: string, payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean }): Promise<Codelab> {
+export async function updateCodelab(id: string, payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean, guide_markdown?: string }): Promise<Codelab> {
     const res = await fetch(`${API_URL}/codelabs/${id}`, {
         method: 'PUT',
         headers: { 
@@ -84,6 +84,15 @@ export async function deleteCodelab(codelabId: string): Promise<void> {
         method: 'DELETE'
     });
     if (!res.ok) throw new Error('Failed to delete codelab');
+}
+
+export async function copyCodelab(id: string): Promise<Codelab> {
+    const res = await fetch(`${API_URL}/codelabs/${id}/copy`, {
+        method: 'POST',
+        headers: getAuthHeader()
+    });
+    if (!res.ok) throw new Error('Failed to copy codelab');
+    return res.json();
 }
 
 export async function login(admin_id: string, admin_pw: string): Promise<{ token: string }> {
@@ -292,4 +301,34 @@ export async function uploadMaterial(file: File): Promise<{ url: string; origina
     });
     if (!res.ok) throw new Error('Upload failed');
     return res.json();
+}
+
+export async function submitFile(codelabId: string, attendeeId: string, file: File): Promise<Submission> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/attendees/${attendeeId}/submissions`, {
+        method: 'POST',
+        body: formData,
+    });
+    if (!res.ok) {
+        const error = await res.text();
+        throw new Error(error || 'Submission failed');
+    }
+    return res.json();
+}
+
+export async function getSubmissions(codelabId: string): Promise<SubmissionWithAttendee[]> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/submissions`, {
+        headers: getAuthHeader()
+    });
+    if (!res.ok) throw new Error('Failed to fetch submissions');
+    return res.json();
+}
+
+export async function deleteSubmission(codelabId: string, attendeeId: string, submissionId: string): Promise<void> {
+    const res = await fetch(`${API_URL}/codelabs/${codelabId}/attendees/${attendeeId}/submissions/${submissionId}`, {
+        method: 'DELETE',
+        headers: getAuthHeader()
+    });
+    if (!res.ok) throw new Error('Failed to delete submission');
 }
