@@ -39,10 +39,8 @@
         <div
             class="bg-white dark:bg-dark-surface p-4 rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm"
         >
-            <p
-                class="text-xs text-[#5F6368] dark:text-dark-text-muted font-bold uppercase tracking-wider mb-2"
-            >
-                Avg Satisfaction
+            <p class="text-xs text-[#5F6368] dark:text-dark-text-muted font-bold uppercase tracking-wider mb-2">
+                {$t("editor.avg_satisfaction")}
             </p>
             <div
                 class="text-3xl font-bold text-[#1E8E3E]"
@@ -56,10 +54,8 @@
         <div
             class="bg-white dark:bg-dark-surface p-4 rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm"
         >
-            <p
-                class="text-xs text-[#5F6368] dark:text-dark-text-muted font-bold uppercase tracking-wider mb-2"
-            >
-                Avg Difficulty
+            <p class="text-xs text-[#5F6368] dark:text-dark-text-muted font-bold uppercase tracking-wider mb-2">
+                {$t("editor.avg_difficulty")}
             </p>
             <div
                 class="text-3xl font-bold text-[#F9AB00]"
@@ -73,10 +69,8 @@
         <div
             class="bg-white dark:bg-dark-surface p-4 rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm sm:col-span-2 md:col-span-1"
         >
-            <p
-                class="text-xs text-[#5F6368] dark:text-dark-text-muted font-bold uppercase tracking-wider mb-2"
-            >
-                Total Responses
+            <p class="text-xs text-[#5F6368] dark:text-dark-text-muted font-bold uppercase tracking-wider mb-2">
+                {$t("editor.total_responses")}
             </p>
             <div
                 class="text-3xl font-bold text-[#4285F4]"
@@ -100,12 +94,12 @@
                         <div
                             class="bg-[#E6F4EA] dark:bg-green-500/10 text-[#137333] dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold"
                         >
-                            Satisfaction: {f.satisfaction}/5
+                            {$t("feedback.satisfaction")}: {f.satisfaction}/5
                         </div>
                         <div
                             class="bg-[#FEF7E0] dark:bg-yellow-500/10 text-[#B06000] dark:text-yellow-400 px-3 py-1 rounded-full text-xs font-bold"
                         >
-                            Difficulty: {f.difficulty}/5
+                            {$t("feedback.difficulty")}: {f.difficulty}/5
                         </div>
                     </div>
                     <span
@@ -125,10 +119,8 @@
                         "{f.comment}"
                     </p>
                 {:else}
-                    <p
-                        class="text-[#9AA0A6] dark:text-dark-text-muted text-sm italic"
-                    >
-                        No comments provided
+                    <p class="text-[#9AA0A6] dark:text-dark-text-muted text-sm italic">
+                        {$t("editor.no_comments")}
                     </p>
                 {/if}
             </div>
@@ -141,10 +133,10 @@
                     class="mx-auto mb-4 opacity-20"
                 />
                 <p class="text-lg font-medium dark:text-dark-text">
-                    No feedback yet
+                    {$t("editor.no_feedback_yet")}
                 </p>
                 <p class="text-sm opacity-70">
-                    Wait for attendees to finish the codelab.
+                    {$t("editor.wait_for_feedback")}
                 </p>
             </div>
         {/each}
