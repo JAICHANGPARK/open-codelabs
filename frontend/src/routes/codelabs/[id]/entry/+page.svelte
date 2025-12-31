@@ -68,7 +68,7 @@
         try {
             const { user } = await loginWithGoogle();
             const emailPart = user.email ? user.email.split('@')[0] : "";
-            const displayName = user.displayName || emailPart || "Anonymous";
+            const displayName = user.displayName || emailPart || $t("attendee.anonymous_user");
             const userCode = user.uid.substring(0, 8); // Use part of UID as code
             
             const attendee = await registerAttendee(id, displayName, userCode);
