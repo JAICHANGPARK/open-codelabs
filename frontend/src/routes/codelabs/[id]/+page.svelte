@@ -59,6 +59,7 @@
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
     import AskGemini from "$lib/components/codelabs/AskGemini.svelte";
+    import SubmissionPanel from "$lib/components/codelabs/SubmissionPanel.svelte";
     import { createTtsPlayer } from "$lib/tts";
     import { themeState } from "$lib/theme.svelte";
     import { submitFile, getSubmissions, deleteSubmission as apiDeleteSubmission } from "$lib/api";
@@ -543,7 +544,7 @@
             console.log("File submitted successfully:", submission);
             mySubmissions = [...mySubmissions, submission];
         } catch (err: any) {
-            alert(err.message || "Upload failed");
+            alert(err.message || $t("submission_panel.upload_failed"));
         } finally {
             submittingFile = false;
             input.value = "";
@@ -556,7 +557,7 @@
             await apiDeleteSubmission(id, attendee.id, submissionId);
             mySubmissions = mySubmissions.filter(s => s.id !== submissionId);
         } catch (err: any) {
-            alert(err.message || "Delete failed");
+            alert(err.message || $t("submission_panel.delete_failed"));
         }
     }
 
@@ -679,6 +680,10 @@
         steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0,
     );
 </script>
+
+<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white focus:text-[#202124] focus:p-3 focus:rounded-lg focus:shadow-lg">
+    {$t("common.skip_to_main") || "Skip to main content"}
+</a>
 
 <div
     class="min-h-screen bg-white dark:bg-dark-bg flex flex-col font-sans text-[#3C4043] dark:text-dark-text selection:bg-[#4285F4]/20 selection:text-[#4285F4]"
@@ -865,43 +870,13 @@
                     </div>
                 {/if}
 
-                <div class="mt-8 pt-8 border-t border-[#E8EAED] dark:border-dark-border px-2 pb-8">
-                    <h3
-                        class="text-[11px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-widest mb-4 px-2 flex items-center gap-2"
-                    >
-                        <FileUp size={14} />
-                        {$t("submission.title")}
-                    </h3>
-                    <div class="space-y-2 px-2">
-                        {#each mySubmissions as sub}
-                            <div class="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border group">
-                                <div class="flex items-center gap-2 min-w-0">
-                                    <FileText size={14} class="text-[#5F6368] shrink-0" />
-                                    <span class="text-xs truncate text-[#5F6368] dark:text-dark-text-muted">{sub.file_name}</span>
-                                </div>
-                                <button 
-                                    onclick={() => handleDeleteSubmission(sub.id)}
-                                    class="p-1 text-[#EA4335] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-50 dark:hover:bg-red-500/10 rounded"
-                                >
-                                    <Trash2 size={14} />
-                                </button>
-                            </div>
-                        {/each}
-
-                        <label class="flex flex-col items-center justify-center w-full p-4 border-2 border-dashed border-[#DADCE0] dark:border-dark-border rounded-xl hover:bg-[#F8F9FA] dark:hover:bg-white/5 transition-all cursor-pointer group">
-                            <div class="flex flex-col items-center justify-center pt-2 pb-2">
-                                <Upload size={20} class="text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4] transition-colors mb-2" />
-                                <p class="text-[10px] text-[#5F6368] dark:text-dark-text-muted font-bold text-center">
-                                    {submittingFile ? $t("submission.uploading") : $t("submission.upload_btn")}
-                                </p>
-                                <p class="text-[9px] text-[#9AA0A6] mt-1">
-                                    {(totalSubmissionSize / 1024 / 1024).toFixed(1)}MB / 10MB
-                                </p>
-                            </div>
-                            <input type="file" class="hidden" onchange={handleFileUpload} disabled={submittingFile} />
-                        </label>
-                    </div>
-                </div>
+                <SubmissionPanel
+                    submissions={mySubmissions}
+                    submitting={submittingFile}
+                    totalSize={totalSubmissionSize}
+                    onUpload={handleFileUpload}
+                    onDelete={handleDeleteSubmission}
+                />
             </nav>
         </aside>
 
@@ -915,7 +890,7 @@
         {/if}
 
         <!-- Content Area -->
-        <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-12 bg-white dark:bg-dark-bg relative transition-colors">
+        <main id="main-content" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-12 bg-white dark:bg-dark-bg relative transition-colors" aria-live="polite">
             <div class="max-w-3xl mx-auto min-h-full">
                 {#if showGuide && codelab?.guide_markdown}
                     <div
@@ -1516,4 +1491,3 @@
         </div>
     </footer>
 </div>
-
