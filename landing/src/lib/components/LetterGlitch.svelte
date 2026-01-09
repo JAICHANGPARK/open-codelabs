@@ -8,6 +8,7 @@
         outerVignette?: boolean;
         smooth?: boolean;
         characters?: string;
+        isDark?: boolean;
     }
 
     let {
@@ -17,6 +18,7 @@
         outerVignette = true,
         smooth = true,
         characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$&*()-_+=/[]{};:<>.,0123456789",
+        isDark = true,
     }: Props = $props();
 
     let canvas: HTMLCanvasElement | null = $state(null);
@@ -32,10 +34,11 @@
     let grid = { columns: 0, rows: 0 };
     let lastGlitchTime = Date.now();
 
-    const lettersAndSymbols = characters.split("");
     const fontSize = 16;
     const charWidth = 10;
     const charHeight = 20;
+
+    const lettersAndSymbols = $derived(characters.split(""));
 
     function getRandomChar() {
         return lettersAndSymbols[
@@ -221,22 +224,48 @@
         if (animationFrame) cancelAnimationFrame(animationFrame);
         animate();
     });
+
+    // Update colors immediately when glitchColors change (e.g. theme toggle)
+    $effect(() => {
+        if (letters.length > 0) {
+            letters.forEach((l) => {
+                l.targetColor = getRandomColor();
+                if (!smooth) {
+                    l.color = l.targetColor;
+                    l.colorProgress = 1;
+                }
+            });
+            drawLetters();
+        }
+    });
 </script>
 
-<div class="relative w-full h-full bg-black overflow-hidden">
+<div
+    class="relative w-full h-full overflow-hidden transition-colors duration-300 {isDark
+        ? 'bg-black'
+        : 'bg-white'}"
+>
     <canvas bind:this={canvas} class="block w-full h-full"></canvas>
 
     {#if outerVignette}
         <div
-            class="absolute inset-0 pointer-events-none"
-            style="background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,1) 100%)"
+            class="absolute inset-0 pointer-events-none transition-opacity duration-300"
+            style="background: radial-gradient(circle, rgba({isDark
+                ? '0,0,0'
+                : '255,255,255'},0) 60%, rgba({isDark
+                ? '0,0,0'
+                : '255,255,255'},1) 100%)"
         ></div>
     {/if}
 
     {#if centerVignette}
         <div
-            class="absolute inset-0 pointer-events-none"
-            style="background: radial-gradient(circle, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%)"
+            class="absolute inset-0 pointer-events-none transition-opacity duration-300"
+            style="background: radial-gradient(circle, rgba({isDark
+                ? '0,0,0'
+                : '255,255,255'},{isDark ? '0.8' : '0.4'}) 0%, rgba({isDark
+                ? '0,0,0'
+                : '255,255,255'},0) 60%)"
         ></div>
     {/if}
 </div>
