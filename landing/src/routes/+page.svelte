@@ -29,7 +29,7 @@
 			(entries) => {
 				entries.forEach((entry) => {
 					if (entry.isIntersecting) {
-						entry.target.classList.add("reveal-visible");
+						(entry.target as HTMLElement).dataset.revealed = "true";
 					}
 				});
 			},
@@ -399,13 +399,15 @@
 					>
 				</h1>
 				<p
-					class="max-w-2xl mx-auto text-xl mb-10 leading-relaxed whitespace-pre-line {isDark
+					class="max-w-2xl mx-auto text-xl mb-10 leading-relaxed whitespace-pre-line relative z-10 {isDark
 						? 'text-neutral-400'
-						: 'text-neutral-600'}"
+						: 'text-neutral-800 font-medium'}"
 				>
 					{content.hero.desc}
 				</p>
-				<div class="flex flex-col sm:flex-row justify-center gap-4">
+				<div
+					class="flex flex-col sm:flex-row justify-center gap-4 relative z-10"
+				>
 					<a
 						href="#quickstart"
 						class="px-8 py-4 bg-blue-600 text-white rounded-2xl font-bold text-lg hover:bg-blue-700 shadow-xl shadow-blue-500/20 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"
@@ -417,7 +419,7 @@
 						href="https://jaichangpark.github.io/open-codelabs/"
 						class="px-8 py-4 border rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2 {isDark
 							? 'bg-neutral-900/50 border-neutral-700 text-white hover:bg-neutral-800'
-							: 'bg-white border-neutral-200 text-neutral-900 hover:bg-neutral-50'}"
+							: 'bg-white/80 border-neutral-200 text-neutral-900 hover:bg-neutral-50 backdrop-blur-sm'}"
 					>
 						<BookOpen class="w-5 h-5" />
 						{content.hero.ctaSecondary}
@@ -427,14 +429,19 @@
 		</div>
 
 		<!-- Background Glitch Decoration -->
-		<div class="absolute inset-0 -z-0 pointer-events-none opacity-50">
+		<div
+			class="absolute inset-0 -z-0 pointer-events-none transition-opacity duration-500 {isDark
+				? 'opacity-50'
+				: 'opacity-20'}"
+		>
 			<LetterGlitch
 				glitchColors={isDark
 					? ["#1e293b", "#3b82f6", "#4f46e5"]
-					: ["#dbeafe", "#3b82f6", "#60a5fa"]}
+					: ["#f0f9ff", "#e0f2fe", "#bae6fd"]}
 				outerVignette={true}
 				centerVignette={true}
 				smooth={true}
+				{isDark}
 			/>
 		</div>
 	</header>
