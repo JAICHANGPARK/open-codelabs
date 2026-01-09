@@ -49,15 +49,12 @@
 			getStarted: lang === "ko" ? "시작하기" : "Get Started",
 		},
 		hero: {
-			badge:
-				lang === "ko"
-					? "Rust & Svelte 기반"
-					: "Powered by Rust & Svelte",
+			badge: lang === "ko" ? "AI 기반" : "Powered by Gemini",
 			title1: lang === "ko" ? "더 스마트한" : "Interactive Workshops",
 			title2: lang === "ko" ? "코딩 워크숍의 시작." : "Made Simple.",
 			desc:
 				lang === "ko"
-					? "Open Codelabs는 현대적인 오픈소스 코딩 워크숍 플랫폼입니다. Google Codelabs의 경험을 AI와 함께 더욱 강력하게 만들었습니다."
+					? "Open Codelabs는 현대적인 오픈소스 코딩 워크숍 플랫폼입니다.\nGoogle Codelabs의 경험을 AI와 함께 더욱 강력하게 만들었습니다."
 					: "Open Codelabs is a modern, open-source platform for hosting hands-on coding workshops. Inspired by Google Codelabs, enhanced with AI.",
 			ctaPrimary:
 				lang === "ko" ? "5분 만에 시작하기" : "Get Started in 5m",
@@ -402,7 +399,7 @@
 					>
 				</h1>
 				<p
-					class="max-w-2xl mx-auto text-xl mb-10 leading-relaxed {isDark
+					class="max-w-2xl mx-auto text-xl mb-10 leading-relaxed whitespace-pre-line {isDark
 						? 'text-neutral-400'
 						: 'text-neutral-600'}"
 				>
@@ -547,16 +544,24 @@
 		</div>
 	</section>
 
-	<!-- Detailed Roles Section -->
-	<section id="roles" class="py-24 bg-neutral-50">
+	<section
+		id="roles"
+		class="py-24 transition-colors duration-300 {isDark
+			? 'bg-neutral-900'
+			: 'bg-neutral-50'}"
+	>
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="grid lg:grid-cols-2 gap-12">
 				<!-- Facilitator Box -->
 				<div
-					class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-neutral-100 hover:shadow-xl transition-shadow reveal"
+					class="p-10 rounded-[2.5rem] reveal transition-all {isDark
+						? 'bg-neutral-800/50 border border-neutral-700 shadow-2xl'
+						: 'bg-white border border-neutral-100 shadow-sm'}"
 				>
 					<div
-						class="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mb-8"
+						class="w-16 h-16 rounded-3xl flex items-center justify-center mb-8 {isDark
+							? 'bg-blue-500/10 text-blue-400'
+							: 'bg-blue-50 text-blue-600'}"
 					>
 						<Users class="w-8 h-8" />
 					</div>
@@ -567,11 +572,17 @@
 						{#each content.facilitator.features as f}
 							<li class="flex items-start gap-4">
 								<div
-									class="mt-1 w-6 h-6 rounded-full bg-blue-600/10 flex items-center justify-center shrink-0"
+									class="mt-1 w-6 h-6 rounded-full flex items-center justify-center shrink-0 {isDark
+										? 'bg-blue-400/10 text-blue-400'
+										: 'bg-blue-600/10 text-blue-600'}"
 								>
-									<f.icon class="w-3.5 h-3.5 text-blue-600" />
+									<f.icon class="w-3.5 h-3.5" />
 								</div>
-								<p class="text-neutral-700 font-medium">
+								<p
+									class="{isDark
+										? 'text-neutral-300'
+										: 'text-neutral-700'} font-medium"
+								>
 									{f.text}
 								</p>
 							</li>
@@ -581,11 +592,15 @@
 
 				<!-- Attendee Box -->
 				<div
-					class="bg-white p-10 rounded-[2.5rem] shadow-sm border border-neutral-100 hover:shadow-xl transition-shadow reveal"
+					class="p-10 rounded-[2.5rem] reveal transition-all {isDark
+						? 'bg-neutral-800/50 border border-neutral-700 shadow-2xl'
+						: 'bg-white border border-neutral-100 shadow-sm'}"
 					style="transition-delay: 200ms;"
 				>
 					<div
-						class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center mb-8"
+						class="w-16 h-16 rounded-3xl flex items-center justify-center mb-8 {isDark
+							? 'bg-indigo-500/10 text-indigo-400'
+							: 'bg-indigo-50 text-indigo-600'}"
 					>
 						<BookOpen class="w-8 h-8" />
 					</div>
@@ -596,13 +611,17 @@
 						{#each content.attendee.features as f}
 							<li class="flex items-start gap-4">
 								<div
-									class="mt-1 w-6 h-6 rounded-full bg-indigo-600/10 flex items-center justify-center shrink-0"
+									class="mt-1 w-6 h-6 rounded-full flex items-center justify-center shrink-0 {isDark
+										? 'bg-indigo-400/10 text-indigo-400'
+										: 'bg-indigo-600/10 text-indigo-600'}"
 								>
-									<f.icon
-										class="w-3.5 h-3.5 text-indigo-600"
-									/>
+									<f.icon class="w-3.5 h-3.5" />
 								</div>
-								<p class="text-neutral-700 font-medium">
+								<p
+									class="{isDark
+										? 'text-neutral-300'
+										: 'text-neutral-700'} font-medium"
+								>
 									{f.text}
 								</p>
 							</li>
@@ -614,37 +633,55 @@
 	</section>
 
 	<!-- Deployment -->
-	<section class="py-24 bg-white">
+	<section
+		class="py-24 transition-colors duration-300 {isDark
+			? 'bg-neutral-950'
+			: 'bg-white'}"
+	>
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="text-center mb-12 reveal">
 				<h2 class="text-3xl sm:text-4xl font-black mb-4 tracking-tight">
 					{content.deployment.title}
 				</h2>
-				<p class="text-neutral-600 max-w-2xl mx-auto">
+				<p
+					class="max-w-2xl mx-auto {isDark
+						? 'text-neutral-400'
+						: 'text-neutral-600'}"
+				>
 					{content.deployment.desc}
 				</p>
 			</div>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 				{#each content.deployment.options as opt, i}
 					<div
-						class="p-8 rounded-3xl border border-neutral-100 bg-neutral-50 hover:bg-white hover:border-blue-200 transition-all shadow-sm hover:shadow-xl reveal"
+						class="p-8 rounded-3xl border transition-all reveal {isDark
+							? 'bg-neutral-800/50 border-neutral-700 hover:bg-neutral-800'
+							: 'bg-neutral-50 border-neutral-100 hover:bg-white hover:border-blue-200 shadow-sm hover:shadow-xl'}"
 						style={`transition-delay:${i * 120}ms`}
 					>
 						<div class="flex items-center justify-between mb-4">
 							<h3 class="text-2xl font-black">{opt.title}</h3>
 							<span
-								class="px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-full bg-blue-50 text-blue-700"
+								class="px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-full {isDark
+									? 'bg-blue-500/20 text-blue-400'
+									: 'bg-blue-50 text-blue-700'}"
 							>
 								{lang === "ko" ? "배포" : "Deploy"}
 							</span>
 						</div>
-						<p class="text-neutral-700 mb-4 leading-relaxed">
+						<p
+							class="mb-4 leading-relaxed {isDark
+								? 'text-neutral-400'
+								: 'text-neutral-700'}"
+						>
 							{opt.description}
 						</p>
 						<div class="flex flex-wrap gap-2">
 							{#each opt.badges as b}
 								<span
-									class="px-3 py-1 rounded-full bg-white border border-neutral-200 text-xs font-bold text-neutral-700"
+									class="px-3 py-1 rounded-full border text-xs font-bold transition-colors {isDark
+										? 'bg-neutral-900 border-neutral-700 text-neutral-400'
+										: 'bg-white border-neutral-200 text-neutral-700'}"
 								>
 									{b}
 								</span>
@@ -656,25 +693,39 @@
 		</div>
 	</section>
 
-	<!-- Quickstart Section -->
-	<section id="quickstart" class="py-24 bg-white overflow-hidden">
+	<section
+		id="quickstart"
+		class="py-24 transition-colors duration-300 overflow-hidden {isDark
+			? 'bg-neutral-900'
+			: 'bg-white'}"
+	>
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="text-center mb-12 reveal">
 				<h2 class="text-3xl sm:text-4xl font-black mb-4 tracking-tight">
 					{content.quickstart.title}
 				</h2>
-				<p class="text-neutral-600 max-w-2xl mx-auto mb-8">
+				<p
+					class="max-w-2xl mx-auto mb-8 {isDark
+						? 'text-neutral-400'
+						: 'text-neutral-600'}"
+				>
 					{content.quickstart.desc}
 				</p>
 
 				<!-- Tabs -->
-				<div class="inline-flex p-1 bg-neutral-100 rounded-xl mb-8">
+				<div
+					class="inline-flex p-1 rounded-xl mb-8 {isDark
+						? 'bg-neutral-800'
+						: 'bg-neutral-100'}"
+				>
 					<button
 						onclick={() => (quickstartType = "docker")}
 						class="px-6 py-2 rounded-lg text-sm font-bold transition-all {quickstartType ===
 						'docker'
-							? 'bg-white text-blue-600 shadow-sm'
-							: 'text-neutral-500 hover:text-neutral-900'}"
+							? isDark
+								? 'bg-neutral-700 text-white shadow-lg'
+								: 'bg-white text-blue-600 shadow-sm'
+							: 'text-neutral-500 hover:text-neutral-400'}"
 					>
 						{content.quickstart.tabs.docker}
 					</button>
@@ -682,8 +733,10 @@
 						onclick={() => (quickstartType = "podman")}
 						class="px-6 py-2 rounded-lg text-sm font-bold transition-all {quickstartType ===
 						'podman'
-							? 'bg-white text-blue-600 shadow-sm'
-							: 'text-neutral-500 hover:text-neutral-900'}"
+							? isDark
+								? 'bg-neutral-700 text-white shadow-lg'
+								: 'bg-white text-blue-600 shadow-sm'
+							: 'text-neutral-500 hover:text-neutral-400'}"
 					>
 						{content.quickstart.tabs.podman}
 					</button>
@@ -698,13 +751,17 @@
 						>
 							<div class="flex flex-col items-center shrink-0">
 								<div
-									class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-lg shadow-blue-500/30 group-hover:scale-110 transition-transform"
+									class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-lg transition-transform group-hover:scale-110 {isDark
+										? 'bg-blue-500 text-white shadow-blue-500/20'
+										: 'bg-blue-600 text-white shadow-blue-500/30'}"
 								>
 									{i + 1}
 								</div>
 								{#if i < content.quickstart.steps.length - 1}
 									<div
-										class="w-0.5 h-full bg-neutral-100 mt-4 min-h-[4rem]"
+										class="w-0.5 h-full mt-4 min-h-[4rem] {isDark
+											? 'bg-neutral-800'
+											: 'bg-neutral-100'}"
 									></div>
 								{/if}
 							</div>
@@ -714,17 +771,25 @@
 								</h3>
 								{#if step.code}
 									<div
-										class="bg-neutral-900 rounded-2xl p-6 font-mono text-sm text-neutral-300 shadow-xl border border-neutral-800 relative overflow-hidden group/code"
+										class="rounded-2xl p-6 font-mono text-sm shadow-xl border relative overflow-hidden group/code {isDark
+											? 'bg-neutral-950 border-neutral-800 text-neutral-400'
+											: 'bg-neutral-900 border-neutral-800 text-neutral-300'}"
 									>
 										<div class="flex gap-1.5 mb-3">
 											<div
-												class="w-2.5 h-2.5 rounded-full bg-neutral-700"
+												class="w-2.5 h-2.5 rounded-full {isDark
+													? 'bg-neutral-800'
+													: 'bg-neutral-700'}"
 											></div>
 											<div
-												class="w-2.5 h-2.5 rounded-full bg-neutral-700"
+												class="w-2.5 h-2.5 rounded-full {isDark
+													? 'bg-neutral-800'
+													: 'bg-neutral-700'}"
 											></div>
 											<div
-												class="w-2.5 h-2.5 rounded-full bg-neutral-700"
+												class="w-2.5 h-2.5 rounded-full {isDark
+													? 'bg-neutral-800'
+													: 'bg-neutral-700'}"
 											></div>
 										</div>
 										<pre class="overflow-x-auto"><code
@@ -735,7 +800,9 @@
 									</div>
 								{:else}
 									<div
-										class="p-6 rounded-2xl bg-blue-50 border border-blue-100 text-blue-900 font-medium"
+										class="p-6 rounded-2xl border font-medium {isDark
+											? 'bg-blue-500/10 border-blue-500/20 text-blue-300'
+											: 'bg-blue-50 border-blue-100 text-blue-900'}"
 									>
 										{step.desc}
 									</div>
@@ -748,8 +815,11 @@
 		</div>
 	</section>
 
-	<!-- Tech Stack -->
-	<section class="py-24 bg-neutral-900 text-white overflow-hidden relative">
+	<section
+		class="py-24 transition-colors duration-300 relative overflow-hidden {isDark
+			? 'bg-neutral-900 text-white'
+			: 'bg-neutral-950 text-white'}"
+	>
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 			<div class="grid lg:grid-cols-2 gap-16 items-center">
 				<div class="reveal">
@@ -847,7 +917,11 @@
 	</section>
 
 	<!-- Footer -->
-	<footer class="bg-white py-16 border-t border-neutral-100">
+	<footer
+		class="transition-colors duration-300 border-t {isDark
+			? 'bg-neutral-950 border-neutral-800'
+			: 'bg-white border-neutral-100'} py-16"
+	>
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div
 				class="flex flex-col md:flex-row justify-between items-center gap-8"
@@ -862,13 +936,19 @@
 						>Open Codelabs</span
 					>
 				</div>
-				<p class="text-neutral-500 text-sm font-medium">
+				<p
+					class="text-sm font-medium {isDark
+						? 'text-neutral-500'
+						: 'text-neutral-500'}"
+				>
 					© 2025 Open Codelabs Project. Released under MIT License.
 				</p>
 				<div class="flex gap-6">
 					<a
 						href="https://github.com/jaichangpark/open-codelabs"
-						class="text-neutral-400 hover:text-blue-600 transition-all hover:scale-110"
+						class="transition-all hover:scale-110 {isDark
+							? 'text-neutral-500 hover:text-white'
+							: 'text-neutral-400 hover:text-blue-600'}"
 					>
 						<Github class="w-6 h-6" />
 					</a>
