@@ -15,9 +15,13 @@
 		Award,
 		CheckCircle2,
 		Sparkles,
+		Sun,
+		Moon,
 	} from "lucide-svelte";
+	import LetterGlitch from "$lib/components/LetterGlitch.svelte";
 
 	let lang = $state("ko");
+	let isDark = $state(true); // Default to dark mode
 	let quickstartType = $state("docker"); // 'docker' or 'podman'
 
 	onMount(() => {
@@ -60,7 +64,8 @@
 			ctaSecondary: lang === "ko" ? "문서 보기" : "View Docs",
 		},
 		valueProps: {
-			title: lang === "ko" ? "왜 Open Codelabs인가?" : "Why Open Codelabs",
+			title:
+				lang === "ko" ? "왜 Open Codelabs인가?" : "Why Open Codelabs",
 			desc:
 				lang === "ko"
 					? "AI 작성, 실시간 운영, 보안을 한 번에 갖춘 실습 플랫폼입니다."
@@ -68,7 +73,8 @@
 			items: [
 				{
 					icon: Sparkles,
-					title: lang === "ko" ? "AI-우선 작성" : "AI-first authoring",
+					title:
+						lang === "ko" ? "AI-우선 작성" : "AI-first authoring",
 					description:
 						lang === "ko"
 							? "Gemini 기반 코드랩 생성·요약·리뷰로 워크숍 콘텐츠를 빠르게 반복합니다."
@@ -278,6 +284,10 @@
 	function toggleLang() {
 		lang = lang === "ko" ? "en" : "ko";
 	}
+
+	function toggleTheme() {
+		isDark = !isDark;
+	}
 </script>
 
 <svelte:head>
@@ -293,11 +303,15 @@
 </svelte:head>
 
 <div
-	class="min-h-screen bg-neutral-50 text-neutral-900 font-sans selection:bg-blue-100"
+	class="min-h-screen transition-colors duration-300 {isDark
+		? 'bg-neutral-950 text-white'
+		: 'bg-neutral-50 text-neutral-900'} font-sans selection:bg-blue-500/30"
 >
 	<!-- Navigation -->
 	<nav
-		class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-200"
+		class="sticky top-0 z-50 border-b transition-colors duration-300 {isDark
+			? 'bg-neutral-950/80 border-neutral-800'
+			: 'bg-white/80 border-neutral-200'} backdrop-blur-md"
 	>
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="flex justify-between h-16 items-center">
@@ -312,33 +326,52 @@
 					>
 				</div>
 				<div
-					class="hidden md:flex items-center gap-6 text-sm font-medium text-neutral-600"
+					class="hidden md:flex items-center gap-6 text-sm font-medium {isDark
+						? 'text-neutral-400'
+						: 'text-neutral-600'}"
 				>
 					<a
 						href="#features"
-						class="hover:text-blue-600 transition-colors"
+						class="hover:text-blue-500 transition-colors"
 						>{content.nav.features}</a
 					>
 					<a
 						href="#roles"
-						class="hover:text-blue-600 transition-colors"
+						class="hover:text-blue-500 transition-colors"
 						>{content.nav.roles}</a
 					>
 					<a
 						href="#quickstart"
-						class="hover:text-blue-600 transition-colors"
+						class="hover:text-blue-500 transition-colors"
 						>{content.nav.quickstart}</a
 					>
 					<button
 						onclick={toggleLang}
-						class="flex items-center gap-1 px-3 py-1 rounded-full border border-neutral-200 hover:bg-neutral-50 transition-colors"
+						class="flex items-center gap-1 px-3 py-1 rounded-full border transition-colors {isDark
+							? 'border-neutral-800 hover:bg-neutral-900'
+							: 'border-neutral-200 hover:bg-neutral-50'}"
 					>
 						<Globe class="w-4 h-4" />
 						{lang === "ko" ? "English" : "한국어"}
 					</button>
+					<button
+						onclick={toggleTheme}
+						class="p-2 rounded-full border transition-colors {isDark
+							? 'border-neutral-800 hover:bg-neutral-900 text-yellow-400'
+							: 'border-neutral-200 hover:bg-neutral-50 text-blue-600'}"
+						aria-label="Toggle Theme"
+					>
+						{#if isDark}
+							<Sun class="w-4 h-4" />
+						{:else}
+							<Moon class="w-4 h-4" />
+						{/if}
+					</button>
 					<a
 						href="https://jaichangpark.github.io/open-codelabs/"
-						class="px-5 py-2 bg-neutral-900 text-white rounded-full hover:bg-neutral-800 transition-all hover:scale-105 active:scale-95"
+						class="px-5 py-2 rounded-full transition-all hover:scale-105 active:scale-95 {isDark
+							? 'bg-white text-neutral-950 hover:bg-neutral-200'
+							: 'bg-neutral-900 text-white hover:bg-neutral-800'}"
 					>
 						{content.nav.getStarted}
 					</a>
@@ -358,16 +391,20 @@
 					{content.hero.badge}
 				</div>
 				<h1
-					class="text-5xl sm:text-7xl font-extrabold tracking-tight text-neutral-900 mb-8 leading-[1.1]"
+					class="text-5xl sm:text-7xl font-extrabold tracking-tight mb-8 leading-[1.1] {isDark
+						? 'text-white'
+						: 'text-neutral-900'}"
 				>
 					{content.hero.title1} <br />
 					<span
-						class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 italic font-black"
+						class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 italic font-black"
 						>{content.hero.title2}</span
 					>
 				</h1>
 				<p
-					class="max-w-2xl mx-auto text-xl text-neutral-600 mb-10 leading-relaxed"
+					class="max-w-2xl mx-auto text-xl mb-10 leading-relaxed {isDark
+						? 'text-neutral-400'
+						: 'text-neutral-600'}"
 				>
 					{content.hero.desc}
 				</p>
@@ -381,7 +418,9 @@
 					</a>
 					<a
 						href="https://jaichangpark.github.io/open-codelabs/"
-						class="px-8 py-4 bg-white border border-neutral-200 text-neutral-900 rounded-2xl font-bold text-lg hover:bg-neutral-50 transition-all flex items-center justify-center gap-2"
+						class="px-8 py-4 border rounded-2xl font-bold text-lg transition-all flex items-center justify-center gap-2 {isDark
+							? 'bg-neutral-900/50 border-neutral-700 text-white hover:bg-neutral-800'
+							: 'bg-white border-neutral-200 text-neutral-900 hover:bg-neutral-50'}"
 					>
 						<BookOpen class="w-5 h-5" />
 						{content.hero.ctaSecondary}
@@ -390,30 +429,39 @@
 			</div>
 		</div>
 
-		<!-- Background Decoration -->
-		<div
-			class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-0 pointer-events-none opacity-40"
-		>
-			<div
-				class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-200 blur-[120px] rounded-full"
-			></div>
-			<div
-				class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-200 blur-[120px] rounded-full"
-			></div>
+		<!-- Background Glitch Decoration -->
+		<div class="absolute inset-0 -z-0 pointer-events-none opacity-50">
+			<LetterGlitch
+				glitchColors={isDark
+					? ["#1e293b", "#3b82f6", "#4f46e5"]
+					: ["#dbeafe", "#3b82f6", "#60a5fa"]}
+				outerVignette={true}
+				centerVignette={true}
+				smooth={true}
+			/>
 		</div>
 	</header>
 
-	<!-- Value Props -->
-	<section class="py-20 bg-neutral-50">
+	<section
+		class="py-20 transition-colors duration-300 {isDark
+			? 'bg-neutral-900'
+			: 'bg-neutral-50'}"
+	>
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="text-center mb-12 reveal">
-				<p class="text-blue-600 font-bold uppercase tracking-[0.2em] text-xs mb-3">
+				<p
+					class="text-blue-500 font-bold uppercase tracking-[0.2em] text-xs mb-3"
+				>
 					{lang === "ko" ? "핵심 가치" : "VALUE PILLARS"}
 				</p>
 				<h2 class="text-3xl sm:text-4xl font-black mb-4 tracking-tight">
 					{content.valueProps.title}
 				</h2>
-				<p class="text-neutral-600 max-w-2xl mx-auto">
+				<p
+					class="{isDark
+						? 'text-neutral-400'
+						: 'text-neutral-600'} max-w-2xl mx-auto"
+				>
 					{content.valueProps.desc}
 				</p>
 			</div>
@@ -421,14 +469,24 @@
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 				{#each content.valueProps.items as item, i}
 					<div
-						class="p-8 rounded-3xl bg-white border border-neutral-100 shadow-sm hover:shadow-xl transition-all reveal"
+						class="p-8 rounded-3xl border transition-all reveal {isDark
+							? 'bg-neutral-800/50 border-neutral-700 shadow-xl hover:bg-neutral-800'
+							: 'bg-white border-neutral-100 shadow-sm hover:shadow-xl'}"
 						style={`transition-delay:${i * 100}ms`}
 					>
-						<div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mb-5">
+						<div
+							class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 {isDark
+								? 'bg-blue-500/10 text-blue-400'
+								: 'bg-blue-50 text-blue-600'}"
+						>
 							<item.icon class="w-6 h-6" />
 						</div>
 						<h3 class="text-xl font-bold mb-3">{item.title}</h3>
-						<p class="text-neutral-600 leading-relaxed text-sm">
+						<p
+							class="leading-relaxed text-sm {isDark
+								? 'text-neutral-400'
+								: 'text-neutral-600'}"
+						>
 							{item.description}
 						</p>
 					</div>
@@ -437,14 +495,22 @@
 		</div>
 	</section>
 
-	<!-- Features Grid -->
-	<section id="features" class="py-24 bg-white">
+	<section
+		id="features"
+		class="py-24 transition-colors duration-300 {isDark
+			? 'bg-neutral-950'
+			: 'bg-white'}"
+	>
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="text-center mb-16 reveal">
 				<h2 class="text-3xl sm:text-4xl font-black mb-4 tracking-tight">
 					{content.features.title}
 				</h2>
-				<p class="text-neutral-600 max-w-2xl mx-auto">
+				<p
+					class="{isDark
+						? 'text-neutral-400'
+						: 'text-neutral-600'} max-w-2xl mx-auto"
+				>
 					{content.features.desc}
 				</p>
 			</div>
@@ -452,17 +518,27 @@
 			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
 				{#each content.features.items as feature}
 					<div
-						class="p-8 rounded-3xl border border-neutral-100 bg-neutral-50 hover:border-blue-200 hover:bg-white transition-all group hover:shadow-2xl hover:shadow-blue-500/5 reveal"
+						class="p-8 rounded-3xl border transition-all group hover:shadow-2xl reveal {isDark
+							? 'border-neutral-800 bg-neutral-900/50 hover:border-blue-500/50 hover:bg-neutral-800 hover:shadow-blue-500/10'
+							: 'border-neutral-100 bg-neutral-50 hover:border-blue-200 hover:bg-white hover:shadow-blue-500/5'}"
 					>
 						<div
-							class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center border border-neutral-200 mb-6 group-hover:scale-110 group-hover:bg-blue-600 group-hover:border-blue-600 transition-all duration-300"
+							class="w-12 h-12 rounded-2xl flex items-center justify-center border transition-all duration-300 {isDark
+								? 'bg-neutral-800 border-neutral-700 group-hover:bg-blue-500 group-hover:border-blue-500'
+								: 'bg-white border-neutral-200 group-hover:bg-blue-600 group-hover:border-blue-600'}"
 						>
 							<feature.icon
-								class="w-6 h-6 text-blue-600 group-hover:text-white transition-colors"
+								class="w-6 h-6 transition-colors {isDark
+									? 'text-blue-400 group-hover:text-white'
+									: 'text-blue-600 group-hover:text-white'}"
 							/>
 						</div>
 						<h3 class="text-xl font-bold mb-3">{feature.title}</h3>
-						<p class="text-neutral-600 text-sm leading-relaxed">
+						<p
+							class="text-sm leading-relaxed {isDark
+								? 'text-neutral-400'
+								: 'text-neutral-600'}"
+						>
 							{feature.description}
 						</p>
 					</div>
@@ -556,7 +632,9 @@
 					>
 						<div class="flex items-center justify-between mb-4">
 							<h3 class="text-2xl font-black">{opt.title}</h3>
-							<span class="px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-full bg-blue-50 text-blue-700">
+							<span
+								class="px-3 py-1 text-xs font-bold uppercase tracking-wide rounded-full bg-blue-50 text-blue-700"
+							>
 								{lang === "ko" ? "배포" : "Deploy"}
 							</span>
 						</div>
@@ -565,7 +643,9 @@
 						</p>
 						<div class="flex flex-wrap gap-2">
 							{#each opt.badges as b}
-								<span class="px-3 py-1 rounded-full bg-white border border-neutral-200 text-xs font-bold text-neutral-700">
+								<span
+									class="px-3 py-1 rounded-full bg-white border border-neutral-200 text-xs font-bold text-neutral-700"
+								>
 									{b}
 								</span>
 							{/each}
