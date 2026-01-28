@@ -6,7 +6,6 @@
     import { attendeeMarked as marked } from "$lib/markdown";
     import DOMPurify from "dompurify";
     import { fly, fade } from "svelte/transition";
-    import Prism from "prismjs";
     import { t } from "svelte-i18n";
     import FocusTrap from "$lib/components/FocusTrap.svelte";
 
@@ -31,13 +30,6 @@
         }
         // Auto-focus input
         setTimeout(() => inputRef?.focus(), 100);
-    });
-
-    // Highlight code whenever response updates
-    $effect(() => {
-        if (response) {
-            Prism.highlightAll();
-        }
     });
 
     function saveKey() {
