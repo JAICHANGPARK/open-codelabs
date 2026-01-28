@@ -147,6 +147,7 @@ set -e
 # Default values
 TUNNEL_TYPE="ngrok"
 CONTAINER_ENGINE="docker"
+PORT="${PORT:-5173}"
 
 # Check for podman
 if command -v podman-compose &> /dev/null; then
@@ -162,6 +163,7 @@ fi
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         --bore) TUNNEL_TYPE="bore"; shift ;;
+        --cloudflare) TUNNEL_TYPE="cloudflare"; shift ;;
         --ngrok) TUNNEL_TYPE="ngrok"; shift ;;
         *) echo "Unknown parameter: $1"; exit 1 ;;
     esac
@@ -179,19 +181,25 @@ fi
 echo "✅ Containers are up!"
 
 if [ "$TUNNEL_TYPE" == "ngrok" ]; then
-    echo "🌐 Starting ngrok tunnel on port 5173..."
-    ngrok http 5173 --log=stdout &
+    echo "🌐 Starting ngrok tunnel on port $PORT..."
+    ngrok http "$PORT" --log=stdout &
     sleep 5
     PUBLIC_URL=$(curl -s http://localhost:4040/api/tunnels | grep -o 'https://[^"]*.ngrok-free.app' | head -n 1)
-else
-    echo "🌐 Starting bore tunnel on port 5173..."
-    bore local 5173 --to bore.pub &
+elif [ "$TUNNEL_TYPE" == "bore" ]; then
+    echo "🌐 Starting bore tunnel on port $PORT..."
+    bore local "$PORT" --to bore.pub &
     sleep 5
     echo "⚠️  Please check the bore output above for your public URL."
     PUBLIC_URL="[Check Bore Output]"
+elif [ "$TUNNEL_TYPE" == "cloudflare" ]; then
+    echo "🌐 Starting Cloudflare tunnel on port $PORT..."
+    cloudflared tunnel --url "http://localhost:$PORT" --no-autoupdate &
+    sleep 5
+    echo "⚠️  Please check the cloudflared output above for your public URL."
+    PUBLIC_URL="[Check Cloudflared Output]"
 fi
 
-if [ -z "$PUBLIC_URL" ] || [ "$PUBLIC_URL" == "[Check Bore Output]" ]; then
+if [ -z "$PUBLIC_URL" ] || [ "$PUBLIC_URL" == "[Check Bore Output]" ] || [ "$PUBLIC_URL" == "[Check Cloudflared Output]" ]; then
     if [ "$TUNNEL_TYPE" == "ngrok" ]; then
         echo "❌ Failed to get ngrok URL. Is ngrok running?"
     fi
@@ -313,18 +321,6 @@ https://abc123.ngrok-free.app  ← 자동 SSL/TLS
 ```
 
 ## 대안 솔루션
-
-### Cloudflare Tunnel
-
-무료이며 더 안정적:
-
-```bash
-# cloudflared 설치
-brew install cloudflare/cloudflare/cloudflared
-
-# 터널 생성
-cloudflared tunnel --url http://localhost:5173
-```
 
 ### localtunnel
 
