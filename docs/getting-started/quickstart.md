@@ -143,7 +143,7 @@ Frontend는 `http://localhost:5173`에서 실행됩니다.
 
 - [설치 가이드](installation.md) - 상세한 설치 옵션
 - [첫 번째 Codelab 만들기](first-codelab.md) - 고급 기능 활용
-- [공개 배포](../self-hosting/public-deployment.md) - ngrok으로 외부에 공개하기
+- [공개 배포](../self-hosting/public-deployment.md) - ngrok/bore/cloudflare로 외부에 공개하기
 - [API 레퍼런스](../specification/api-reference.md) - API 활용법
 
 ## 문제 해결
