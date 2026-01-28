@@ -14,7 +14,7 @@
             <div
                 class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-lg text-xs font-medium text-[#3C4043] dark:text-dark-text shadow-sm group"
             >
-                <FileCode size={14} class="text-[#8E24AA]" />
+                <FileCode size={14} class="text-[#4285F4]" />
                 <span class="max-w-[150px] truncate">{file.name}</span>
                 <button
                     onclick={() => onRemove(i)}
