@@ -23,6 +23,7 @@
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
     import type { Step } from "$lib/api";
+    import hljs from "highlight.js";
 
     let {
         step = $bindable(),
@@ -71,7 +72,15 @@
         syncPreviewScroll: () => void;
     }>();
 
-    let codeLanguage = $state("ts");
+    const languageOptions = hljs
+        .listLanguages()
+        .map((lang) => ({
+            value: lang,
+            label: hljs.getLanguage(lang)?.name || lang,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label));
+
+    let codeLanguage = $state("");
 
     let wordCount = $derived.by(() => {
         const content = step?.content_markdown || "";
@@ -209,17 +218,12 @@
                     <select
                         bind:value={codeLanguage}
                         class="bg-transparent text-xs font-bold text-[#3C4043] dark:text-dark-text outline-none"
+                        aria-label={$t("editor.toolbar.code_language")}
                     >
-                        <option value="ts">TS</option>
-                        <option value="js">JS</option>
-                        <option value="python">Python</option>
-                        <option value="rust">Rust</option>
-                        <option value="go">Go</option>
-                        <option value="bash">Bash</option>
-                        <option value="json">JSON</option>
-                        <option value="yaml">YAML</option>
-                        <option value="html">HTML</option>
-                        <option value="css">CSS</option>
+                        <option value="">({$t("editor.toolbar.auto")})</option>
+                        {#each languageOptions as language}
+                            <option value={language.value}>{language.label}</option>
+                        {/each}
                     </select>
                 </div>
                 <button
@@ -274,13 +278,13 @@
                         <div class="text-[10px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider mb-2">
                             {$t("editor.markdown_cheatsheet")}
                         </div>
-                        <pre class="font-mono text-[11px] leading-relaxed bg-[#F8F9FA] dark:bg-dark-bg rounded-lg p-3 border border-[#E8EAED] dark:border-dark-border whitespace-pre-wrap"># Heading
-**bold** *italic* `inline`
-- list
-1. list
-> quote
+                        <pre class="font-mono text-[11px] leading-relaxed bg-[#F8F9FA] dark:bg-dark-bg rounded-lg p-3 border border-[#E8EAED] dark:border-dark-border whitespace-pre-wrap"># {$t("editor.toolbar.heading1")}
+**{$t("editor.toolbar.bold")}** *{$t("editor.toolbar.italic")}* `{$t("editor.toolbar.inline_code")}`
+- {$t("editor.toolbar.bullet_list")}
+1. {$t("editor.toolbar.numbered_list")}
+> {$t("editor.toolbar.quote")}
 &#96;&#96;&#96;ts
-code
+{$t("editor.toolbar.code_block")}
 &#96;&#96;&#96;</pre>
                     </div>
                 </details>
