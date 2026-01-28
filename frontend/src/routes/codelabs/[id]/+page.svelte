@@ -64,22 +64,6 @@
     import { themeState } from "$lib/theme.svelte";
     import { submitFile, getSubmissions, deleteSubmission as apiDeleteSubmission } from "$lib/api";
 
-    // Prism.js for syntax highlighting
-    import Prism from "prismjs";
-    import "prismjs/themes/prism-tomorrow.css";
-    import "prismjs/components/prism-javascript";
-    import "prismjs/components/prism-typescript";
-    import "prismjs/components/prism-python";
-    import "prismjs/components/prism-java";
-    import "prismjs/components/prism-rust";
-    import "prismjs/components/prism-dart";
-    import "prismjs/components/prism-swift";
-    import "prismjs/components/prism-kotlin";
-    import "prismjs/components/prism-go";
-    import "prismjs/components/prism-bash";
-    import "prismjs/components/prism-json";
-    import "prismjs/components/prism-yaml";
-    import "prismjs/components/prism-markdown";
 
     let id = page.params.id as string;
     let codelab = $state<Codelab | null>(null);
@@ -193,26 +177,6 @@
             isSpeaking = true;
         }
     }
-
-    // Run Prism highlighting whenever content changes
-    $effect(() => {
-        if (currentStepIndex >= 0 && browser) {
-            // Need to wait for DOM to update
-            setTimeout(() => {
-                Prism.highlightAll();
-            }, 0);
-        }
-    });
-
-    // Apply syntax highlighting when step content changes
-    $effect(() => {
-        if (currentStepIndex >= 0 && steps.length > 0) {
-            // Wait for DOM to update then highlight
-            setTimeout(() => {
-                Prism.highlightAll();
-            }, 100);
-        }
-    });
 
     // Selection listener
     $effect(() => {
