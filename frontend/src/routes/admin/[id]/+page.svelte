@@ -1084,7 +1084,7 @@
         const end = textarea.selectionEnd;
         const text = steps[activeStepIndex].content_markdown || "";
         const selected = text.substring(start, end);
-        const language = options.language || "ts";
+        const language = options.language ?? "";
 
         let replacement = "";
         let selectionStart = start;
@@ -1134,7 +1134,7 @@
             case "code":
             case "code_block": {
                 const placeholder = selected || "// code here";
-                const prefix = `\n\`\`\`${language}\n`;
+                const prefix = language ? `\n\`\`\`${language}\n` : "\n```\n";
                 replacement = `${prefix}${placeholder}\n\`\`\`\n`;
                 if (selected) {
                     setCursorToEnd();
