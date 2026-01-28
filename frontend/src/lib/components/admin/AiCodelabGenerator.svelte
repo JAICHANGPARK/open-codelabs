@@ -43,6 +43,52 @@
         description: string;
         steps: { title: string; content: string }[];
     } | null>(null);
+    type CodelabDraft = {
+        title: string;
+        description: string;
+        steps: { title: string; content: string }[];
+    };
+    type PlanData = {
+        title: string;
+        description: string;
+        audience: string;
+        learning_objectives: string[];
+        prerequisites: string[];
+        environment_setup: {
+            os_requirements: string[];
+            tools: string[];
+            env_vars: string[];
+            ide: string;
+            ide_plugins: string[];
+        };
+        steps: {
+            title: string;
+            goal: string;
+            files: string[];
+            verification: string;
+        }[];
+        search_terms: string[];
+    };
+    type ReviewData = {
+        summary: string;
+        issues: {
+            severity: string;
+            issue: string;
+            recommendation: string;
+        }[];
+        missing_items: string[];
+        improvements: string[];
+    };
+    type GenerationMode = "basic" | "advanced";
+    type AdvancedStep =
+        | "input"
+        | "planning"
+        | "plan"
+        | "drafting"
+        | "draft"
+        | "reviewing"
+        | "revising"
+        | "final";
 
     let fileInput = $state<HTMLInputElement>();
     const MAX_FILES = 10;
@@ -116,6 +162,36 @@ Follow these strict guidelines to create the content:
 - After each code block, add a short list like "1) line -> explanation" with concise reasons (not just restating the code).
 
 `;
+    const PLAN_SYSTEM_PROMPT = `
+You are a senior curriculum designer. Create a codelab plan from source code and context.
+Return JSON that matches the schema exactly.
+Priorities:
+1) Learning objectives and target audience.
+2) Prerequisites and environment setup.
+3) Step outline with verification checkpoints.
+4) Search terms for latest information (short English queries).
+Keep the plan concise, practical, and aligned to the target duration.
+`;
+    const REVIEW_SYSTEM_PROMPT = `
+You are a third-party facilitator and technical reviewer.
+Review the draft codelab against the plan and source context.
+Be critical and specific. Provide actionable improvements.
+Return JSON that matches the schema exactly.
+`;
+
+    let generationMode = $state<GenerationMode>("basic");
+    let advancedStep = $state<AdvancedStep>("input");
+    let advancedLoading = $state(false);
+    let advancedStreamContent = $state("");
+    let advancedThinkingContent = $state("");
+    let advancedPlanData = $state<PlanData | null>(null);
+    let advancedDraftData = $state<CodelabDraft | null>(null);
+    let advancedReviewData = $state<ReviewData | null>(null);
+    let advancedRevisedData = $state<CodelabDraft | null>(null);
+    let advancedUseGoogleSearch = $state(true);
+    let advancedUseUrlContext = $state(false);
+    let advancedSourceContext = $state("");
+    let advancedTargetLanguage = $state("English");
 
     import {
         getBlocklists,
@@ -221,6 +297,73 @@ Follow these strict guidelines to create the content:
 
     function removeFile(index: number) {
         uploadedFiles = uploadedFiles.filter((_, i) => i !== index);
+    }
+
+    function resolveTargetLanguage() {
+        const userLanguage = $locale || "en";
+        const languageNames: Record<string, string> = {
+            ko: "Korean",
+            en: "English",
+            zh: "Chinese",
+            ja: "Japanese",
+        };
+        return languageNames[userLanguage] || "English";
+    }
+
+    function buildDurationText() {
+        const durationValue =
+            handsOnDuration === "custom" ? customDuration : handsOnDuration;
+        return durationValue
+            ? `The target duration for this hands-on session is approximately ${durationValue} minutes. Please adjust the depth and number of steps to fit this timeframe.`
+            : "";
+    }
+
+    function parseStructuredJson<T>(raw: string): T | null {
+        const trimmed = raw.trim();
+        if (!trimmed) return null;
+        const firstBrace = trimmed.indexOf("{");
+        const lastBrace = trimmed.lastIndexOf("}");
+        if (firstBrace === -1 || lastBrace === -1) return null;
+        const jsonText = trimmed.substring(firstBrace, lastBrace + 1);
+        try {
+            return JSON.parse(jsonText) as T;
+        } catch {
+            return null;
+        }
+    }
+
+    function buildCodelabSchema(targetLanguage: string) {
+        return {
+            type: "object",
+            properties: {
+                title: {
+                    type: "string",
+                    description: `The name of the codelab in ${targetLanguage}`,
+                },
+                description: {
+                    type: "string",
+                    description: `Brief description in ${targetLanguage} of what will be built`,
+                },
+                steps: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            title: {
+                                type: "string",
+                                description: `Step title in ${targetLanguage} (e.g., Setting up the Project)`,
+                            },
+                            content: {
+                                type: "string",
+                                description: `Markdown content in ${targetLanguage} for this step. Explain the code clearly. Use code blocks with inline comments and add a numbered line-by-line explanation list after each block.`,
+                            },
+                        },
+                        required: ["title", "content"],
+                    },
+                },
+            },
+            required: ["title", "description", "steps"],
+        };
     }
 
     async function handleGenerate() {
@@ -382,6 +525,479 @@ Follow these strict guidelines to create the content:
             loading = false;
         }
     }
+
+    function setGenerationMode(mode: GenerationMode) {
+        generationMode = mode;
+    }
+
+    async function handleAdvancedPlan() {
+        let fullContext = sourceCode.trim();
+        if (uploadedFiles.length > 0) {
+            const filesContext = uploadedFiles
+                .map((f) => `File: ${f.name}\n\`\`\`\n${f.content}\n\`\`\``)
+                .join("\n\n");
+            fullContext = fullContext
+                ? `${fullContext}\n\nUploaded Files:\n${filesContext}`
+                : filesContext;
+        }
+
+        if (!fullContext || !apiKey) return;
+
+        advancedLoading = true;
+        advancedStep = "planning";
+        advancedStreamContent = "";
+        advancedThinkingContent = "";
+        advancedPlanData = null;
+        advancedDraftData = null;
+        advancedReviewData = null;
+        advancedRevisedData = null;
+        advancedSourceContext = fullContext;
+        advancedTargetLanguage = resolveTargetLanguage();
+
+        const planSchema = {
+            type: "object",
+            properties: {
+                title: {
+                    type: "string",
+                    description: `Plan title in ${advancedTargetLanguage}`,
+                },
+                description: {
+                    type: "string",
+                    description: `Plan summary in ${advancedTargetLanguage}`,
+                },
+                audience: {
+                    type: "string",
+                    description: `Target audience in ${advancedTargetLanguage}`,
+                },
+                learning_objectives: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                        description: `Learning objective in ${advancedTargetLanguage}`,
+                    },
+                },
+                prerequisites: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                        description: `Prerequisite in ${advancedTargetLanguage}`,
+                    },
+                },
+                environment_setup: {
+                    type: "object",
+                    properties: {
+                        os_requirements: {
+                            type: "array",
+                            items: {
+                                type: "string",
+                                description: `OS requirement in ${advancedTargetLanguage}`,
+                            },
+                        },
+                        tools: {
+                            type: "array",
+                            items: {
+                                type: "string",
+                                description: `Required tool in ${advancedTargetLanguage}`,
+                            },
+                        },
+                        env_vars: {
+                            type: "array",
+                            items: {
+                                type: "string",
+                                description: `Environment variable in ${advancedTargetLanguage}`,
+                            },
+                        },
+                        ide: {
+                            type: "string",
+                            description: `Recommended IDE in ${advancedTargetLanguage}`,
+                        },
+                        ide_plugins: {
+                            type: "array",
+                            items: {
+                                type: "string",
+                                description: `IDE plugin in ${advancedTargetLanguage}`,
+                            },
+                        },
+                    },
+                    required: [
+                        "os_requirements",
+                        "tools",
+                        "env_vars",
+                        "ide",
+                        "ide_plugins",
+                    ],
+                },
+                steps: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            title: {
+                                type: "string",
+                                description: `Step title in ${advancedTargetLanguage}`,
+                            },
+                            goal: {
+                                type: "string",
+                                description: `Step goal in ${advancedTargetLanguage}`,
+                            },
+                            files: {
+                                type: "array",
+                                items: {
+                                    type: "string",
+                                    description:
+                                        "File paths touched in this step",
+                                },
+                            },
+                            verification: {
+                                type: "string",
+                                description: `Verification checklist in ${advancedTargetLanguage}`,
+                            },
+                        },
+                        required: ["title", "goal", "files", "verification"],
+                    },
+                },
+                search_terms: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                        description:
+                            "Short English search query for the latest info",
+                    },
+                },
+            },
+            required: [
+                "title",
+                "description",
+                "audience",
+                "learning_objectives",
+                "prerequisites",
+                "environment_setup",
+                "steps",
+                "search_terms",
+            ],
+        };
+
+        const durationText = buildDurationText();
+        const planPrompt = `Design a codelab plan from the following source code and context. ${durationText} Write all content in ${advancedTargetLanguage}. For "search_terms", use short English queries to find the latest versions, commands, or best practices (3-8 items). Keep step count aligned with the target duration. If something is unknown, return empty arrays.\n\nSource code/Context:\n${fullContext}`;
+
+        try {
+            const stream = streamGeminiStructuredOutput(
+                planPrompt,
+                PLAN_SYSTEM_PROMPT,
+                planSchema,
+                {
+                    apiKey,
+                    model: "gemini-3-flash-preview",
+                    thinkingConfig: { thinkingLevel: "high" },
+                },
+            );
+
+            for await (const chunk of stream) {
+                if (chunk.thinking) {
+                    advancedThinkingContent += chunk.thinking;
+                }
+                if (chunk.content) {
+                    advancedStreamContent += chunk.content;
+                }
+            }
+
+            const parsed = parseStructuredJson<PlanData>(advancedStreamContent);
+            if (!parsed) {
+                alert($t("ai_generator.error_parse"));
+                advancedStep = "input";
+                return;
+            }
+
+            advancedPlanData = parsed;
+            advancedStep = "plan";
+        } catch (e: any) {
+            console.error("Plan generation failed", e);
+            alert($t("ai_generator.error_generate") + ": " + e.message);
+            advancedStep = "input";
+        } finally {
+            advancedLoading = false;
+        }
+    }
+
+    async function handleAdvancedDraft() {
+        if (!advancedPlanData || !apiKey) return;
+
+        advancedLoading = true;
+        advancedStep = "drafting";
+        advancedStreamContent = "";
+        advancedThinkingContent = "";
+        advancedDraftData = null;
+
+        const durationText = buildDurationText();
+        const searchTerms = advancedPlanData.search_terms || [];
+        const searchHint = searchTerms.length
+            ? `Use the Google Search tool to verify the latest information for these queries: ${searchTerms.join(
+                  ", ",
+              )}.`
+            : "Use the Google Search tool if any versions, commands, or APIs need verification.";
+
+        const draftPrompt = `Create a codelab using the plan and source context. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\nPlan JSON:\n${JSON.stringify(
+            advancedPlanData,
+            null,
+            2,
+        )}\n\nSource code/Context:\n${advancedSourceContext}`;
+
+        const tools: GeminiStructuredConfig["tools"] = [];
+        if (advancedUseGoogleSearch) {
+            tools.push({ googleSearch: {} });
+        }
+        if (advancedUseUrlContext) {
+            tools.push({ urlContext: {} });
+        }
+
+        try {
+            const stream = streamGeminiStructuredOutput(
+                draftPrompt,
+                SYSTEM_PROMPT,
+                buildCodelabSchema(advancedTargetLanguage),
+                {
+                    apiKey,
+                    model: "gemini-3-flash-preview",
+                    tools: tools.length > 0 ? tools : undefined,
+                    thinkingConfig: { thinkingLevel: "high" },
+                },
+            );
+
+            for await (const chunk of stream) {
+                if (chunk.thinking) {
+                    advancedThinkingContent += chunk.thinking;
+                }
+                if (chunk.content) {
+                    advancedStreamContent += chunk.content;
+                }
+            }
+
+            const parsed = parseStructuredJson<CodelabDraft>(
+                advancedStreamContent,
+            );
+            if (!parsed) {
+                alert($t("ai_generator.error_parse"));
+                advancedStep = "plan";
+                return;
+            }
+
+            advancedDraftData = parsed;
+            advancedStep = "draft";
+        } catch (e: any) {
+            console.error("Draft generation failed", e);
+            alert($t("ai_generator.error_generate") + ": " + e.message);
+            advancedStep = "plan";
+        } finally {
+            advancedLoading = false;
+        }
+    }
+
+    async function handleAdvancedReviewAndRevise() {
+        if (!advancedPlanData || !advancedDraftData || !apiKey) return;
+
+        advancedLoading = true;
+        advancedStep = "reviewing";
+        advancedStreamContent = "";
+        advancedThinkingContent = "";
+        advancedReviewData = null;
+        advancedRevisedData = null;
+
+        const reviewSchema = {
+            type: "object",
+            properties: {
+                summary: {
+                    type: "string",
+                    description: `Review summary in ${advancedTargetLanguage}`,
+                },
+                issues: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            severity: {
+                                type: "string",
+                                description: `Severity in ${advancedTargetLanguage}`,
+                            },
+                            issue: {
+                                type: "string",
+                                description: `Issue description in ${advancedTargetLanguage}`,
+                            },
+                            recommendation: {
+                                type: "string",
+                                description: `Fix recommendation in ${advancedTargetLanguage}`,
+                            },
+                        },
+                        required: ["severity", "issue", "recommendation"],
+                    },
+                },
+                missing_items: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                        description: `Missing item in ${advancedTargetLanguage}`,
+                    },
+                },
+                improvements: {
+                    type: "array",
+                    items: {
+                        type: "string",
+                        description: `Improvement suggestion in ${advancedTargetLanguage}`,
+                    },
+                },
+            },
+            required: ["summary", "issues", "missing_items", "improvements"],
+        };
+
+        const reviewPrompt = `Review the draft codelab as a third-party facilitator expert. Use the plan to verify structure and completeness. Write ALL content in ${advancedTargetLanguage}.\n\nPlan JSON:\n${JSON.stringify(
+            advancedPlanData,
+            null,
+            2,
+        )}\n\nDraft JSON:\n${JSON.stringify(
+            advancedDraftData,
+            null,
+            2,
+        )}\n\nSource code/Context:\n${advancedSourceContext}`;
+
+        try {
+            const reviewStream = streamGeminiStructuredOutput(
+                reviewPrompt,
+                REVIEW_SYSTEM_PROMPT,
+                reviewSchema,
+                {
+                    apiKey,
+                    model: "gemini-3-flash-preview",
+                    thinkingConfig: { thinkingLevel: "high" },
+                },
+            );
+
+            for await (const chunk of reviewStream) {
+                if (chunk.thinking) {
+                    advancedThinkingContent += chunk.thinking;
+                }
+                if (chunk.content) {
+                    advancedStreamContent += chunk.content;
+                }
+            }
+
+            const parsedReview = parseStructuredJson<ReviewData>(
+                advancedStreamContent,
+            );
+            if (!parsedReview) {
+                alert($t("ai_generator.error_parse"));
+                advancedStep = "draft";
+                advancedLoading = false;
+                return;
+            }
+
+            advancedReviewData = parsedReview;
+        } catch (e: any) {
+            console.error("Review failed", e);
+            alert($t("ai_generator.error_generate") + ": " + e.message);
+            advancedStep = "draft";
+            advancedLoading = false;
+            return;
+        }
+
+        advancedStep = "revising";
+        advancedStreamContent = "";
+        advancedThinkingContent = "";
+
+        const durationText = buildDurationText();
+        const searchTerms = advancedPlanData.search_terms || [];
+        const searchHint = searchTerms.length
+            ? `Use the Google Search tool to verify the latest information for these queries: ${searchTerms.join(
+                  ", ",
+              )}.`
+            : "Use the Google Search tool if any versions, commands, or APIs need verification.";
+
+        const revisePrompt = `Revise the draft codelab based on the expert review. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\nPlan JSON:\n${JSON.stringify(
+            advancedPlanData,
+            null,
+            2,
+        )}\n\nDraft JSON:\n${JSON.stringify(
+            advancedDraftData,
+            null,
+            2,
+        )}\n\nReview JSON:\n${JSON.stringify(
+            advancedReviewData,
+            null,
+            2,
+        )}\n\nSource code/Context:\n${advancedSourceContext}`;
+
+        const tools: GeminiStructuredConfig["tools"] = [];
+        if (advancedUseGoogleSearch) {
+            tools.push({ googleSearch: {} });
+        }
+        if (advancedUseUrlContext) {
+            tools.push({ urlContext: {} });
+        }
+
+        try {
+            const reviseStream = streamGeminiStructuredOutput(
+                revisePrompt,
+                SYSTEM_PROMPT,
+                buildCodelabSchema(advancedTargetLanguage),
+                {
+                    apiKey,
+                    model: "gemini-3-flash-preview",
+                    tools: tools.length > 0 ? tools : undefined,
+                    thinkingConfig: { thinkingLevel: "high" },
+                },
+            );
+
+            for await (const chunk of reviseStream) {
+                if (chunk.thinking) {
+                    advancedThinkingContent += chunk.thinking;
+                }
+                if (chunk.content) {
+                    advancedStreamContent += chunk.content;
+                }
+            }
+
+            const parsed = parseStructuredJson<CodelabDraft>(
+                advancedStreamContent,
+            );
+            if (!parsed) {
+                alert($t("ai_generator.error_parse"));
+                advancedStep = "draft";
+                return;
+            }
+
+            advancedRevisedData = parsed;
+            advancedStep = "final";
+        } catch (e: any) {
+            console.error("Revision failed", e);
+            alert($t("ai_generator.error_generate") + ": " + e.message);
+            advancedStep = "draft";
+        } finally {
+            advancedLoading = false;
+        }
+    }
+
+    async function handleSaveAdvanced() {
+        if (!advancedRevisedData) return;
+        advancedLoading = true;
+        try {
+            const codelab = await createCodelab({
+                title: advancedRevisedData.title,
+                description: advancedRevisedData.description,
+                author: $t("common.ai_assistant"),
+            });
+
+            const stepsPayload = advancedRevisedData.steps.map((s) => ({
+                title: s.title,
+                content_markdown: s.content,
+            }));
+            await saveSteps(codelab.id, stepsPayload);
+
+            onCodelabCreated(codelab);
+        } catch (e) {
+            console.error("Failed to save codelab", e);
+            alert($t("ai_generator.error_save"));
+        } finally {
+            advancedLoading = false;
+        }
+    }
 </script>
 
 <div
@@ -422,7 +1038,64 @@ Follow these strict guidelines to create the content:
 
         <!-- Content -->
         <div class="flex-1 overflow-hidden p-6 bg-[#F8F9FA] dark:bg-dark-bg">
-            {#if generationStep === "input"}
+            <div
+                class="mb-4 flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-dark-surface/50 border border-[#DADCE0] dark:border-dark-border rounded-2xl p-3 shadow-sm"
+            >
+                <span
+                    class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted"
+                >
+                    {$t("ai_generator.mode_label")}
+                </span>
+                <div class="flex items-center gap-2">
+                    <button
+                        onclick={() => setGenerationMode("basic")}
+                        disabled={loading || advancedLoading}
+                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
+                        'basic'
+                            ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
+                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
+                    >
+                        {$t("ai_generator.mode_basic")}
+                    </button>
+                    <button
+                        onclick={() => setGenerationMode("advanced")}
+                        disabled={loading || advancedLoading}
+                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
+                        'advanced'
+                            ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
+                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
+                    >
+                        {$t("ai_generator.mode_advanced")}
+                    </button>
+                </div>
+            </div>
+            <div class="mb-4 space-y-3">
+                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                    {generationMode === "basic"
+                        ? $t("ai_generator.mode_basic_desc")
+                        : $t("ai_generator.mode_advanced_desc")}
+                </p>
+                {#if generationMode === "advanced"}
+                    <div
+                        class="flex flex-col gap-3 rounded-2xl border border-[#DADCE0] dark:border-dark-border bg-white dark:bg-dark-surface/50 p-4 shadow-sm"
+                    >
+                        <p class="text-sm text-[#3C4043] dark:text-dark-text">
+                            {$t("ai_generator.mode_advanced_star_message")}
+                        </p>
+                        <a
+                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#202124] text-white px-4 py-2 text-xs font-bold hover:bg-black transition-colors"
+                            href="https://github.com/JAICHANGPARK/open-codelabs"
+                            target="_blank"
+                            rel="noreferrer"
+                        >
+                            {$t("ai_generator.mode_advanced_star_button")}
+                        </a>
+                    </div>
+                {/if}
+            </div>
+
+            {#if generationMode === "basic"}
+                {#if generationStep === "input"}
                 <div class="h-full flex flex-col gap-4" in:fade>
                     <div class="flex items-center justify-between">
                         <label
@@ -749,6 +1422,780 @@ Follow these strict guidelines to create the content:
                     </div>
                 </div>
             {/if}
+        {:else}
+            {#if advancedStep === "input"}
+                <div class="h-full flex flex-col gap-4" in:fade>
+                    <div class="flex items-center justify-between">
+                        <label
+                            for="source-code"
+                            class="text-[#5F6368] dark:text-dark-text-muted font-bold text-lg"
+                            >{$t("ai_generator.input_label")}</label
+                        >
+
+                        <div class="flex items-center gap-2">
+                            <input
+                                type="file"
+                                multiple
+                                accept=".zip,.js,.ts,.py,.rs,.go,.mod,.sum,.kt,.kts,.java,.c,.cpp,.h,.html,.css,.xml,.gradle,.json,.yml,.yaml,.toml,.proto,.md,.ipynb,.dart,.lock"
+                                bind:this={fileInput}
+                                onchange={handleFileUpload}
+                                class="hidden"
+                            />
+                            <button
+                                onclick={() => fileInput.click()}
+                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-xl text-sm font-bold text-[#4285F4] hover:bg-[#4285F4]/5 transition-all shadow-sm"
+                            >
+                                <Upload size={18} />
+                                {$t("ai_generator.upload_files") ||
+                                    "Upload Files / Zip"}
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
+                        Limit: up to 10 files per prompt (zip may contain max 10 files), max 1GB each, no audio/video files.
+                    </p>
+
+                    <!-- Uploaded Files List -->
+                    <UploadedFileList
+                        files={uploadedFiles}
+                        onRemove={removeFile}
+                    />
+
+                    <!-- Advanced Options -->
+                    <div
+                        class="flex flex-col gap-4 mb-4 bg-white dark:bg-dark-surface/50 p-4 rounded-2xl border border-[#DADCE0] dark:border-dark-border shadow-sm"
+                    >
+                        <!-- Duration Selection -->
+                        <div class="flex flex-col gap-3">
+                            <span
+                                class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted flex items-center gap-2"
+                            >
+                                <Clock size={16} class="text-[#4285F4]" />
+                                {$t("ai_generator.duration_label")}
+                            </span>
+                            <div class="flex flex-wrap gap-2">
+                                {#each ["60", "90", "120", "150", "180", "custom"] as d}
+                                    <button
+                                        onclick={() => (handsOnDuration = d)}
+                                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {handsOnDuration ===
+                                        d
+                                            ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
+                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
+                                    >
+                                        {d === "custom"
+                                            ? $t("ai_generator.duration_custom")
+                                            : $t("ai_generator.duration_mins", {
+                                                  values: { mins: d },
+                                              })}
+                                    </button>
+                                {/each}
+                                {#if handsOnDuration === "custom"}
+                                    <div
+                                        class="flex items-center gap-2 ml-2"
+                                        in:fade
+                                    >
+                                        <input
+                                            type="number"
+                                            bind:value={customDuration}
+                                            placeholder="10"
+                                            class="w-20 bg-white dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/10"
+                                        />
+                                        <span
+                                            class="text-xs font-medium text-[#5F6368] dark:text-dark-text-muted"
+                                            >{$t("ai_generator.mins")}</span
+                                        >
+                                    </div>
+                                {/if}
+                            </div>
+                        </div>
+
+                        <div
+                            class="h-px bg-[#F1F3F4] dark:bg-dark-border w-full"
+                        ></div>
+
+                        <div class="flex flex-wrap gap-6">
+                            <label
+                                class="flex items-center gap-2 cursor-pointer group"
+                            >
+                                <input
+                                    type="checkbox"
+                                    bind:checked={advancedUseGoogleSearch}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
+                                />
+                                <span
+                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
+                                >
+                                    {$t("ai_generator.google_search")}
+                                </span>
+                            </label>
+
+                            <label
+                                class="flex items-center gap-2 cursor-pointer group"
+                            >
+                                <input
+                                    type="checkbox"
+                                    bind:checked={advancedUseUrlContext}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
+                                />
+                                <span
+                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
+                                >
+                                    {$t("ai_generator.url_context")}
+                                </span>
+                            </label>
+
+                            <label
+                                class="flex items-center gap-2 cursor-pointer group"
+                            >
+                                <input
+                                    type="checkbox"
+                                    bind:checked={showThinking}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
+                                />
+                                <span
+                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
+                                >
+                                    {$t("ai_generator.show_thinking")}
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+
+                    {#if advancedUseGoogleSearch || advancedUseUrlContext}
+                        <div
+                            class="flex items-start gap-2 p-3 bg-[#FEF7E0] dark:bg-[#F9AB00]/10 border border-[#F9AB00]/30 rounded-lg mb-4"
+                        >
+                            <Info
+                                size={16}
+                                class="text-[#F9AB00] mt-0.5 shrink-0"
+                            />
+                            <p
+                                class="text-xs text-[#3C4043] dark:text-dark-text"
+                            >
+                                <strong
+                                    >{$t("ai_generator.billing_notice")}</strong
+                                >
+                                {$t("ai_generator.billing_desc")}
+                            </p>
+                        </div>
+                    {/if}
+
+                    <textarea
+                        id="source-code"
+                        bind:value={sourceCode}
+                        placeholder={$t("ai_generator.placeholder")}
+                        class="flex-1 w-full bg-white dark:bg-dark-surface text-[#3C4043] dark:text-dark-text border border-[#DADCE0] dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 outline-none resize-none shadow-sm transition-all"
+                    ></textarea>
+
+                    <div class="flex justify-end pt-2">
+                        {#if !apiKey}
+                            <p
+                                class="text-[#EA4335] font-bold mr-4 self-center"
+                            >
+                                {$t("ai_generator.api_key_required")}
+                            </p>
+                            <button
+                                disabled
+                                class="bg-[#E8EAED] dark:bg-dark-border text-[#9AA0A6] dark:text-dark-text-muted px-8 py-3 rounded-full font-bold cursor-not-allowed"
+                            >
+                                {$t("common.create")}
+                            </button>
+                        {:else}
+                            <button
+                                onclick={handleAdvancedPlan}
+                                disabled={advancedLoading ||
+                                    (!sourceCode.trim() &&
+                                        uploadedFiles.length === 0)}
+                                class="bg-[#4285F4] text-white px-8 py-3 rounded-full font-bold hover:shadow-lg hover:scale-105 transition-all text-lg flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+                            >
+                                <Sparkles size={20} />
+                                {$t("ai_generator.plan_button")}
+                            </button>
+                        {/if}
+                    </div>
+                </div>
+            {:else if advancedStep === "planning" || advancedStep === "drafting" || advancedStep === "reviewing" || advancedStep === "revising"}
+                <div
+                    class="h-full flex flex-col items-center justify-center gap-6"
+                    in:fade
+                    aria-live="polite"
+                >
+                    <div class="relative">
+                        <div
+                            class="absolute inset-0 bg-[#4285F4] rounded-full blur-xl opacity-20 animate-pulse"
+                            aria-hidden="true"
+                        ></div>
+                        <Loader2
+                            class="w-16 h-16 text-[#4285F4] animate-spin relative z-10"
+                            aria-hidden="true"
+                        />
+                    </div>
+                    <h3
+                        class="text-xl font-bold text-[#3C4043] dark:text-dark-text"
+                    >
+                        {#if advancedStep === "planning"}
+                            {$t("ai_generator.plan_loading")}
+                        {:else if advancedStep === "drafting"}
+                            {$t("ai_generator.draft_loading")}
+                        {:else if advancedStep === "reviewing"}
+                            {$t("ai_generator.review_loading")}
+                        {:else}
+                            {$t("ai_generator.revise_loading")}
+                        {/if}
+                    </h3>
+                    <p
+                        class="text-[#5F6368] dark:text-dark-text-muted text-center"
+                    >
+                        {#if advancedStep === "planning"}
+                            {$t("ai_generator.plan_loading_desc")}
+                        {:else if advancedStep === "drafting"}
+                            {$t("ai_generator.draft_loading_desc")}
+                        {:else if advancedStep === "reviewing"}
+                            {$t("ai_generator.review_loading_desc")}
+                        {:else}
+                            {$t("ai_generator.revise_loading_desc")}
+                        {/if}
+                    </p>
+
+                    {#if showThinking && advancedThinkingContent}
+                        <div class="w-full max-w-2xl mt-6">
+                            <details
+                                open
+                                class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden"
+                            >
+                                <summary
+                                    class="px-4 py-3 cursor-pointer hover:bg-[#F8F9FA] dark:hover:bg-white/5 flex items-center gap-2 font-medium text-[#5F6368] dark:text-dark-text-muted"
+                                >
+                                    <Sparkles
+                                        size={16}
+                                        class="text-[#4285F4]"
+                                    />
+                                    {$t("ai_generator.thinking_process")}
+                                </summary>
+                                <div
+                                    class="px-4 py-3 text-xs text-[#5F6368] dark:text-dark-text-muted font-mono bg-[#F8F9FA] dark:bg-dark-bg/50 max-h-48 overflow-y-auto border-t border-[#E8EAED] dark:border-dark-border"
+                                >
+                                    {advancedThinkingContent}
+                                </div>
+                            </details>
+                        </div>
+                    {/if}
+
+                    <div
+                        class="w-full max-w-2xl h-32 overflow-hidden text-xs text-[#9AA0A6] dark:text-dark-text-muted font-mono text-center opacity-50 relative mt-8"
+                    >
+                        <div
+                            class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#F8F9FA] dark:from-dark-bg to-transparent"
+                        ></div>
+                        {advancedStreamContent.slice(-500)}
+                    </div>
+                </div>
+            {:else if advancedStep === "plan" && advancedPlanData}
+                <div class="h-full flex flex-col gap-6" in:fade>
+                    <div
+                        class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
+                    >
+                        <div>
+                            <h3
+                                class="text-xl font-bold text-[#202124] dark:text-dark-text"
+                            >
+                                {$t("ai_generator.plan_title")}
+                            </h3>
+                            <p
+                                class="text-[#5F6368] dark:text-dark-text-muted text-sm"
+                            >
+                                {$t("ai_generator.plan_subtitle")}
+                            </p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button
+                                onclick={() => (advancedStep = "input")}
+                                class="px-6 py-2 text-[#5F6368] dark:text-dark-text-muted font-bold hover:bg-[#E8EAED] dark:hover:bg-dark-border rounded-full transition-all"
+                            >
+                                {$t("ai_generator.back")}
+                            </button>
+                            <button
+                                onclick={handleAdvancedDraft}
+                                disabled={advancedLoading}
+                                class="bg-[#4285F4] text-white px-8 py-2 rounded-full font-bold hover:shadow-md transition-all flex items-center gap-2"
+                            >
+                                <ArrowRight size={18} />
+                                {$t("ai_generator.draft_button")}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-8 shadow-sm"
+                    >
+                        <div class="space-y-6">
+                            <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                                <h1
+                                    class="text-2xl font-bold text-[#202124] dark:text-dark-text mb-2"
+                                >
+                                    {advancedPlanData.title}
+                                </h1>
+                                <p
+                                    class="text-sm text-[#5F6368] dark:text-dark-text-muted"
+                                >
+                                    {advancedPlanData.description}
+                                </p>
+                                {#if advancedPlanData.audience}
+                                    <p
+                                        class="mt-3 text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                    >
+                                        <span
+                                            class="font-semibold text-[#202124] dark:text-dark-text"
+                                            >{$t(
+                                                "ai_generator.plan_audience_label",
+                                            )}</span
+                                        >
+                                        {advancedPlanData.audience}
+                                    </p>
+                                {/if}
+                            </div>
+
+                            {#if advancedPlanData.learning_objectives.length}
+                                <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                                    <h4
+                                        class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                    >
+                                        {$t(
+                                            "ai_generator.plan_objectives_label",
+                                        )}
+                                    </h4>
+                                    <ul
+                                        class="list-disc ml-5 text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                    >
+                                        {#each advancedPlanData.learning_objectives as objective}
+                                            <li>{objective}</li>
+                                        {/each}
+                                    </ul>
+                                </div>
+                            {/if}
+
+                            {#if advancedPlanData.prerequisites.length}
+                                <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                                    <h4
+                                        class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                    >
+                                        {$t(
+                                            "ai_generator.plan_prerequisites_label",
+                                        )}
+                                    </h4>
+                                    <ul
+                                        class="list-disc ml-5 text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                    >
+                                        {#each advancedPlanData.prerequisites as item}
+                                            <li>{item}</li>
+                                        {/each}
+                                    </ul>
+                                </div>
+                            {/if}
+
+                            <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                                <h4
+                                    class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                >
+                                    {$t(
+                                        "ai_generator.plan_environment_label",
+                                    )}
+                                </h4>
+                                {#if advancedPlanData.environment_setup.os_requirements.length}
+                                    <p
+                                        class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                    >
+                                        {$t(
+                                            "ai_generator.plan_environment_os",
+                                        )}
+                                    </p>
+                                    <p
+                                        class="text-sm text-[#3C4043] dark:text-dark-text-muted mb-3"
+                                    >
+                                        {advancedPlanData.environment_setup.os_requirements.join(
+                                            ", ",
+                                        )}
+                                    </p>
+                                {/if}
+                                {#if advancedPlanData.environment_setup.tools.length}
+                                    <p
+                                        class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                    >
+                                        {$t(
+                                            "ai_generator.plan_environment_tools",
+                                        )}
+                                    </p>
+                                    <p
+                                        class="text-sm text-[#3C4043] dark:text-dark-text-muted mb-3"
+                                    >
+                                        {advancedPlanData.environment_setup.tools.join(
+                                            ", ",
+                                        )}
+                                    </p>
+                                {/if}
+                                {#if advancedPlanData.environment_setup.env_vars.length}
+                                    <p
+                                        class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                    >
+                                        {$t(
+                                            "ai_generator.plan_environment_envvars",
+                                        )}
+                                    </p>
+                                    <p
+                                        class="text-sm text-[#3C4043] dark:text-dark-text-muted mb-3"
+                                    >
+                                        {advancedPlanData.environment_setup.env_vars.join(
+                                            ", ",
+                                        )}
+                                    </p>
+                                {/if}
+                                {#if advancedPlanData.environment_setup.ide}
+                                    <p
+                                        class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                    >
+                                        {$t(
+                                            "ai_generator.plan_environment_ide",
+                                        )}
+                                    </p>
+                                    <p
+                                        class="text-sm text-[#3C4043] dark:text-dark-text-muted mb-3"
+                                    >
+                                        {advancedPlanData.environment_setup.ide}
+                                    </p>
+                                {/if}
+                                {#if advancedPlanData.environment_setup.ide_plugins.length}
+                                    <p
+                                        class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                    >
+                                        {$t(
+                                            "ai_generator.plan_environment_plugins",
+                                        )}
+                                    </p>
+                                    <p
+                                        class="text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                    >
+                                        {advancedPlanData.environment_setup.ide_plugins.join(
+                                            ", ",
+                                        )}
+                                    </p>
+                                {/if}
+                            </div>
+
+                            {#if advancedPlanData.search_terms.length}
+                                <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                                    <h4
+                                        class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                    >
+                                        {$t(
+                                            "ai_generator.plan_search_terms_label",
+                                        )}
+                                    </h4>
+                                    <div class="flex flex-wrap gap-2">
+                                        {#each advancedPlanData.search_terms as term}
+                                            <span
+                                                class="px-3 py-1 rounded-full bg-[#E8EAED] dark:bg-dark-border text-xs font-semibold text-[#3C4043] dark:text-dark-text"
+                                            >
+                                                {term}
+                                            </span>
+                                        {/each}
+                                    </div>
+                                </div>
+                            {/if}
+
+                            {#if advancedPlanData.steps.length}
+                                <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                                    <h4
+                                        class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                    >
+                                        {$t(
+                                            "ai_generator.plan_steps_label",
+                                        )}
+                                    </h4>
+                                    <div class="space-y-4">
+                                        {#each advancedPlanData.steps as step, i}
+                                            <div
+                                                class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-4"
+                                            >
+                                                <h5
+                                                    class="font-bold text-[#202124] dark:text-dark-text"
+                                                >
+                                                    {i + 1}. {step.title}
+                                                </h5>
+                                                <p
+                                                    class="text-sm text-[#3C4043] dark:text-dark-text-muted mt-2"
+                                                >
+                                                    {step.goal}
+                                                </p>
+                                                {#if step.files.length}
+                                                    <p
+                                                        class="text-xs text-[#5F6368] dark:text-dark-text-muted mt-2"
+                                                    >
+                                                        <span
+                                                            class="font-semibold"
+                                                            >{$t(
+                                                                "ai_generator.plan_files_label",
+                                                            )}</span
+                                                        >
+                                                        {step.files.join(
+                                                            ", ",
+                                                        )}
+                                                    </p>
+                                                {/if}
+                                                <p
+                                                    class="text-xs text-[#5F6368] dark:text-dark-text-muted mt-1"
+                                                >
+                                                    <span
+                                                        class="font-semibold"
+                                                        >{$t(
+                                                            "ai_generator.plan_verification_label",
+                                                        )}</span
+                                                    >
+                                                    {step.verification}
+                                                </p>
+                                            </div>
+                                        {/each}
+                                    </div>
+                                </div>
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            {:else if advancedStep === "draft" && advancedDraftData}
+                <div class="h-full flex flex-col gap-6" in:fade>
+                    <div
+                        class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
+                    >
+                        <div>
+                            <h3
+                                class="text-xl font-bold text-[#202124] dark:text-dark-text"
+                            >
+                                {$t("ai_generator.draft_title")}
+                            </h3>
+                            <p
+                                class="text-[#5F6368] dark:text-dark-text-muted text-sm"
+                            >
+                                {$t("ai_generator.draft_subtitle")}
+                            </p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button
+                                onclick={() => (advancedStep = "plan")}
+                                class="px-6 py-2 text-[#5F6368] dark:text-dark-text-muted font-bold hover:bg-[#E8EAED] dark:hover:bg-dark-border rounded-full transition-all"
+                            >
+                                {$t("ai_generator.back")}
+                            </button>
+                            <button
+                                onclick={handleAdvancedReviewAndRevise}
+                                disabled={advancedLoading}
+                                class="bg-[#34A853] text-white px-8 py-2 rounded-full font-bold hover:bg-[#1E8E3E] shadow-md transition-all flex items-center gap-2"
+                            >
+                                <ArrowRight size={18} />
+                                {$t("ai_generator.review_button")}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div
+                        class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-8 shadow-sm"
+                    >
+                        <h1
+                            class="text-3xl font-bold text-[#202124] dark:text-dark-text mb-4"
+                        >
+                            {advancedDraftData.title}
+                        </h1>
+                        <p
+                            class="text-lg text-[#5F6368] dark:text-dark-text-muted mb-8"
+                        >
+                            {advancedDraftData.description}
+                        </p>
+
+                        <div class="space-y-8">
+                            {#each advancedDraftData.steps as step, i}
+                                <div
+                                    class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
+                                >
+                                    <h4
+                                        class="font-bold text-lg text-[#202124] dark:text-dark-text mb-2"
+                                    >
+                                        {i + 1}. {step.title}
+                                    </h4>
+                                    <div
+                                        class="text-[#3C4043] dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                    >
+                                        {step.content}
+                                    </div>
+                                </div>
+                            {/each}
+                        </div>
+                    </div>
+                </div>
+            {:else if advancedStep === "final" && advancedRevisedData}
+                <div class="h-full flex flex-col gap-6" in:fade>
+                    <div
+                        class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
+                    >
+                        <div>
+                            <h3
+                                class="text-xl font-bold text-[#202124] dark:text-dark-text"
+                            >
+                                {$t("ai_generator.final_title")}
+                            </h3>
+                            <p
+                                class="text-[#5F6368] dark:text-dark-text-muted text-sm"
+                            >
+                                {$t("ai_generator.final_subtitle")}
+                            </p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button
+                                onclick={() => (advancedStep = "draft")}
+                                class="px-6 py-2 text-[#5F6368] dark:text-dark-text-muted font-bold hover:bg-[#E8EAED] dark:hover:bg-dark-border rounded-full transition-all"
+                            >
+                                {$t("ai_generator.back")}
+                            </button>
+                            <button
+                                onclick={handleSaveAdvanced}
+                                disabled={advancedLoading}
+                                class="bg-[#34A853] text-white px-8 py-2 rounded-full font-bold hover:bg-[#1E8E3E] shadow-md transition-all flex items-center gap-2"
+                            >
+                                {#if advancedLoading}
+                                    <Loader2 class="animate-spin" size={18} />
+                                    {$t("ai_generator.saving")}
+                                {:else}
+                                    <ArrowRight size={18} />
+                                    {$t("ai_generator.create_button")}
+                                {/if}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto space-y-6">
+                        {#if advancedReviewData}
+                            <div
+                                class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-6 shadow-sm"
+                            >
+                                <h4
+                                    class="text-lg font-bold text-[#202124] dark:text-dark-text mb-2"
+                                >
+                                    {$t("ai_generator.review_title")}
+                                </h4>
+                                <p
+                                    class="text-sm text-[#5F6368] dark:text-dark-text-muted"
+                                >
+                                    {advancedReviewData.summary}
+                                </p>
+
+                                {#if advancedReviewData.issues.length}
+                                    <div class="mt-4">
+                                        <h5
+                                            class="text-sm font-bold text-[#202124] dark:text-dark-text mb-2"
+                                        >
+                                            {$t(
+                                                "ai_generator.review_issues_label",
+                                            )}
+                                        </h5>
+                                        <div class="space-y-3">
+                                            {#each advancedReviewData.issues as issue}
+                                                <div
+                                                    class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-3"
+                                                >
+                                                    <div
+                                                        class="flex items-center gap-2 text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                                    >
+                                                        <span
+                                                            class="px-2 py-0.5 rounded-full bg-[#E8EAED] dark:bg-dark-border text-[#3C4043] dark:text-dark-text"
+                                                            >{issue.severity}</span
+                                                        >
+                                                        <span>{issue.issue}</span>
+                                                    </div>
+                                                    <p
+                                                        class="text-xs text-[#5F6368] dark:text-dark-text-muted mt-2"
+                                                    >
+                                                        {issue.recommendation}
+                                                    </p>
+                                                </div>
+                                            {/each}
+                                        </div>
+                                    </div>
+                                {/if}
+
+                                {#if advancedReviewData.missing_items.length}
+                                    <div class="mt-4">
+                                        <h5
+                                            class="text-sm font-bold text-[#202124] dark:text-dark-text mb-2"
+                                        >
+                                            {$t(
+                                                "ai_generator.review_missing_label",
+                                            )}
+                                        </h5>
+                                        <ul
+                                            class="list-disc ml-5 text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                        >
+                                            {#each advancedReviewData.missing_items as item}
+                                                <li>{item}</li>
+                                            {/each}
+                                        </ul>
+                                    </div>
+                                {/if}
+
+                                {#if advancedReviewData.improvements.length}
+                                    <div class="mt-4">
+                                        <h5
+                                            class="text-sm font-bold text-[#202124] dark:text-dark-text mb-2"
+                                        >
+                                            {$t(
+                                                "ai_generator.review_suggestions_label",
+                                            )}
+                                        </h5>
+                                        <ul
+                                            class="list-disc ml-5 text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                        >
+                                            {#each advancedReviewData.improvements as item}
+                                                <li>{item}</li>
+                                            {/each}
+                                        </ul>
+                                    </div>
+                                {/if}
+                            </div>
+                        {/if}
+
+                        <div
+                            class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-8 shadow-sm"
+                        >
+                            <h1
+                                class="text-3xl font-bold text-[#202124] dark:text-dark-text mb-4"
+                            >
+                                {advancedRevisedData.title}
+                            </h1>
+                            <p
+                                class="text-lg text-[#5F6368] dark:text-dark-text-muted mb-8"
+                            >
+                                {advancedRevisedData.description}
+                            </p>
+
+                            <div class="space-y-8">
+                                {#each advancedRevisedData.steps as step, i}
+                                    <div
+                                        class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
+                                    >
+                                        <h4
+                                            class="font-bold text-lg text-[#202124] dark:text-dark-text mb-2"
+                                        >
+                                            {i + 1}. {step.title}
+                                        </h4>
+                                        <div
+                                            class="text-[#3C4043] dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                        >
+                                            {step.content}
+                                        </div>
+                                    </div>
+                                {/each}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {/if}
+        {/if}
         </div>
     </div>
 </div>
