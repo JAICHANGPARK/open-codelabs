@@ -15,8 +15,11 @@ export function createMarkdownParser(options: { highlight?: boolean } = {}) {
                 emptyLangClass: "hljs",
                 langPrefix: "hljs language-",
                 highlight(code, lang) {
-                    const language = hljs.getLanguage(lang) ? lang : "plaintext";
-                    return hljs.highlight(code, { language }).value;
+                    const normalized = (lang || "").trim().toLowerCase();
+                    if (normalized && hljs.getLanguage(normalized)) {
+                        return hljs.highlight(code, { language: normalized }).value;
+                    }
+                    return hljs.highlightAuto(code).value;
                 },
             })
         );
@@ -32,4 +35,4 @@ export function createMarkdownParser(options: { highlight?: boolean } = {}) {
 
 // Pre-configured instances for different parts of the app
 export const adminMarked = createMarkdownParser({ highlight: true });
-export const attendeeMarked = createMarkdownParser({ highlight: false });
+export const attendeeMarked = createMarkdownParser({ highlight: true });
