@@ -9,8 +9,13 @@ let BASE_URL = envApiUrl || 'http://localhost:8080';
 if (browser && (envApiUrl === 'http://backend:8080' || !envApiUrl || envApiUrl.includes('localhost'))) {
     // If we are in the browser and the URL is set to the Docker internal name or not set,
     // or pointing to localhost (which won't work from remote), we use the current hostname.
-    if (window.location.hostname.includes('ngrok') || window.location.hostname.includes('bore') || window.location.port === '443' || window.location.port === '80') {
-        // For tunnel services or standard web ports, use the current origin without port 8080
+    const hostname = window.location.hostname;
+    const isTunnelHost = hostname.includes('ngrok') || hostname.includes('bore') || hostname.includes('trycloudflare.com');
+    const isDefaultPort = window.location.port === '' || window.location.port === '443' || window.location.port === '80';
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+
+    if (isTunnelHost || (!isLocalhost && isDefaultPort)) {
+        // For tunnel services or default web ports, use the current origin without port 8080
         // The SvelteKit proxy (hooks.server.ts) will handle forwarding to the backend.
         BASE_URL = window.location.origin;
     } else {
