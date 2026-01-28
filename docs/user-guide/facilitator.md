@@ -108,9 +108,13 @@ docker-compose up --build
 접속 URL: http://YOUR_LOCAL_IP:5173
 ```
 
-#### 외부 접속이 필요한 경우 (ngrok 사용)
+#### 외부 접속이 필요한 경우 (ngrok/bore/cloudflare 사용)
 ```bash
 ./run-public.sh --ngrok
+# 또는
+./run-public.sh --bore
+# 또는
+./run-public.sh --cloudflare
 ```
 
 스크립트 실행 후:
