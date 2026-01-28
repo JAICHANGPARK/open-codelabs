@@ -2,12 +2,6 @@ pub mod handlers;
 pub mod models;
 pub mod state;
 
-use axum::{
-    routing::{delete, get, post, put},
-    Router,
-};
-use std::sync::Arc;
-use tower_http::services::ServeDir;
 use crate::handlers::{
     admin::{login, update_settings},
     ai::proxy_gemini_stream,
@@ -21,12 +15,18 @@ use crate::handlers::{
     },
     feedback::{get_feedback, submit_feedback},
     materials::{add_material, delete_material, get_materials, upload_material_file},
-    quizzes::{get_quizzes, update_quizzes, submit_quiz, get_quiz_submissions},
-    submissions::{submit_file, get_submissions, delete_submission},
+    quizzes::{get_quiz_submissions, get_quizzes, submit_quiz, update_quizzes},
+    submissions::{delete_submission, get_submissions, submit_file},
     upload::upload_image,
     websocket::ws_handler,
 };
 pub use crate::state::{AppState, DbKind};
+use axum::{
+    routing::{delete, get, post, put},
+    Router,
+};
+use std::sync::Arc;
+use tower_http::services::ServeDir;
 
 pub fn create_router(state: Arc<AppState>) -> Router {
     Router::new()
@@ -67,12 +67,24 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             "/api/codelabs/{id}/materials/{material_id}",
             delete(delete_material),
         )
-        .route("/api/codelabs/{id}/quizzes", get(get_quizzes).put(update_quizzes))
+        .route(
+            "/api/codelabs/{id}/quizzes",
+            get(get_quizzes).put(update_quizzes),
+        )
         .route("/api/codelabs/{id}/quizzes/submit", post(submit_quiz))
-        .route("/api/codelabs/{id}/quizzes/submissions", get(get_quiz_submissions))
+        .route(
+            "/api/codelabs/{id}/quizzes/submissions",
+            get(get_quiz_submissions),
+        )
         .route("/api/codelabs/{id}/submissions", get(get_submissions))
-        .route("/api/codelabs/{id}/attendees/{attendee_id}/submissions", post(submit_file))
-        .route("/api/codelabs/{id}/attendees/{attendee_id}/submissions/{submission_id}", delete(delete_submission))
+        .route(
+            "/api/codelabs/{id}/attendees/{attendee_id}/submissions",
+            post(submit_file),
+        )
+        .route(
+            "/api/codelabs/{id}/attendees/{attendee_id}/submissions/{submission_id}",
+            delete(delete_submission),
+        )
         .route("/api/codelabs/{id}/chat", get(get_chat_history))
         .route("/api/upload/image", post(upload_image))
         .route("/api/upload/material", post(upload_material_file))
