@@ -165,6 +165,9 @@ VITE_API_URL=https://api.example.com
 
 # ngrok
 VITE_API_URL=https://abc123.ngrok-free.app
+
+# Cloudflare Tunnel
+VITE_API_URL=https://abc123.trycloudflare.com
 ```
 
 !!! info "Vite 환경 변수"
