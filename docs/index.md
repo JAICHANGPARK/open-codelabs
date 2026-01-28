@@ -36,7 +36,7 @@
 
 ### 🚀 쉬운 배포
 - Docker 기반 원클릭 배포
-- ngrok/bore를 통한 로컬 서버 공개
+- ngrok/bore/cloudflare를 통한 로컬 서버 공개
 - QR 코드로 참가자 초대
 - SQLite로 가볍게 시작, 확장 가능
 
@@ -60,7 +60,7 @@
 ### DevOps
 - Docker & Docker Compose
 - Multi-stage builds
-- ngrok/bore for tunneling
+- ngrok/bore/Cloudflare for tunneling
 
 ## 🚀 빠른 시작
 
