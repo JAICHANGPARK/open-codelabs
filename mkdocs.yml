@@ -84,7 +84,7 @@ nav:
       - 파이어베이스 (Firebase): self-hosting/firebase.md
 #      - GitHub Pages (Docs): self-hosting/github-pages.md
       - 로컬 개발 환경: self-hosting/local-development.md
-      - 공개 배포 (ngrok/bore): self-hosting/public-deployment.md
+      - 공개 배포 (ngrok/bore/cloudflare): self-hosting/public-deployment.md
       - 환경 변수 설정: self-hosting/environment.md
   - 프로젝트 명세:
       - 개요: specification/overview.md
