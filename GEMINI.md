@@ -62,6 +62,8 @@ To expose the local server for a workshop:
 ./run-public.sh --ngrok
 # OR
 ./run-public.sh --bore
+# OR
+./run-public.sh --cloudflare
 ```
 
 ## Project Structure
