@@ -110,6 +110,31 @@ bore server --secret <your_secret>
 bore local 5173 --to your-server.com --port 80 --secret <your_secret>
 ```
 
+## Cloudflare Tunnel 사용하기
+
+Cloudflare Tunnel은 무료 quick tunnel을 제공하며, `trycloudflare.com` URL이 자동으로 생성됩니다.
+
+### 1. cloudflared 설치
+
+=== "macOS"
+    ```bash
+    brew install cloudflare/cloudflare/cloudflared
+    ```
+
+=== "Linux"
+    [Cloudflare 다운로드 안내](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)에서 설치
+
+=== "Windows"
+    [Cloudflare 다운로드 안내](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)에서 설치
+
+### 2. 실행
+
+```bash
+./run-public.sh --cloudflare
+```
+
+cloudflared 실행 로그에 공개 URL이 표시됩니다.
+
 ## run-public.sh 스크립트 상세
 
 ### 스크립트 내용
