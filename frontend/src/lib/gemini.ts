@@ -21,7 +21,12 @@ let BASE_URL = envApiUrl || 'http://localhost:8080';
 const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true';
 
 if (browser && (envApiUrl === 'http://backend:8080' || !envApiUrl || envApiUrl.includes('localhost'))) {
-    if (window.location.hostname.includes('ngrok') || window.location.hostname.includes('bore') || window.location.port === '443' || window.location.port === '80') {
+    const hostname = window.location.hostname;
+    const isTunnelHost = hostname.includes('ngrok') || hostname.includes('bore') || hostname.includes('trycloudflare.com');
+    const isDefaultPort = window.location.port === '' || window.location.port === '443' || window.location.port === '80';
+    const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+
+    if (isTunnelHost || (!isLocalhost && isDefaultPort)) {
         BASE_URL = window.location.origin;
     } else {
         BASE_URL = `${window.location.protocol}//${window.location.hostname}:8080`;
