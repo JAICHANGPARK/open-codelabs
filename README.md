@@ -21,7 +21,7 @@
 - **Live Tools for Workshops**: Live chat/DM, help-queue, submissions panel, and a roulette raffle that draws only from certificate holders.
 - **Multi-Runtime Support**: Run using a **Rust (Axum) + SQLite** backend for local/private sessions, or deploy with **Firebase (Firestore/Hosting)** for a serverless experience.
 - **Google Codelab Look & Feel**: Familiar and highly readable design inspired by Google's own codelabs.
-- **Easy Public Access**: Integrated scripts for `ngrok` and `bore` to instantly expose your local server with QR code support for participants.
+- **Easy Public Access**: Integrated scripts for `ngrok`, `bore`, and `cloudflared` (Cloudflare Tunnel) to instantly expose your local server with QR code support for participants.
 - **Multi-language Support**: Built-in i18n support for global workshops.
 
 ---
@@ -79,7 +79,7 @@ open-codelabs/
 │   └── static/       # Static Assets
 ├── docs/             # Documentation (MkDocs)
 ├── docker-compose.yml # System Orchestration
-└── run-public.sh     # Public Deployment Script (ngrok/bore)
+└── run-public.sh     # Public Deployment Script (ngrok/bore/cloudflare)
 ```
 
 ---
@@ -146,7 +146,7 @@ Open Codelabs features a built-in AI generator that transforms your code into st
 
 ---
 
-## 🌐 Exposing to Public (ngrok / bore)
+## 🌐 Exposing to Public (ngrok / bore / cloudflare)
 When hosting a workshop on your local machine, use the `run-public.sh` script to provide external access.
 
 ```bash
@@ -154,6 +154,8 @@ chmod +x run-public.sh
 ./run-public.sh --ngrok  # Using ngrok
 # OR
 ./run-public.sh --bore   # Using bore (Rust-based)
+# OR
+./run-public.sh --cloudflare  # Using Cloudflare Tunnel
 ```
 
 ---
