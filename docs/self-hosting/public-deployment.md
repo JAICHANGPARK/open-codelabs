@@ -1,4 +1,4 @@
-# 공개 배포 (ngrok/bore)
+# 공개 배포 (ngrok/bore/cloudflare)
 
 로컬 서버를 외부에 공개하여 워크샵이나 행사에서 사용하는 방법입니다.
 
@@ -8,6 +8,7 @@ Open Codelabs는 `run-public.sh` 스크립트를 제공하여 로컬 서버를 �
 
 - **ngrok**: 가장 인기 있는 터널링 서비스
 - **bore**: Rust 기반 오픈소스 대안
+- **Cloudflare Tunnel**: 무료 quick tunnel 제공 (`cloudflared`)
 
 ## ngrok 사용하기
 
