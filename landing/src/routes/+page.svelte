@@ -251,6 +251,81 @@
 				},
 			],
 		},
+		aiModes: {
+			eyebrow: lang === "ko" ? "AI 생성 모드" : "AI Generation Modes",
+			title:
+				lang === "ko"
+					? "필요한 깊이만큼 코드랩을 설계하세요"
+					: "Generate codelabs with the depth you need",
+			desc:
+				lang === "ko"
+					? "일반 모드로 빠르게 초안을 만들거나, 고급 모드로 플랜과 리뷰까지 포함한 완성도를 확보하세요."
+					: "Use General mode for speed or Advanced mode for planning, review, and refinement.",
+			modes: [
+				{
+					icon: Zap,
+					title: lang === "ko" ? "일반 모드" : "General mode",
+					desc:
+						lang === "ko"
+							? "코드와 첨부파일을 기준으로 단일 패스에서 초안을 생성합니다."
+							: "One-pass generation from code and attachments for a fast draft.",
+					badges:
+						lang === "ko"
+							? ["단일 패스", "빠른 생성", "즉시 초안"]
+							: ["Single pass", "Fast", "Instant draft"],
+				},
+				{
+					icon: Sparkles,
+					title: lang === "ko" ? "고급 모드" : "Advanced mode",
+					desc:
+						lang === "ko"
+							? "플랜 설계, 전문가 리뷰, 수정 반영까지 포함한 고품질 워크플로."
+							: "Plan, expert review, and revision for a high-fidelity output.",
+					badges:
+						lang === "ko"
+							? ["플랜", "전문가 리뷰", "수정 반영"]
+							: ["Plan", "Expert review", "Revise"],
+				},
+			],
+			workflow: {
+				title:
+					lang === "ko" ? "고급 생성 워크플로" : "Advanced workflow",
+				desc:
+					lang === "ko"
+						? "플랜 단계에서 최신 정보 키워드를 추출하고, 생성 단계에서 검색을 활용해 신뢰도를 높입니다."
+						: "Extract search terms during planning and enrich drafts with live lookup.",
+				steps: [
+					{
+						title: lang === "ko" ? "플랜" : "Plan",
+						desc:
+							lang === "ko"
+								? "목표, 환경, 검증 포인트와 검색어 정의"
+								: "Define goals, setup, verification, and search terms",
+					},
+					{
+						title: lang === "ko" ? "초안" : "Draft",
+						desc:
+							lang === "ko"
+								? "플랜 기반으로 코드랩 구조를 생성"
+								: "Generate the codelab structure from the plan",
+					},
+					{
+						title: lang === "ko" ? "리뷰" : "Review",
+						desc:
+							lang === "ko"
+								? "퍼실리테이터 관점으로 품질 점검"
+								: "Expert facilitator review for gaps and clarity",
+					},
+					{
+						title: lang === "ko" ? "수정" : "Revise",
+						desc:
+							lang === "ko"
+								? "리뷰 반영 후 최종 결과 확정"
+								: "Apply fixes and finalize the output",
+					},
+				],
+			},
+		},
 		deployment: {
 			title: lang === "ko" ? "원하는 방식으로 배포" : "Deploy your way",
 			desc:
@@ -639,6 +714,127 @@
 		</div>
 	</section>
 
+	<section
+		id="ai-modes"
+		class="py-24 transition-colors duration-300 relative overflow-hidden {isDark
+			? 'bg-neutral-950'
+			: 'bg-white'}"
+	>
+		<div
+			class="pointer-events-none absolute -top-32 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full blur-[120px] opacity-60 {isDark
+				? 'bg-blue-500/20'
+				: 'bg-blue-200/70'}"
+		></div>
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+			<div class="grid lg:grid-cols-[1.05fr_0.95fr] gap-12 items-center">
+				<div class="space-y-6 reveal">
+					<p
+						class="text-blue-500 font-bold uppercase tracking-[0.2em] text-xs"
+					>
+						{content.aiModes.eyebrow}
+					</p>
+					<h2 class="text-3xl sm:text-4xl font-black tracking-tight">
+						{content.aiModes.title}
+					</h2>
+					<p
+						class="leading-relaxed {isDark
+							? 'text-neutral-400'
+							: 'text-neutral-600'}"
+					>
+						{content.aiModes.desc}
+					</p>
+					<div class="grid sm:grid-cols-2 gap-4">
+						{#each content.aiModes.modes as mode, i}
+							<div
+								class="p-6 rounded-3xl border transition-all reveal {isDark
+									? 'bg-neutral-900/60 border-neutral-800 hover:border-blue-500/40'
+									: 'bg-neutral-50 border-neutral-200 hover:border-blue-300 hover:bg-white'}"
+								style={`transition-delay:${i * 120}ms`}
+							>
+								<div class="flex items-center gap-3 mb-4">
+									<div
+										class="w-10 h-10 rounded-2xl flex items-center justify-center {isDark
+											? 'bg-blue-500/10 text-blue-400'
+											: 'bg-blue-50 text-blue-600'}"
+									>
+										<mode.icon class="w-5 h-5" />
+									</div>
+									<h3 class="text-lg font-black">
+										{mode.title}
+									</h3>
+								</div>
+								<p
+									class="text-sm leading-relaxed {isDark
+										? 'text-neutral-400'
+										: 'text-neutral-600'}"
+								>
+									{mode.desc}
+								</p>
+								<div class="mt-4 flex flex-wrap gap-2">
+									{#each mode.badges as badge}
+										<span
+											class="px-3 py-1 rounded-full border text-[11px] font-bold uppercase tracking-wide {isDark
+												? 'bg-neutral-900 border-neutral-700 text-neutral-400'
+												: 'bg-white border-neutral-200 text-neutral-600'}"
+										>
+											{badge}
+										</span>
+									{/each}
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+
+				<div
+					class="workflow-card reveal rounded-[2.5rem] border p-8 relative overflow-hidden {isDark
+						? 'bg-neutral-900/60 border-neutral-800'
+						: 'bg-white border-neutral-200 shadow-sm'}"
+				>
+					<div class="workflow-sheen"></div>
+					<div class="relative z-10 space-y-4">
+						<div
+							class="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-blue-500"
+						>
+							<Sparkles class="w-4 h-4" />
+							{content.aiModes.workflow.title}
+						</div>
+						<p
+							class="text-sm leading-relaxed {isDark
+								? 'text-neutral-400'
+								: 'text-neutral-600'}"
+						>
+							{content.aiModes.workflow.desc}
+						</p>
+					</div>
+					<div class="workflow-steps relative mt-6 space-y-4">
+						<div class="workflow-rail"></div>
+						{#each content.aiModes.workflow.steps as step, i}
+							<div
+								class="workflow-step rounded-2xl border p-4 transition-colors {isDark
+									? 'bg-neutral-950/60 border-neutral-800'
+									: 'bg-neutral-50 border-neutral-200'}"
+								style={`--delay:${i * 0.4}s; transition-delay:${i * 120}ms`}
+							>
+								<div class="workflow-dot"></div>
+								<div class="space-y-1">
+									<p class="text-sm font-bold">{step.title}</p>
+									<p
+										class="text-xs leading-relaxed {isDark
+											? 'text-neutral-400'
+											: 'text-neutral-600'}"
+									>
+										{step.desc}
+									</p>
+								</div>
+							</div>
+						{/each}
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
 	<!-- Deployment -->
 	<section
 		class="py-24 transition-colors duration-300 {isDark
@@ -983,5 +1179,131 @@
 
 	.animate-fade-in {
 		animation: fade-in 0.8s ease-out forwards;
+	}
+
+	.workflow-card {
+		isolation: isolate;
+	}
+
+	.workflow-sheen {
+		position: absolute;
+		inset: -40% -30%;
+		background:
+			radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.35), transparent 55%),
+			radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.3), transparent 50%),
+			linear-gradient(120deg, rgba(59, 130, 246, 0.08), rgba(99, 102, 241, 0.12), rgba(59, 130, 246, 0.04));
+		opacity: 0.7;
+		z-index: 0;
+		animation: workflow-sheen 10s ease-in-out infinite;
+		pointer-events: none;
+	}
+
+	.workflow-steps {
+		position: relative;
+		z-index: 1;
+	}
+
+	.workflow-rail {
+		position: absolute;
+		left: 20px;
+		top: 20px;
+		bottom: 20px;
+		width: 2px;
+		background: linear-gradient(
+			180deg,
+			rgba(59, 130, 246, 0.05),
+			rgba(59, 130, 246, 0.4),
+			rgba(99, 102, 241, 0.6),
+			rgba(59, 130, 246, 0.1)
+		);
+		border-radius: 9999px;
+		opacity: 0.8;
+	}
+
+	.workflow-rail::after {
+		content: "";
+		position: absolute;
+		left: -1px;
+		width: 4px;
+		height: 30%;
+		border-radius: 9999px;
+		background: linear-gradient(
+			180deg,
+			transparent,
+			rgba(59, 130, 246, 0.9),
+			rgba(99, 102, 241, 0.9),
+			transparent
+		);
+		animation: workflow-flow 3.8s ease-in-out infinite;
+	}
+
+	.workflow-step {
+		position: relative;
+		padding-left: 44px;
+	}
+
+	.workflow-dot {
+		position: absolute;
+		left: 14px;
+		top: 20px;
+		width: 12px;
+		height: 12px;
+		border-radius: 9999px;
+		background: #60a5fa;
+		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.12);
+		animation: workflow-pulse 2.6s ease-in-out infinite;
+		animation-delay: var(--delay);
+	}
+
+	@keyframes workflow-sheen {
+		0% {
+			transform: translate3d(-6%, -4%, 0) scale(1);
+			opacity: 0.55;
+		}
+		50% {
+			transform: translate3d(6%, 6%, 0) scale(1.05);
+			opacity: 0.9;
+		}
+		100% {
+			transform: translate3d(-6%, -4%, 0) scale(1);
+			opacity: 0.55;
+		}
+	}
+
+	@keyframes workflow-flow {
+		0% {
+			transform: translateY(-40%);
+			opacity: 0;
+		}
+		25% {
+			opacity: 1;
+		}
+		75% {
+			opacity: 1;
+		}
+		100% {
+			transform: translateY(140%);
+			opacity: 0;
+		}
+	}
+
+	@keyframes workflow-pulse {
+		0%,
+		100% {
+			transform: scale(1);
+			box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.12);
+		}
+		50% {
+			transform: scale(1.15);
+			box-shadow: 0 0 0 12px rgba(59, 130, 246, 0.08);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.workflow-sheen,
+		.workflow-rail::after,
+		.workflow-dot {
+			animation: none;
+		}
 	}
 </style>
