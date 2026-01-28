@@ -604,6 +604,6 @@ bunx vite-bundle-visualizer
 
 ## 다음 단계
 
-- [공개 배포](public-deployment.md) - ngrok으로 외부 공개
+- [공개 배포](public-deployment.md) - ngrok/bore/cloudflare로 외부 공개
 - [환경 변수](environment.md) - 상세 설정 가이드
 - [기여 가이드](../contributing/guide.md) - 코드 기여 방법
