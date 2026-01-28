@@ -21,7 +21,7 @@
 - **ライブワークショップツール**: ライブチャット/DM、ヘルプリクエストキュー、提出物パネル、修了証保持者だけを対象にするルーレット抽選を提供します。
 - **マルチランタイムサポート**: ローカル/プライベートセッション用の **Rust (Axum) + SQLite** バックエンド、またはサーバーレス環境用の **Firebase (Firestore/Hosting)** デプロイをサポートしています。
 - **Google Codelab Look & Feel**: 慣れ親しんだ、読み取りやすい Google スタイルのデザインを採用しています。
-- **簡単な外部公開**: `ngrok` および `bore` 統合スクリプトにより、ローカルサーバーを即座に外部に公開し、参加者が QR コードでアクセスできるようにサポートします。
+- **簡単な外部公開**: `ngrok`、`bore`、`cloudflared`(Cloudflare Tunnel) 統合スクリプトにより、ローカルサーバーを即座に外部に公開し、参加者が QR コードでアクセスできるようにサポートします。
 - **多言語対応**: グローバルなワークショップ運営のための i18n サポートが組み込まれています。
 
 ---
@@ -79,7 +79,7 @@ open-codelabs/
 │   └── static/       # 静的アセット
 ├── docs/             # ドキュメント (MkDocs)
 ├── docker-compose.yml # システムオーケストレーション
-└── run-public.sh     # 公開デプロイスクリプト (ngrok/bore)
+└── run-public.sh     # 公開デプロイスクリプト (ngrok/bore/cloudflare)
 ```
 
 ---
@@ -143,7 +143,7 @@ Open Codelabs には、コードを構造化されたチュートリアルに変
 
 ---
 
-## 🌐 外部への公開 (ngrok / bore)
+## 🌐 外部への公開 (ngrok / bore / cloudflare)
 ローカルマシンでワークショップを開催する場合、`run-public.sh` スクリプトを使用して外部アクセスを提供できます。
 
 ```bash
@@ -151,6 +151,8 @@ chmod +x run-public.sh
 ./run-public.sh --ngrok  # ngrok を使用
 # または
 ./run-public.sh --bore   # bore を使用 (Rust ベース)
+# または
+./run-public.sh --cloudflare  # Cloudflare Tunnel を使用
 ```
 
 ---
