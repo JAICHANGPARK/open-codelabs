@@ -560,7 +560,7 @@ docker-compose up
 ## 다음 단계
 
 - [로컬 개발 환경](local-development.md) - 개발 환경 구성
-- [공개 배포](public-deployment.md) - ngrok으로 외부 공개
+- [공개 배포](public-deployment.md) - ngrok/bore/cloudflare로 외부 공개
 - [환경 변수](environment.md) - 상세 설정 가이드
 
 ## 참고 자료
