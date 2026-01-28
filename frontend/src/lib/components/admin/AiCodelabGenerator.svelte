@@ -79,6 +79,11 @@
         missing_items: string[];
         improvements: string[];
     };
+    type PlanComment = {
+        id: string;
+        quote: string;
+        comment: string;
+    };
     type GenerationMode = "basic" | "advanced";
     type AdvancedStep =
         | "input"
@@ -192,6 +197,15 @@ Return JSON that matches the schema exactly.
     let advancedUseUrlContext = $state(false);
     let advancedSourceContext = $state("");
     let advancedTargetLanguage = $state("English");
+    let planComments = $state<PlanComment[]>([]);
+    let planSelection = $state<{
+        text: string;
+        top: number;
+        left: number;
+    } | null>(null);
+    let planCommentDraft = $state("");
+    let planContainerRef = $state<HTMLDivElement | null>(null);
+    let planCommentInputRef = $state<HTMLTextAreaElement | null>(null);
 
     import {
         getBlocklists,
@@ -530,6 +544,94 @@ Return JSON that matches the schema exactly.
         generationMode = mode;
     }
 
+    function clearPlanSelection() {
+        planSelection = null;
+        planCommentDraft = "";
+    }
+
+    function handlePlanSelection() {
+        if (!planContainerRef) return;
+
+        const selection = window.getSelection();
+        if (!selection || selection.isCollapsed) {
+            clearPlanSelection();
+            return;
+        }
+
+        if (!selection.rangeCount) {
+            clearPlanSelection();
+            return;
+        }
+
+        const anchorNode = selection.anchorNode;
+        const focusNode = selection.focusNode;
+        if (!anchorNode || !focusNode) {
+            clearPlanSelection();
+            return;
+        }
+
+        if (
+            !planContainerRef.contains(anchorNode) ||
+            !planContainerRef.contains(focusNode)
+        ) {
+            clearPlanSelection();
+            return;
+        }
+
+        const text = selection.toString().trim();
+        if (!text) {
+            clearPlanSelection();
+            return;
+        }
+
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        if (!rect || (!rect.width && !rect.height)) {
+            clearPlanSelection();
+            return;
+        }
+
+        const padding = 12;
+        const popupWidth = 320;
+        const popupHeight = 220;
+        const maxLeft = Math.max(
+            padding,
+            window.innerWidth - popupWidth - padding,
+        );
+        const maxTop = Math.max(
+            padding,
+            window.innerHeight - popupHeight - padding,
+        );
+        const left = Math.min(Math.max(rect.left, padding), maxLeft);
+        const top = Math.min(rect.bottom + 8, maxTop);
+
+        planSelection = { text, top, left };
+        planCommentDraft = "";
+        setTimeout(() => planCommentInputRef?.focus(), 0);
+    }
+
+    function addPlanComment() {
+        if (!planSelection) return;
+        const commentText = planCommentDraft.trim();
+        if (!commentText) return;
+
+        const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+        planComments = [
+            ...planComments,
+            {
+                id,
+                quote: planSelection.text,
+                comment: commentText,
+            },
+        ];
+        window.getSelection()?.removeAllRanges();
+        clearPlanSelection();
+    }
+
+    function removePlanComment(id: string) {
+        planComments = planComments.filter((comment) => comment.id !== id);
+    }
+
     async function handleAdvancedPlan() {
         let fullContext = sourceCode.trim();
         if (uploadedFiles.length > 0) {
@@ -551,6 +653,8 @@ Return JSON that matches the schema exactly.
         advancedDraftData = null;
         advancedReviewData = null;
         advancedRevisedData = null;
+        planComments = [];
+        clearPlanSelection();
         advancedSourceContext = fullContext;
         advancedTargetLanguage = resolveTargetLanguage();
 
@@ -727,6 +831,7 @@ Return JSON that matches the schema exactly.
         advancedStreamContent = "";
         advancedThinkingContent = "";
         advancedDraftData = null;
+        clearPlanSelection();
 
         const durationText = buildDurationText();
         const searchTerms = advancedPlanData.search_terms || [];
@@ -736,11 +841,21 @@ Return JSON that matches the schema exactly.
               )}.`
             : "Use the Google Search tool if any versions, commands, or APIs need verification.";
 
+        const facilitatorComments = planComments.length
+            ? `Facilitator comments (address these in the draft):\n${JSON.stringify(
+                  planComments.map((comment) => ({
+                      selection: comment.quote,
+                      comment: comment.comment,
+                  })),
+                  null,
+                  2,
+              )}\n\n`
+            : "";
         const draftPrompt = `Create a codelab using the plan and source context. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\nPlan JSON:\n${JSON.stringify(
             advancedPlanData,
             null,
             2,
-        )}\n\nSource code/Context:\n${advancedSourceContext}`;
+        )}\n\n${facilitatorComments}Source code/Context:\n${advancedSourceContext}`;
 
         const tools: GeminiStructuredConfig["tools"] = [];
         if (advancedUseGoogleSearch) {
@@ -1037,66 +1152,69 @@ Return JSON that matches the schema exactly.
         </div>
 
         <!-- Content -->
-        <div class="flex-1 overflow-hidden p-6 bg-[#F8F9FA] dark:bg-dark-bg">
+        <div class="flex-1 flex flex-col overflow-hidden p-6 bg-[#F8F9FA] dark:bg-dark-bg">
             <div
-                class="mb-4 flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-dark-surface/50 border border-[#DADCE0] dark:border-dark-border rounded-2xl p-3 shadow-sm"
+                class="mb-4 bg-white dark:bg-dark-surface/50 border border-[#DADCE0] dark:border-dark-border rounded-2xl p-3 shadow-sm"
             >
-                <span
-                    class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted"
-                >
-                    {$t("ai_generator.mode_label")}
-                </span>
-                <div class="flex items-center gap-2">
-                    <button
-                        onclick={() => setGenerationMode("basic")}
-                        disabled={loading || advancedLoading}
-                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
-                        'basic'
-                            ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
-                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <span
+                        class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted"
                     >
-                        {$t("ai_generator.mode_basic")}
-                    </button>
-                    <button
-                        onclick={() => setGenerationMode("advanced")}
-                        disabled={loading || advancedLoading}
-                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
-                        'advanced'
-                            ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
-                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
-                    >
-                        {$t("ai_generator.mode_advanced")}
-                    </button>
+                        {$t("ai_generator.mode_label")}
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <button
+                            onclick={() => setGenerationMode("basic")}
+                            disabled={loading || advancedLoading}
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
+                            'basic'
+                                ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
+                                : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
+                        >
+                            {$t("ai_generator.mode_basic")}
+                        </button>
+                        <button
+                            onclick={() => setGenerationMode("advanced")}
+                            disabled={loading || advancedLoading}
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
+                            'advanced'
+                                ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
+                                : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
+                        >
+                            {$t("ai_generator.mode_advanced")}
+                        </button>
+                    </div>
+                </div>
+                <div class="mt-3 space-y-3">
+                    <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                        {generationMode === "basic"
+                            ? $t("ai_generator.mode_basic_desc")
+                            : $t("ai_generator.mode_advanced_desc")}
+                    </p>
+                    {#if generationMode === "advanced"}
+                        <div
+                            class="flex flex-col gap-3 rounded-2xl border border-[#DADCE0] dark:border-dark-border bg-white dark:bg-dark-surface/50 p-4 shadow-sm"
+                        >
+                            <p class="text-sm text-[#3C4043] dark:text-dark-text">
+                                {$t("ai_generator.mode_advanced_star_message")}
+                            </p>
+                            <a
+                                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#202124] text-white px-4 py-2 text-xs font-bold hover:bg-black transition-colors"
+                                href="https://github.com/JAICHANGPARK/open-codelabs"
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                {$t("ai_generator.mode_advanced_star_button")}
+                            </a>
+                        </div>
+                    {/if}
                 </div>
             </div>
-            <div class="mb-4 space-y-3">
-                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
-                    {generationMode === "basic"
-                        ? $t("ai_generator.mode_basic_desc")
-                        : $t("ai_generator.mode_advanced_desc")}
-                </p>
-                {#if generationMode === "advanced"}
-                    <div
-                        class="flex flex-col gap-3 rounded-2xl border border-[#DADCE0] dark:border-dark-border bg-white dark:bg-dark-surface/50 p-4 shadow-sm"
-                    >
-                        <p class="text-sm text-[#3C4043] dark:text-dark-text">
-                            {$t("ai_generator.mode_advanced_star_message")}
-                        </p>
-                        <a
-                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#202124] text-white px-4 py-2 text-xs font-bold hover:bg-black transition-colors"
-                            href="https://github.com/JAICHANGPARK/open-codelabs"
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            {$t("ai_generator.mode_advanced_star_button")}
-                        </a>
-                    </div>
-                {/if}
-            </div>
 
+            <div class="flex-1 min-h-0 overflow-y-auto">
             {#if generationMode === "basic"}
                 {#if generationStep === "input"}
-                <div class="h-full flex flex-col gap-4" in:fade>
+                <div class="min-h-full flex flex-col gap-4" in:fade>
                     <div class="flex items-center justify-between">
                         <label
                             for="source-code"
@@ -1274,7 +1392,7 @@ Return JSON that matches the schema exactly.
                                 onclick={handleGenerate}
                                 disabled={!sourceCode.trim() &&
                                     uploadedFiles.length === 0}
-                                class="bg-[#4285F4] text-white px-8 py-3 rounded-full font-bold hover:shadow-lg hover:scale-105 transition-all text-lg flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+                                class="bg-[#4285F4] text-white px-8 py-3 rounded-full font-bold hover:bg-[#1A73E8] hover:shadow-lg transition-colors text-lg flex items-center gap-2 disabled:opacity-50"
                             >
                                 <Sparkles size={20} />
                                 {$t("ai_generator.generate_button")}
@@ -1284,7 +1402,7 @@ Return JSON that matches the schema exactly.
                 </div>
             {:else if generationStep === "generating"}
                 <div
-                    class="h-full flex flex-col items-center justify-center gap-6"
+                    class="min-h-full flex flex-col items-center justify-center gap-6"
                     in:fade
                     aria-live="polite"
                 >
@@ -1348,7 +1466,7 @@ Return JSON that matches the schema exactly.
                     </div>
                 </div>
             {:else if generationStep === "review" && parsedData}
-                <div class="h-full flex flex-col gap-6" in:fade>
+                <div class="min-h-full flex flex-col gap-6" in:fade>
                     <div
                         class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
                     >
@@ -1424,7 +1542,7 @@ Return JSON that matches the schema exactly.
             {/if}
         {:else}
             {#if advancedStep === "input"}
-                <div class="h-full flex flex-col gap-4" in:fade>
+                <div class="min-h-full flex flex-col gap-4" in:fade>
                     <div class="flex items-center justify-between">
                         <label
                             for="source-code"
@@ -1584,7 +1702,7 @@ Return JSON that matches the schema exactly.
                         id="source-code"
                         bind:value={sourceCode}
                         placeholder={$t("ai_generator.placeholder")}
-                        class="flex-1 w-full bg-white dark:bg-dark-surface text-[#3C4043] dark:text-dark-text border border-[#DADCE0] dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 outline-none resize-none shadow-sm transition-all"
+                        class="flex-1 min-h-[320px] lg:min-h-[420px] w-full bg-white dark:bg-dark-surface text-[#3C4043] dark:text-dark-text border border-[#DADCE0] dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 outline-none resize-none shadow-sm transition-all"
                     ></textarea>
 
                     <div class="flex justify-end pt-2">
@@ -1606,7 +1724,7 @@ Return JSON that matches the schema exactly.
                                 disabled={advancedLoading ||
                                     (!sourceCode.trim() &&
                                         uploadedFiles.length === 0)}
-                                class="bg-[#4285F4] text-white px-8 py-3 rounded-full font-bold hover:shadow-lg hover:scale-105 transition-all text-lg flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+                                class="bg-[#4285F4] text-white px-8 py-3 rounded-full font-bold hover:bg-[#1A73E8] hover:shadow-lg transition-colors text-lg flex items-center gap-2 disabled:opacity-50"
                             >
                                 <Sparkles size={20} />
                                 {$t("ai_generator.plan_button")}
@@ -1616,7 +1734,7 @@ Return JSON that matches the schema exactly.
                 </div>
             {:else if advancedStep === "planning" || advancedStep === "drafting" || advancedStep === "reviewing" || advancedStep === "revising"}
                 <div
-                    class="h-full flex flex-col items-center justify-center gap-6"
+                    class="min-h-full flex flex-col items-center justify-center gap-6"
                     in:fade
                     aria-live="polite"
                 >
@@ -1691,7 +1809,7 @@ Return JSON that matches the schema exactly.
                     </div>
                 </div>
             {:else if advancedStep === "plan" && advancedPlanData}
-                <div class="h-full flex flex-col gap-6" in:fade>
+                <div class="min-h-full flex flex-col gap-6" in:fade>
                     <div
                         class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
                     >
@@ -1726,9 +1844,26 @@ Return JSON that matches the schema exactly.
                     </div>
 
                     <div
+                        bind:this={planContainerRef}
+                        onmouseup={handlePlanSelection}
+                        onkeyup={handlePlanSelection}
+                        onscroll={clearPlanSelection}
                         class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-8 shadow-sm"
                     >
                         <div class="space-y-6">
+                            <div
+                                class="flex items-start gap-2 p-3 bg-[#F8F9FA] dark:bg-dark-bg border border-[#E8EAED] dark:border-dark-border rounded-lg"
+                            >
+                                <Info
+                                    size={16}
+                                    class="text-[#4285F4] mt-0.5 shrink-0"
+                                />
+                                <p
+                                    class="text-xs text-[#3C4043] dark:text-dark-text"
+                                >
+                                    {$t("ai_generator.plan_comment_hint")}
+                                </p>
+                            </div>
                             <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
                                 <h1
                                     class="text-2xl font-bold text-[#202124] dark:text-dark-text mb-2"
@@ -1957,11 +2092,110 @@ Return JSON that matches the schema exactly.
                                     </div>
                                 </div>
                             {/if}
+                            <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                                <h4
+                                    class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                >
+                                    {$t("ai_generator.plan_comment_label")}
+                                </h4>
+                                {#if planComments.length}
+                                    <div class="space-y-3">
+                                        {#each planComments as comment}
+                                            <div
+                                                class="border border-[#E8EAED] dark:border-dark-border rounded-lg p-4"
+                                            >
+                                                <p
+                                                    class="text-[11px] font-semibold uppercase text-[#5F6368] dark:text-dark-text-muted"
+                                                >
+                                                    {$t(
+                                                        "ai_generator.plan_comment_selection_label",
+                                                    )}
+                                                </p>
+                                                <p
+                                                    class="text-xs text-[#3C4043] dark:text-dark-text font-mono whitespace-pre-wrap line-clamp-3 mt-1"
+                                                >
+                                                    {comment.quote}
+                                                </p>
+                                                <p
+                                                    class="text-sm text-[#202124] dark:text-dark-text mt-2"
+                                                >
+                                                    {comment.comment}
+                                                </p>
+                                                <button
+                                                    onclick={() =>
+                                                        removePlanComment(
+                                                            comment.id,
+                                                        )}
+                                                    class="mt-3 text-xs font-semibold text-[#EA4335] hover:underline"
+                                                >
+                                                    {$t(
+                                                        "ai_generator.plan_comment_remove",
+                                                    )}
+                                                </button>
+                                            </div>
+                                        {/each}
+                                    </div>
+                                {:else}
+                                    <p
+                                        class="text-xs text-[#9AA0A6] dark:text-dark-text-muted"
+                                    >
+                                        {$t("ai_generator.plan_comment_empty")}
+                                    </p>
+                                {/if}
+                            </div>
                         </div>
                     </div>
+                    {#if planSelection}
+                        <div
+                            class="fixed z-[60] w-80 max-w-[calc(100%-1.5rem)] bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl shadow-xl p-4"
+                            style="top: {planSelection.top}px; left: {planSelection.left}px;"
+                            role="dialog"
+                            aria-label={$t("ai_generator.plan_comment_title")}
+                        >
+                            <p
+                                class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                            >
+                                {$t("ai_generator.plan_comment_title")}
+                            </p>
+                            <p
+                                class="text-xs text-[#3C4043] dark:text-dark-text font-mono whitespace-pre-wrap line-clamp-3 mt-2"
+                            >
+                                {planSelection.text}
+                            </p>
+                            <textarea
+                                bind:this={planCommentInputRef}
+                                bind:value={planCommentDraft}
+                                placeholder={$t(
+                                    "ai_generator.plan_comment_placeholder",
+                                )}
+                                onkeydown={(event) => {
+                                    if (event.key === "Escape") {
+                                        event.preventDefault();
+                                        clearPlanSelection();
+                                    }
+                                }}
+                                class="mt-3 w-full h-24 resize-none rounded-lg border border-[#DADCE0] dark:border-dark-border bg-white dark:bg-dark-surface text-sm text-[#202124] dark:text-dark-text px-3 py-2 outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/10"
+                            ></textarea>
+                            <div class="mt-3 flex justify-end gap-2">
+                                <button
+                                    onclick={clearPlanSelection}
+                                    class="px-3 py-1.5 text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text"
+                                >
+                                    {$t("ai_generator.plan_comment_cancel")}
+                                </button>
+                                <button
+                                    onclick={addPlanComment}
+                                    disabled={!planCommentDraft.trim()}
+                                    class="px-4 py-1.5 rounded-lg bg-[#4285F4] text-white text-xs font-semibold disabled:opacity-50"
+                                >
+                                    {$t("ai_generator.plan_comment_add")}
+                                </button>
+                            </div>
+                        </div>
+                    {/if}
                 </div>
             {:else if advancedStep === "draft" && advancedDraftData}
-                <div class="h-full flex flex-col gap-6" in:fade>
+                <div class="min-h-full flex flex-col gap-6" in:fade>
                     <div
                         class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
                     >
@@ -2030,7 +2264,7 @@ Return JSON that matches the schema exactly.
                     </div>
                 </div>
             {:else if advancedStep === "final" && advancedRevisedData}
-                <div class="h-full flex flex-col gap-6" in:fade>
+                <div class="min-h-full flex flex-col gap-6" in:fade>
                     <div
                         class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
                     >
@@ -2196,6 +2430,7 @@ Return JSON that matches the schema exactly.
                 </div>
             {/if}
         {/if}
+            </div>
         </div>
     </div>
 </div>

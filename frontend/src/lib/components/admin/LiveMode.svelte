@@ -95,9 +95,11 @@
                             </div>
                         </div>
                         <button
+                            type="button"
                             onclick={() => (dmTarget = attendee)}
                             class="p-2 text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-lg opacity-0 lg:opacity-0 group-hover:opacity-100 transition-all"
                             title={$t("editor.send_dm")}
+                            aria-label={$t("editor.send_dm")}
                         >
                             <MessageSquare size={16} />
                         </button>
@@ -161,7 +163,7 @@
                     {#if chatTab === "direct" && dmTarget}
                         <div class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-[#4285F4] text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm">
                             <span>To: {dmTarget.name}</span>
-                            <button type="button" onclick={() => (dmTarget = null)} class="hover:text-red-200"><X size={12} /></button>
+                            <button type="button" onclick={() => (dmTarget = null)} class="hover:text-red-200" aria-label={$t("common.close")}><X size={12} /></button>
                         </div>
                     {/if}
 
@@ -170,6 +172,7 @@
                             type="text"
                             bind:value={chatMessage}
                             placeholder="Send a message to everyone..."
+                            aria-label={$t("editor.chat_placeholder")}
                             class="flex-1 pl-4 pr-12 py-3 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] text-sm text-[#202124] dark:text-dark-text"
                         />
                     {:else}
@@ -177,6 +180,7 @@
                             type="text"
                             bind:value={dmMessage}
                             placeholder="Type a message..."
+                            aria-label={$t("editor.chat_placeholder")}
                             class="flex-1 {dmTarget ? 'pl-24' : 'pl-4'} pr-12 py-3 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] text-sm text-[#202124] dark:text-dark-text"
                         />
                     {/if}
@@ -184,6 +188,7 @@
                         type="submit"
                         class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-lg transition-all"
                         disabled={chatTab === "direct" && !dmTarget}
+                        aria-label={$t("editor.send_dm")}
                     >
                         <Send size={18} />
                     </button>

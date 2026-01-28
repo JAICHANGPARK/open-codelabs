@@ -213,11 +213,13 @@
                             </div>
                         </div>
                         <button
+                            type="button"
                             onclick={() =>
                                 handleDeleteMaterial(
                                     mat.id,
                                 )}
                             class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#EA4335] hover:bg-[#FCE8E6] dark:hover:bg-[#EA4335]/10 rounded-lg transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                            aria-label={$t("common.delete")}
                         >
                             <Trash2 size={18} />
                         </button>

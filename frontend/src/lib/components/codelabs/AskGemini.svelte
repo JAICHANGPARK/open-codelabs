@@ -159,6 +159,7 @@
                         <a
                             href="https://aistudio.google.com/app/apikey"
                             target="_blank"
+                            rel="noopener noreferrer"
                             class="text-[#4285F4] text-sm hover:underline mt-1 block"
                             >{$t("gemini.get_api_key")}</a
                         >
@@ -246,7 +247,7 @@
                         onclick={handleSubmit}
                         disabled={!prompt.trim() || loading}
                         class="absolute right-2 bottom-2 p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-lg transition-all disabled:opacity-50 disabled:hover:bg-transparent"
-                        aria-label={$t("editor.chat_placeholder")}
+                        aria-label={$t("editor.send_dm")}
                     >
                         <Send size={18} />
                     </button>

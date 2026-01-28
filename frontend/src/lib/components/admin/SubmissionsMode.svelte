@@ -75,6 +75,7 @@
                 type="text"
                 bind:value={searchTerm}
                 placeholder={$t("submission.search_placeholder")}
+                aria-label={$t("submission.search_placeholder")}
                 class="w-full pl-10 pr-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-full text-sm outline-none focus:ring-2 focus:ring-[#4285F4]/20 focus:border-[#4285F4] transition-all"
             />
         </div>
@@ -108,7 +109,9 @@
                                 <a 
                                     href={`${ASSET_URL}${sub.file_path}`} 
                                     target="_blank"
+                                    rel="noopener noreferrer"
                                     class="bg-white text-black p-2 rounded-full shadow-lg"
+                                    aria-label={$t("common.open_new_tab")}
                                 >
                                     <ExternalLink size={20} />
                                 </a>
@@ -157,6 +160,7 @@
                             href={`${ASSET_URL}${sub.file_path}`} 
                             target="_blank"
                             download={sub.file_name}
+                            rel="noopener noreferrer"
                             class="flex-1 bg-[#F8F9FA] dark:bg-white/5 hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-transparent hover:border-[#D2E3FC] dark:hover:border-[#4285F4]/30"
                         >
                             <Download size={14} />
@@ -165,15 +169,19 @@
                         <a 
                             href={`${ASSET_URL}${sub.file_path}`} 
                             target="_blank"
+                            rel="noopener noreferrer"
                             class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-xl transition-all border border-transparent hover:border-[#D2E3FC] dark:hover:border-[#4285F4]/30"
                             title={$t("common.open_new_tab")}
+                            aria-label={$t("common.open_new_tab")}
                         >
                             <ExternalLink size={16} />
                         </a>
                         <button 
+                            type="button"
                             onclick={() => onDelete(sub.attendee_id, sub.id)}
                             class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#EA4335] hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all border border-transparent hover:border-red-100 dark:hover:border-red-500/30"
                             title={$t("common.delete")}
+                            aria-label={$t("common.delete")}
                         >
                             <Trash2 size={16} />
                         </button>

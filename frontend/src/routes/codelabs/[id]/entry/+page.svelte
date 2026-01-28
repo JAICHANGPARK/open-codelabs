@@ -125,6 +125,7 @@
                         <div
                             in:fade
                             class="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100 font-medium"
+                            role="alert"
                         >
                             {error}
                         </div>

@@ -72,6 +72,7 @@
                 {#if error}
                     <div
                         class="bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400 p-4 rounded-xl flex items-center gap-3 border border-red-100 dark:border-red-500/20"
+                        role="alert"
                         in:fade
                     >
                         <AlertCircle size={20} />

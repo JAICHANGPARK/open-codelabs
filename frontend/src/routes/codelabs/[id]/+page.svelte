@@ -867,8 +867,10 @@
                                 <h3 class="font-bold">{$t("editor.guide_tab")}</h3>
                             </div>
                             <button
+                                type="button"
                                 onclick={() => (showGuide = false)}
                                 class="hover:bg-white/20 p-1 rounded-full transition-colors"
+                                aria-label={$t("common.close")}
                             >
                                 <X size={18} />
                             </button>
@@ -953,6 +955,7 @@
                                                         bind:value={quizAnswers[i]}
                                                         disabled={quizSubmitted}
                                                         placeholder="Type your answer here..."
+                                                        aria-label={q.question}
                                                         class="w-full p-4 rounded-2xl border-2 border-[#F1F3F4] dark:border-dark-border bg-white dark:bg-dark-surface focus:border-[#4285F4] outline-none transition-all min-h-[100px] text-sm"
                                                     ></textarea>
                                                 </div>
@@ -1036,8 +1039,10 @@
                                                     </div>
                                                 </div>
                                                 <button 
+                                                    type="button"
                                                     onclick={() => handleDeleteSubmission(sub.id)}
                                                     class="p-2 text-[#EA4335] hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-all"
+                                                    aria-label={$t("common.delete")}
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -1085,7 +1090,7 @@
                                                     onclick={() =>
                                                         (feedbackSatisfaction = s)}
                                                     class="p-1 rounded-lg transition-all hover:bg-yellow-50 dark:hover:bg-yellow-500/10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                                                    aria-label="Rate {s} out of 5 stars"
+                                                    aria-label={$t("feedback.satisfaction") + " " + s + "/5"}
                                                     aria-pressed={feedbackSatisfaction >= s}
                                                 >
                                                     <Star
@@ -1170,6 +1175,7 @@
                             <a
                                 href="/certificate/{attendee?.id}"
                                 target="_blank"
+                                rel="noopener noreferrer"
                                 onclick={handleCertificateClick}
                                 class="bg-[#4285F4] text-white hover:bg-[#1A73E8] px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2 {!canGetCertificate ? 'opacity-70' : ''}"
                             >

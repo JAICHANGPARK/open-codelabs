@@ -55,7 +55,7 @@
                 <a
                     href="/admin"
                     class="text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text hover:bg-[#F1F3F4] dark:hover:bg-white/5 p-1.5 sm:p-2 rounded-full transition-all shrink-0"
-                    aria-label="Back to dashboard"
+                    aria-label={$t("editor.back")}
                 >
                     <ChevronLeft size={24} />
                 </a>
@@ -74,6 +74,8 @@
                                 target="_blank"
                                 class="text-[#4285F4] hover:text-[#1A73E8] shrink-0"
                                 title={$t("editor.view_live")}
+                                rel="noopener noreferrer"
+                                aria-label={$t("editor.view_live")}
                             >
                                 <ExternalLink size={14} class="sm:w-4 sm:h-4" />
                             </a>
@@ -96,6 +98,7 @@
                         rel="noopener noreferrer"
                         class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
                         title={$t("common.github_repo")}
+                        aria-label={$t("common.github_repo")}
                     >
                         <Github size={20} />
                     </a>
@@ -105,6 +108,7 @@
                         rel="noopener noreferrer"
                         class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
                         title={$t("common.documentation")}
+                        aria-label={$t("common.documentation")}
                     >
                         <FileText size={20} />
                     </a>
@@ -113,12 +117,14 @@
                     ></div>
                 </div>
                 <button
+                    type="button"
                     onclick={toggleVisibility}
                     class="relative inline-flex h-6 w-10 sm:h-7 sm:w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2 {codelab?.is_public
                         ? 'bg-[#34A853]'
                         : 'bg-gray-200 dark:bg-dark-border'}"
                     role="switch"
                     aria-checked={codelab?.is_public != 0}
+                    aria-label={$t("common.visibility")}
                     title={codelab?.is_public
                         ? $t("common.public")
                         : $t("common.private")}
@@ -142,9 +148,11 @@
                     class="h-6 w-px bg-[#E8EAED] dark:bg-dark-border hidden sm:block"
                 ></div>
                 <button
+                    type="button"
                     onclick={handleExport}
                     class="p-1.5 sm:p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
                     title={$t("editor.export_codelab")}
+                    aria-label={$t("editor.export_codelab")}
                 >
                     <Download size={18} class="sm:w-5 sm:h-5" />
                 </button>

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { FileCode, Trash2 } from "lucide-svelte";
+    import { t } from "svelte-i18n";
     let { files, onRemove } = $props<{
         files: { name: string; content: string }[];
         onRemove: (index: number) => void;
@@ -17,9 +18,10 @@
                 <FileCode size={14} class="text-[#4285F4]" />
                 <span class="max-w-[150px] truncate">{file.name}</span>
                 <button
+                    type="button"
                     onclick={() => onRemove(i)}
                     class="text-[#9AA0A6] hover:text-[#EA4335] transition-colors"
-                    aria-label="Remove file"
+                    aria-label={$t("common.delete")}
                 >
                     <Trash2 size={14} />
                 </button>

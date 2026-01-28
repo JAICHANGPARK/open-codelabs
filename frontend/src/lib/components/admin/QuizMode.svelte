@@ -127,7 +127,7 @@
             <div class="flex items-center gap-3" in:fade>
                 <div class="flex items-center gap-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border px-3 py-1.5 rounded-xl shadow-sm">
                     <span class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted">{$t("editor.num_questions")}</span>
-                    <input type="number" bind:value={numQuizToGenerate} min="1" max="10" class="w-12 text-center font-bold outline-none bg-transparent" />
+                    <input type="number" bind:value={numQuizToGenerate} min="1" max="10" aria-label={$t("editor.num_questions")} class="w-12 text-center font-bold outline-none bg-transparent" />
                 </div>
                 <button
                     onclick={generateQuizWithAi}
@@ -170,20 +170,20 @@
                                     </button>
                                 </div>
                             </div>
-                            <button onclick={() => removeQuiz(qIndex)} class="p-1.5 text-[#5F6368] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all">
+                            <button type="button" onclick={() => removeQuiz(qIndex)} class="p-1.5 text-[#5F6368] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-all" aria-label={$t("common.delete")}>
                                 <Trash2 size={16} />
                             </button>
                         </div>
                         <div class="p-6 space-y-6">
                             <div class="space-y-2">
-                                <label for="q-{qIndex}" class="text-[10px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">{$t("editor.quiz_question")}</label>
-                                <input id="q-{qIndex}" type="text" bind:value={quiz.question} placeholder="Enter your question here..." class="w-full text-lg font-bold outline-none bg-transparent border-b-2 border-transparent focus:border-[#4285F4] transition-all" />
+                                <label for={`quiz-question-${qIndex}`} class="text-[10px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">{$t("editor.quiz_question")}</label>
+                                <input id={`quiz-question-${qIndex}`} type="text" bind:value={quiz.question} placeholder="Enter your question here..." class="w-full text-lg font-bold outline-none bg-transparent border-b-2 border-transparent focus:border-[#4285F4] transition-all" />
                             </div>
                             
                             {#if quiz.quiz_type !== 'descriptive'}
                                 <div class="space-y-3">
                                     <div class="flex justify-between items-center">
-                                        <label for="opt-{qIndex}" class="text-[10px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">{$t("editor.quiz_options")}</label>
+                                        <span id={`quiz-options-label-${qIndex}`} class="text-[10px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">{$t("editor.quiz_options")}</span>
                                         <button 
                                             onclick={() => addOption(qIndex)}
                                             class="text-[10px] font-bold text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 px-2 py-1 rounded-lg transition-all flex items-center gap-1"
@@ -192,12 +192,12 @@
                                             {$t("editor.add_option")}
                                         </button>
                                     </div>
-                                    <div class="grid grid-cols-1 gap-2" id="opt-{qIndex}">
+                                    <div class="grid grid-cols-1 gap-2" id={`quiz-options-${qIndex}`} role="group" aria-labelledby={`quiz-options-label-${qIndex}`}>
                                         {#each quiz.options as option, oIndex}
                                             <div class="flex items-center gap-3 group/opt">
                                                 <button 
                                                     onclick={() => quiz.correct_answer = oIndex}
-                                                    aria-label="Mark as correct answer"
+                                                    aria-label={$t("editor.quiz_correct")}
                                                     class="w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all {quiz.correct_answer === oIndex ? 'bg-[#34A853] border-[#34A853] text-white' : 'border-[#DADCE0] dark:border-dark-border text-transparent hover:border-[#34A853]'}"
                                                 >
                                                     <Check size={14} />
@@ -205,14 +205,16 @@
                                                 <input 
                                                     type="text" 
                                                     bind:value={quiz.options[oIndex]} 
-                                                    placeholder="Option {oIndex + 1}"
-                                                    aria-label="Option {oIndex + 1}"
+                                                    placeholder={$t("editor.quiz_options") + " " + (oIndex + 1)}
+                                                    aria-label={$t("editor.quiz_options") + " " + (oIndex + 1)}
                                                     class="flex-1 bg-[#F8F9FA] dark:bg-white/5 border border-transparent focus:border-[#DADCE0] dark:focus:border-dark-border rounded-xl px-4 py-2 text-sm transition-all {quiz.correct_answer === oIndex ? 'font-bold text-[#137333] dark:text-green-400' : ''}"
                                                 />
                                                 {#if quiz.options.length > 2}
                                                     <button 
+                                                        type="button"
                                                         onclick={() => removeOption(qIndex, oIndex)}
                                                         class="p-1.5 text-[#5F6368] hover:text-red-500 opacity-0 group-hover/opt:opacity-100 transition-all"
+                                                        aria-label={$t("common.delete")}
                                                     >
                                                         <X size={14} />
                                                     </button>

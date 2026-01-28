@@ -107,15 +107,19 @@
             >
             <div class="flex items-center gap-2">
                 <button
+                    type="button"
                     onclick={addStep}
                     class="text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 p-1.5 rounded-full transition-colors"
                     title={$t("editor.add_step")}
+                    aria-label={$t("editor.add_step")}
                 >
                     <Plus size={18} />
                 </button>
                 <button 
+                    type="button"
                     onclick={() => (isSidebarOpen = false)}
                     class="lg:hidden p-1.5 hover:bg-[#E8EAED] dark:hover:bg-white/5 rounded-full transition-colors"
+                    aria-label={$t("common.close")}
                 >
                     <X size={18} />
                 </button>
@@ -164,9 +168,11 @@
                         >
                     </button>
                     <button
+                        type="button"
                         onclick={() => removeStep(i)}
                         class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#BDC1C6] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg lg:opacity-0 lg:group-hover:opacity-100 transition-all"
                         title={$t("editor.delete_step")}
+                        aria-label={$t("editor.delete_step")}
                     >
                         <Trash2 size={14} />
                     </button>
@@ -195,12 +201,15 @@
                     type="text"
                     readonly
                     value={attendeeUrl}
+                    aria-label={$t("editor.attendee_access")}
                     class="flex-1 bg-transparent border-none text-[10px] text-[#5F6368] dark:text-dark-text-muted px-2 outline-none"
                 />
                 <button
+                    type="button"
                     onclick={handleCopyUrl}
                     class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/10 rounded-lg transition-colors text-[#4285F4]"
                     title={$t("editor.copy_url")}
+                    aria-label={$t("editor.copy_url")}
                 >
                     {#if copySuccess}
                         <Check size={14} />

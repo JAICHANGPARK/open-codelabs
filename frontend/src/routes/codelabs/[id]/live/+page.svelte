@@ -179,7 +179,7 @@
     >
         <div class="max-w-screen-2xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <a href="/codelabs" class="text-[#5F6368] hover:text-[#202124]">
+                <a href="/codelabs" class="text-[#5F6368] hover:text-[#202124]" aria-label={$t("common.title")}>
                     <Home size={24} />
                 </a>
                 <h1 class="text-xl font-bold text-[#202124]">
@@ -257,6 +257,7 @@
             <div
                 id="chat-feed"
                 class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F8F9FA]/30"
+                aria-live="polite"
             >
                 {#each messages as msg}
                     <div
@@ -292,11 +293,13 @@
                         type="text"
                         bind:value={chatMessage}
                         placeholder={$t("live.say_hello")}
+                        aria-label={$t("live.say_hello")}
                         class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm"
                     />
                     <button
                         type="submit"
                         class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#4285F4] hover:text-white rounded-lg transition-all"
+                        aria-label={$t("editor.send_dm")}
                     >
                         <Send size={18} />
                     </button>
