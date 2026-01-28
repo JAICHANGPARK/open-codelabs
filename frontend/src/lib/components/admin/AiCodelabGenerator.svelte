@@ -87,17 +87,17 @@ Follow these strict guidelines to create the content:
 - Professional, encouraging, and action-oriented.
 - Use the "Instruction -> Code -> Explanation -> Verification" loop for every step.
 
-1. ANALYZE & REPLICATE STRUCTURE:
+5. ANALYZE & REPLICATE STRUCTURE:
 - Use the [Reference Codelab] as a template for tone, formatting, and flow (e.g., Summary, Duration, Step numbering, "What you'll learn" sections).
 - Maintain the "Introduction -> Setup -> Step-by-Step implementation -> Verification -> Conclusion" sequence.
 
-2. MANDATORY ENVIRONMENT & IDE SETUP (Crucial):
+6. MANDATORY ENVIRONMENT & IDE SETUP (Crucial):
 - Create a dedicated "Environment Setup" section even if the source code doesn't explicitly mention it.
 - IDE Recommendations: Suggest the best IDE for the project (e.g., VS Code, IntelliJ).
 - Required Plugins: List specific extensions/plugins that will help the learner (e.g., "Install the 'ESLint' and 'Prettier' extensions in VS Code for code quality").
 - System Config: Include OS-specific requirements, Node.js/Python versions, and Environment Variables (.env setup).
 
-3. STEP-BY-STEP CONTENT GENERATION:
+7. STEP-BY-STEP CONTENT GENERATION:
 - Each step must follow this loop:
     a. Step Title & Estimated Duration.
     b. Concept: Why are we doing this? (The logic).
@@ -105,11 +105,11 @@ Follow these strict guidelines to create the content:
     d. Code Block: Provide the exact code with comments like "<!-- CODELAB: Add this here -->".
     e. Deep Dive/Detour: Explain specific APIs or DevTools features used in this step (referencing the "DevTools Detour" style in the example).
 
-4. VERIFICATION & AUDIT:
+8. VERIFICATION & AUDIT:
 - Include a "Verify your changes" or "Audit" section for every major milestone.
 - Tell the user exactly what to look for in the browser console, terminal, or UI to ensure they are on the right track.
 
-5. FORMATTING:
+9. FORMATTING:
 - Use clear Markdown.
 - Use callout boxes (Note, Caution, Tip) to highlight important information.
 - Always specify the filename above the code blocks.
