@@ -461,7 +461,7 @@ codelab_xxx.zip
 
 첫 번째 Codelab 작성 방법을 배웠습니다! 이제:
 
-- [공개 배포하기](../self-hosting/public-deployment.md) - ngrok으로 외부 공개
+- [공개 배포하기](../self-hosting/public-deployment.md) - ngrok/bore/cloudflare로 외부 공개
 - [API 활용하기](../specification/api-reference.md) - 자동화 및 통합
 - [아키텍처 이해하기](../architecture/system-architecture.md) - 시스템 구조 파악
 
