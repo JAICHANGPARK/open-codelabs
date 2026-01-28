@@ -395,7 +395,7 @@ Follow these strict guidelines to create the content:
         in:fly={{ y: 20, duration: 400 }}
     >
         <!-- Header -->
-        <div class="bg-[#8E24AA] p-6 text-white shrink-0">
+        <div class="bg-[#4285F4] p-6 text-white shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="bg-white/20 p-2 rounded-lg" aria-hidden="true">
@@ -442,7 +442,7 @@ Follow these strict guidelines to create the content:
                             />
                             <button
                                 onclick={() => fileInput.click()}
-                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-xl text-sm font-bold text-[#8E24AA] hover:bg-[#8E24AA]/5 transition-all shadow-sm"
+                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-xl text-sm font-bold text-[#4285F4] hover:bg-[#4285F4]/5 transition-all shadow-sm"
                             >
                                 <Upload size={18} />
                                 {$t("ai_generator.upload_files") ||
@@ -466,7 +466,7 @@ Follow these strict guidelines to create the content:
                             <span
                                 class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted flex items-center gap-2"
                             >
-                                <Clock size={16} class="text-[#8E24AA]" />
+                                <Clock size={16} class="text-[#4285F4]" />
                                 {$t("ai_generator.duration_label")}
                             </span>
                             <div class="flex flex-wrap gap-2">
@@ -475,8 +475,8 @@ Follow these strict guidelines to create the content:
                                         onclick={() => (handsOnDuration = d)}
                                         class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {handsOnDuration ===
                                         d
-                                            ? 'bg-[#8E24AA] text-white border-[#8E24AA] shadow-md'
-                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#8E24AA]'}"
+                                            ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
+                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
                                     >
                                         {d === "custom"
                                             ? $t("ai_generator.duration_custom")
@@ -494,7 +494,7 @@ Follow these strict guidelines to create the content:
                                             type="number"
                                             bind:value={customDuration}
                                             placeholder="10"
-                                            class="w-20 bg-white dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-[#8E24AA] focus:ring-2 focus:ring-[#8E24AA]/10"
+                                            class="w-20 bg-white dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/10"
                                         />
                                         <span
                                             class="text-xs font-medium text-[#5F6368] dark:text-dark-text-muted"
@@ -516,10 +516,10 @@ Follow these strict guidelines to create the content:
                                 <input
                                     type="checkbox"
                                     bind:checked={useGoogleSearch}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#8E24AA] focus:ring-[#8E24AA]"
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
                                 />
                                 <span
-                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#8E24AA]"
+                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
                                 >
                                     {$t("ai_generator.google_search")}
                                 </span>
@@ -531,10 +531,10 @@ Follow these strict guidelines to create the content:
                                 <input
                                     type="checkbox"
                                     bind:checked={useUrlContext}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#8E24AA] focus:ring-[#8E24AA]"
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
                                 />
                                 <span
-                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#8E24AA]"
+                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
                                 >
                                     {$t("ai_generator.url_context")}
                                 </span>
@@ -546,10 +546,10 @@ Follow these strict guidelines to create the content:
                                 <input
                                     type="checkbox"
                                     bind:checked={showThinking}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#8E24AA] focus:ring-[#8E24AA]"
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
                                 />
                                 <span
-                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#8E24AA]"
+                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
                                 >
                                     {$t("ai_generator.show_thinking")}
                                 </span>
@@ -580,7 +580,7 @@ Follow these strict guidelines to create the content:
                         id="source-code"
                         bind:value={sourceCode}
                         placeholder={$t("ai_generator.placeholder")}
-                        class="flex-1 w-full bg-white dark:bg-dark-surface text-[#3C4043] dark:text-dark-text border border-[#DADCE0] dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-[#8E24AA] focus:ring-4 focus:ring-[#8E24AA]/10 outline-none resize-none shadow-sm transition-all"
+                        class="flex-1 w-full bg-white dark:bg-dark-surface text-[#3C4043] dark:text-dark-text border border-[#DADCE0] dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 outline-none resize-none shadow-sm transition-all"
                     ></textarea>
 
                     <div class="flex justify-end pt-2">
@@ -601,7 +601,7 @@ Follow these strict guidelines to create the content:
                                 onclick={handleGenerate}
                                 disabled={!sourceCode.trim() &&
                                     uploadedFiles.length === 0}
-                                class="bg-[#8E24AA] text-white px-8 py-3 rounded-full font-bold hover:shadow-lg hover:scale-105 transition-all text-lg flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
+                                class="bg-[#4285F4] text-white px-8 py-3 rounded-full font-bold hover:shadow-lg hover:scale-105 transition-all text-lg flex items-center gap-2 disabled:opacity-50 disabled:hover:scale-100"
                             >
                                 <Sparkles size={20} />
                                 {$t("ai_generator.generate_button")}
@@ -617,11 +617,11 @@ Follow these strict guidelines to create the content:
                 >
                     <div class="relative">
                         <div
-                            class="absolute inset-0 bg-[#8E24AA] rounded-full blur-xl opacity-20 animate-pulse"
+                            class="absolute inset-0 bg-[#4285F4] rounded-full blur-xl opacity-20 animate-pulse"
                             aria-hidden="true"
                         ></div>
                         <Loader2
-                            class="w-16 h-16 text-[#8E24AA] animate-spin relative z-10"
+                            class="w-16 h-16 text-[#4285F4] animate-spin relative z-10"
                             aria-hidden="true"
                         />
                     </div>
@@ -651,7 +651,7 @@ Follow these strict guidelines to create the content:
                                 >
                                     <Sparkles
                                         size={16}
-                                        class="text-[#8E24AA]"
+                                        class="text-[#4285F4]"
                                     />
                                     {$t("ai_generator.thinking_process")}
                                 </summary>
