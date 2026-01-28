@@ -331,8 +331,8 @@
                         let y = e.clientY - 40;
 
                         // Ensure menu stays within viewport
-                        const menuWidth = 288; // w-72 = 18rem = 288px
-                        const menuHeight = 220; 
+                        const menuWidth = 320; // w-80 = 20rem = 320px
+                        const menuHeight = 360;
                         
                         if (x + menuWidth > window.innerWidth) {
                             x = window.innerWidth - menuWidth - 20;
@@ -362,7 +362,7 @@
     }
 
 
-    async function improveWithAi() {
+    async function improveWithAi(instructionOverride?: string) {
         if (!geminiApiKey) {
             alert($t("ai_generator.api_key_required"));
             return;
@@ -375,9 +375,10 @@
         const originalMarkdown = steps[activeStepIndex].content_markdown;
         const { start, end } = selectionRange;
 
+        const instruction = instructionOverride || aiInstruction;
         let prompt = `Improve the following technical writing/markdown content. Make it clearer, correct grammar, and better formatted. Maintain the original meaning. Only return the improved content, no explanations.\n\nContent:\n${selectedText}`;
-        if (aiInstruction.trim()) {
-            prompt = `Improve the following technical writing/markdown content based on this instruction: "${aiInstruction}".\nMake it clearer, correct grammar, and better formatted. Maintain the original meaning where possible. Only return the improved content, no explanations.\n\nContent:\n${selectedText}`;
+        if (instruction.trim()) {
+            prompt = `Improve the following technical writing/markdown content based on this instruction: "${instruction}".\nMake it clearer, correct grammar, and better formatted. Maintain the original meaning where possible. Only return the improved content, no explanations.\n\nContent:\n${selectedText}`;
         }
         const systemPrompt = "You are a helpful technical editor.";
 
@@ -1061,7 +1062,13 @@
         }
     }
 
-    function insertMarkdown(type: string) {
+    type InsertOptions = {
+        language?: string;
+        snippet?: string;
+        url?: string;
+    };
+
+    function insertMarkdown(type: string, options: InsertOptions = {}) {
         if (mode !== "edit" || !steps[activeStepIndex]) return;
 
         // Handle image special case
@@ -1070,38 +1077,170 @@
             return;
         }
 
-        const textarea = document.querySelector("textarea");
+        const textarea = editorEl ?? document.querySelector("textarea");
         if (!textarea) return;
 
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
-        const text = steps[activeStepIndex].content_markdown;
+        const text = steps[activeStepIndex].content_markdown || "";
         const selected = text.substring(start, end);
+        const language = options.language || "ts";
 
         let replacement = "";
-        let cursorOffset = 0;
+        let selectionStart = start;
+        let selectionEnd = start;
+
+        const setCursorToEnd = () => {
+            selectionStart = start + replacement.length;
+            selectionEnd = selectionStart;
+        };
+
+        const setSelection = (offset: number, length: number) => {
+            selectionStart = start + offset;
+            selectionEnd = selectionStart + length;
+        };
 
         switch (type) {
             case "bold":
-                replacement = `**${selected || "bold text"}**`;
-                cursorOffset = selected ? 0 : 2;
+                if (selected) {
+                    replacement = `**${selected}**`;
+                    setCursorToEnd();
+                } else {
+                    const placeholder = "bold text";
+                    replacement = `**${placeholder}**`;
+                    setSelection(2, placeholder.length);
+                }
                 break;
             case "italic":
-                replacement = `*${selected || "italic text"}*`;
-                cursorOffset = selected ? 0 : 1;
+                if (selected) {
+                    replacement = `*${selected}*`;
+                    setCursorToEnd();
+                } else {
+                    const placeholder = "italic text";
+                    replacement = `*${placeholder}*`;
+                    setSelection(1, placeholder.length);
+                }
+                break;
+            case "inline_code":
+                if (selected) {
+                    replacement = `\`${selected}\``;
+                    setCursorToEnd();
+                } else {
+                    const placeholder = "code";
+                    replacement = `\`${placeholder}\``;
+                    setSelection(1, placeholder.length);
+                }
                 break;
             case "code":
-                replacement = `\n\`\`\`javascript\n${selected || "// code here"}\n\`\`\`\n`;
-                cursorOffset = selected ? 0 : 15;
+            case "code_block": {
+                const placeholder = selected || "// code here";
+                const prefix = `\n\`\`\`${language}\n`;
+                replacement = `${prefix}${placeholder}\n\`\`\`\n`;
+                if (selected) {
+                    setCursorToEnd();
+                } else {
+                    setSelection(prefix.length, placeholder.length);
+                }
                 break;
+            }
             case "h1":
-                replacement = `# ${selected || "Heading"}`;
-                cursorOffset = 0;
+            case "h2":
+            case "h3": {
+                const level = type === "h1" ? "#" : type === "h2" ? "##" : "###";
+                const placeholder = "Heading";
+                const content = selected || placeholder;
+                replacement = `${level} ${content}`;
+                if (selected) {
+                    setCursorToEnd();
+                } else {
+                    setSelection(level.length + 1, placeholder.length);
+                }
                 break;
-            case "list":
-                replacement = `\n- ${selected || "list item"}`;
-                cursorOffset = 0;
+            }
+            case "list": {
+                const placeholder = "list item";
+                const lines = selected ? selected.split("\n") : [""];
+                const listText = lines
+                    .map((line) => `- ${line || placeholder}`)
+                    .join("\n");
+                replacement = selected ? listText : `\n${listText}`;
+                if (selected) {
+                    setCursorToEnd();
+                } else {
+                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                }
                 break;
+            }
+            case "ordered_list": {
+                const placeholder = "list item";
+                const lines = selected ? selected.split("\n") : [""];
+                const listText = lines
+                    .map((line, index) => `${index + 1}. ${line || placeholder}`)
+                    .join("\n");
+                replacement = selected ? listText : `\n${listText}`;
+                if (selected) {
+                    setCursorToEnd();
+                } else {
+                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                }
+                break;
+            }
+            case "task_list": {
+                const placeholder = "task";
+                const lines = selected ? selected.split("\n") : [""];
+                const listText = lines
+                    .map((line) => `- [ ] ${line || placeholder}`)
+                    .join("\n");
+                replacement = selected ? listText : `\n${listText}`;
+                if (selected) {
+                    setCursorToEnd();
+                } else {
+                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                }
+                break;
+            }
+            case "quote": {
+                const placeholder = "Quote";
+                const lines = selected ? selected.split("\n") : [""];
+                const quoteText = lines
+                    .map((line) => `> ${line || placeholder}`)
+                    .join("\n");
+                replacement = selected ? quoteText : `\n${quoteText}`;
+                if (selected) {
+                    setCursorToEnd();
+                } else {
+                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                }
+                break;
+            }
+            case "link": {
+                const linkText = selected || "link text";
+                const url = options.url || "https://";
+                const prefix = `[${linkText}](`;
+                replacement = `${prefix}${url})`;
+                setSelection(prefix.length, url.length);
+                break;
+            }
+            case "table": {
+                const header = "| Column | Column | Column |";
+                const divider = "| --- | --- | --- |";
+                const row = "| Cell | Cell | Cell |";
+                const prefix = "\n| ";
+                replacement = `\n${header}\n${divider}\n${row}\n`;
+                setSelection(prefix.length, "Column".length);
+                break;
+            }
+            case "snippet": {
+                const snippet = options.snippet?.trimEnd();
+                if (!snippet) return;
+                const needsPrefix = start > 0 && text[start - 1] !== "\n";
+                const needsSuffix = end < text.length && text[end] !== "\n";
+                replacement = `${needsPrefix ? "\n" : ""}${snippet}${needsSuffix ? "\n" : ""}`;
+                setCursorToEnd();
+                break;
+            }
+            default:
+                return;
         }
 
         steps[activeStepIndex].content_markdown =
@@ -1110,8 +1249,7 @@
         // Refocus and set cursor
         setTimeout(() => {
             textarea.focus();
-            const newCursorPos = start + replacement.length - cursorOffset;
-            textarea.setSelectionRange(newCursorPos, newCursorPos);
+            textarea.setSelectionRange(selectionStart, selectionEnd);
         }, 0);
     }
 
@@ -1168,6 +1306,23 @@
         if (mode !== "edit") return;
 
         if (e.metaKey || e.ctrlKey) {
+            if (e.shiftKey) {
+                switch (e.code) {
+                    case "Digit7":
+                        e.preventDefault();
+                        insertMarkdown("ordered_list");
+                        return;
+                    case "Digit8":
+                        e.preventDefault();
+                        insertMarkdown("list");
+                        return;
+                    case "Digit9":
+                        e.preventDefault();
+                        insertMarkdown("quote");
+                        return;
+                }
+            }
+
             switch (e.key.toLowerCase()) {
                 case "b":
                     e.preventDefault();
@@ -1176,6 +1331,10 @@
                 case "i":
                     e.preventDefault();
                     insertMarkdown("italic");
+                    break;
+                case "k":
+                    e.preventDefault();
+                    insertMarkdown("link");
                     break;
             }
         }
