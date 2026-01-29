@@ -14,14 +14,15 @@ export const getJoinedCodelabs = USE_FIREBASE ? firebase.getJoinedCodelabs : asy
 export const getCodelab = USE_FIREBASE ? firebase.getCodelab : backend.getCodelab;
 export const createCodelab = USE_FIREBASE ? firebase.createCodelab : backend.createCodelab;
 export const updateCodelab = USE_FIREBASE ? firebase.updateCodelab : backend.updateCodelab;
-export const copyCodelab = USE_FIREBASE ? async () => { throw new Error('Not supported in Firebase mode'); } : backend.copyCodelab;
+export const copyCodelab = USE_FIREBASE ? async (_id: string) => { throw new Error('Not supported in Firebase mode'); } : backend.copyCodelab;
 export const saveSteps = USE_FIREBASE ? firebase.saveSteps : backend.saveSteps;
 export const deleteCodelab = USE_FIREBASE ? firebase.deleteCodelab : backend.deleteCodelab;
 export const login = USE_FIREBASE ? firebase.login : backend.login;
-export const saveAdminSettings = USE_FIREBASE ? async () => { /* not needed for firebase */ } : backend.saveAdminSettings;
+export const saveAdminSettings = USE_FIREBASE ? async (_payload: { gemini_api_key: string }) => { /* not needed for firebase */ } : backend.saveAdminSettings;
 export const loginWithGoogle = USE_FIREBASE ? firebase.loginWithGoogle : async () => { throw new Error('Not supported in backend mode'); };
-export const logout = USE_FIREBASE ? firebase.logout : async () => { localStorage.removeItem('adminToken'); };
+export const logout = USE_FIREBASE ? firebase.logout : backend.logout;
 export const onAuthChange = USE_FIREBASE ? firebase.onAuthChange : (cb: any) => { /* no-op */ };
+export const getSession = USE_FIREBASE ? firebase.getSession : backend.getSession;
 
 export const registerAttendee = USE_FIREBASE ? firebase.registerAttendee : backend.registerAttendee;
 export const updateAttendeeProgress = USE_FIREBASE ? firebase.updateAttendeeProgress : async (codelabId: string, attendeeId: string, stepNumber: number) => { /* WebSocket handles this */ };
@@ -36,47 +37,47 @@ export const submitFeedback = USE_FIREBASE ? firebase.submitFeedback : backend.s
 export const getFeedback = USE_FIREBASE ? firebase.getFeedback : backend.getFeedback;
 
 export const completeCodelab = USE_FIREBASE 
-    ? async () => { /* Firebase logic needed */ } 
+    ? async (_codelabId: string) => { /* Firebase logic needed */ } 
     : backend.completeCodelab;
 
 export const getCertificate = USE_FIREBASE 
-    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    ? async (_attendeeId: string) => { throw new Error('Not supported in Firebase mode'); } 
     : backend.getCertificate;
 
 export const getMaterials = USE_FIREBASE 
-    ? async () => [] 
+    ? async (_codelabId: string) => [] 
     : backend.getMaterials;
 export const addMaterial = USE_FIREBASE 
-    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    ? async (_codelabId: string, _payload: { title: string; material_type: 'link' | 'file'; link_url?: string; file_path?: string }) => { throw new Error('Not supported in Firebase mode'); } 
     : backend.addMaterial;
 export const deleteMaterial = USE_FIREBASE 
-    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    ? async (_codelabId: string, _materialId: string) => { throw new Error('Not supported in Firebase mode'); } 
     : backend.deleteMaterial;
 export const uploadMaterial = USE_FIREBASE 
-    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    ? async (_file: File) => { throw new Error('Not supported in Firebase mode'); } 
     : backend.uploadMaterial;
 
 export const submitFile = USE_FIREBASE 
-    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    ? async (_codelabId: string, _attendeeId: string, _file: File) => { throw new Error('Not supported in Firebase mode'); } 
     : backend.submitFile;
 export const getSubmissions = USE_FIREBASE 
-    ? async () => [] 
+    ? async (_codelabId: string) => [] 
     : backend.getSubmissions;
 export const deleteSubmission = USE_FIREBASE 
-    ? async () => { throw new Error('Not supported in Firebase mode'); } 
+    ? async (_codelabId: string, _attendeeId: string, _submissionId: string) => { throw new Error('Not supported in Firebase mode'); } 
     : backend.deleteSubmission;
 
 export const getQuizzes = USE_FIREBASE
-    ? async () => []
+    ? async (_codelabId: string) => []
     : backend.getQuizzes;
 export const updateQuizzes = USE_FIREBASE
-    ? async () => { throw new Error('Not supported in Firebase mode'); }
+    ? async (_codelabId: string, _quizzes: { question: string, options: string[], correct_answer: number }[]) => { throw new Error('Not supported in Firebase mode'); }
     : backend.updateQuizzes;
 export const submitQuiz = USE_FIREBASE
-    ? async () => { /* Not supported */ }
+    ? async (_codelabId: string, _payload: QuizSubmissionPayload) => { /* Not supported */ }
     : backend.submitQuiz;
 export const getQuizSubmissions = USE_FIREBASE
-    ? async () => []
+    ? async (_codelabId: string) => []
     : backend.getQuizSubmissions;
 
 // Export specialized functions
@@ -88,9 +89,27 @@ export const isFirebaseMode = () => USE_FIREBASE;
 
 // Unsupported in Firebase mode for now
 export const exportCodelab = USE_FIREBASE 
-    ? async () => { alert('Export is not supported in Firebase mode yet.'); } 
+    ? async (_id: string) => { alert('Export is not supported in Firebase mode yet.'); } 
     : backend.exportCodelab;
 
-export const importCodelab = USE_FIREBASE 
-    ? async () => { throw new Error('Import is not supported in Firebase mode yet.'); } 
+export const importCodelab = USE_FIREBASE
+    ? async (_file: File) => { throw new Error('Import is not supported in Firebase mode yet.'); }
     : backend.importCodelab;
+
+// Code Server API (Backend only)
+export const createCodeServer = USE_FIREBASE
+    ? async (_codelabId: string, _workspaceFiles?: backend.WorkspaceFile[]) => { throw new Error('Not supported in Firebase mode'); }
+    : backend.createCodeServer;
+export const getCodeServerInfo = USE_FIREBASE
+    ? async (_codelabId: string) => { throw new Error('Not supported in Firebase mode'); }
+    : backend.getCodeServerInfo;
+export const createCodeServerBranch = USE_FIREBASE
+    ? async (_codelabId: string, _stepNumber: number, _branchType: 'start' | 'end') => { throw new Error('Not supported in Firebase mode'); }
+    : backend.createCodeServerBranch;
+export const downloadCodeServerWorkspace = USE_FIREBASE
+    ? async (_codelabId: string) => { throw new Error('Not supported in Firebase mode'); }
+    : backend.downloadCodeServerWorkspace;
+export const deleteCodeServer = USE_FIREBASE
+    ? async (_codelabId: string) => { throw new Error('Not supported in Firebase mode'); }
+    : backend.deleteCodeServer;
+export type { CodeServerInfo, WorkspaceFile } from './api-backend';
