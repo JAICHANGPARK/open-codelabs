@@ -1,8 +1,8 @@
 use axum::http::StatusCode;
 use url::Url;
 
-use crate::error::bad_request;
-use crate::models::{
+use crate::utils::error::bad_request;
+use crate::domain::models::{
     CreateCodelab, CreateFeedback, CreateMaterial, CreateQuiz, CreateStep, RegistrationPayload,
     UpdateStepsPayload,
 };
