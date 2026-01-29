@@ -7,9 +7,14 @@ services:
       - DATABASE_URL=${DATABASE_URL}
       - ADMIN_ID=${ADMIN_ID}
       - ADMIN_PW=${ADMIN_PW}
+      - CODESERVER_HOST=codeserver
+      - CODESERVER_PORT=8443
     volumes:
       - ${DATA_VOLUME_PATH}/data:/app/data
       - ${DATA_VOLUME_PATH}/uploads:/app/static/uploads
+      - codeserver-workspaces:/workspaces
+    depends_on:
+      - codeserver
 
   frontend:
     build:
@@ -26,3 +31,16 @@ services:
       - HOST=${FRONTEND_HOST}
     depends_on:
       - backend
+
+  codeserver:
+    image: codercom/code-server:latest
+    ports:
+      - "${CODESERVER_PORT:-8443}:8080"
+    environment:
+      - PASSWORD=${CODESERVER_PASSWORD:-codelab123}
+    volumes:
+      - codeserver-workspaces:/home/coder/workspace
+    command: --auth password --bind-addr 0.0.0.0:8080
+
+volumes:
+  codeserver-workspaces:
