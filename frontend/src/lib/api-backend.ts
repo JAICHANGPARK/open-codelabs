@@ -27,35 +27,54 @@ if (browser && (envApiUrl === 'http://backend:8080' || !envApiUrl || envApiUrl.i
 const API_URL = BASE_URL + '/api';
 export const ASSET_URL = BASE_URL;
 
-function getAuthHeader(): Record<string, string> {
-    if (!browser) return {};
-    const token = localStorage.getItem('adminToken');
-    return token ? { 'Authorization': `Bearer ${token}` } : {};
+function getCookie(name: string): string | null {
+    if (!browser) return null;
+    const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+function getCsrfToken(): string | null {
+    return getCookie("__Host-oc_csrf") || getCookie("oc_csrf");
+}
+
+function withCsrf(headers?: HeadersInit, method?: string): Headers {
+    const merged = new Headers(headers || {});
+    const verb = (method || "GET").toUpperCase();
+    if (!["GET", "HEAD", "OPTIONS"].includes(verb)) {
+        const token = getCsrfToken();
+        if (token) merged.set("X-CSRF-Token", token);
+    }
+    return merged;
+}
+
+async function apiFetch(path: string, init: RequestInit = {}): Promise<Response> {
+    const method = init.method || "GET";
+    const headers = withCsrf(init.headers, method);
+    return fetch(`${API_URL}${path}`, {
+        ...init,
+        credentials: "include",
+        headers
+    });
 }
 
 export async function listCodelabs(): Promise<Codelab[]> {
-    const res = await fetch(`${API_URL}/codelabs`, {
-        headers: getAuthHeader()
-    });
+    const res = await apiFetch(`/codelabs`);
     if (!res.ok) throw new Error('Failed to fetch codelabs');
     return res.json();
 }
 
 export async function getCodelab(id: string): Promise<[Codelab, Step[]]> {
-    const res = await fetch(`${API_URL}/codelabs/${id}`, {
-        headers: getAuthHeader()
-    });
+    const res = await apiFetch(`/codelabs/${id}`);
     if (res.status === 403) throw new Error('PRIVATE_CODELAB');
     if (!res.ok) throw new Error('Failed to fetch codelab');
     return res.json();
 }
 
 export async function createCodelab(payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean, guide_markdown?: string }): Promise<Codelab> {
-    const res = await fetch(`${API_URL}/codelabs`, {
+    const res = await apiFetch(`/codelabs`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            ...getAuthHeader()
         },
         body: JSON.stringify(payload),
     });
@@ -64,11 +83,10 @@ export async function createCodelab(payload: { title: string; description: strin
 }
 
 export async function updateCodelab(id: string, payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean, guide_markdown?: string }): Promise<Codelab> {
-    const res = await fetch(`${API_URL}/codelabs/${id}`, {
+    const res = await apiFetch(`/codelabs/${id}`, {
         method: 'PUT',
         headers: { 
             'Content-Type': 'application/json',
-            ...getAuthHeader()
         },
         body: JSON.stringify(payload),
     });
@@ -77,7 +95,7 @@ export async function updateCodelab(id: string, payload: { title: string; descri
 }
 
 export async function saveSteps(codelabId: string, steps: { title: string, content_markdown: string }[]): Promise<void> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/steps`, {
+    const res = await apiFetch(`/codelabs/${codelabId}/steps`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ steps })
@@ -86,28 +104,37 @@ export async function saveSteps(codelabId: string, steps: { title: string, conte
 }
 
 export async function deleteCodelab(codelabId: string): Promise<void> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}`, {
+    const res = await apiFetch(`/codelabs/${codelabId}`, {
         method: 'DELETE'
     });
     if (!res.ok) throw new Error('Failed to delete codelab');
 }
 
 export async function copyCodelab(id: string): Promise<Codelab> {
-    const res = await fetch(`${API_URL}/codelabs/${id}/copy`, {
-        method: 'POST',
-        headers: getAuthHeader()
-    });
+    const res = await apiFetch(`/codelabs/${id}/copy`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to copy codelab');
     return res.json();
 }
 
-export async function login(admin_id: string, admin_pw: string): Promise<{ token: string }> {
-    const res = await fetch(`${API_URL}/login`, {
+export async function login(admin_id: string, admin_pw: string): Promise<{ status: string }> {
+    const res = await apiFetch(`/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ admin_id, admin_pw }),
     });
     if (!res.ok) throw new Error('Invalid credentials');
+    return res.json();
+}
+
+export async function logout(): Promise<void> {
+    const res = await apiFetch(`/logout`, { method: 'POST' });
+    if (!res.ok) throw new Error('Logout failed');
+}
+
+export async function getSession(): Promise<{ role: string; sub: string; exp: number } | null> {
+    const res = await apiFetch(`/session`);
+    if (res.status === 401) return null;
+    if (!res.ok) throw new Error('Failed to fetch session');
     return res.json();
 }
 
@@ -125,11 +152,10 @@ export async function saveAdminSettings(payload: { gemini_api_key: string }): Pr
         }
     }
 
-    const res = await fetch(`${API_URL}/admin/settings`, {
+    const res = await apiFetch(`/admin/settings`, {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
-            ...getAuthHeader()
         },
         body: JSON.stringify(finalPayload),
     });
@@ -137,7 +163,7 @@ export async function saveAdminSettings(payload: { gemini_api_key: string }): Pr
 }
 
 export async function exportCodelab(id: string): Promise<void> {
-    const res = await fetch(`${API_URL}/codelabs/${id}/export`);
+    const res = await apiFetch(`/codelabs/${id}/export`);
     if (!res.ok) throw new Error('Export failed');
     const blob = await res.blob();
     const url = window.URL.createObjectURL(blob);
@@ -152,7 +178,7 @@ export async function exportCodelab(id: string): Promise<void> {
 export async function importCodelab(file: File): Promise<Codelab> {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API_URL}/codelabs/import`, {
+    const res = await apiFetch(`/codelabs/import`, {
         method: 'POST',
         body: formData,
     });
@@ -161,7 +187,7 @@ export async function importCodelab(file: File): Promise<Codelab> {
 }
 
 export async function registerAttendee(codelabId: string, name: string, code: string): Promise<Attendee> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/register`, {
+    const res = await apiFetch(`/codelabs/${codelabId}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, code }),
@@ -171,12 +197,11 @@ export async function registerAttendee(codelabId: string, name: string, code: st
     return res.json();
 }
 
-export async function requestHelp(codelabId: string, attendeeId: string, stepNumber: number): Promise<void> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/help`, {
+export async function requestHelp(codelabId: string, stepNumber: number): Promise<void> {
+    const res = await apiFetch(`/codelabs/${codelabId}/help`, {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json',
-            'X-Attendee-ID': attendeeId
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify({ step_number: stepNumber }),
     });
@@ -184,26 +209,24 @@ export async function requestHelp(codelabId: string, attendeeId: string, stepNum
 }
 
 export async function getHelpRequests(codelabId: string): Promise<HelpRequest[]> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/help`);
+    const res = await apiFetch(`/codelabs/${codelabId}/help`);
     if (!res.ok) throw new Error('Failed to fetch help requests');
     return res.json();
 }
 
 export async function resolveHelpRequest(codelabId: string, helpId: string): Promise<void> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/help/${helpId}/resolve`, {
-        method: 'POST',
-    });
+    const res = await apiFetch(`/codelabs/${codelabId}/help/${helpId}/resolve`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to resolve help request');
 }
 
 export async function getAttendees(codelabId: string): Promise<Attendee[]> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/attendees`);
+    const res = await apiFetch(`/codelabs/${codelabId}/attendees`);
     if (!res.ok) throw new Error('Failed to fetch attendees');
     return res.json();
 }
 
 export async function getChatHistory(codelabId: string): Promise<ChatMessage[]> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/chat`);
+    const res = await apiFetch(`/codelabs/${codelabId}/chat`);
     if (!res.ok) throw new Error('Failed to fetch chat history');
     return res.json();
 }
@@ -211,7 +234,7 @@ export async function getChatHistory(codelabId: string): Promise<ChatMessage[]> 
 export async function uploadImage(file: File): Promise<{ url: string }> {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API_URL}/upload/image`, {
+    const res = await apiFetch(`/upload/image`, {
         method: 'POST',
         body: formData,
     });
@@ -219,15 +242,14 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
     return res.json();
 }
 
-export async function submitFeedback(codelabId: string, payload: { difficulty: number; satisfaction: number; comments: string; attendee_id: string }): Promise<void> {
+export async function submitFeedback(codelabId: string, payload: { difficulty: number; satisfaction: number; comments: string }): Promise<void> {
     const body = {
         difficulty: payload.difficulty.toString(),
         satisfaction: payload.satisfaction.toString(),
-        comment: payload.comments,
-        attendee_id: payload.attendee_id
+        comment: payload.comments
     };
 
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/feedback`, {
+    const res = await apiFetch(`/codelabs/${codelabId}/feedback`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -237,23 +259,18 @@ export async function submitFeedback(codelabId: string, payload: { difficulty: n
 }
 
 export async function getFeedback(codelabId: string): Promise<Feedback[]> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/feedback`);
+    const res = await apiFetch(`/codelabs/${codelabId}/feedback`);
     if (!res.ok) throw new Error('Failed to fetch feedback');
     return res.json();
 }
 
-export async function completeCodelab(codelabId: string, attendeeId: string): Promise<void> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/complete`, {
-        method: 'POST',
-        headers: { 
-            'X-Attendee-ID': attendeeId
-        },
-    });
+export async function completeCodelab(codelabId: string): Promise<void> {
+    const res = await apiFetch(`/codelabs/${codelabId}/complete`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to complete codelab');
 }
 
 export async function getCertificate(attendeeId: string): Promise<CertificateInfo> {
-    const res = await fetch(`${API_URL}/certificates/${attendeeId}`);
+    const res = await apiFetch(`/certificates/${attendeeId}`);
     if (!res.ok) throw new Error('Failed to fetch certificate');
     return res.json();
 }
@@ -264,19 +281,19 @@ export function getWsUrl(codelabId: string): string {
 }
 
 export async function getMaterials(codelabId: string): Promise<Material[]> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/materials`);
+    const res = await apiFetch(`/codelabs/${codelabId}/materials`);
     if (!res.ok) throw new Error('Failed to fetch materials');
     return res.json();
 }
 
 export async function getQuizzes(codelabId: string): Promise<Quiz[]> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/quizzes`);
+    const res = await apiFetch(`/codelabs/${codelabId}/quizzes`);
     if (!res.ok) throw new Error('Failed to fetch quizzes');
     return res.json();
 }
 
 export async function submitQuiz(codelabId: string, payload: QuizSubmissionPayload): Promise<void> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/quizzes/submit`, {
+    const res = await apiFetch(`/codelabs/${codelabId}/quizzes/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -285,15 +302,13 @@ export async function submitQuiz(codelabId: string, payload: QuizSubmissionPaylo
 }
 
 export async function getQuizSubmissions(codelabId: string): Promise<QuizSubmissionWithAttendee[]> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/quizzes/submissions`, {
-        headers: getAuthHeader()
-    });
+    const res = await apiFetch(`/codelabs/${codelabId}/quizzes/submissions`);
     if (!res.ok) throw new Error('Failed to fetch quiz submissions');
     return res.json();
 }
 
 export async function updateQuizzes(codelabId: string, quizzes: { question: string, options: string[], correct_answer: number }[]): Promise<void> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/quizzes`, {
+    const res = await apiFetch(`/codelabs/${codelabId}/quizzes`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(quizzes)
@@ -302,11 +317,10 @@ export async function updateQuizzes(codelabId: string, quizzes: { question: stri
 }
 
 export async function addMaterial(codelabId: string, payload: { title: string; material_type: 'link' | 'file'; link_url?: string; file_path?: string }): Promise<Material> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/materials`, {
+    const res = await apiFetch(`/codelabs/${codelabId}/materials`, {
         method: 'POST',
         headers: { 
-            'Content-Type': 'application/json',
-            ...getAuthHeader()
+            'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload),
     });
@@ -315,19 +329,15 @@ export async function addMaterial(codelabId: string, payload: { title: string; m
 }
 
 export async function deleteMaterial(codelabId: string, materialId: string): Promise<void> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/materials/${materialId}`, {
-        method: 'DELETE',
-        headers: getAuthHeader()
-    });
+    const res = await apiFetch(`/codelabs/${codelabId}/materials/${materialId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete material');
 }
 
 export async function uploadMaterial(file: File): Promise<{ url: string; original_name: string }> {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API_URL}/upload/material`, {
+    const res = await apiFetch(`/upload/material`, {
         method: 'POST',
-        headers: getAuthHeader(),
         body: formData,
     });
     if (!res.ok) throw new Error('Upload failed');
@@ -337,7 +347,7 @@ export async function uploadMaterial(file: File): Promise<{ url: string; origina
 export async function submitFile(codelabId: string, attendeeId: string, file: File): Promise<Submission> {
     const formData = new FormData();
     formData.append('file', file);
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/attendees/${attendeeId}/submissions`, {
+    const res = await apiFetch(`/codelabs/${codelabId}/attendees/${attendeeId}/submissions`, {
         method: 'POST',
         body: formData,
     });
@@ -349,17 +359,75 @@ export async function submitFile(codelabId: string, attendeeId: string, file: Fi
 }
 
 export async function getSubmissions(codelabId: string): Promise<SubmissionWithAttendee[]> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/submissions`, {
-        headers: getAuthHeader()
-    });
+    const res = await apiFetch(`/codelabs/${codelabId}/submissions`);
     if (!res.ok) throw new Error('Failed to fetch submissions');
     return res.json();
 }
 
 export async function deleteSubmission(codelabId: string, attendeeId: string, submissionId: string): Promise<void> {
-    const res = await fetch(`${API_URL}/codelabs/${codelabId}/attendees/${attendeeId}/submissions/${submissionId}`, {
-        method: 'DELETE',
-        headers: getAuthHeader()
-    });
+    const res = await apiFetch(`/codelabs/${codelabId}/attendees/${attendeeId}/submissions/${submissionId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete submission');
+}
+
+// Code Server API
+export interface CodeServerInfo {
+    container_name: string;
+    port: number;
+    password: string;
+}
+
+export interface WorkspaceFile {
+    path: string;
+    content: string;
+}
+
+export async function createCodeServer(codelabId: string, workspaceFiles?: WorkspaceFile[]): Promise<CodeServerInfo> {
+    const res = await apiFetch(`/codeserver`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            codelab_id: codelabId,
+            workspace_files: workspaceFiles
+        })
+    });
+    if (!res.ok) throw new Error('Failed to create code server');
+    return res.json();
+}
+
+export async function getCodeServerInfo(codelabId: string): Promise<CodeServerInfo> {
+    const res = await apiFetch(`/codeserver/${codelabId}`);
+    if (!res.ok) throw new Error('Failed to get code server info');
+    return res.json();
+}
+
+export async function createCodeServerBranch(codelabId: string, stepNumber: number, branchType: 'start' | 'end'): Promise<void> {
+    const res = await apiFetch(`/codeserver/${codelabId}/branch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            step_number: stepNumber,
+            branch_type: branchType
+        })
+    });
+    if (!res.ok) throw new Error('Failed to create branch');
+}
+
+export async function downloadCodeServerWorkspace(codelabId: string): Promise<void> {
+    const res = await apiFetch(`/codeserver/${codelabId}/download`);
+    if (!res.ok) throw new Error('Failed to download workspace');
+
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `codelab-${codelabId}-workspace.tar`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+}
+
+export async function deleteCodeServer(codelabId: string): Promise<void> {
+    const res = await apiFetch(`/codeserver/${codelabId}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('Failed to delete code server');
 }
