@@ -1,13 +1,26 @@
+pub mod audit;
+pub mod auth;
+pub mod codeserver;
+pub mod crypto;
+pub mod error;
 pub mod handlers;
 pub mod models;
+pub mod rate_limit;
+pub mod request_info;
+pub mod security;
 pub mod state;
+pub mod validation;
 
 use crate::handlers::{
-    admin::{login, update_settings},
+    admin::{get_session, login, logout, update_settings},
     ai::proxy_gemini_stream,
     attendees::{
         complete_codelab, get_attendees, get_certificate, get_help_requests, register_attendee,
         request_help, resolve_help_request,
+    },
+    codeserver::{
+        create_branch, create_codeserver, delete_codeserver, download_workspace,
+        get_codeserver_info,
     },
     codelabs::{
         copy_codelab, create_codelab, delete_codelab, export_codelab, get_chat_history,
@@ -20,7 +33,11 @@ use crate::handlers::{
     upload::upload_image,
     websocket::ws_handler,
 };
+use crate::security::{
+    build_cors_layer, csrf_middleware, rate_limit_middleware, security_headers_middleware,
+};
 pub use crate::state::{AppState, DbKind};
+use axum::middleware;
 use axum::{
     routing::{delete, get, post, put},
     Router,
@@ -31,6 +48,8 @@ use tower_http::services::ServeDir;
 pub fn create_router(state: Arc<AppState>) -> Router {
     Router::new()
         .route("/api/login", post(login))
+        .route("/api/logout", post(logout))
+        .route("/api/session", get(get_session))
         .route("/api/admin/settings", post(update_settings))
         .route("/api/codelabs", get(list_codelabs).post(create_codelab))
         .route(
@@ -90,8 +109,30 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/api/upload/material", post(upload_material_file))
         .route("/api/ai/stream", post(proxy_gemini_stream))
         .route("/api/ws/{id}", get(ws_handler))
+        .route("/api/codeserver", post(create_codeserver))
+        .route(
+            "/api/codeserver/{codelab_id}",
+            get(get_codeserver_info).delete(delete_codeserver),
+        )
+        .route("/api/codeserver/{codelab_id}/branch", post(create_branch))
+        .route(
+            "/api/codeserver/{codelab_id}/download",
+            get(download_workspace),
+        )
         .nest_service("/assets", ServeDir::new("static/assets"))
         .fallback_service(ServeDir::new("static"))
-        .layer(tower_http::cors::CorsLayer::permissive())
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            rate_limit_middleware,
+        ))
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            csrf_middleware,
+        ))
+        .layer(middleware::from_fn_with_state(
+            state.clone(),
+            security_headers_middleware,
+        ))
+        .layer(build_cors_layer())
         .with_state(state)
 }
