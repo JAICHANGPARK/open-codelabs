@@ -39,28 +39,53 @@ export function encrypt(text: string, key: string = SECRET_KEY): string {
     return CryptoJS.AES.encrypt(text, key).toString();
 }
 
+const BACKEND_PREFIX = "v1:";
+const PBKDF2_ITERS = 100000;
+const SALT_BYTES = 16;
+const IV_BYTES = 16;
+const ENC_KEY_BYTES = 32;
+const MAC_KEY_BYTES = 32;
+
+function deriveKeys(password: string, salt: CryptoJS.lib.WordArray) {
+    const keySizeWords = (ENC_KEY_BYTES + MAC_KEY_BYTES) / 4;
+    const derived = CryptoJS.PBKDF2(password, salt, {
+        keySize: keySizeWords,
+        iterations: PBKDF2_ITERS,
+        hasher: CryptoJS.algo.SHA256
+    });
+    const encKey = CryptoJS.lib.WordArray.create(
+        derived.words.slice(0, ENC_KEY_BYTES / 4),
+        ENC_KEY_BYTES
+    );
+    const macKey = CryptoJS.lib.WordArray.create(
+        derived.words.slice(ENC_KEY_BYTES / 4, keySizeWords),
+        MAC_KEY_BYTES
+    );
+    return { encKey, macKey };
+}
+
 /**
- * Encrypts text using AES-256-CBC compatible with Rust's magic-crypt.
- * magic-crypt (256-bit) uses:
- * - Key: SHA256(password)
- * - IV: SHA256(SHA256(password)).slice(0, 16)
+ * Encrypts text for backend storage using AES-256-CBC + HMAC-SHA256.
+ * Output format: v1:BASE64(salt || iv || ciphertext || tag)
  */
 export function encryptForBackend(text: string, password: string): string {
     if (!text) return "";
-    
-    // Key: SHA256(password)
-    const key = CryptoJS.SHA256(password);
-    
-    // Try IV: all zeros
-    const iv = CryptoJS.enc.Hex.parse("00000000000000000000000000000000");
-    
-    const encrypted = CryptoJS.AES.encrypt(text, key, {
-        iv: iv,
+
+    const salt = CryptoJS.lib.WordArray.random(SALT_BYTES);
+    const iv = CryptoJS.lib.WordArray.random(IV_BYTES);
+    const { encKey, macKey } = deriveKeys(password, salt);
+
+    const encrypted = CryptoJS.AES.encrypt(text, encKey, {
+        iv,
         mode: CryptoJS.mode.CBC,
         padding: CryptoJS.pad.Pkcs7
     });
-    
-    return encrypted.toString();
+
+    const data = salt.clone().concat(iv).concat(encrypted.ciphertext);
+    const tag = CryptoJS.HmacSHA256(data, macKey);
+    const payload = data.concat(tag);
+
+    return `${BACKEND_PREFIX}${CryptoJS.enc.Base64.stringify(payload)}`;
 }
 
 export function decrypt(ciphertext: string, key: string = SECRET_KEY): string {
