@@ -1,15 +1,15 @@
-use crate::audit::{record_audit, AuditEntry};
-use crate::auth::{
+use crate::infrastructure::audit::{record_audit, AuditEntry};
+use crate::middleware::auth::{
     build_csrf_cookie, build_session_cookie, now_epoch_seconds, AuthSession, Role, SessionClaims,
 };
-use crate::crypto::{decrypt_with_password, encrypt_with_password};
-use crate::error::{bad_request, forbidden, internal_error};
-use crate::models::{
+use crate::utils::crypto::{decrypt_with_password, encrypt_with_password};
+use crate::utils::error::{bad_request, forbidden, internal_error};
+use crate::domain::models::{
     Attendee, CertificateInfo, Codelab, HelpRequest, HelpRequestPayload, RegistrationPayload,
 };
 use crate::request_info::RequestInfo;
-use crate::state::AppState;
-use crate::validation::validate_registration;
+use crate::infrastructure::database::AppState;
+use crate::utils::validation::validate_registration;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
