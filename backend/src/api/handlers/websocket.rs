@@ -1,6 +1,6 @@
-use crate::auth::{AuthSession, Role};
-use crate::error::forbidden;
-use crate::state::AppState;
+use crate::middleware::auth::{AuthSession, Role};
+use crate::utils::error::forbidden;
+use crate::infrastructure::database::AppState;
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
