@@ -32,7 +32,11 @@
         type Material,
         type Quiz,
     } from "$lib/api";
-    import { streamGeminiResponseRobust } from "$lib/gemini";
+    import {
+        streamGeminiResponseRobust,
+        streamGeminiStructuredOutput,
+        type GeminiStructuredConfig,
+    } from "$lib/gemini";
     import { adminMarked as marked } from "$lib/markdown";
     import DOMPurify from "dompurify";
     import { decrypt } from "$lib/crypto";
@@ -101,6 +105,14 @@
     let quizSubmissions = $state<any[]>([]);
     let isQuizGenerating = $state(false);
     let isGuideGenerating = $state(false);
+    let isGuideProGenerating = $state(false);
+    let guideProStage = $state<"plan" | "draft" | "review" | "revise" | null>(
+        null,
+    );
+    let guideProPlanOutput = $state("");
+    let guideProDraftOutput = $state("");
+    let guideProReviewOutput = $state("");
+    let guideProRevisedOutput = $state("");
     let numQuizToGenerate = $state(5);
     let ws = $state<WebSocket | null>(null);
     let chatMessage = $state("");
@@ -545,31 +557,373 @@
         }
     }
 
+    const MAX_GUIDE_PROMPT_CHARS = 30_000;
+    const MAX_GUIDE_STEP_CHARS = 2000;
+    const GUIDE_CONTEXT_TRUNCATION_NOTE =
+        "Note: The codelab content was truncated to fit the model's input limit.";
+    const GUIDE_SECTION_TRUNCATION_NOTE =
+        "Note: The following section was truncated to fit the model's input limit.";
+    const PROMPT_CONTEXT_PREFIX_LEN = "Context:\n".length;
+    const PROMPT_QUESTION_PREFIX_LEN = "\n\nQuestion:\n".length;
+
+    const normalizeGuideContent = (content: string, maxChars: number) => {
+        const compact = content
+            .replace(/\r\n/g, "\n")
+            .replace(/\n{3,}/g, "\n\n")
+            .trim();
+        if (compact.length <= maxChars) return compact;
+        return `${compact.slice(0, maxChars)}\n...`;
+    };
+
+    const truncateForPrompt = (text: string, maxChars: number) => {
+        const trimmed = text.trim();
+        if (maxChars <= 0) {
+            return { text: "...", truncated: true };
+        }
+        if (trimmed.length <= maxChars) {
+            return { text: trimmed, truncated: false };
+        }
+        const sliceLen = Math.max(0, maxChars - 4);
+        return { text: `${trimmed.slice(0, sliceLen)}\n...`, truncated: true };
+    };
+
+    const clampPrompt = (text: string) => {
+        if (text.length <= MAX_GUIDE_PROMPT_CHARS) return text;
+        return truncateForPrompt(text, MAX_GUIDE_PROMPT_CHARS).text;
+    };
+
+    const formatPromptSection = (
+        label: string,
+        content: string,
+        maxChars: number,
+    ) => {
+        const { text, truncated } = truncateForPrompt(content, maxChars);
+        return `${label}\n${text}${
+            truncated ? `\n${GUIDE_SECTION_TRUNCATION_NOTE}` : ""
+        }`;
+    };
+
+    const buildGuideContext = (maxChars: number) => {
+        let contextText = "";
+        let truncated = false;
+
+        steps.forEach((step, index) => {
+            if (truncated) return;
+            const stepNumber = step.step_number || index + 1;
+            const content = normalizeGuideContent(
+                step.content_markdown || "",
+                MAX_GUIDE_STEP_CHARS,
+            );
+            const block = `Step ${stepNumber}: ${step.title}\n${content}`;
+            const nextLength = contextText.length + block.length + 2;
+
+            if (nextLength > maxChars) {
+                const remaining = maxChars - contextText.length;
+                if (remaining > 0) {
+                    const clipped = block.slice(0, Math.max(0, remaining - 4));
+                    contextText += `${clipped}\n...`;
+                }
+                truncated = true;
+                return;
+            }
+
+            contextText += `${block}\n\n`;
+        });
+
+        return {
+            context: contextText.trim(),
+            truncated,
+        };
+    };
+
+    const buildGuidePrompt = (promptHeader: string, maxChars: number) => {
+        const footerReserve = GUIDE_CONTEXT_TRUNCATION_NOTE.length + 2;
+        const maxContextChars = Math.max(
+            0,
+            maxChars - promptHeader.length - footerReserve,
+        );
+        const { context, truncated } = buildGuideContext(maxContextChars);
+        return {
+            prompt: `${promptHeader}${context}${
+                truncated ? `\n\n${GUIDE_CONTEXT_TRUNCATION_NOTE}` : ""
+            }`,
+            truncated,
+        };
+    };
+
+    function resolveTargetLanguage() {
+        const userLanguage = $locale || "en";
+        const languageNames: Record<string, string> = {
+            ko: "Korean",
+            en: "English",
+            zh: "Chinese",
+            ja: "Japanese",
+        };
+        return languageNames[userLanguage] || "English";
+    }
+
+    function parseStructuredJson<T>(raw: string): T | null {
+        const trimmed = raw.trim();
+        if (!trimmed) return null;
+        const firstBrace = trimmed.indexOf("{");
+        const lastBrace = trimmed.lastIndexOf("}");
+        if (firstBrace === -1 || lastBrace === -1) return null;
+        const jsonText = trimmed.substring(firstBrace, lastBrace + 1);
+        try {
+            return JSON.parse(jsonText) as T;
+        } catch {
+            return null;
+        }
+    }
+
+    type GuidePlanSection = {
+        title: string;
+        items: string[];
+    };
+
+    type GuidePlan = {
+        summary: string;
+        audience: string;
+        prerequisites: string[];
+        sections: GuidePlanSection[];
+        checklist: string[];
+        search_terms: string[];
+    };
+
+    type GuideDraft = {
+        markdown: string;
+    };
+
+    type GuideReviewIssue = {
+        severity: string;
+        issue: string;
+        recommendation: string;
+    };
+
+    type GuideReview = {
+        expert: {
+            summary: string;
+            issues: GuideReviewIssue[];
+            missing: string[];
+            improvements: string[];
+        };
+        novice: {
+            summary: string;
+            confusion_points: string[];
+            missing: string[];
+            improvements: string[];
+        };
+    };
+
+    const buildGuidePlanSchema = (targetLanguage: string) => ({
+        type: "object",
+        properties: {
+            summary: {
+                type: "string",
+                description: `Plan summary in ${targetLanguage}`,
+            },
+            audience: {
+                type: "string",
+                description: `Target audience description in ${targetLanguage}`,
+            },
+            prerequisites: {
+                type: "array",
+                items: {
+                    type: "string",
+                    description: `Prerequisite in ${targetLanguage}`,
+                },
+            },
+            sections: {
+                type: "array",
+                items: {
+                    type: "object",
+                    properties: {
+                        title: {
+                            type: "string",
+                            description: `Section title in ${targetLanguage}`,
+                        },
+                        items: {
+                            type: "array",
+                            items: {
+                                type: "string",
+                                description: `Section bullet in ${targetLanguage}`,
+                            },
+                        },
+                    },
+                    required: ["title", "items"],
+                },
+            },
+            checklist: {
+                type: "array",
+                items: {
+                    type: "string",
+                    description: `Checklist item in ${targetLanguage}`,
+                },
+            },
+            search_terms: {
+                type: "array",
+                items: {
+                    type: "string",
+                    description:
+                        "Short English search query for latest versions or commands",
+                },
+            },
+        },
+        required: [
+            "summary",
+            "audience",
+            "prerequisites",
+            "sections",
+            "checklist",
+            "search_terms",
+        ],
+    });
+
+    const buildGuideDraftSchema = (targetLanguage: string) => ({
+        type: "object",
+        properties: {
+            markdown: {
+                type: "string",
+                description: `Full preparation guide in markdown written in ${targetLanguage}`,
+            },
+        },
+        required: ["markdown"],
+    });
+
+    const buildGuideReviewSchema = (targetLanguage: string) => ({
+        type: "object",
+        properties: {
+            expert: {
+                type: "object",
+                properties: {
+                    summary: {
+                        type: "string",
+                        description: `Expert review summary in ${targetLanguage}`,
+                    },
+                    issues: {
+                        type: "array",
+                        items: {
+                            type: "object",
+                            properties: {
+                                severity: {
+                                    type: "string",
+                                    description: `Severity in ${targetLanguage}`,
+                                },
+                                issue: {
+                                    type: "string",
+                                    description: `Issue in ${targetLanguage}`,
+                                },
+                                recommendation: {
+                                    type: "string",
+                                    description: `Recommendation in ${targetLanguage}`,
+                                },
+                            },
+                            required: ["severity", "issue", "recommendation"],
+                        },
+                    },
+                    missing: {
+                        type: "array",
+                        items: {
+                            type: "string",
+                            description: `Missing item in ${targetLanguage}`,
+                        },
+                    },
+                    improvements: {
+                        type: "array",
+                        items: {
+                            type: "string",
+                            description: `Improvement in ${targetLanguage}`,
+                        },
+                    },
+                },
+                required: ["summary", "issues", "missing", "improvements"],
+            },
+            novice: {
+                type: "object",
+                properties: {
+                    summary: {
+                        type: "string",
+                        description: `Novice review summary in ${targetLanguage}`,
+                    },
+                    confusion_points: {
+                        type: "array",
+                        items: {
+                            type: "string",
+                            description: `Confusion point in ${targetLanguage}`,
+                        },
+                    },
+                    missing: {
+                        type: "array",
+                        items: {
+                            type: "string",
+                            description: `Missing item in ${targetLanguage}`,
+                        },
+                    },
+                    improvements: {
+                        type: "array",
+                        items: {
+                            type: "string",
+                            description: `Improvement in ${targetLanguage}`,
+                        },
+                    },
+                },
+                required: [
+                    "summary",
+                    "confusion_points",
+                    "missing",
+                    "improvements",
+                ],
+            },
+        },
+        required: ["expert", "novice"],
+    });
+
+    async function streamStructuredJson<T>(
+        prompt: string,
+        systemPrompt: string,
+        schema: object,
+        config: GeminiStructuredConfig,
+    ): Promise<T> {
+        let responseText = "";
+        const stream = streamGeminiStructuredOutput(
+            prompt,
+            systemPrompt,
+            schema,
+            config,
+        );
+        for await (const chunk of stream) {
+            if (chunk.content) {
+                responseText += chunk.content;
+            }
+        }
+        const parsed = parseStructuredJson<T>(responseText);
+        if (!parsed) {
+            throw new Error($t("ai_generator.error_parse"));
+        }
+        return parsed;
+    }
+
     async function generateGuideWithAi() {
         if (!geminiApiKey || !codelab) {
             alert($t("ai_generator.api_key_required"));
             return;
         }
+        if (isGuideProGenerating) return;
         isGuideGenerating = true;
         
         try {
-            // Detect user language
-            const userLanguage = $locale || "en";
-            const languageNames: Record<string, string> = {
-                ko: "Korean",
-                en: "English",
-                zh: "Chinese",
-                ja: "Japanese",
-            };
-            const targetLanguage = languageNames[userLanguage] || "English";
+            const targetLanguage = resolveTargetLanguage();
 
-            const context = steps.map(s => `Step ${s.step_number}: ${s.title}\n${s.content_markdown}`).join("\n\n");
-            const prompt = `Based on the following codelab content, create a comprehensive "Preparation & Setup Guide" for attendees. 
+            const systemPrompt =
+                `You are a professional developer advocate writing a preparation guide for a workshop. ` +
+                `You MUST write everything in ${targetLanguage}.`;
+            const promptHeader = `Based on the following codelab content, create a comprehensive "Preparation & Setup Guide" for attendees. 
             Include:
             1. System requirements (Prerequisites).
             2. Required software/tools to install.
             3. Environment setup instructions.
             4. Initial project boilerplate setup if necessary.
+            5. A local environment smoke test with minimal runnable code and commands for the primary language in the codelab. The test must pass to confirm readiness.
             
             Write ALL content in ${targetLanguage}.
             Write it in professional markdown. 
@@ -578,9 +932,17 @@
             Description: ${codelab.description}
             
             Codelab Content:
-            ${context}`;
+            `;
+            const promptBudget = Math.max(
+                0,
+                MAX_GUIDE_PROMPT_CHARS -
+                    systemPrompt.length -
+                    PROMPT_CONTEXT_PREFIX_LEN -
+                    PROMPT_QUESTION_PREFIX_LEN,
+            );
+            const { prompt } = buildGuidePrompt(promptHeader, promptBudget);
 
-            const stream = streamGeminiResponseRobust(prompt, `You are a professional developer advocate writing a preparation guide for a workshop. You MUST write everything in ${targetLanguage}.`, {
+            const stream = streamGeminiResponseRobust(prompt, systemPrompt, {
                 apiKey: geminiApiKey,
                 model: "gemini-3-flash-preview"
             });
@@ -591,11 +953,234 @@
                 responseText += chunk;
                 codelab.guide_markdown = responseText;
             }
+            await saveGuideMarkdown();
         } catch (e) {
             console.error("Guide generation failed:", e);
-            alert("Guide generation failed: " + e);
+            const errorMessage = (e as any)?.message || String(e);
+            alert($t("ai_generator.error_generate") + ": " + errorMessage);
         } finally {
             isGuideGenerating = false;
+        }
+    }
+
+    async function saveGuideMarkdown() {
+        if (!codelab || isSaving) return;
+        isSaving = true;
+        try {
+            await updateCodelab(id, {
+                title: codelab.title,
+                description: codelab.description,
+                author: codelab.author,
+                is_public: codelab.is_public,
+                require_quiz: codelab.require_quiz,
+                require_feedback: codelab.require_feedback,
+                guide_markdown: codelab.guide_markdown,
+            });
+            saveSuccess = true;
+            setTimeout(() => (saveSuccess = false), 3000);
+        } catch (e) {
+            console.error("Guide auto-save failed:", e);
+            const errorMessage = (e as any)?.message || String(e);
+            alert($t("editor.save_failed") + ": " + errorMessage);
+        } finally {
+            isSaving = false;
+        }
+    }
+
+    async function generateGuideWithAiPro() {
+        if (!geminiApiKey || !codelab) {
+            alert($t("ai_generator.api_key_required"));
+            return;
+        }
+        if (isGuideGenerating || isGuideProGenerating) return;
+        isGuideProGenerating = true;
+        guideProStage = "plan";
+        guideProPlanOutput = "";
+        guideProDraftOutput = "";
+        guideProReviewOutput = "";
+        guideProRevisedOutput = "";
+
+        try {
+            const targetLanguage = resolveTargetLanguage();
+            const systemPrompt =
+                `You are a senior developer advocate and technical writer. ` +
+                `You MUST write everything in ${targetLanguage}.`;
+
+            const planHeader =
+                `Create a professional plan for a "Preparation & Setup Guide" for attendees. ` +
+                `Include prerequisites, setup flow, environment checks, and common pitfalls. ` +
+                `Provide a clear outline, checklist, and search_terms for latest info. ` +
+                `Include a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab. ` +
+                `For search_terms, use short English queries. ` +
+                `Write ALL content in ${targetLanguage}.\n\n` +
+                `Codelab Title: ${codelab.title}\n` +
+                `Description: ${codelab.description}\n\n` +
+                `Codelab Content:\n`;
+            const { prompt: planPrompt } = buildGuidePrompt(
+                planHeader,
+                MAX_GUIDE_PROMPT_CHARS,
+            );
+
+            const planData = await streamStructuredJson<GuidePlan>(
+                planPrompt,
+                systemPrompt,
+                buildGuidePlanSchema(targetLanguage),
+                {
+                    apiKey: geminiApiKey,
+                    model: "gemini-3-flash-preview",
+                    thinkingConfig: { thinkingLevel: "high" },
+                },
+            );
+            guideProPlanOutput = JSON.stringify(planData, null, 2);
+
+            guideProStage = "draft";
+
+            const searchTerms = planData.search_terms || [];
+            const searchHint = searchTerms.length
+                ? `Use the Google Search tool to verify the latest info for these queries: ${searchTerms.join(
+                      ", ",
+                  )}.`
+                : "Use the Google Search tool if any versions, commands, or APIs need verification.";
+
+            const planJson = JSON.stringify(planData, null, 2);
+            const planBudget = Math.min(
+                8000,
+                Math.floor(MAX_GUIDE_PROMPT_CHARS * 0.3),
+            );
+            const planBlock = formatPromptSection(
+                "Plan JSON:",
+                planJson,
+                planBudget,
+            );
+
+            const draftHeader =
+                `Write the full preparation guide using the plan. ` +
+                `${searchHint} Write ALL content in ${targetLanguage}. ` +
+                `Use clear headings, checklists, and code blocks when needed. ` +
+                `Include a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab, and explain that the test must pass to confirm readiness.\n\n` +
+                `${planBlock}\n\n` +
+                `Codelab Title: ${codelab.title}\n` +
+                `Description: ${codelab.description}\n\n` +
+                `Codelab Content:\n`;
+            const { prompt: draftPrompt } = buildGuidePrompt(
+                draftHeader,
+                MAX_GUIDE_PROMPT_CHARS,
+            );
+
+            const draftData = await streamStructuredJson<GuideDraft>(
+                draftPrompt,
+                systemPrompt,
+                buildGuideDraftSchema(targetLanguage),
+                {
+                    apiKey: geminiApiKey,
+                    model: "gemini-3-flash-preview",
+                    tools: [{ googleSearch: {} }],
+                    thinkingConfig: { thinkingLevel: "high" },
+                },
+            );
+            guideProDraftOutput = draftData?.markdown || "";
+
+            if (draftData?.markdown) {
+                codelab.guide_markdown = draftData.markdown;
+            }
+
+            guideProStage = "review";
+
+            const reviewPlanBudget = Math.min(
+                6000,
+                Math.floor(MAX_GUIDE_PROMPT_CHARS * 0.2),
+            );
+            const reviewDraftBudget = Math.min(
+                16000,
+                Math.floor(MAX_GUIDE_PROMPT_CHARS * 0.6),
+            );
+            const reviewPrompt = clampPrompt(
+                `Review the preparation guide from two perspectives: expert and novice. ` +
+                    `Be critical, practical, and specific. Write ALL content in ${targetLanguage}.\n\n` +
+                    `${formatPromptSection(
+                        "Plan JSON:",
+                        planJson,
+                        reviewPlanBudget,
+                    )}\n\n` +
+                    `${formatPromptSection(
+                        "Draft Guide Markdown:",
+                        draftData?.markdown || "",
+                        reviewDraftBudget,
+                    )}`,
+            );
+
+            const reviewData = await streamStructuredJson<GuideReview>(
+                reviewPrompt,
+                systemPrompt,
+                buildGuideReviewSchema(targetLanguage),
+                {
+                    apiKey: geminiApiKey,
+                    model: "gemini-3-flash-preview",
+                    thinkingConfig: { thinkingLevel: "high" },
+                },
+            );
+            guideProReviewOutput = JSON.stringify(reviewData, null, 2);
+
+            guideProStage = "revise";
+
+            const revisePlanBudget = Math.min(
+                6000,
+                Math.floor(MAX_GUIDE_PROMPT_CHARS * 0.2),
+            );
+            const reviseDraftBudget = Math.min(
+                15000,
+                Math.floor(MAX_GUIDE_PROMPT_CHARS * 0.55),
+            );
+            const reviseReviewBudget = Math.min(
+                6000,
+                Math.floor(MAX_GUIDE_PROMPT_CHARS * 0.2),
+            );
+            const reviewJson = JSON.stringify(reviewData, null, 2);
+            const revisePrompt = clampPrompt(
+                `Revise the preparation guide based on the expert and novice reviews. ` +
+                    `${searchHint} Write ALL content in ${targetLanguage}. ` +
+                    `Ensure the guide includes a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab.\n\n` +
+                    `${formatPromptSection(
+                        "Plan JSON:",
+                        planJson,
+                        revisePlanBudget,
+                    )}\n\n` +
+                    `${formatPromptSection(
+                        "Draft Guide Markdown:",
+                        draftData?.markdown || "",
+                        reviseDraftBudget,
+                    )}\n\n` +
+                    `${formatPromptSection(
+                        "Review JSON:",
+                        reviewJson,
+                        reviseReviewBudget,
+                    )}`,
+            );
+
+            const revisedData = await streamStructuredJson<GuideDraft>(
+                revisePrompt,
+                systemPrompt,
+                buildGuideDraftSchema(targetLanguage),
+                {
+                    apiKey: geminiApiKey,
+                    model: "gemini-3-flash-preview",
+                    tools: [{ googleSearch: {} }],
+                    thinkingConfig: { thinkingLevel: "high" },
+                },
+            );
+            guideProRevisedOutput = revisedData?.markdown || "";
+
+            if (revisedData?.markdown) {
+                codelab.guide_markdown = revisedData.markdown;
+            }
+            await saveGuideMarkdown();
+        } catch (e: any) {
+            console.error("Guide pro generation failed:", e);
+            const errorMessage = e?.message || String(e);
+            alert($t("ai_generator.error_generate") + ": " + errorMessage);
+        } finally {
+            isGuideProGenerating = false;
+            guideProStage = null;
         }
     }
 
@@ -778,7 +1363,7 @@
                         {
                             sender: data.sender,
                             text: data.message,
-                            time: data.timestamp,
+                            time: data.timestamp || new Date().toLocaleTimeString(),
                             self: data.sender === "Facilitator",
                             type: "chat",
                         },
@@ -790,7 +1375,7 @@
                         {
                             sender: `[DM] ${data.sender}`,
                             text: data.message,
-                            time: data.timestamp,
+                            time: data.timestamp || new Date().toLocaleTimeString(),
                             self: false,
                             type: "dm",
                         },
@@ -1062,11 +1647,43 @@
         }
     }
 
+    async function handleDownloadWorkspace() {
+        try {
+            const { downloadCodeServerWorkspace } = await import('$lib/api');
+            await downloadCodeServerWorkspace(id);
+        } catch (e) {
+            if (e instanceof Error && e.message.includes('Not supported')) {
+                alert("Code Server workspace not found for this codelab");
+            } else {
+                alert("Download failed: " + e);
+            }
+        }
+    }
+
     type InsertOptions = {
         language?: string;
         snippet?: string;
         url?: string;
     };
+
+    function applyEditorReplacement(
+        replacement: string,
+        start: number,
+        end: number,
+        selectionStart: number,
+        selectionEnd: number,
+    ) {
+        const textarea = editorEl ?? document.querySelector("textarea");
+        if (!textarea) return;
+
+        textarea.setRangeText(replacement, start, end, "preserve");
+        textarea.dispatchEvent(new Event("input", { bubbles: true }));
+
+        setTimeout(() => {
+            textarea.focus();
+            textarea.setSelectionRange(selectionStart, selectionEnd);
+        }, 0);
+    }
 
     function insertMarkdown(type: string, options: InsertOptions = {}) {
         if (mode !== "edit" || !steps[activeStepIndex]) return;
@@ -1082,7 +1699,7 @@
 
         const start = textarea.selectionStart;
         const end = textarea.selectionEnd;
-        const text = steps[activeStepIndex].content_markdown || "";
+        const text = textarea.value || "";
         const selected = text.substring(start, end);
         const language = options.language ?? "";
 
@@ -1243,14 +1860,7 @@
                 return;
         }
 
-        steps[activeStepIndex].content_markdown =
-            text.substring(0, start) + replacement + text.substring(end);
-
-        // Refocus and set cursor
-        setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(selectionStart, selectionEnd);
-        }, 0);
+        applyEditorReplacement(replacement, start, end, selectionStart, selectionEnd);
     }
 
     async function handleFileSelect(e: Event) {
@@ -1264,23 +1874,23 @@
     async function uploadAndInsertImage(file: File) {
         try {
             const { url } = await uploadImage(file);
-            const textarea = document.querySelector("textarea");
+            const textarea = editorEl ?? document.querySelector("textarea");
             if (!textarea) return;
 
             const start = textarea.selectionStart;
             const end = textarea.selectionEnd;
-            const text = steps[activeStepIndex].content_markdown;
+            const text = textarea.value || "";
             const fullUrl = url.startsWith("http") ? url : `${ASSET_URL}${url}`;
             const replacement = `![image](${fullUrl})`;
 
-            steps[activeStepIndex].content_markdown =
-                text.substring(0, start) + replacement + text.substring(end);
-
-            setTimeout(() => {
-                textarea.focus();
-                const newCursorPos = start + replacement.length;
-                textarea.setSelectionRange(newCursorPos, newCursorPos);
-            }, 0);
+            const newCursorPos = start + replacement.length;
+            applyEditorReplacement(
+                replacement,
+                start,
+                end,
+                newCursorPos,
+                newCursorPos,
+            );
         } catch (e) {
             console.error(e);
             alert("Image upload failed");
@@ -1416,6 +2026,7 @@
         {toggleVisibility}
         {handleExport}
         handleSave={handleUniversalSave}
+        {handleDownloadWorkspace}
     />
 
     {#if loading}
@@ -1536,7 +2147,14 @@
                                     {isSaving}
                                     {handleSave}
                                     {generateGuideWithAi}
+                                    {generateGuideWithAiPro}
                                     isGenerating={isGuideGenerating}
+                                    {isGuideProGenerating}
+                                    {guideProStage}
+                                    {guideProPlanOutput}
+                                    {guideProDraftOutput}
+                                    {guideProReviewOutput}
+                                    {guideProRevisedOutput}
                                 />
                             {/if}
 
