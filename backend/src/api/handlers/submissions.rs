@@ -1,9 +1,9 @@
-use crate::audit::{record_audit, AuditEntry};
-use crate::auth::AuthSession;
-use crate::error::{bad_request, forbidden, internal_error, unauthorized};
-use crate::models::{Submission, SubmissionWithAttendee};
-use crate::request_info::RequestInfo;
-use crate::state::AppState;
+use crate::infrastructure::audit::{record_audit, AuditEntry};
+use crate::middleware::auth::AuthSession;
+use crate::utils::error::{bad_request, forbidden, internal_error, unauthorized};
+use crate::domain::models::{Submission, SubmissionWithAttendee};
+use crate::middleware::request_info::RequestInfo;
+use crate::infrastructure::database::AppState;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
