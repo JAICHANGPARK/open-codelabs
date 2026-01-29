@@ -122,6 +122,8 @@ docker-compose up --build
 ```bash
 cd backend
 # .env 파일 생성 (DATABASE_URL=sqlite:data/sqlite.db?mode=rwc)
+# 필수: ADMIN_ID, ADMIN_PW
+# 선택: 아래 "환경 변수 (.env)" 참고
 cargo run
 ```
 
@@ -134,7 +136,42 @@ bun install
 bun run dev
 ```
 
-### 3. 클라우드 배포 (AWS / GCP / Firebase)
+### 3. 환경 변수 (.env)
+
+Docker Compose는 리포지토리 루트의 `.env`를 읽습니다. `.env.sample`을 복사해 `.env`로 만들고 필요한 값만 수정하세요.
+(로컬 개발은 `backend/.env.sample`, `frontend/.env.sample`을 최소 시작점으로 사용할 수 있습니다.)
+
+**Backend**
+- `DATABASE_URL`: SQLx 연결 문자열 (sqlite/postgres). 예: `sqlite:/app/data/sqlite.db?mode=rwc`.
+- `ADMIN_ID`: 관리자 로그인 아이디.
+- `ADMIN_PW`: 관리자 로그인 비밀번호; 프론트에서 암호화한 Gemini API 키 복호화에도 사용.
+- `AUTH_SECRETS`: JWT 서명용 시크릿(쉼표 구분). 첫 번째가 활성 키이며, 나머지는 롤링용. 비어있으면 `ADMIN_PW`로 대체.
+- `AUTH_ISSUER`: JWT issuer 클레임.
+- `AUTH_AUDIENCE`: JWT audience 클레임.
+- `ADMIN_SESSION_TTL_SECONDS`: 관리자 세션 TTL(초).
+- `ATTENDEE_SESSION_TTL_SECONDS`: 참가자 세션 TTL(초).
+- `COOKIE_SECURE`: HTTPS일 때 `true` (Secure 쿠키 + `__Host-` 프리픽스). `COOKIE_SAMESITE=none`에는 필수.
+- `COOKIE_SAMESITE`: `lax`(기본), `strict`, `none`.
+- `TRUST_PROXY`: 리버스 프록시 뒤에서 `X-Forwarded-*` 헤더를 신뢰할 때 `true`.
+- `CORS_ALLOWED_ORIGINS`: 허용할 오리진 목록(쉼표 구분). 비어있으면 로컬 기본값 사용.
+- `RATE_LIMIT_GENERAL_PER_MINUTE`: 일반 API 요청 분당/IP 제한.
+- `RATE_LIMIT_LOGIN_PER_5_MIN`: 로그인 요청 5분/IP 제한.
+- `RATE_LIMIT_AI_PER_MINUTE`: AI 프록시 요청 분당/IP 제한.
+- `RATE_LIMIT_UPLOAD_PER_MINUTE`: 업로드 및 제출 POST 분당/IP 제한.
+- `CSP_HEADER`: UI 응답의 Content-Security-Policy 헤더 오버라이드. 비어있으면 기본값 사용.
+- `HSTS_HEADER`: Strict-Transport-Security 헤더 오버라이드(HTTPS일 때만 적용).
+- `ALLOWED_GEMINI_MODELS`: 허용할 Gemini 모델 ID 목록(쉼표 구분).
+
+**AI**
+- `GEMINI_API_KEY`: 관리자 키가 없을 때 사용할 기본 Gemini API 키.
+
+**Frontend**
+- `VITE_API_URL`: 백엔드 API 기본 URL (예: `http://localhost:8080`, Docker에서는 `http://backend:8080`).
+- `VITE_ADMIN_ENCRYPTION_PASSWORD`: 브라우저에서 Gemini API 키를 암호화할 때 사용할 비밀번호. 백엔드 `ADMIN_PW`와 동일해야 복호화 가능.
+- `FRONTEND_PORT`: 프론트 서버/컨테이너 포트.
+- `FRONTEND_HOST`: 프론트 서버 바인딩 호스트(예: `0.0.0.0`).
+
+### 4. 클라우드 배포 (AWS / GCP / Firebase)
 
 서버리스 환경이나 클라우드 인프라에서 운영하려면 AWS, GCP 또는 Firebase를 사용할 수 있습니다.
 
