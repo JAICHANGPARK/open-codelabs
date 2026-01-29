@@ -216,7 +216,8 @@ export async function* streamGeminiStructuredOutput(
         });
 
         if (!response.ok) throw new Error(`API Error ${response.status}`);
-        yield* parseStructuredStream(response);
+        const result = yield* parseStructuredStream(response);
+        return result;
     } else {
         apiKeyRequired();
         let apiKey = config.apiKey;
@@ -247,7 +248,8 @@ export async function* streamGeminiStructuredOutput(
         });
 
         if (!response.ok) throw new Error(`Backend AI Error: ${response.status}`);
-        yield* parseStructuredStream(response);
+        const result = yield* parseStructuredStream(response);
+        return result;
     }
 }
 
