@@ -1,13 +1,27 @@
 use axum::{
     body::Body,
-    http::{Request, StatusCode},
+    http::{header, HeaderMap, Request, StatusCode},
 };
-use backend::{create_router, models::{Codelab, CreateCodelab}, AppState, DbKind};
+use backend::{
+    auth::AuthConfig,
+    create_router,
+    models::{Codelab, CreateCodelab},
+    rate_limit::{RateLimitConfig, RateLimiter},
+    security::SecurityHeadersConfig,
+    AppState, DbKind,
+};
+use cookie::Cookie;
 use sqlx::any::AnyPoolOptions;
+use std::collections::HashMap;
 use std::sync::Arc;
 use tower::util::ServiceExt;
 
-async fn setup_test_app() -> axum::Router {
+struct TestApp {
+    app: axum::Router,
+    state: Arc<AppState>,
+}
+
+async fn setup_test_app() -> TestApp {
     sqlx::any::install_default_drivers();
     let pool = AnyPoolOptions::new()
         .max_connections(1)
@@ -25,17 +39,68 @@ async fn setup_test_app() -> axum::Router {
         db_kind: DbKind::Sqlite,
         admin_id: "admin".to_string(),
         admin_pw: "admin123".to_string(),
+        auth: AuthConfig::from_env(),
+        rate_limit_config: RateLimitConfig::from_env(),
+        rate_limiter: Arc::new(RateLimiter::new()),
+        security_headers: SecurityHeadersConfig::from_env(),
+        trust_proxy: false,
         admin_api_keys: Arc::new(dashmap::DashMap::new()),
         channels: Arc::new(dashmap::DashMap::new()),
         sessions: Arc::new(dashmap::DashMap::new()),
     });
 
-    create_router(state)
+    let app = create_router(state.clone());
+    TestApp { app, state }
+}
+
+fn extract_cookies(headers: &HeaderMap) -> (String, HashMap<String, String>) {
+    let mut values = HashMap::new();
+    let mut pairs = Vec::new();
+    for value in headers.get_all(header::SET_COOKIE) {
+        if let Ok(text) = value.to_str() {
+            if let Ok(cookie) = Cookie::parse(text.to_string()) {
+                let name = cookie.name().to_string();
+                let val = cookie.value().to_string();
+                values.insert(name.clone(), val.clone());
+                pairs.push(format!("{}={}", name, val));
+            }
+        }
+    }
+    (pairs.join("; "), values)
+}
+
+async fn login_admin(app: &axum::Router, state: &AppState) -> (String, String) {
+    let login_payload = serde_json::json!({
+        "admin_id": state.admin_id.clone(),
+        "admin_pw": state.admin_pw.clone()
+    });
+
+    let response = app
+        .clone()
+        .oneshot(
+            Request::builder()
+                .method("POST")
+                .uri("/api/login")
+                .header("Content-Type", "application/json")
+                .body(Body::from(serde_json::to_string(&login_payload).unwrap()))
+                .unwrap(),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.status(), StatusCode::OK);
+    let (cookie_header, cookies) = extract_cookies(response.headers());
+    let csrf_token = cookies
+        .get(&state.auth.csrf_cookie_name)
+        .cloned()
+        .expect("csrf cookie missing");
+    (cookie_header, csrf_token)
 }
 
 #[tokio::test]
 async fn test_codelab_visibility() {
-    let app = setup_test_app().await;
+    let test_app = setup_test_app().await;
+    let (cookie_header, csrf_token) = login_admin(&test_app.app, &test_app.state).await;
 
     // 1. Create a public codelab
     let public_payload = CreateCodelab {
@@ -48,12 +113,16 @@ async fn test_codelab_visibility() {
         require_feedback: None,
         guide_markdown: None,
     };
-    app.clone()
+    test_app
+        .app
+        .clone()
         .oneshot(
             Request::builder()
                 .method("POST")
                 .uri("/api/codelabs")
                 .header("Content-Type", "application/json")
+                .header(header::COOKIE, cookie_header.clone())
+                .header("x-csrf-token", csrf_token.clone())
                 .body(Body::from(serde_json::to_string(&public_payload).unwrap()))
                 .unwrap(),
         )
@@ -71,24 +140,32 @@ async fn test_codelab_visibility() {
         require_feedback: None,
         guide_markdown: None,
     };
-    let res = app.clone()
+    let res = test_app
+        .app
+        .clone()
         .oneshot(
             Request::builder()
                 .method("POST")
                 .uri("/api/codelabs")
                 .header("Content-Type", "application/json")
+                .header(header::COOKIE, cookie_header.clone())
+                .header("x-csrf-token", csrf_token.clone())
                 .body(Body::from(serde_json::to_string(&private_payload).unwrap()))
                 .unwrap(),
         )
         .await
         .unwrap();
-    
-    let body = axum::body::to_bytes(res.into_body(), usize::MAX).await.unwrap();
+
+    let body = axum::body::to_bytes(res.into_body(), usize::MAX)
+        .await
+        .unwrap();
     let private_created: Codelab = serde_json::from_slice(&body).unwrap();
     let private_id = private_created.id;
 
     // 3. List codelabs as public user (no auth)
-    let response = app.clone()
+    let response = test_app
+        .app
+        .clone()
         .oneshot(
             Request::builder()
                 .uri("/api/codelabs")
@@ -97,17 +174,26 @@ async fn test_codelab_visibility() {
         )
         .await
         .unwrap();
-    
+
     assert_eq!(response.status(), StatusCode::OK);
-    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
     let codelabs: Vec<Codelab> = serde_json::from_slice(&body).unwrap();
-    
+
     // Should only contain the public one
-    assert_eq!(codelabs.len(), 1, "Public user should only see 1 codelab, found {}", codelabs.len());
+    assert_eq!(
+        codelabs.len(),
+        1,
+        "Public user should only see 1 codelab, found {}",
+        codelabs.len()
+    );
     assert_eq!(codelabs[0].title, "Public Codelab");
 
     // 4. Try to get private codelab as public user
-    let response = app.clone()
+    let response = test_app
+        .app
+        .clone()
         .oneshot(
             Request::builder()
                 .uri(format!("/api/codelabs/{}", private_id))
@@ -116,23 +202,32 @@ async fn test_codelab_visibility() {
         )
         .await
         .unwrap();
-    
+
     assert_eq!(response.status(), StatusCode::FORBIDDEN);
 
     // 5. List codelabs as admin
-    let response = app.clone()
+    let response = test_app
+        .app
+        .clone()
         .oneshot(
             Request::builder()
                 .uri("/api/codelabs")
-                .header("Authorization", "Bearer mock-jwt-token")
+                .header(header::COOKIE, cookie_header)
                 .body(Body::empty())
                 .unwrap(),
         )
         .await
         .unwrap();
-    
+
     assert_eq!(response.status(), StatusCode::OK);
-    let body = axum::body::to_bytes(response.into_body(), usize::MAX).await.unwrap();
+    let body = axum::body::to_bytes(response.into_body(), usize::MAX)
+        .await
+        .unwrap();
     let codelabs: Vec<Codelab> = serde_json::from_slice(&body).unwrap();
-    assert_eq!(codelabs.len(), 2, "Admin should see 2 codelabs, found {}", codelabs.len());
+    assert_eq!(
+        codelabs.len(),
+        2,
+        "Admin should see 2 codelabs, found {}",
+        codelabs.len()
+    );
 }
