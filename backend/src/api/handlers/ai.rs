@@ -1,8 +1,8 @@
 use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::middleware::auth::AuthSession;
-use crate::crypto::decrypt_with_password;
+use crate::utils::crypto::decrypt_with_password;
 use crate::utils::error::{bad_request, internal_error};
-use crate::request_info::RequestInfo;
+use crate::middleware::request_info::RequestInfo;
 use crate::infrastructure::database::AppState;
 use crate::utils::validation::validate_prompt;
 use axum::{
