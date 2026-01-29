@@ -34,6 +34,7 @@
         handleExport,
         handleSave,
         handleDownloadWorkspace,
+        handleBrowseWorkspace,
     } = $props<{
         id: string;
         codelab: Codelab | null;
@@ -45,6 +46,7 @@
         handleExport: () => void;
         handleSave: () => void;
         handleDownloadWorkspace?: () => void;
+        handleBrowseWorkspace?: () => void;
     }>();
 </script>
 
@@ -159,13 +161,25 @@
                     <Download size={18} class="sm:w-5 sm:h-5" />
                 </button>
 
+                {#if handleBrowseWorkspace}
+                    <button
+                        type="button"
+                        onclick={handleBrowseWorkspace}
+                        class="p-1.5 sm:p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
+                        title="Browse Workspace Files"
+                        aria-label="Browse Workspace Files"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sm:w-5 sm:h-5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    </button>
+                {/if}
+
                 {#if handleDownloadWorkspace}
                     <button
                         type="button"
                         onclick={handleDownloadWorkspace}
                         class="p-1.5 sm:p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
-                        title="Download Code Server Workspace"
-                        aria-label="Download Code Server Workspace"
+                        title="Download Workspace"
+                        aria-label="Download Workspace"
                     >
                         <FileUp size={18} class="sm:w-5 sm:h-5" />
                     </button>
