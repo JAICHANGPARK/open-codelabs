@@ -33,7 +33,7 @@ export interface Attendee {
     id: string;
     codelab_id: string;
     name: string;
-    code: string;
+    code?: string;
     current_step?: number;
     is_completed?: boolean;
     completed_at?: string;
@@ -102,7 +102,6 @@ export interface QuizSubmissionWithAttendee extends QuizSubmission {
 }
 
 export interface QuizSubmissionPayload {
-    attendee_id: string;
     submissions: {
         quiz_id: string;
         answer: string;
