@@ -655,6 +655,7 @@ Return JSON that matches the schema exactly.
                 },
             );
 
+            let tokenUsage: any;
             for await (const chunk of stream) {
                 if (chunk.thinking) {
                     thinkingContent += chunk.thinking;
@@ -662,6 +663,16 @@ Return JSON that matches the schema exactly.
                 if (chunk.content) {
                     generatedContent += chunk.content;
                 }
+            }
+            // Try to get token usage from the stream's return value
+            try {
+                const result = await stream.next();
+                if (result.done && result.value) {
+                    tokenUsage = result.value;
+                    addTokenUsage(tokenUsage.promptTokenCount || 0, tokenUsage.candidatesTokenCount || 0);
+                }
+            } catch (e) {
+                // Token usage not available, continue without it
             }
 
             // With structured outputs, we get guaranteed valid JSON
@@ -716,22 +727,34 @@ Return JSON that matches the schema exactly.
             // 3. Create Code Server if enabled
             if (enableCodeServer && uploadedFiles.length > 0) {
                 try {
-                    const { createCodeServer, createCodeServerBranch } = await import('$lib/api');
                     const workspaceFiles = uploadedFiles.map(f => ({
                         path: f.name,
                         content: f.content
                     }));
 
-                    await createCodeServer(codelab.id, workspaceFiles);
+                    if (workspaceStructureType === 'branch') {
+                        const { createCodeServer, createCodeServerBranch } = await import('$lib/api');
+                        await createCodeServer(codelab.id, workspaceFiles, 'branch');
 
-                    // Create branches for each step
-                    for (let i = 0; i < parsedData.steps.length; i++) {
-                        await createCodeServerBranch(codelab.id, i + 1, 'start');
-                        await createCodeServerBranch(codelab.id, i + 1, 'end');
+                        // Create branches for each step
+                        for (let i = 0; i < parsedData.steps.length; i++) {
+                            await createCodeServerBranch(codelab.id, i + 1, 'start');
+                            await createCodeServerBranch(codelab.id, i + 1, 'end');
+                        }
+                    } else {
+                        // Folder-based structure
+                        const { createCodeServer, createCodeServerFolder } = await import('$lib/api');
+                        await createCodeServer(codelab.id, undefined, 'folder');
+
+                        // Create folders for each step with workspace files
+                        for (let i = 0; i < parsedData.steps.length; i++) {
+                            await createCodeServerFolder(codelab.id, i + 1, 'start', workspaceFiles);
+                            await createCodeServerFolder(codelab.id, i + 1, 'end', workspaceFiles);
+                        }
                     }
                 } catch (e) {
-                    console.error('Failed to create code server', e);
-                    // Don't fail the whole process if code server creation fails
+                    console.error('Failed to create workspace', e);
+                    // Don't fail the whole process if workspace creation fails
                 }
             }
 
@@ -1348,13 +1371,34 @@ Return JSON that matches the schema exactly.
                         </p>
                     </div>
                 </div>
-                <button
-                    onclick={onClose}
-                    class="p-2 hover:bg-white/10 rounded-full transition-colors"
-                    aria-label={$t("common.close") || "Close"}
-                >
-                    <X size={24} />
-                </button>
+                <div class="flex items-center gap-4">
+                    <!-- Token Usage Display -->
+                    {#if totalInputTokens > 0 || totalOutputTokens > 0}
+                        <div class="text-xs bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/20">
+                            <div class="flex items-center gap-4">
+                                <div>
+                                    <span class="text-white/70">Input:</span>
+                                    <span class="text-white font-bold ml-1">{totalInputTokens.toLocaleString()}</span>
+                                </div>
+                                <div>
+                                    <span class="text-white/70">Output:</span>
+                                    <span class="text-white font-bold ml-1">{totalOutputTokens.toLocaleString()}</span>
+                                </div>
+                                <div>
+                                    <span class="text-white/70">Cost:</span>
+                                    <span class="text-white font-bold ml-1">${totalCost.toFixed(4)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
+                    <button
+                        onclick={onClose}
+                        class="p-2 hover:bg-white/10 rounded-full transition-colors"
+                        aria-label={$t("common.close") || "Close"}
+                    >
+                        <X size={24} />
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1881,9 +1925,32 @@ Return JSON that matches the schema exactly.
                                 <span
                                     class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4] {uploadedFiles.length === 0 ? 'opacity-50' : ''}"
                                 >
-                                    Create Code Server Workspace
+                                    Create Workspace
                                 </span>
                             </label>
+
+                            {#if enableCodeServer}
+                                <div class="ml-7 flex items-center gap-4 text-sm">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            bind:group={workspaceStructureType}
+                                            value="branch"
+                                            class="w-4 h-4 text-[#4285F4] focus:ring-[#4285F4]"
+                                        />
+                                        <span class="text-[#5F6368] dark:text-dark-text-muted">Branch-based (Git branches)</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="radio"
+                                            bind:group={workspaceStructureType}
+                                            value="folder"
+                                            class="w-4 h-4 text-[#4285F4] focus:ring-[#4285F4]"
+                                        />
+                                        <span class="text-[#5F6368] dark:text-dark-text-muted">Folder-based (Directories)</span>
+                                    </label>
+                                </div>
+                            {/if}
 
                             <label
                                 class="flex items-center gap-2 cursor-pointer group"
