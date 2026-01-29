@@ -4,9 +4,9 @@ use sqlx::AnyPool;
 use std::sync::Arc;
 use tokio::sync::broadcast;
 
-use crate::auth::AuthConfig;
-use crate::rate_limit::{RateLimitConfig, RateLimiter};
-use crate::security::SecurityHeadersConfig;
+use crate::middleware::auth::AuthConfig;
+use crate::middleware::rate_limit::{RateLimitConfig, RateLimiter};
+use crate::middleware::security::SecurityHeadersConfig;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DbKind {
