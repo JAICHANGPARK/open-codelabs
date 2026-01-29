@@ -1,11 +1,11 @@
-use crate::audit::{record_audit, AuditEntry};
-use crate::auth::{
+use crate::infrastructure::audit::{record_audit, AuditEntry};
+use crate::middleware::auth::{
     build_csrf_cookie, build_session_cookie, clear_cookie, now_epoch_seconds, AuthSession, Role,
     SessionClaims,
 };
 use crate::crypto::decrypt_with_password;
-use crate::error::{bad_request, internal_error, unauthorized};
-use crate::models::LoginPayload;
+use crate::utils::error::{bad_request, internal_error, unauthorized};
+use crate::domain::models::LoginPayload;
 use crate::request_info::RequestInfo;
 use crate::security::ensure_csrf_cookie;
 use crate::state::AppState;
