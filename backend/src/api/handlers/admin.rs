@@ -8,7 +8,7 @@ use crate::utils::error::{bad_request, internal_error, unauthorized};
 use crate::domain::models::LoginPayload;
 use crate::request_info::RequestInfo;
 use crate::security::ensure_csrf_cookie;
-use crate::state::AppState;
+use crate::infrastructure::database::AppState;
 use axum::{extract::State, http::StatusCode, Json};
 use axum_extra::extract::cookie::CookieJar;
 use serde::Deserialize;
