@@ -98,7 +98,7 @@ export const importCodelab = USE_FIREBASE
 
 // Code Server API (Backend only)
 export const createCodeServer = USE_FIREBASE
-    ? async (_codelabId: string, _workspaceFiles?: backend.WorkspaceFile[]) => { throw new Error('Not supported in Firebase mode'); }
+    ? async (_codelabId: string, _workspaceFiles?: backend.WorkspaceFile[], _structureType?: 'branch' | 'folder') => { throw new Error('Not supported in Firebase mode'); }
     : backend.createCodeServer;
 export const getCodeServerInfo = USE_FIREBASE
     ? async (_codelabId: string) => { throw new Error('Not supported in Firebase mode'); }
@@ -106,6 +106,9 @@ export const getCodeServerInfo = USE_FIREBASE
 export const createCodeServerBranch = USE_FIREBASE
     ? async (_codelabId: string, _stepNumber: number, _branchType: 'start' | 'end') => { throw new Error('Not supported in Firebase mode'); }
     : backend.createCodeServerBranch;
+export const createCodeServerFolder = USE_FIREBASE
+    ? async (_codelabId: string, _stepNumber: number, _folderType: 'start' | 'end', _files: backend.WorkspaceFile[]) => { throw new Error('Not supported in Firebase mode'); }
+    : backend.createCodeServerFolder;
 export const downloadCodeServerWorkspace = USE_FIREBASE
     ? async (_codelabId: string) => { throw new Error('Not supported in Firebase mode'); }
     : backend.downloadCodeServerWorkspace;
