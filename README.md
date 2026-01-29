@@ -110,6 +110,8 @@ docker-compose up --build
 ```bash
 cd backend
 # Create .env (DATABASE_URL=sqlite:data/sqlite.db?mode=rwc)
+# Required: ADMIN_ID, ADMIN_PW
+# Optional: see Environment Variables below
 cargo run
 ```
 
@@ -121,7 +123,42 @@ bun install
 bun run dev
 ```
 
-### 3. Cloud Deployment (AWS / GCP / Firebase)
+### 3. Environment Variables (.env)
+
+Docker Compose reads `.env` at the repo root. Copy `.env.sample` to `.env` and adjust as needed.
+(For local dev, `backend/.env.sample` and `frontend/.env.sample` are minimal starting points.)
+
+**Backend**
+- `DATABASE_URL`: SQLx connection string (sqlite/postgres). Example: `sqlite:/app/data/sqlite.db?mode=rwc`.
+- `ADMIN_ID`: Admin login username.
+- `ADMIN_PW`: Admin login password; also used to decrypt Gemini API keys from the frontend.
+- `AUTH_SECRETS`: Comma-separated JWT signing secrets (first is active; others allow rotation). Falls back to `ADMIN_PW` if empty.
+- `AUTH_ISSUER`: JWT issuer claim.
+- `AUTH_AUDIENCE`: JWT audience claim.
+- `ADMIN_SESSION_TTL_SECONDS`: Admin session TTL in seconds.
+- `ATTENDEE_SESSION_TTL_SECONDS`: Attendee session TTL in seconds.
+- `COOKIE_SECURE`: Set `true` for HTTPS (Secure cookies + `__Host-` prefix). Required for `COOKIE_SAMESITE=none`.
+- `COOKIE_SAMESITE`: `lax` (default), `strict`, or `none`.
+- `TRUST_PROXY`: Set `true` behind a reverse proxy to trust `X-Forwarded-*` headers.
+- `CORS_ALLOWED_ORIGINS`: Comma-separated list of allowed origins; empty uses localhost defaults.
+- `RATE_LIMIT_GENERAL_PER_MINUTE`: Per-IP limit for general API requests.
+- `RATE_LIMIT_LOGIN_PER_5_MIN`: Per-IP limit for login requests (5-minute window).
+- `RATE_LIMIT_AI_PER_MINUTE`: Per-IP limit for AI proxy requests.
+- `RATE_LIMIT_UPLOAD_PER_MINUTE`: Per-IP limit for upload and submission POSTs.
+- `CSP_HEADER`: Override Content-Security-Policy for UI responses; empty uses the built-in default.
+- `HSTS_HEADER`: Override Strict-Transport-Security; applied only on HTTPS.
+- `ALLOWED_GEMINI_MODELS`: Comma-separated allowlist of Gemini model IDs.
+
+**AI**
+- `GEMINI_API_KEY`: Default Gemini API key if an admin key is not provided.
+
+**Frontend**
+- `VITE_API_URL`: Base URL for the backend API (e.g. `http://localhost:8080` or `http://backend:8080` in Docker).
+- `VITE_ADMIN_ENCRYPTION_PASSWORD`: Password used by the frontend to encrypt Gemini API keys; must match backend `ADMIN_PW`.
+- `FRONTEND_PORT`: Port to bind the frontend server/container.
+- `FRONTEND_HOST`: Host interface to bind (e.g. `0.0.0.0`).
+
+### 4. Cloud Deployment (AWS / GCP / Firebase)
 To run in a serverless environment or on the cloud, you can use AWS, GCP or Firebase.
 - **AWS**: Container-based or VM deployment. See [AWS Deployment Guide](docs/self-hosting/aws.md).
 - **GCP (Cloud Run)**: Container-based deployment. See [GCP Deployment Guide](docs/self-hosting/gcp.md).
