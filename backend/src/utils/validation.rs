@@ -106,7 +106,7 @@ pub fn validate_feedback(payload: &CreateFeedback) -> Result<(), (StatusCode, St
 }
 
 pub fn validate_prompt(text: &str) -> Result<(), (StatusCode, String)> {
-    validate_text(text, "prompt", 1, 50_000)
+    validate_text(text, "prompt", 1, 100_000)
 }
 
 fn validate_rating(value: &str, field: &str) -> Result<(), (StatusCode, String)> {
