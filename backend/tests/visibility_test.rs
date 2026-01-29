@@ -3,11 +3,11 @@ use axum::{
     http::{header, HeaderMap, Request, StatusCode},
 };
 use backend::{
-    auth::AuthConfig,
+    middleware::auth::AuthConfig,
     create_router,
-    models::{Codelab, CreateCodelab},
-    rate_limit::{RateLimitConfig, RateLimiter},
-    security::SecurityHeadersConfig,
+    domain::models::{Codelab, CreateCodelab},
+    middleware::rate_limit::{RateLimitConfig, RateLimiter},
+    middleware::security::SecurityHeadersConfig,
     AppState, DbKind,
 };
 use cookie::Cookie;
