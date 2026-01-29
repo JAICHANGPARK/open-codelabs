@@ -1,8 +1,8 @@
-use crate::audit::{record_audit, AuditEntry};
-use crate::auth::AuthSession;
-use crate::error::{bad_request, internal_error};
-use crate::request_info::RequestInfo;
-use crate::state::AppState;
+use crate::infrastructure::audit::{record_audit, AuditEntry};
+use crate::middleware::auth::AuthSession;
+use crate::utils::error::{bad_request, internal_error};
+use crate::middleware::request_info::RequestInfo;
+use crate::infrastructure::database::AppState;
 use axum::{extract::State, http::StatusCode, response::Json};
 use axum_extra::extract::Multipart;
 use std::sync::Arc;
