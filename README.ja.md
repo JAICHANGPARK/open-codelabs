@@ -121,7 +121,42 @@ bun install
 bun run dev
 ```
 
-### 3. Firebase デプロイ (サーバーレスモード)
+### 3. 環境変数 (.env)
+
+Docker Compose はリポジトリルートの `.env` を読み込みます。`.env.sample` をコピーして `.env` を作成し、必要な値を変更してください。
+(ローカル開発は `backend/.env.sample` と `frontend/.env.sample` を最小の開始点として使えます。)
+
+**Backend**
+- `DATABASE_URL`: SQLx 接続文字列 (sqlite/postgres/mysql)。例: `sqlite:/app/data/sqlite.db?mode=rwc`。
+- `ADMIN_ID`: 管理者ログイン ID。
+- `ADMIN_PW`: 管理者ログインパスワード。フロントで暗号化した Gemini API キーの復号にも使用。
+- `AUTH_SECRETS`: JWT 署名用シークレット(カンマ区切り)。先頭が有効キーで、他はローテーション用。未設定時は `ADMIN_PW` を使用。
+- `AUTH_ISSUER`: JWT issuer クレーム。
+- `AUTH_AUDIENCE`: JWT audience クレーム。
+- `ADMIN_SESSION_TTL_SECONDS`: 管理者セッション TTL(秒)。
+- `ATTENDEE_SESSION_TTL_SECONDS`: 参加者セッション TTL(秒)。
+- `COOKIE_SECURE`: HTTPS 時は `true` (Secure クッキー + `__Host-` プレフィックス)。`COOKIE_SAMESITE=none` には必須。
+- `COOKIE_SAMESITE`: `lax`(既定)、`strict`、`none`。
+- `TRUST_PROXY`: リバースプロキシ配下で `X-Forwarded-*` ヘッダーを信頼する場合 `true`。
+- `CORS_ALLOWED_ORIGINS`: 許可するオリジン一覧(カンマ区切り)。空ならローカルの既定値。
+- `RATE_LIMIT_GENERAL_PER_MINUTE`: 一般 API の分/IP 制限。
+- `RATE_LIMIT_LOGIN_PER_5_MIN`: ログインの 5 分/IP 制限。
+- `RATE_LIMIT_AI_PER_MINUTE`: AI プロキシの分/IP 制限。
+- `RATE_LIMIT_UPLOAD_PER_MINUTE`: アップロード/提出 POST の分/IP 制限。
+- `CSP_HEADER`: UI 応答の Content-Security-Policy ヘッダー上書き。空なら既定値。
+- `HSTS_HEADER`: Strict-Transport-Security ヘッダー上書き(HTTPS のみ)。
+- `ALLOWED_GEMINI_MODELS`: 許可する Gemini モデル ID の一覧(カンマ区切り)。
+
+**AI**
+- `GEMINI_API_KEY`: 管理者のキーがない場合に使う既定の Gemini API キー。
+
+**Frontend**
+- `VITE_API_URL`: バックエンド API の基底 URL (例: `http://localhost:8080`、Docker では `http://backend:8080`)。
+- `VITE_ADMIN_ENCRYPTION_PASSWORD`: ブラウザで Gemini API キーを暗号化するパスワード。バックエンド `ADMIN_PW` と一致する必要あり。
+- `FRONTEND_PORT`: フロントサーバーのポート。
+- `FRONTEND_HOST`: フロントサーバーのバインドホスト(例: `0.0.0.0`)。
+
+### 4. Firebase デプロイ (サーバーレスモード)
 ローカルの Rust サーバーなしで運営したい場合は、Firebase を使用できます。詳細は [DEPLOY_FIREBASE.md](docs/deploy/DEPLOY_FIREBASE.md) を参照してください。
 
 ---
