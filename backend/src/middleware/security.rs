@@ -8,9 +8,9 @@ use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 
 use crate::auth::generate_csrf_token;
-use crate::error::{bad_request, too_many_requests};
+use crate::utils::error::{bad_request, too_many_requests};
 use crate::rate_limit::RateLimitConfig;
-use crate::state::AppState;
+use crate::infrastructure::database::AppState;
 
 #[derive(Debug, Clone)]
 pub struct SecurityHeadersConfig {
