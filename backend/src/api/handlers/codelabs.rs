@@ -1,10 +1,10 @@
-use crate::audit::{record_audit, AuditEntry};
-use crate::auth::AuthSession;
-use crate::error::{bad_request, forbidden, internal_error, unauthorized};
-use crate::models::{ChatMessageRow, Codelab, CreateCodelab, Step, UpdateStepsPayload};
-use crate::request_info::RequestInfo;
-use crate::state::AppState;
-use crate::validation::{validate_codelab, validate_steps};
+use crate::infrastructure::audit::{record_audit, AuditEntry};
+use crate::middleware::auth::AuthSession;
+use crate::utils::error::{bad_request, forbidden, internal_error, unauthorized};
+use crate::domain::models::{ChatMessageRow, Codelab, CreateCodelab, Step, UpdateStepsPayload};
+use crate::middleware::request_info::RequestInfo;
+use crate::infrastructure::database::AppState;
+use crate::utils::validation::{validate_codelab, validate_steps};
 use axum::{
     extract::{Path, State},
     http::{header, HeaderMap, StatusCode},
