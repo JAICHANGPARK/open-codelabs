@@ -259,8 +259,8 @@
 					: "Generate codelabs with the depth you need",
 			desc:
 				lang === "ko"
-					? "일반 모드로 빠르게 초안을 만들거나, 고급 모드로 플랜과 리뷰까지 포함한 완성도를 확보하세요."
-					: "Use General mode for speed or Advanced mode for planning, review, and refinement.",
+					? "일반 모드로 빠르게 초안을 만들거나, 프로 모드로 플랜과 리뷰까지 포함한 완성도를 확보하세요."
+					: "Use General mode for speed or Pro mode for planning, review, and refinement.",
 			modes: [
 				{
 					icon: Zap,
@@ -276,7 +276,7 @@
 				},
 				{
 					icon: Sparkles,
-					title: lang === "ko" ? "고급 모드" : "Advanced mode",
+					title: lang === "ko" ? "프로 모드" : "Pro mode",
 					desc:
 						lang === "ko"
 							? "플랜 설계, 전문가 리뷰, 수정 반영까지 포함한 고품질 워크플로."
@@ -288,8 +288,8 @@
 				},
 			],
 			workflow: {
-				title:
-					lang === "ko" ? "고급 생성 워크플로" : "Advanced workflow",
+					title:
+						lang === "ko" ? "프로 생성 워크플로" : "Pro workflow",
 				desc:
 					lang === "ko"
 						? "플랜 단계에서 최신 정보 키워드를 추출하고, 생성 단계에서 검색을 활용해 신뢰도를 높입니다."
