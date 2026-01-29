@@ -2264,17 +2264,6 @@
         color: #e8eaed;
         border-bottom-color: #3c4043;
     }
-</style>
-
-{#if showWorkspaceBrowser}
-    <div class="modal-overlay" on:click={() => showWorkspaceBrowser = false} on:keydown={(e) => e.key === 'Escape' && (showWorkspaceBrowser = false)} role="button" tabindex="-1">
-        <div on:click|stopPropagation on:keydown|stopPropagation role="button" tabindex="-1">
-            <WorkspaceBrowser codelabId={id} onClose={() => showWorkspaceBrowser = false} />
-        </div>
-    </div>
-{/if}
-
-<style>
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -2288,3 +2277,11 @@
         justify-content: center;
     }
 </style>
+
+{#if showWorkspaceBrowser}
+    <div class="modal-overlay" onclick={() => showWorkspaceBrowser = false} onkeydown={(e) => e.key === 'Escape' && (showWorkspaceBrowser = false)} role="button" tabindex="-1">
+        <div onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="button" tabindex="-1">
+            <WorkspaceBrowser codelabId={id} onClose={() => showWorkspaceBrowser = false} />
+        </div>
+    </div>
+{/if}
