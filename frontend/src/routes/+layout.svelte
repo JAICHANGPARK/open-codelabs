@@ -8,12 +8,30 @@
     import "../app.css";
     import { Languages, LogOut, Sun, Moon, Github, FileText as FileIcon, Eye } from "lucide-svelte";
     import { themeState } from "$lib/theme.svelte";
-    import { logout, onAuthChange, isFirebaseMode } from "$lib/api";
+    import { logout, onAuthChange, isFirebaseMode, getSession } from "$lib/api";
 
     let { children } = $props();
     let i18nLoaded = $state(false);
+    let sessionRole = $state<string | null>(null);
+    let sessionChecked = $state(false);
+    let sessionRefreshing = $state(false);
+
+    async function refreshSession() {
+        if (sessionRefreshing || !browser || isFirebaseMode()) return;
+        sessionRefreshing = true;
+        try {
+            const session = await getSession();
+            sessionRole = session?.role ?? null;
+        } catch (e) {
+            sessionRole = null;
+        } finally {
+            sessionChecked = true;
+            sessionRefreshing = false;
+        }
+    }
 
     onMount(async () => {
+        let cleanup: (() => void) | undefined;
         if (isFirebaseMode()) {
             onAuthChange((user) => {
                 if (!user && page.url.pathname.startsWith("/admin")) {
@@ -33,6 +51,13 @@
                     });
                 }
             });
+        } else {
+            await refreshSession();
+            const handler = () => {
+                refreshSession();
+            };
+            window.addEventListener("session-changed", handler);
+            cleanup = () => window.removeEventListener("session-changed", handler);
         }
         try {
             const savedLocale = localStorage.getItem("locale");
@@ -54,6 +79,8 @@
         } finally {
             i18nLoaded = true;
         }
+
+        return cleanup;
     });
 
     $effect(() => {
@@ -67,11 +94,22 @@
         // Track pathname for reactivity
         const pathname = page.url.pathname;
         try {
-            const token = localStorage.getItem("adminToken");
             const isProtectedPath = pathname.startsWith("/admin");
 
-            if (isProtectedPath && !token) {
-                goto("/login");
+            if (isFirebaseMode()) {
+                const token = localStorage.getItem("adminToken");
+                if (isProtectedPath && !token) {
+                    goto("/login");
+                }
+            } else if (isProtectedPath) {
+                if (sessionRefreshing) {
+                    return;
+                }
+                if (!sessionChecked) {
+                    refreshSession();
+                } else if (sessionChecked && sessionRole !== "admin") {
+                    goto("/login");
+                }
             }
         } catch (e) {
             console.error("Auth check failed", e);
@@ -81,8 +119,14 @@
     async function handleLogout() {
         try {
             await logout();
-            localStorage.removeItem("adminToken");
-            localStorage.removeItem("user");
+            if (isFirebaseMode()) {
+                localStorage.removeItem("adminToken");
+                localStorage.removeItem("user");
+            }
+            sessionRole = null;
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(new Event("session-changed"));
+            }
             goto("/login");
         } catch (e) {
             console.error("Logout failed", e);
