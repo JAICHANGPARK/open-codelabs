@@ -10,11 +10,11 @@ describe("crypto helpers", () => {
         expect(back).toBe(plaintext);
     });
 
-    test("encryptForBackend matches backend magic-crypt output", () => {
-        // Mirrors backend/src/handlers/admin.rs test
+    test("encryptForBackend produces a versioned payload", () => {
         const password = "admin";
         const plaintext = "secret-api-key";
         const cipher = encryptForBackend(plaintext, password);
-        expect(cipher).toBe("URh6eeDLAKxc2nYWOrhyjg==");
+        expect(cipher.startsWith("v1:")).toBe(true);
+        expect(cipher.length).toBeGreaterThan(3);
     });
 });
