@@ -18,9 +18,14 @@
         loading = true;
         error = "";
         try {
-            const { token } = await login(admin_id, admin_pw);
-            localStorage.setItem("adminToken", token);
+            const result = await login(admin_id, admin_pw);
+            if (isFirebaseMode() && (result as any)?.token) {
+                localStorage.setItem("adminToken", (result as any).token);
+            }
             sessionStorage.setItem("adminPassword", admin_pw);
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(new Event("session-changed"));
+            }
             goto("/admin");
         } catch (e) {
             error = $t("login.error_credentials");
@@ -42,6 +47,9 @@
                 displayName: user.displayName,
                 photoURL: user.photoURL
             }));
+            if (typeof window !== "undefined") {
+                window.dispatchEvent(new Event("session-changed"));
+            }
             goto("/admin");
         } catch (e: any) {
             if (e.code !== 'auth/popup-closed-by-user') {
