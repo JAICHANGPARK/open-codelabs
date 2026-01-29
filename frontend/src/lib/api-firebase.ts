@@ -180,11 +180,11 @@ export async function deleteCodelab(codelabId: string): Promise<void> {
     // but for a simple workshop tool, it might be acceptable or we handle it if needed.
 }
 
-export async function login(admin_id: string, admin_pw: string): Promise<{ token: string }> {
+export async function login(admin_id: string, admin_pw: string): Promise<{ status: string; token?: string }> {
     // Simple mock login for Firebase mode if not using full Firebase Auth
     // In a real scenario, we might check against a 'config' collection or environment variables.
     if (admin_id === import.meta.env.VITE_ADMIN_ID && admin_pw === import.meta.env.VITE_ADMIN_PW) {
-        return { token: "firebase-token-mock" };
+        return { status: "ok", token: "firebase-token-mock" };
     }
     throw new Error('Invalid credentials');
 }
@@ -203,10 +203,21 @@ export async function loginWithGoogle(): Promise<{ token: string, user: User }> 
 
 export async function logout(): Promise<void> {
     await signOut(auth);
+    if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('user');
+    }
 }
 
 export function onAuthChange(callback: (user: User | null) => void) {
     return onAuthStateChanged(auth, callback);
+}
+
+export async function getSession(): Promise<{ role: string; sub: string } | null> {
+    if (typeof localStorage === 'undefined') return null;
+    const token = localStorage.getItem('adminToken');
+    if (!token) return null;
+    return { role: 'admin', sub: 'firebase' };
 }
 
 export async function registerAttendee(codelabId: string, name: string, code: string): Promise<Attendee> {
@@ -274,7 +285,9 @@ export async function updateAttendeeProgress(codelabId: string, attendeeId: stri
     }
 }
 
-export async function requestHelp(codelabId: string, attendeeId: string, stepNumber: number): Promise<void> {
+export async function requestHelp(codelabId: string, stepNumber: number): Promise<void> {
+    const attendeeId = getStoredAttendeeId(codelabId);
+    if (!attendeeId) throw new Error('ATTENDEE_REQUIRED');
     const attendeeDoc = await getDoc(doc(db, `${CODELABS_COLLECTION}/${codelabId}/attendees`, attendeeId));
     const attendeeName = attendeeDoc.exists() ? attendeeDoc.data().name : "Unknown";
 
@@ -356,22 +369,36 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
     return { url };
 }
 
-export async function submitFeedback(codelabId: string, payload: { difficulty: number; satisfaction: number; comments: string; attendee_id: string }): Promise<void> {
+export async function submitFeedback(codelabId: string, payload: { difficulty: number; satisfaction: number; comments: string; attendee_id?: string }): Promise<void> {
     const feedbackCollection = collection(db, `${CODELABS_COLLECTION}/${codelabId}/feedback`);
     
     // Check if already submitted
-    const q = query(feedbackCollection, where("attendee_id", "==", payload.attendee_id));
+    const attendeeId = payload.attendee_id || getStoredAttendeeId(codelabId);
+    if (!attendeeId) throw new Error('ATTENDEE_REQUIRED');
+    const q = query(feedbackCollection, where("attendee_id", "==", attendeeId));
     const snapshot = await getDocs(q);
     if (!snapshot.empty) throw new Error('ALREADY_SUBMITTED');
 
     await addDoc(feedbackCollection, {
         codelab_id: codelabId,
-        attendee_id: payload.attendee_id,
+        attendee_id: attendeeId,
         difficulty: payload.difficulty.toString(),
         satisfaction: payload.satisfaction.toString(),
         comment: payload.comments,
         created_at: serverTimestamp()
     });
+}
+
+function getStoredAttendeeId(codelabId: string): string | null {
+    if (typeof localStorage === 'undefined') return null;
+    const raw = localStorage.getItem(`attendee_${codelabId}`);
+    if (!raw) return null;
+    try {
+        const parsed = JSON.parse(raw) as { id?: string };
+        return parsed.id || null;
+    } catch {
+        return null;
+    }
 }
 
 export async function getFeedback(codelabId: string): Promise<Feedback[]> {
