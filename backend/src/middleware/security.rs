@@ -7,9 +7,9 @@ use axum_extra::extract::cookie::CookieJar;
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 
-use crate::auth::generate_csrf_token;
+use crate::middleware::auth::generate_csrf_token;
 use crate::utils::error::{bad_request, too_many_requests};
-use crate::rate_limit::RateLimitConfig;
+use crate::middleware::rate_limit::RateLimitConfig;
 use crate::infrastructure::database::AppState;
 
 #[derive(Debug, Clone)]
@@ -214,7 +214,7 @@ pub fn ensure_csrf_cookie(
         return jar;
     }
     let token = generate_csrf_token();
-    let cookie = crate::auth::build_csrf_cookie(&state.auth, token, max_age);
+    let cookie = crate::middleware::auth::build_csrf_cookie(&state.auth, token, max_age);
     jar.add(cookie)
 }
 
