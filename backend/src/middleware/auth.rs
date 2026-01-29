@@ -10,7 +10,7 @@ use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use crate::utils::error::{forbidden, unauthorized};
-use crate::state::AppState;
+use crate::infrastructure::database::AppState;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Role {
