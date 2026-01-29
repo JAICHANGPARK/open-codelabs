@@ -8,7 +8,7 @@ use axum::{
     body::Body,
     extract::{Path, State},
     http::{header, StatusCode},
-    response::{IntoResponse, Response},
+    response::Response,
     Json,
 };
 use serde::{Deserialize, Serialize};
@@ -18,6 +18,7 @@ use std::sync::Arc;
 pub struct CreateCodeServerRequest {
     pub codelab_id: String,
     pub workspace_files: Option<Vec<WorkspaceFile>>,
+    pub structure_type: Option<String>, // "branch" or "folder"
 }
 
 #[derive(Deserialize, Serialize)]
@@ -28,14 +29,27 @@ pub struct WorkspaceFile {
 
 #[derive(Serialize)]
 pub struct CodeServerInfo {
-    pub url: String,
-    pub password: String,
+    pub path: String,
+    pub structure_type: String,
 }
 
 #[derive(Deserialize)]
 pub struct CreateBranchRequest {
     pub step_number: i32,
     pub branch_type: String, // "start" or "end"
+}
+
+#[derive(Deserialize)]
+pub struct CreateFolderRequest {
+    pub step_number: i32,
+    pub folder_type: String, // "start" or "end"
+    pub files: Vec<WorkspaceFile>,
+}
+
+#[derive(sqlx::FromRow)]
+struct WorkspaceRow {
+    url: String,
+    structure_type: String,
 }
 
 /// Create workspace in code-server for a codelab
@@ -48,7 +62,8 @@ pub async fn create_codeserver(
     let admin = session.require_admin()?;
 
     // Verify codelab exists
-    let _codelab = sqlx::query!(&state.q("SELECT id FROM codelabs WHERE id = ?"), payload.codelab_id)
+    let _codelab = sqlx::query(&state.q("SELECT id FROM codelabs WHERE id = ?"))
+        .bind(&payload.codelab_id)
         .fetch_optional(&state.pool)
         .await
         .map_err(internal_error)?
@@ -72,20 +87,25 @@ pub async fn create_codeserver(
         }
     }
 
-    // Initialize git repository
-    manager
-        .init_git_repo(&payload.codelab_id)
-        .await
-        .map_err(internal_error)?;
+    let structure_type = payload.structure_type.as_deref().unwrap_or("branch");
 
-    let url = manager.get_url().map_err(internal_error)?;
-    let password = std::env::var("CODESERVER_PASSWORD")
-        .unwrap_or_else(|_| "codelab123".to_string());
+    // Initialize git repository only for branch-based structure
+    if structure_type == "branch" {
+        manager
+            .init_git_repo(&payload.codelab_id)
+            .await
+            .map_err(internal_error)?;
+    }
+
+    let workspace_path = format!("/app/workspaces/{}", payload.codelab_id);
 
     // Store workspace info in database
-    sqlx::query!(&state.q(
-        "INSERT INTO codeserver_workspaces (codelab_id, url) VALUES (?, ?)"
-    ), payload.codelab_id, url)
+    sqlx::query(&state.q(
+        "INSERT INTO codeserver_workspaces (codelab_id, url, structure_type) VALUES (?, ?, ?)"
+    ))
+        .bind(&payload.codelab_id)
+        .bind(&workspace_path)
+        .bind(structure_type)
         .execute(&state.pool)
         .await
         .map_err(internal_error)?;
@@ -93,7 +113,7 @@ pub async fn create_codeserver(
     record_audit(
         &state,
         AuditEntry {
-            action: "codeserver_create".to_string(),
+            action: "workspace_create".to_string(),
             actor_type: "admin".to_string(),
             actor_id: Some(admin.sub),
             target_id: Some(payload.codelab_id.clone()),
@@ -105,7 +125,10 @@ pub async fn create_codeserver(
     )
     .await;
 
-    Ok(Json(CodeServerInfo { url, password }))
+    Ok(Json(CodeServerInfo {
+        path: workspace_path,
+        structure_type: structure_type.to_string(),
+    }))
 }
 
 /// Create a git branch for a step
@@ -119,9 +142,10 @@ pub async fn create_branch(
     let admin = session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query!(&state.q(
+    let _workspace = sqlx::query(&state.q(
         "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ), codelab_id)
+    ))
+        .bind(&codelab_id)
         .fetch_optional(&state.pool)
         .await
         .map_err(internal_error)?
@@ -164,9 +188,10 @@ pub async fn download_workspace(
     let admin = session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query!(&state.q(
+    let _workspace = sqlx::query(&state.q(
         "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ), codelab_id)
+    ))
+        .bind(&codelab_id)
         .fetch_optional(&state.pool)
         .await
         .map_err(internal_error)?
@@ -203,7 +228,7 @@ pub async fn download_workspace(
         .unwrap())
 }
 
-/// Get code server info
+/// Get workspace info
 pub async fn get_codeserver_info(
     Path(codelab_id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -211,20 +236,18 @@ pub async fn get_codeserver_info(
 ) -> Result<Json<CodeServerInfo>, (StatusCode, String)> {
     session.require_admin()?;
 
-    let workspace = sqlx::query!(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ), codelab_id)
+    let workspace = sqlx::query_as::<_, WorkspaceRow>(&state.q(
+        "SELECT url, structure_type FROM codeserver_workspaces WHERE codelab_id = ?"
+    ))
+        .bind(&codelab_id)
         .fetch_optional(&state.pool)
         .await
         .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Code server workspace not found"))?;
-
-    let password = std::env::var("CODESERVER_PASSWORD")
-        .unwrap_or_else(|_| "codelab123".to_string());
+        .ok_or_else(|| bad_request("Workspace not found"))?;
 
     Ok(Json(CodeServerInfo {
-        url: workspace.url,
-        password,
+        path: workspace.url,
+        structure_type: workspace.structure_type,
     }))
 }
 
@@ -237,9 +260,10 @@ pub async fn delete_codeserver(
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
     let admin = session.require_admin()?;
 
-    let _workspace = sqlx::query!(&state.q(
+    let _workspace = sqlx::query(&state.q(
         "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ), codelab_id)
+    ))
+        .bind(&codelab_id)
         .fetch_optional(&state.pool)
         .await
         .map_err(internal_error)?
@@ -253,9 +277,10 @@ pub async fn delete_codeserver(
         .map_err(internal_error)?;
 
     // Remove from database
-    sqlx::query!(&state.q(
+    sqlx::query(&state.q(
         "DELETE FROM codeserver_workspaces WHERE codelab_id = ?"
-    ), codelab_id)
+    ))
+        .bind(&codelab_id)
         .execute(&state.pool)
         .await
         .map_err(internal_error)?;
@@ -276,4 +301,228 @@ pub async fn delete_codeserver(
     .await;
 
     Ok(Json(serde_json::json!({ "success": true })))
+}
+
+/// Create a folder for a step (alternative to branches)
+pub async fn create_folder(
+    Path(codelab_id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+    info: RequestInfo,
+    Json(payload): Json<CreateFolderRequest>,
+) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+    let admin = session.require_admin()?;
+
+    // Verify workspace exists
+    let _workspace = sqlx::query(&state.q(
+        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
+    ))
+        .bind(&codelab_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| bad_request("Workspace not found"))?;
+
+    let manager = CodeServerManager::new().map_err(internal_error)?;
+
+    // Convert files to tuples
+    let files: Vec<(String, String)> = payload
+        .files
+        .iter()
+        .map(|f| (f.path.clone(), f.content.clone()))
+        .collect();
+
+    manager
+        .create_step_folder(&codelab_id, payload.step_number, &payload.folder_type, &files)
+        .await
+        .map_err(internal_error)?;
+
+    record_audit(
+        &state,
+        AuditEntry {
+            action: "workspace_folder_create".to_string(),
+            actor_type: "admin".to_string(),
+            actor_id: Some(admin.sub),
+            target_id: Some(codelab_id.clone()),
+            codelab_id: Some(codelab_id),
+            ip: Some(info.ip),
+            user_agent: info.user_agent,
+            metadata: Some(serde_json::json!({
+                "step_number": payload.step_number,
+                "folder_type": payload.folder_type
+            })),
+        },
+    )
+    .await;
+
+    Ok(Json(serde_json::json!({ "success": true })))
+}
+
+/// List branches in workspace
+pub async fn list_branches(
+    Path(codelab_id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+) -> Result<Json<Vec<String>>, (StatusCode, String)> {
+    session.require_admin()?;
+
+    // Verify workspace exists
+    let _workspace = sqlx::query(&state.q(
+        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
+    ))
+        .bind(&codelab_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| bad_request("Workspace not found"))?;
+
+    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let branches = manager
+        .list_branches(&codelab_id)
+        .await
+        .map_err(internal_error)?;
+
+    Ok(Json(branches))
+}
+
+/// List files in a branch
+pub async fn list_files(
+    Path((codelab_id, branch)): Path<(String, String)>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+) -> Result<Json<Vec<String>>, (StatusCode, String)> {
+    session.require_admin()?;
+
+    // Verify workspace exists
+    let _workspace = sqlx::query(&state.q(
+        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
+    ))
+        .bind(&codelab_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| bad_request("Workspace not found"))?;
+
+    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let files = manager
+        .list_files(&codelab_id, &branch)
+        .await
+        .map_err(internal_error)?;
+
+    Ok(Json(files))
+}
+
+#[derive(Deserialize)]
+pub struct ReadFileQuery {
+    pub file: String,
+}
+
+/// Read file content from a branch
+pub async fn read_file(
+    Path((codelab_id, branch)): Path<(String, String)>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+    axum::extract::Query(query): axum::extract::Query<ReadFileQuery>,
+) -> Result<String, (StatusCode, String)> {
+    session.require_admin()?;
+
+    // Verify workspace exists
+    let _workspace = sqlx::query(&state.q(
+        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
+    ))
+        .bind(&codelab_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| bad_request("Workspace not found"))?;
+
+    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let content = manager
+        .read_file(&codelab_id, &branch, &query.file)
+        .await
+        .map_err(internal_error)?;
+
+    Ok(content)
+}
+
+/// List folders in workspace (for folder-based structure)
+pub async fn list_folders(
+    Path(codelab_id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+) -> Result<Json<Vec<String>>, (StatusCode, String)> {
+    session.require_admin()?;
+
+    // Verify workspace exists
+    let _workspace = sqlx::query(&state.q(
+        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
+    ))
+        .bind(&codelab_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| bad_request("Workspace not found"))?;
+
+    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let folders = manager
+        .list_folders(&codelab_id)
+        .await
+        .map_err(internal_error)?;
+
+    Ok(Json(folders))
+}
+
+/// List files in a folder (for folder-based structure)
+pub async fn list_folder_files(
+    Path((codelab_id, folder)): Path<(String, String)>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+) -> Result<Json<Vec<String>>, (StatusCode, String)> {
+    session.require_admin()?;
+
+    // Verify workspace exists
+    let _workspace = sqlx::query(&state.q(
+        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
+    ))
+        .bind(&codelab_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| bad_request("Workspace not found"))?;
+
+    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let files = manager
+        .list_folder_files(&codelab_id, &folder)
+        .await
+        .map_err(internal_error)?;
+
+    Ok(Json(files))
+}
+
+/// Read file from folder (for folder-based structure)
+pub async fn read_folder_file(
+    Path((codelab_id, folder)): Path<(String, String)>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+    axum::extract::Query(query): axum::extract::Query<ReadFileQuery>,
+) -> Result<String, (StatusCode, String)> {
+    session.require_admin()?;
+
+    // Verify workspace exists
+    let _workspace = sqlx::query(&state.q(
+        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
+    ))
+        .bind(&codelab_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| bad_request("Workspace not found"))?;
+
+    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let content = manager
+        .read_folder_file(&codelab_id, &folder, &query.file)
+        .await
+        .map_err(internal_error)?;
+
+    Ok(content)
 }
