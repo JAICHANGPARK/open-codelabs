@@ -33,6 +33,7 @@
         toggleVisibility,
         handleExport,
         handleSave,
+        handleDownloadWorkspace,
     } = $props<{
         id: string;
         codelab: Codelab | null;
@@ -43,6 +44,7 @@
         toggleVisibility: () => void;
         handleExport: () => void;
         handleSave: () => void;
+        handleDownloadWorkspace?: () => void;
     }>();
 </script>
 
@@ -156,6 +158,18 @@
                 >
                     <Download size={18} class="sm:w-5 sm:h-5" />
                 </button>
+
+                {#if handleDownloadWorkspace}
+                    <button
+                        type="button"
+                        onclick={handleDownloadWorkspace}
+                        class="p-1.5 sm:p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
+                        title="Download Code Server Workspace"
+                        aria-label="Download Code Server Workspace"
+                    >
+                        <FileUp size={18} class="sm:w-5 sm:h-5" />
+                    </button>
+                {/if}
 
                 <button
                     onclick={handleSave}
