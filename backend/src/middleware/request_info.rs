@@ -5,8 +5,8 @@ use axum::http::StatusCode;
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use crate::error::unauthorized;
-use crate::state::AppState;
+use crate::utils::error::unauthorized;
+use crate::infrastructure::database::AppState;
 
 #[derive(Debug, Clone)]
 pub struct RequestInfo {
