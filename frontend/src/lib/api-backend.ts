@@ -371,9 +371,11 @@ export async function deleteSubmission(codelabId: string, attendeeId: string, su
 
 // Code Server API
 export interface CodeServerInfo {
-    container_name: string;
-    port: number;
-    password: string;
+    container_name?: string;
+    port?: number;
+    password?: string;
+    path?: string;
+    structure_type: string;
 }
 
 export interface WorkspaceFile {
@@ -412,6 +414,19 @@ export async function createCodeServerBranch(codelabId: string, stepNumber: numb
     if (!res.ok) throw new Error('Failed to create branch');
 }
 
+export async function createCodeServerFolder(codelabId: string, stepNumber: number, folderType: 'start' | 'end', files: WorkspaceFile[]): Promise<void> {
+    const res = await apiFetch(`/codeserver/${codelabId}/folder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            step_number: stepNumber,
+            folder_type: folderType,
+            files
+        })
+    });
+    if (!res.ok) throw new Error('Failed to create folder');
+}
+
 export async function downloadCodeServerWorkspace(codelabId: string): Promise<void> {
     const res = await apiFetch(`/codeserver/${codelabId}/download`);
     if (!res.ok) throw new Error('Failed to download workspace');
@@ -442,6 +457,24 @@ export async function getWorkspaceFiles(codelabId: string, branch: string): Prom
 export async function getWorkspaceFileContent(codelabId: string, branch: string, file: string): Promise<string> {
     const res = await apiFetch(`/codeserver/${codelabId}/branches/${encodeURIComponent(branch)}/file?file=${encodeURIComponent(file)}`);
     if (!res.ok) throw new Error('Failed to get file content');
+    return res.text();
+}
+
+export async function getWorkspaceFolders(codelabId: string): Promise<string[]> {
+    const res = await apiFetch(`/codeserver/${codelabId}/folders`);
+    if (!res.ok) throw new Error('Failed to get folders');
+    return res.json();
+}
+
+export async function getWorkspaceFolderFiles(codelabId: string, folder: string): Promise<string[]> {
+    const res = await apiFetch(`/codeserver/${codelabId}/folders/${encodeURIComponent(folder)}/files`);
+    if (!res.ok) throw new Error('Failed to get folder files');
+    return res.json();
+}
+
+export async function getWorkspaceFolderFileContent(codelabId: string, folder: string, file: string): Promise<string> {
+    const res = await apiFetch(`/codeserver/${codelabId}/folders/${encodeURIComponent(folder)}/file?file=${encodeURIComponent(file)}`);
+    if (!res.ok) throw new Error('Failed to get folder file content');
     return res.text();
 }
 
