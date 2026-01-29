@@ -6,8 +6,9 @@ use crate::api::handlers::{
         request_help, resolve_help_request,
     },
     codeserver::{
-        create_branch, create_codeserver, delete_codeserver, download_workspace,
-        get_codeserver_info,
+        create_branch, create_codeserver, create_folder, delete_codeserver, download_workspace,
+        get_codeserver_info, list_branches, list_files, list_folder_files, list_folders,
+        read_file, read_folder_file,
     },
     codelabs::{
         copy_codelab, create_codelab, delete_codelab, export_codelab, get_chat_history,
@@ -102,10 +103,17 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             get(get_codeserver_info).delete(delete_codeserver),
         )
         .route("/api/codeserver/{codelab_id}/branch", post(create_branch))
+        .route("/api/codeserver/{codelab_id}/folder", post(create_folder))
         .route(
             "/api/codeserver/{codelab_id}/download",
             get(download_workspace),
         )
+        .route("/api/codeserver/{codelab_id}/branches", get(list_branches))
+        .route("/api/codeserver/{codelab_id}/branches/{branch}/files", get(list_files))
+        .route("/api/codeserver/{codelab_id}/branches/{branch}/file", get(read_file))
+        .route("/api/codeserver/{codelab_id}/folders", get(list_folders))
+        .route("/api/codeserver/{codelab_id}/folders/{folder}/files", get(list_folder_files))
+        .route("/api/codeserver/{codelab_id}/folders/{folder}/file", get(read_folder_file))
         .nest_service("/assets", ServeDir::new("static/assets"))
         .fallback_service(ServeDir::new("static"))
         .layer(middleware::from_fn_with_state(
