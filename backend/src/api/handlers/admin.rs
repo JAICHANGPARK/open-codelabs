@@ -3,10 +3,10 @@ use crate::middleware::auth::{
     build_csrf_cookie, build_session_cookie, clear_cookie, now_epoch_seconds, AuthSession, Role,
     SessionClaims,
 };
-use crate::crypto::decrypt_with_password;
+use crate::utils::crypto::decrypt_with_password;
 use crate::utils::error::{bad_request, internal_error, unauthorized};
 use crate::domain::models::LoginPayload;
-use crate::request_info::RequestInfo;
+use crate::middleware::request_info::RequestInfo;
 use crate::security::ensure_csrf_cookie;
 use crate::infrastructure::database::AppState;
 use axum::{extract::State, http::StatusCode, Json};
@@ -189,7 +189,7 @@ pub async fn get_session(
 
 #[cfg(test)]
 mod tests {
-    use crate::crypto::{decrypt_with_password, encrypt_with_password, ENCRYPTION_PREFIX};
+    use crate::utils::crypto::{decrypt_with_password, encrypt_with_password, ENCRYPTION_PREFIX};
 
     #[test]
     fn test_password_encryption_round_trip() {
