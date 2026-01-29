@@ -14,9 +14,9 @@ COPY migrations ./migrations
 RUN cargo build --release
 
 FROM debian:bookworm-slim
-RUN apt-get update && apt-get install -y libssl3 ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y libssl3 ca-certificates git tar && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-RUN mkdir -p /app/data /app/static/uploads && chmod -R 777 /app/static /app/data
+RUN mkdir -p /app/data /app/static/uploads /app/workspaces && chmod -R 777 /app/static /app/data /app/workspaces
 COPY --from=builder /app/target/release/backend /usr/local/bin/backend
 
 EXPOSE 8080
