@@ -27,6 +27,7 @@
     } from "$lib/api";
     import { loadProgress, saveProgress } from "$lib/Progress";
     import { attendeeMarked as marked } from "$lib/markdown";
+    import { extractPlaygrounds, type PlaygroundBlock } from "$lib/playground";
     import DOMPurify from "dompurify";
     import {
         ChevronLeft,
@@ -34,6 +35,7 @@
         Menu,
         X,
         Clock,
+        Code,
         User,
         CheckCircle2,
         Check,
@@ -59,6 +61,7 @@
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
     import AskGemini from "$lib/components/codelabs/AskGemini.svelte";
+    import PlaygroundPanel from "$lib/components/codelabs/PlaygroundPanel.svelte";
     import SubmissionPanel from "$lib/components/codelabs/SubmissionPanel.svelte";
     import { createTtsPlayer } from "$lib/tts";
     import { themeState } from "$lib/theme.svelte";
@@ -73,6 +76,7 @@
     let showSidebar = $state(true);
     let showChat = $state(false);
     let showGuide = $state(false);
+    let showPlayground = $state(false);
     let isFinished = $state(false);
     let materials = $state<Material[]>([]);
 
@@ -111,6 +115,14 @@
     let helpSent = $state(false);
     let chatTab = $state<"public" | "direct">("public");
     let hasNewDm = $state(false);
+    let lastStepId = $state<string | null>(null);
+
+    const defaultPlaygrounds: PlaygroundBlock[] = [
+        { language: "dart", code: "" },
+        { language: "go", code: "" },
+        { language: "python", code: "" },
+        { language: "jupyter", code: "" },
+    ];
 
     // Gemini State
     let showGeminiButton = $state(false);
@@ -152,7 +164,6 @@
                 ws.send(
                     JSON.stringify({
                         type: "step_progress",
-                        attendee_id: attendee.id,
                         step_number: currentStepIndex + 1,
                     }),
                 );
@@ -386,12 +397,10 @@
 
         ws.onopen = () => {
             if (attendee) {
-                ws?.send(JSON.stringify({ attendee_id: attendee.id }));
                 // Send initial progress
                 ws?.send(
                     JSON.stringify({
                         type: "step_progress",
-                        attendee_id: attendee.id,
                         step_number: currentStepIndex + 1,
                     }),
                 );
@@ -407,7 +416,7 @@
                         {
                             sender: data.sender,
                             text: data.message,
-                            time: data.timestamp,
+                            time: data.timestamp || new Date().toLocaleTimeString(),
                             self: data.sender === attendee?.name,
                             type: "chat",
                         },
@@ -427,7 +436,7 @@
                         {
                             sender: `[DM] ${data.sender}`,
                             text: data.message,
-                            time: data.timestamp,
+                            time: data.timestamp || new Date().toLocaleTimeString(),
                             self: false,
                             type: "dm",
                         },
@@ -466,7 +475,6 @@
         if (!ws) return;
         const msg = {
             type: "chat",
-            sender: attendee.name,
             message: chatMessage.trim(),
             timestamp: new Date().toLocaleTimeString([], {
                 hour: "2-digit",
@@ -482,7 +490,7 @@
         if (!attendee || helpSent) return;
 
         try {
-            await requestHelp(id, attendee.id, currentStepIndex + 1);
+            await requestHelp(id, currentStepIndex + 1);
             helpSent = true;
             setTimeout(() => (helpSent = false), 30000); // Prevent spamming
             alert($t("help.sent"));
@@ -557,7 +565,6 @@
         if (attendee) {
             try {
                 await submitQuiz(id, {
-                    attendee_id: attendee.id,
                     submissions: submissions
                 });
             } catch (e) {
@@ -578,12 +585,11 @@
                 difficulty: feedbackDifficulty,
                 satisfaction: feedbackSatisfaction,
                 comments: feedbackComment,
-                attendee_id: attendee.id,
             });
             
             // Mark as completed in backend
             try {
-                await completeCodelab(id, attendee.id);
+                await completeCodelab(id);
             } catch (ce) {
                 console.error("Complete codelab error", ce);
             }
@@ -640,6 +646,20 @@
         }
         return html;
     });
+    let playgrounds = $derived.by(() => {
+        if (!currentStep) return [];
+        return extractPlaygrounds(currentStep.content_markdown);
+    });
+    let playgroundsForPanel = $derived.by(() => {
+        if (playgrounds.length > 0) return playgrounds;
+        return defaultPlaygrounds;
+    });
+    $effect(() => {
+        const stepId = currentStep?.id ?? null;
+        if (!stepId || stepId === lastStepId) return;
+        showPlayground = playgrounds.length > 0;
+        lastStepId = stepId;
+    });
     let progressPercent = $derived(
         steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0,
     );
@@ -693,6 +713,20 @@
                     <Info size={20} />
                 </button>
             {/if}
+            <button
+                onclick={() => (showPlayground = !showPlayground)}
+                class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/10 rounded-full transition-all relative {showPlayground ? 'text-[#4285F4] bg-[#E8F0FE] dark:bg-[#4285F4]/20' : 'text-[#5F6368] dark:text-dark-text-muted'}"
+                title={showPlayground ? $t("playground.toggle_close") : $t("playground.toggle_open")}
+                aria-label={showPlayground ? $t("playground.toggle_close") : $t("playground.toggle_open")}
+            >
+                <Code size={20} />
+                {#if !showPlayground && playgrounds.length > 0}
+                    <span
+                        class="absolute top-2 right-2 w-2 h-2 bg-[#EA4335] rounded-full border-2 border-white dark:border-dark-surface"
+                        aria-hidden="true"
+                    ></span>
+                {/if}
+            </button>
             <div
                 class="hidden sm:flex items-center gap-2 text-[#5F6368] dark:text-dark-text-muted text-[11px] font-bold uppercase tracking-wider"
             >
@@ -1216,6 +1250,9 @@
                         <div class="markdown-body">
                             {@html renderedContent}
                         </div>
+                        {#if showPlayground}
+                            <PlaygroundPanel playgrounds={playgroundsForPanel} />
+                        {/if}
                     </div>
                 {/if}
             </div>
