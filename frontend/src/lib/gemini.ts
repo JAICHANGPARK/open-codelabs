@@ -175,7 +175,7 @@ export async function* streamGeminiStructuredOutput(
     systemPrompt: string,
     schema: object,
     config: GeminiStructuredConfig
-): AsyncGenerator<ThinkingContent, void, unknown> {
+): AsyncGenerator<ThinkingContent, TokenUsage | undefined, unknown> {
     const apiKeyRequired = () => {
         if (!config.apiKey) throw new Error("API Key is required for backend mode");
     };
@@ -251,10 +251,11 @@ export async function* streamGeminiStructuredOutput(
     }
 }
 
-async function* parseStructuredStream(response: Response) {
+async function* parseStructuredStream(response: Response): AsyncGenerator<ThinkingContent, TokenUsage | undefined, unknown> {
     const reader = response.body!.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let lastUsage: TokenUsage | undefined;
 
     while (true) {
         const { done, value } = await reader.read();
@@ -271,6 +272,16 @@ async function* parseStructuredStream(response: Response) {
 
             try {
                 const data = JSON.parse(jsonStr);
+
+                // Capture usage metadata
+                if (data.usageMetadata) {
+                    lastUsage = {
+                        promptTokenCount: data.usageMetadata.promptTokenCount || 0,
+                        candidatesTokenCount: data.usageMetadata.candidatesTokenCount || 0,
+                        totalTokenCount: data.usageMetadata.totalTokenCount || 0,
+                    };
+                }
+
                 const candidate = data.candidates?.[0];
                 if (candidate?.content?.parts) {
                     let thinkingText = "";
@@ -289,4 +300,6 @@ async function* parseStructuredStream(response: Response) {
             } catch (e) { }
         }
     }
+
+    return lastUsage;
 }
