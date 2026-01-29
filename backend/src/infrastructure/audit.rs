@@ -1,4 +1,4 @@
-use crate::state::AppState;
+use crate::infrastructure::database::AppState;
 use serde_json::Value;
 
 #[derive(Debug, Clone)]
