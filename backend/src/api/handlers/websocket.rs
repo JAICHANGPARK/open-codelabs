@@ -37,7 +37,7 @@ async fn handle_socket(
     socket: WebSocket,
     codelab_id: String,
     state: Arc<AppState>,
-    claims: crate::auth::SessionClaims,
+    claims: crate::middleware::auth::SessionClaims,
 ) {
     let (mut sender, mut receiver) = socket.split();
     let (tx_ws, mut rx_ws) = tokio::sync::mpsc::unbounded_channel::<Message>();
