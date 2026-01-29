@@ -96,7 +96,10 @@
                         </div>
                         <button
                             type="button"
-                            onclick={() => (dmTarget = attendee)}
+                            onclick={() => {
+                                dmTarget = attendee;
+                                chatTab = "direct";
+                            }}
                             class="p-2 text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-lg opacity-0 lg:opacity-0 group-hover:opacity-100 transition-all"
                             title={$t("editor.send_dm")}
                             aria-label={$t("editor.send_dm")}
