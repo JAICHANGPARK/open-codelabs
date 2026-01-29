@@ -1,12 +1,13 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { getWorkspaceBranches, getWorkspaceFiles, getWorkspaceFileContent } from '$lib/api-backend';
+    import { getWorkspaceBranches, getWorkspaceFiles, getWorkspaceFileContent, getCodeServerInfo } from '$lib/api-backend';
 
     export let codelabId: string;
     export let onClose: () => void;
 
-    let branches: string[] = [];
-    let selectedBranch = '';
+    let structureType: 'branch' | 'folder' = 'branch';
+    let items: string[] = []; // branches or folders
+    let selectedItem = '';
     let files: string[] = [];
     let selectedFile = '';
     let fileContent = '';
@@ -14,33 +15,51 @@
     let error = '';
 
     onMount(async () => {
-        await loadBranches();
+        await loadWorkspaceInfo();
     });
 
-    async function loadBranches() {
+    async function loadWorkspaceInfo() {
         try {
             loading = true;
             error = '';
-            branches = await getWorkspaceBranches(codelabId);
-            if (branches.length > 0) {
-                selectedBranch = branches[0];
+
+            // Get workspace info to determine structure type
+            const info = await getCodeServerInfo(codelabId);
+            structureType = info.structure_type as 'branch' | 'folder';
+
+            // Load branches or folders
+            if (structureType === 'branch') {
+                items = await getWorkspaceBranches(codelabId);
+            } else {
+                const { getWorkspaceFolders } = await import('$lib/api-backend');
+                items = await getWorkspaceFolders(codelabId);
+            }
+
+            if (items.length > 0) {
+                selectedItem = items[0];
                 await loadFiles();
             }
         } catch (e) {
-            error = 'Failed to load branches: ' + (e as Error).message;
+            error = 'Failed to load workspace: ' + (e as Error).message;
         } finally {
             loading = false;
         }
     }
 
     async function loadFiles() {
-        if (!selectedBranch) return;
+        if (!selectedItem) return;
         try {
             loading = true;
             error = '';
             fileContent = '';
             selectedFile = '';
-            files = await getWorkspaceFiles(codelabId, selectedBranch);
+
+            if (structureType === 'branch') {
+                files = await getWorkspaceFiles(codelabId, selectedItem);
+            } else {
+                const { getWorkspaceFolderFiles } = await import('$lib/api-backend');
+                files = await getWorkspaceFolderFiles(codelabId, selectedItem);
+            }
         } catch (e) {
             error = 'Failed to load files: ' + (e as Error).message;
         } finally {
@@ -53,7 +72,13 @@
             loading = true;
             error = '';
             selectedFile = file;
-            fileContent = await getWorkspaceFileContent(codelabId, selectedBranch, file);
+
+            if (structureType === 'branch') {
+                fileContent = await getWorkspaceFileContent(codelabId, selectedItem, file);
+            } else {
+                const { getWorkspaceFolderFileContent } = await import('$lib/api-backend');
+                fileContent = await getWorkspaceFolderFileContent(codelabId, selectedItem, file);
+            }
         } catch (e) {
             error = 'Failed to load file content: ' + (e as Error).message;
         } finally {
@@ -61,7 +86,7 @@
         }
     }
 
-    async function handleBranchChange() {
+    async function handleItemChange() {
         await loadFiles();
     }
 </script>
@@ -79,15 +104,15 @@
     <div class="content">
         <div class="sidebar">
             <div class="branch-selector">
-                <label for="branch">Branch:</label>
+                <label for="item">{structureType === 'branch' ? 'Branch' : 'Folder'}:</label>
                 <select
-                    id="branch"
-                    bind:value={selectedBranch}
-                    on:change={handleBranchChange}
+                    id="item"
+                    bind:value={selectedItem}
+                    on:change={handleItemChange}
                     disabled={loading}
                 >
-                    {#each branches as branch}
-                        <option value={branch}>{branch}</option>
+                    {#each items as item}
+                        <option value={item}>{item}</option>
                     {/each}
                 </select>
             </div>
