@@ -42,6 +42,28 @@
     let handsOnDuration = $state("60");
     let customDuration = $state("");
     let enableCodeServer = $state(false);
+    let workspaceStructureType = $state<"branch" | "folder">("branch");
+
+    // Token usage tracking
+    let totalInputTokens = $state(0);
+    let totalOutputTokens = $state(0);
+    let totalCost = $state(0);
+
+    // Gemini 3 Flash Preview pricing (per 1M tokens)
+    const INPUT_PRICE_PER_1M = 0.50;  // $0.50
+    const OUTPUT_PRICE_PER_1M = 3.00; // $3.00
+
+    function calculateCost(inputTokens: number, outputTokens: number): number {
+        const inputCost = (inputTokens / 1_000_000) * INPUT_PRICE_PER_1M;
+        const outputCost = (outputTokens / 1_000_000) * OUTPUT_PRICE_PER_1M;
+        return inputCost + outputCost;
+    }
+
+    function addTokenUsage(inputTokens: number, outputTokens: number) {
+        totalInputTokens += inputTokens;
+        totalOutputTokens += outputTokens;
+        totalCost = calculateCost(totalInputTokens, totalOutputTokens);
+    }
     let parsedData = $state<{
         title: string;
         description: string;
