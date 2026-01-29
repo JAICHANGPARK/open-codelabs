@@ -64,6 +64,7 @@
     import GuideMode from "$lib/components/admin/GuideMode.svelte";
     import SubmissionsMode from "$lib/components/admin/SubmissionsMode.svelte";
     import RaffleMode from "$lib/components/admin/RaffleMode.svelte";
+    import WorkspaceBrowser from "$lib/components/admin/WorkspaceBrowser.svelte";
 
     import { 
         getSubmissions,
@@ -1647,6 +1648,8 @@
         }
     }
 
+    let showWorkspaceBrowser = false;
+
     async function handleDownloadWorkspace() {
         try {
             const { downloadCodeServerWorkspace } = await import('$lib/api');
@@ -1658,6 +1661,10 @@
                 alert("Download failed: " + e);
             }
         }
+    }
+
+    function handleBrowseWorkspace() {
+        showWorkspaceBrowser = true;
     }
 
     type InsertOptions = {
@@ -2027,6 +2034,7 @@
         {handleExport}
         handleSave={handleUniversalSave}
         {handleDownloadWorkspace}
+        {handleBrowseWorkspace}
     />
 
     {#if loading}
@@ -2255,5 +2263,28 @@
     :global(html.dark .markdown-body h2) {
         color: #e8eaed;
         border-bottom-color: #3c4043;
+    }
+</style>
+
+{#if showWorkspaceBrowser}
+    <div class="modal-overlay" on:click={() => showWorkspaceBrowser = false} on:keydown={(e) => e.key === 'Escape' && (showWorkspaceBrowser = false)} role="button" tabindex="-1">
+        <div on:click|stopPropagation on:keydown|stopPropagation role="button" tabindex="-1">
+            <WorkspaceBrowser codelabId={id} onClose={() => showWorkspaceBrowser = false} />
+        </div>
+    </div>
+{/if}
+
+<style>
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 </style>
