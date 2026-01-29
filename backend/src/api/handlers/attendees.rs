@@ -28,7 +28,7 @@ pub async fn register_attendee(
     jar: CookieJar,
     info: RequestInfo,
     Json(payload): Json<RegistrationPayload>,
-) -> Result<(CookieJar, Json<crate::models::AttendeePublic>), (StatusCode, String)> {
+) -> Result<(CookieJar, Json<crate::domain::models::AttendeePublic>), (StatusCode, String)> {
     validate_registration(&payload)?;
     // Check if codelab is public
     let codelab = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs WHERE id = ?"))
@@ -93,7 +93,7 @@ pub async fn register_attendee(
         exp: now + state.auth.attendee_ttl.as_secs() as usize,
     };
     let token = state.auth.issue_token(&claims).map_err(internal_error)?;
-    let csrf_token = crate::auth::generate_csrf_token();
+    let csrf_token = crate::middleware::auth::generate_csrf_token();
     let jar = jar
         .add(build_session_cookie(
             &state.auth,
@@ -121,7 +121,7 @@ pub async fn register_attendee(
     )
     .await;
 
-    Ok((jar, Json(crate::models::AttendeePublic::from(attendee))))
+    Ok((jar, Json(crate::domain::models::AttendeePublic::from(attendee))))
 }
 
 pub async fn get_attendees(
