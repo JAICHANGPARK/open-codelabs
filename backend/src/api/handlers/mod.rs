@@ -1,0 +1,11 @@
+pub mod admin;
+pub mod ai;
+pub mod attendees;
+pub mod codeserver;
+pub mod codelabs;
+pub mod feedback;
+pub mod materials;
+pub mod quizzes;
+pub mod submissions;
+pub mod upload;
+pub mod websocket;
