@@ -17,6 +17,9 @@
         type GeminiStructuredConfig,
     } from "$lib/gemini";
     import { createCodelab, saveSteps, type Codelab } from "$lib/api";
+    import { adminMarked as marked } from "$lib/markdown";
+    import DOMPurify from "dompurify";
+    import { browser } from "$app/environment";
     import { t, locale } from "svelte-i18n";
     import JSZip from "jszip";
     import UploadedFileList from "$lib/components/admin/UploadedFileList.svelte";
@@ -38,6 +41,7 @@
     let useUrlContext = $state(false);
     let handsOnDuration = $state("60");
     let customDuration = $state("");
+    let enableCodeServer = $state(false);
     let parsedData = $state<{
         title: string;
         description: string;
@@ -193,6 +197,9 @@ Return JSON that matches the schema exactly.
     let advancedDraftData = $state<CodelabDraft | null>(null);
     let advancedReviewData = $state<ReviewData | null>(null);
     let advancedRevisedData = $state<CodelabDraft | null>(null);
+    let advancedDraftView = $state<"markdown" | "raw">("markdown");
+    let advancedRevisedView = $state<"markdown" | "raw">("markdown");
+    let advancedDiffView = $state<"unified" | "split">("unified");
     let advancedUseGoogleSearch = $state(true);
     let advancedUseUrlContext = $state(false);
     let advancedSourceContext = $state("");
@@ -380,6 +387,159 @@ Return JSON that matches the schema exactly.
         };
     }
 
+    function buildCodelabMarkdown(data: CodelabDraft | null) {
+        if (!data) return "";
+        const sections: string[] = [];
+        if (data.title) {
+            sections.push(`# ${data.title}`);
+        }
+        if (data.description) {
+            sections.push("", data.description);
+        }
+        data.steps.forEach((step, index) => {
+            const heading = `## ${index + 1}. ${step.title}`;
+            sections.push("", heading, "", step.content || "");
+        });
+        return sections.join("\n").trim();
+    }
+
+    function renderMarkdown(markdown: string) {
+        if (!markdown) return "";
+        try {
+            const html = marked.parse(markdown) as string;
+            if (browser) {
+                return DOMPurify.sanitize(html);
+            }
+            return html;
+        } catch (e) {
+            console.error("Markdown parse error", e);
+            return $t("ai_generator.error_parse");
+        }
+    }
+
+    type DiffLine = {
+        type: "equal" | "add" | "remove";
+        text: string;
+    };
+
+    type DiffRow = {
+        leftText: string;
+        rightText: string;
+        leftType: "equal" | "remove" | "empty";
+        rightType: "equal" | "add" | "empty";
+    };
+
+    const MAX_DIFF_CELLS = 2_000_000;
+
+    function buildLineDiff(
+        sourceText: string,
+        targetText: string,
+    ): { lines: DiffLine[]; truncated: boolean } {
+        const source = sourceText ? sourceText.split("\n") : [];
+        const target = targetText ? targetText.split("\n") : [];
+        const rows = source.length;
+        const cols = target.length;
+
+        if (!rows && !cols) {
+            return { lines: [], truncated: false };
+        }
+
+        if (rows * cols > MAX_DIFF_CELLS) {
+            return { lines: [], truncated: true };
+        }
+
+        const width = cols + 1;
+        const dp = new Uint32Array((rows + 1) * width);
+
+        for (let i = 1; i <= rows; i += 1) {
+            for (let j = 1; j <= cols; j += 1) {
+                const idx = i * width + j;
+                if (source[i - 1] === target[j - 1]) {
+                    dp[idx] = dp[(i - 1) * width + (j - 1)] + 1;
+                } else {
+                    const top = dp[(i - 1) * width + j];
+                    const left = dp[i * width + (j - 1)];
+                    dp[idx] = top > left ? top : left;
+                }
+            }
+        }
+
+        const lines: DiffLine[] = [];
+        let i = rows;
+        let j = cols;
+        while (i > 0 && j > 0) {
+            if (source[i - 1] === target[j - 1]) {
+                lines.push({ type: "equal", text: source[i - 1] });
+                i -= 1;
+                j -= 1;
+            } else {
+                const top = dp[(i - 1) * width + j];
+                const left = dp[i * width + (j - 1)];
+                if (top >= left) {
+                    lines.push({ type: "remove", text: source[i - 1] });
+                    i -= 1;
+                } else {
+                    lines.push({ type: "add", text: target[j - 1] });
+                    j -= 1;
+                }
+            }
+        }
+        while (i > 0) {
+            lines.push({ type: "remove", text: source[i - 1] });
+            i -= 1;
+        }
+        while (j > 0) {
+            lines.push({ type: "add", text: target[j - 1] });
+            j -= 1;
+        }
+
+        lines.reverse();
+        return { lines, truncated: false };
+    }
+
+    let advancedDraftMarkdown = $derived.by(() =>
+        buildCodelabMarkdown(advancedDraftData),
+    );
+    let advancedRevisedMarkdown = $derived.by(() =>
+        buildCodelabMarkdown(advancedRevisedData),
+    );
+    let advancedDraftHtml = $derived.by(() =>
+        renderMarkdown(advancedDraftMarkdown),
+    );
+    let advancedRevisedHtml = $derived.by(() =>
+        renderMarkdown(advancedRevisedMarkdown),
+    );
+    let advancedDiff = $derived.by(() =>
+        buildLineDiff(advancedDraftMarkdown, advancedRevisedMarkdown),
+    );
+    let advancedDiffRows = $derived.by(() => {
+        if (advancedDiff.truncated) return [];
+        return advancedDiff.lines.map<DiffRow>((line) => {
+            if (line.type === "equal") {
+                return {
+                    leftText: line.text,
+                    rightText: line.text,
+                    leftType: "equal",
+                    rightType: "equal",
+                };
+            }
+            if (line.type === "remove") {
+                return {
+                    leftText: line.text,
+                    rightText: "",
+                    leftType: "remove",
+                    rightType: "empty",
+                };
+            }
+            return {
+                leftText: "",
+                rightText: line.text,
+                leftType: "empty",
+                rightType: "add",
+            };
+        });
+    });
+
     async function handleGenerate() {
         // Combine manually entered code and uploaded files
         let fullContext = sourceCode.trim();
@@ -531,6 +691,28 @@ Return JSON that matches the schema exactly.
             }));
             await saveSteps(codelab.id, stepsPayload);
 
+            // 3. Create Code Server if enabled
+            if (enableCodeServer && uploadedFiles.length > 0) {
+                try {
+                    const { createCodeServer, createCodeServerBranch } = await import('$lib/api');
+                    const workspaceFiles = uploadedFiles.map(f => ({
+                        path: f.name,
+                        content: f.content
+                    }));
+
+                    await createCodeServer(codelab.id, workspaceFiles);
+
+                    // Create branches for each step
+                    for (let i = 0; i < parsedData.steps.length; i++) {
+                        await createCodeServerBranch(codelab.id, i + 1, 'start');
+                        await createCodeServerBranch(codelab.id, i + 1, 'end');
+                    }
+                } catch (e) {
+                    console.error('Failed to create code server', e);
+                    // Don't fail the whole process if code server creation fails
+                }
+            }
+
             onCodelabCreated(codelab);
         } catch (e) {
             console.error("Failed to save codelab", e);
@@ -653,6 +835,9 @@ Return JSON that matches the schema exactly.
         advancedDraftData = null;
         advancedReviewData = null;
         advancedRevisedData = null;
+        advancedDraftView = "markdown";
+        advancedRevisedView = "markdown";
+        advancedDiffView = "unified";
         planComments = [];
         clearPlanSelection();
         advancedSourceContext = fullContext;
@@ -1667,6 +1852,22 @@ Return JSON that matches the schema exactly.
                             >
                                 <input
                                     type="checkbox"
+                                    bind:checked={enableCodeServer}
+                                    disabled={uploadedFiles.length === 0}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4] disabled:opacity-50 disabled:cursor-not-allowed"
+                                />
+                                <span
+                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4] {uploadedFiles.length === 0 ? 'opacity-50' : ''}"
+                                >
+                                    Create Code Server Workspace
+                                </span>
+                            </label>
+
+                            <label
+                                class="flex items-center gap-2 cursor-pointer group"
+                            >
+                                <input
+                                    type="checkbox"
                                     bind:checked={showThinking}
                                     class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
                                 />
@@ -2392,6 +2593,195 @@ Return JSON that matches the schema exactly.
                                 {/if}
                             </div>
                         {/if}
+
+                        <div
+                            class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-6 shadow-sm"
+                        >
+                            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                                <div>
+                                    <h4
+                                        class="text-lg font-bold text-[#202124] dark:text-dark-text mb-1"
+                                    >
+                                        {$t("ai_generator.diff_title")}
+                                    </h4>
+                                    <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                                        {$t("ai_generator.diff_desc")}
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-1">
+                                    <button
+                                        onclick={() => (advancedDiffView = "unified")}
+                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDiffView === 'unified'
+                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
+                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                    >
+                                        {$t("ai_generator.diff_view_unified")}
+                                    </button>
+                                    <button
+                                        onclick={() => (advancedDiffView = "split")}
+                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDiffView === 'split'
+                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
+                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                    >
+                                        {$t("ai_generator.diff_view_split")}
+                                    </button>
+                                </div>
+                            </div>
+
+                            {#if !advancedDraftMarkdown || !advancedRevisedMarkdown}
+                                <p class="text-sm text-[#9AA0A6] dark:text-dark-text-muted">
+                                    {$t("ai_generator.diff_empty")}
+                                </p>
+                            {:else if advancedDiff.truncated}
+                                <p class="text-sm text-[#9AA0A6] dark:text-dark-text-muted">
+                                    {$t("ai_generator.diff_too_large")}
+                                </p>
+                            {:else if advancedDiffView === "unified"}
+                                <div class="rounded-xl border border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto">
+                                    <div class="font-mono text-[11px] leading-relaxed">
+                                        {#each advancedDiff.lines as line}
+                                            <div
+                                                class="flex items-start gap-2 px-3 py-1 {line.type === 'add'
+                                                    ? 'bg-[#E6F4EA] text-[#137333]'
+                                                    : line.type === 'remove'
+                                                        ? 'bg-[#FCE8E6] text-[#C5221F]'
+                                                        : 'text-[#3C4043] dark:text-dark-text'}"
+                                            >
+                                                <span class="w-4 text-[10px] font-bold">
+                                                    {line.type === "add"
+                                                        ? "+"
+                                                        : line.type === "remove"
+                                                            ? "-"
+                                                            : " "}
+                                                </span>
+                                                <span class="whitespace-pre-wrap break-words flex-1">
+                                                    {line.text || " "}
+                                                </span>
+                                            </div>
+                                        {/each}
+                                    </div>
+                                </div>
+                            {:else}
+                                <div class="rounded-xl border border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto">
+                                    <div class="grid grid-cols-2 font-mono text-[11px] leading-relaxed">
+                                        <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#5F6368] dark:text-dark-text-muted bg-[#F8F9FA] dark:bg-dark-bg border-b border-[#E8EAED] dark:border-dark-border">
+                                            {$t("ai_generator.diff_left")}
+                                        </div>
+                                        <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#5F6368] dark:text-dark-text-muted bg-[#F8F9FA] dark:bg-dark-bg border-b border-l border-[#E8EAED] dark:border-dark-border">
+                                            {$t("ai_generator.diff_right")}
+                                        </div>
+                                        {#each advancedDiffRows as row}
+                                            <div
+                                                class="flex items-start gap-2 px-3 py-1 border-r border-[#E8EAED] dark:border-dark-border {row.leftType === 'remove'
+                                                    ? 'bg-[#FCE8E6] text-[#C5221F]'
+                                                    : 'text-[#3C4043] dark:text-dark-text'}"
+                                            >
+                                                <span class="w-4 text-[10px] font-bold">
+                                                    {row.leftType === "remove" ? "-" : " "}
+                                                </span>
+                                                <span class="whitespace-pre-wrap break-words flex-1">
+                                                    {row.leftText || " "}
+                                                </span>
+                                            </div>
+                                            <div
+                                                class="flex items-start gap-2 px-3 py-1 {row.rightType === 'add'
+                                                    ? 'bg-[#E6F4EA] text-[#137333]'
+                                                    : 'text-[#3C4043] dark:text-dark-text'}"
+                                            >
+                                                <span class="w-4 text-[10px] font-bold">
+                                                    {row.rightType === "add" ? "+" : " "}
+                                                </span>
+                                                <span class="whitespace-pre-wrap break-words flex-1">
+                                                    {row.rightText || " "}
+                                                </span>
+                                            </div>
+                                        {/each}
+                                    </div>
+                                </div>
+                            {/if}
+                        </div>
+
+                        <div
+                            class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-6 shadow-sm"
+                        >
+                            <div class="flex items-center justify-between gap-3 mb-3">
+                                <h4 class="text-lg font-bold text-[#202124] dark:text-dark-text">
+                                    {$t("ai_generator.draft_markdown_title")}
+                                </h4>
+                                <div class="flex items-center gap-1">
+                                    <button
+                                        onclick={() => (advancedDraftView = "markdown")}
+                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDraftView === 'markdown'
+                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
+                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                    >
+                                        {$t("ai_generator.view_markdown")}
+                                    </button>
+                                    <button
+                                        onclick={() => (advancedDraftView = "raw")}
+                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDraftView === 'raw'
+                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
+                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                    >
+                                        {$t("ai_generator.view_raw")}
+                                    </button>
+                                </div>
+                            </div>
+                            {#if advancedDraftMarkdown}
+                                {#if advancedDraftView === "markdown"}
+                                    <div class="markdown-body text-sm">
+                                        {@html advancedDraftHtml}
+                                    </div>
+                                {:else}
+                                    <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-[#3C4043] dark:text-dark-text">{advancedDraftMarkdown}</pre>
+                                {/if}
+                            {:else}
+                                <p class="text-sm text-[#9AA0A6] dark:text-dark-text-muted">
+                                    {$t("ai_generator.diff_empty")}
+                                </p>
+                            {/if}
+                        </div>
+
+                        <div
+                            class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-6 shadow-sm"
+                        >
+                            <div class="flex items-center justify-between gap-3 mb-3">
+                                <h4 class="text-lg font-bold text-[#202124] dark:text-dark-text">
+                                    {$t("ai_generator.revised_markdown_title")}
+                                </h4>
+                                <div class="flex items-center gap-1">
+                                    <button
+                                        onclick={() => (advancedRevisedView = "markdown")}
+                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedRevisedView === 'markdown'
+                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
+                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                    >
+                                        {$t("ai_generator.view_markdown")}
+                                    </button>
+                                    <button
+                                        onclick={() => (advancedRevisedView = "raw")}
+                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedRevisedView === 'raw'
+                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
+                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                    >
+                                        {$t("ai_generator.view_raw")}
+                                    </button>
+                                </div>
+                            </div>
+                            {#if advancedRevisedMarkdown}
+                                {#if advancedRevisedView === "markdown"}
+                                    <div class="markdown-body text-sm">
+                                        {@html advancedRevisedHtml}
+                                    </div>
+                                {:else}
+                                    <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-[#3C4043] dark:text-dark-text">{advancedRevisedMarkdown}</pre>
+                                {/if}
+                            {:else}
+                                <p class="text-sm text-[#9AA0A6] dark:text-dark-text-muted">
+                                    {$t("ai_generator.diff_empty")}
+                                </p>
+                            {/if}
+                        </div>
 
                         <div
                             class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-8 shadow-sm"
