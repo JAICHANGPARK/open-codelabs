@@ -1,3 +1,6 @@
+use backend::auth::AuthConfig;
+use backend::rate_limit::{RateLimitConfig, RateLimiter};
+use backend::security::SecurityHeadersConfig;
 use backend::{create_router, AppState, DbKind};
 use sqlx::any::AnyPoolOptions;
 use std::net::SocketAddr;
@@ -19,6 +22,10 @@ async fn main() -> anyhow::Result<()> {
 
     let database_url = std::env::var("DATABASE_URL")
         .unwrap_or_else(|_| "sqlite:data/sqlite.db?mode=rwc".to_string());
+
+    if database_url.starts_with("mysql") {
+        anyhow::bail!("MySQL is not supported in this build; use sqlite or postgres.");
+    }
 
     // Ensure directory exists for sqlite
     if database_url.starts_with("sqlite:") {
@@ -50,12 +57,21 @@ async fn main() -> anyhow::Result<()> {
 
     let admin_id = std::env::var("ADMIN_ID").expect("ADMIN_ID must be set");
     let admin_pw = std::env::var("ADMIN_PW").expect("ADMIN_PW must be set");
+    let trust_proxy = std::env::var("TRUST_PROXY")
+        .ok()
+        .map(|value| value == "true")
+        .unwrap_or(false);
 
     let state = Arc::new(AppState {
         pool,
         db_kind,
         admin_id,
         admin_pw,
+        auth: AuthConfig::from_env(),
+        rate_limit_config: RateLimitConfig::from_env(),
+        rate_limiter: Arc::new(RateLimiter::new()),
+        security_headers: SecurityHeadersConfig::from_env(),
+        trust_proxy,
         admin_api_keys: Arc::new(dashmap::DashMap::new()),
         channels: Arc::new(dashmap::DashMap::new()),
         sessions: Arc::new(dashmap::DashMap::new()),
@@ -68,7 +84,11 @@ async fn main() -> anyhow::Result<()> {
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
     tracing::debug!("listening on {}", addr);
     let listener = tokio::net::TcpListener::bind(addr).await?;
-    axum::serve(listener, app).await?;
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await?;
 
     Ok(())
 }
