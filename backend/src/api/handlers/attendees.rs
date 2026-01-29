@@ -7,7 +7,7 @@ use crate::utils::error::{bad_request, forbidden, internal_error};
 use crate::domain::models::{
     Attendee, CertificateInfo, Codelab, HelpRequest, HelpRequestPayload, RegistrationPayload,
 };
-use crate::request_info::RequestInfo;
+use crate::middleware::request_info::RequestInfo;
 use crate::infrastructure::database::AppState;
 use crate::utils::validation::validate_registration;
 use axum::{
