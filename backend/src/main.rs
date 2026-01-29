@@ -1,6 +1,6 @@
-use backend::auth::AuthConfig;
-use backend::rate_limit::{RateLimitConfig, RateLimiter};
-use backend::security::SecurityHeadersConfig;
+use backend::middleware::auth::AuthConfig;
+use backend::middleware::rate_limit::{RateLimitConfig, RateLimiter};
+use backend::middleware::security::SecurityHeadersConfig;
 use backend::{create_router, AppState, DbKind};
 use sqlx::any::AnyPoolOptions;
 use std::net::SocketAddr;
