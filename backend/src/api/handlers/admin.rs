@@ -7,7 +7,7 @@ use crate::utils::crypto::decrypt_with_password;
 use crate::utils::error::{bad_request, internal_error, unauthorized};
 use crate::domain::models::LoginPayload;
 use crate::middleware::request_info::RequestInfo;
-use crate::security::ensure_csrf_cookie;
+use crate::middleware::security::ensure_csrf_cookie;
 use crate::infrastructure::database::AppState;
 use axum::{extract::State, http::StatusCode, Json};
 use axum_extra::extract::cookie::CookieJar;
@@ -65,7 +65,7 @@ pub async fn login(
         exp: now + state.auth.admin_ttl.as_secs() as usize,
     };
     let token = state.auth.issue_token(&claims).map_err(internal_error)?;
-    let csrf_token = crate::auth::generate_csrf_token();
+    let csrf_token = crate::middleware::auth::generate_csrf_token();
 
     let jar = jar
         .add(build_session_cookie(
