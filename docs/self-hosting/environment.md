@@ -2,6 +2,10 @@
 
 Open Codelabs의 모든 환경 변수에 대한 상세 가이드입니다.
 
+!!! info "환경 변수 파일 위치"
+    - Docker Compose: 리포지토리 루트 `.env` (docker-compose.yml에서 참조)
+    - 로컬 개발: `backend/.env`, `frontend/.env`
+
 ## Backend 환경 변수
 
 ### 필수 환경 변수
@@ -92,6 +96,169 @@ ADMIN_PW=8vYR3jkLm9nP2qTxWz6CbF4hK7dN5sVuG1aE0iJ3XyO=
 
 ### 선택적 환경 변수
 
+#### AUTH_SECRETS
+
+JWT 서명 시크릿 목록 (쉼표 구분). 첫 번째가 활성 키이며, 나머지는 검증용으로 남겨 키 롤링을 지원합니다.
+비어있으면 `ADMIN_PW`를 대체로 사용합니다.
+
+```bash
+AUTH_SECRETS=primary_secret,previous_secret
+```
+
+!!! note "레거시"
+    `AUTH_SECRET`도 읽지만 신규 설정은 `AUTH_SECRETS` 사용을 권장합니다.
+
+#### AUTH_ISSUER
+
+JWT issuer 클레임.
+
+```bash
+AUTH_ISSUER=open-codelabs
+```
+
+기본값: `open-codelabs`
+
+#### AUTH_AUDIENCE
+
+JWT audience 클레임.
+
+```bash
+AUTH_AUDIENCE=open-codelabs
+```
+
+기본값: `open-codelabs`
+
+#### ADMIN_SESSION_TTL_SECONDS
+
+관리자 세션 TTL(초).
+
+```bash
+ADMIN_SESSION_TTL_SECONDS=28800
+```
+
+기본값: `28800` (8시간)
+
+#### ATTENDEE_SESSION_TTL_SECONDS
+
+참가자 세션 TTL(초).
+
+```bash
+ATTENDEE_SESSION_TTL_SECONDS=43200
+```
+
+기본값: `43200` (12시간)
+
+#### COOKIE_SECURE
+
+HTTPS 환경에서 `true`로 설정 (Secure 쿠키 + `__Host-` 프리픽스).
+
+```bash
+COOKIE_SECURE=true
+```
+
+기본값: `false`
+
+#### COOKIE_SAMESITE
+
+쿠키 SameSite 정책. `lax`(기본), `strict`, `none`.
+
+```bash
+COOKIE_SAMESITE=lax
+```
+
+!!! warning "주의"
+    `COOKIE_SAMESITE=none`을 사용하려면 `COOKIE_SECURE=true`가 필요합니다.
+
+#### TRUST_PROXY
+
+리버스 프록시 뒤에서 `X-Forwarded-*` 헤더를 신뢰할 때 `true`.
+
+```bash
+TRUST_PROXY=true
+```
+
+기본값: `false`
+
+#### CORS_ALLOWED_ORIGINS
+
+허용할 오리진 목록(쉼표 구분). 비어있으면 로컬 기본값을 허용합니다.
+
+```bash
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+#### RATE_LIMIT_GENERAL_PER_MINUTE
+
+일반 API 요청 분당/IP 제한.
+
+```bash
+RATE_LIMIT_GENERAL_PER_MINUTE=120
+```
+
+기본값: `120`
+
+#### RATE_LIMIT_LOGIN_PER_5_MIN
+
+로그인 요청 5분/IP 제한.
+
+```bash
+RATE_LIMIT_LOGIN_PER_5_MIN=20
+```
+
+기본값: `20`
+
+#### RATE_LIMIT_AI_PER_MINUTE
+
+AI 프록시 요청 분당/IP 제한.
+
+```bash
+RATE_LIMIT_AI_PER_MINUTE=30
+```
+
+기본값: `30`
+
+#### RATE_LIMIT_UPLOAD_PER_MINUTE
+
+업로드 및 제출 POST 분당/IP 제한.
+
+```bash
+RATE_LIMIT_UPLOAD_PER_MINUTE=20
+```
+
+기본값: `20`
+
+#### CSP_HEADER
+
+UI 응답의 Content-Security-Policy 헤더를 오버라이드합니다. 비어있으면 기본값을 사용합니다.
+
+```bash
+CSP_HEADER=default-src 'self'; img-src 'self' data: blob:
+```
+
+#### HSTS_HEADER
+
+Strict-Transport-Security 헤더를 오버라이드합니다. HTTPS일 때만 적용됩니다.
+
+```bash
+HSTS_HEADER=max-age=63072000; includeSubDomains; preload
+```
+
+#### ALLOWED_GEMINI_MODELS
+
+허용할 Gemini 모델 ID 목록(쉼표 구분). 설정 시 목록에 없는 모델 요청은 거부됩니다.
+
+```bash
+ALLOWED_GEMINI_MODELS=gemini-3-flash-preview,gemini-1.5-pro
+```
+
+#### GEMINI_API_KEY
+
+관리자 키가 저장되지 않았을 때 사용할 기본 Gemini API 키.
+
+```bash
+GEMINI_API_KEY=your_gemini_api_key_here
+```
+
 #### RUST_LOG
 
 로그 레벨 설정
@@ -175,6 +342,31 @@ VITE_API_URL=https://abc123.trycloudflare.com
     - 빌드 타임에 코드에 삽입됨
     - 민감한 정보는 포함하지 마세요
 
+### VITE_ADMIN_ENCRYPTION_PASSWORD
+
+Gemini API 키를 브라우저에서 암호화할 때 사용하는 비밀번호.
+백엔드 `ADMIN_PW`와 동일해야 복호화가 가능합니다. 비워두면 UI에서 입력을 요구합니다.
+
+```bash
+VITE_ADMIN_ENCRYPTION_PASSWORD=your_admin_pw
+```
+
+### FRONTEND_PORT
+
+Docker Compose에서 프론트엔드 컨테이너 포트(호스트 매핑)와 `PORT`에 전달됩니다.
+
+```bash
+FRONTEND_PORT=5173
+```
+
+### FRONTEND_HOST
+
+Docker Compose에서 프론트엔드 컨테이너 바인딩 호스트로 사용되며 `HOST`에 전달됩니다.
+
+```bash
+FRONTEND_HOST=0.0.0.0
+```
+
 ### PORT
 
 Frontend 서버 포트
@@ -182,6 +374,8 @@ Frontend 서버 포트
 ```bash
 PORT=5173  # 기본값
 ```
+
+Docker Compose에서는 `FRONTEND_PORT` 값이 `PORT`로 전달됩니다.
 
 ### HOST
 
@@ -191,6 +385,8 @@ PORT=5173  # 기본값
 HOST=0.0.0.0  # 모든 인터페이스
 HOST=127.0.0.1  # localhost만
 ```
+
+Docker Compose에서는 `FRONTEND_HOST` 값이 `HOST`로 전달됩니다.
 
 ## 환경별 설정
 
@@ -202,6 +398,8 @@ HOST=127.0.0.1  # localhost만
 DATABASE_URL=sqlite:data/sqlite.db?mode=rwc
 ADMIN_ID=admin
 ADMIN_PW=admin123
+AUTH_SECRETS=change_me_primary,change_me_old
+GEMINI_API_KEY=your_gemini_api_key_here
 RUST_LOG=backend=debug,tower_http=debug,sqlx=info
 ```
 
@@ -209,29 +407,53 @@ RUST_LOG=backend=debug,tower_http=debug,sqlx=info
 
 ```bash
 VITE_API_URL=http://localhost:8080
+VITE_ADMIN_ENCRYPTION_PASSWORD=admin123
 ```
 
 ### Docker Compose
 
-`docker-compose.yml`:
+리포지토리 루트의 `.env`가 `docker-compose.yml`에 주입됩니다.
+
+`.env` (repo root):
+
+```bash
+DATA_VOLUME_PATH=~/open-codelabs
+DATABASE_URL=sqlite:/app/data/sqlite.db?mode=rwc
+ADMIN_ID=admin
+ADMIN_PW=YourSecurePassword123!
+AUTH_SECRETS=change_me_primary,change_me_old
+VITE_API_URL=http://localhost:8080
+VITE_ADMIN_ENCRYPTION_PASSWORD=YourSecurePassword123!
+FRONTEND_PORT=5173
+FRONTEND_HOST=0.0.0.0
+```
+
+`docker-compose.yml` (발췌):
 
 ```yaml
 services:
   backend:
     environment:
-      - DATABASE_URL=sqlite:/app/data/sqlite.db?mode=rwc
-      - ADMIN_ID=admin
-      - ADMIN_PW=YourSecurePassword123!
-      - RUST_LOG=backend=info,tower_http=info
+      - DATABASE_URL=${DATABASE_URL}
+      - ADMIN_ID=${ADMIN_ID}
+      - ADMIN_PW=${ADMIN_PW}
+    volumes:
+      - ${DATA_VOLUME_PATH}/data:/app/data
+      - ${DATA_VOLUME_PATH}/uploads:/app/static/uploads
 
   frontend:
     environment:
-      - VITE_API_URL=http://backend:8080
-      - PORT=5173
-      - HOST=0.0.0.0
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_ADMIN_ENCRYPTION_PASSWORD=${ADMIN_PW}
+      - PORT=${FRONTEND_PORT}
+      - HOST=${FRONTEND_HOST}
 ```
 
-또는 `.env` 파일 사용:
+기본 docker-compose.yml에서는 `VITE_ADMIN_ENCRYPTION_PASSWORD` 대신 `ADMIN_PW`를 프론트에 전달합니다. 다른 값을 쓰려면 `frontend.environment`를 수정하세요.
+
+필요하면 backend 환경 변수(AUTH_*, COOKIE_*, CORS_*, RATE_LIMIT_*, CSP_HEADER, HSTS_HEADER, ALLOWED_GEMINI_MODELS 등)를 `backend.environment`에 추가하세요.
+
+또는 docker-compose.yml에 env_file을 추가해 `backend/.env`, `frontend/.env`를 직접 주입할 수 있습니다.
 
 ```yaml
 services:
@@ -252,6 +474,9 @@ services:
 DATABASE_URL=sqlite:/app/data/sqlite.db?mode=rwc
 ADMIN_ID=${ADMIN_ID}  # 외부에서 주입
 ADMIN_PW=${ADMIN_PW}  # 외부에서 주입
+AUTH_SECRETS=${AUTH_SECRETS}
+COOKIE_SECURE=true
+TRUST_PROXY=true
 RUST_LOG=backend=info,tower_http=warn
 ```
 
@@ -259,6 +484,7 @@ RUST_LOG=backend=info,tower_http=warn
 
 ```bash
 VITE_API_URL=https://api.yourdomain.com
+VITE_ADMIN_ENCRYPTION_PASSWORD=${ADMIN_PW}
 ```
 
 **비밀 관리**:
