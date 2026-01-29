@@ -159,6 +159,10 @@
   .markdown-body h2 { font-size: 1.5rem; }
   .markdown-body h3 { font-size: 1.25rem; }
 
+  .markdown-body > :first-child {
+    margin-top: 0;
+  }
+
   .markdown-body p {
     @apply mb-6;
   }
