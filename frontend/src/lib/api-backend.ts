@@ -427,6 +427,24 @@ export async function downloadCodeServerWorkspace(codelabId: string): Promise<vo
     document.body.removeChild(a);
 }
 
+export async function getWorkspaceBranches(codelabId: string): Promise<string[]> {
+    const res = await apiFetch(`/codeserver/${codelabId}/branches`);
+    if (!res.ok) throw new Error('Failed to get branches');
+    return res.json();
+}
+
+export async function getWorkspaceFiles(codelabId: string, branch: string): Promise<string[]> {
+    const res = await apiFetch(`/codeserver/${codelabId}/branches/${encodeURIComponent(branch)}/files`);
+    if (!res.ok) throw new Error('Failed to get files');
+    return res.json();
+}
+
+export async function getWorkspaceFileContent(codelabId: string, branch: string, file: string): Promise<string> {
+    const res = await apiFetch(`/codeserver/${codelabId}/branches/${encodeURIComponent(branch)}/file?file=${encodeURIComponent(file)}`);
+    if (!res.ok) throw new Error('Failed to get file content');
+    return res.text();
+}
+
 export async function deleteCodeServer(codelabId: string): Promise<void> {
     const res = await apiFetch(`/codeserver/${codelabId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete code server');
