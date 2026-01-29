@@ -16,6 +16,17 @@ export interface ThinkingContent {
     content: string;
 }
 
+export interface TokenUsage {
+    promptTokenCount: number;
+    candidatesTokenCount: number;
+    totalTokenCount: number;
+}
+
+export interface GenerationResult {
+    content: string;
+    usage?: TokenUsage;
+}
+
 const envApiUrl = import.meta.env.VITE_API_URL;
 let BASE_URL = envApiUrl || 'http://localhost:8080';
 const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true';
@@ -112,10 +123,11 @@ export async function* streamGeminiResponseRobust(
     }
 }
 
-async function* parseGoogleStream(response: Response) {
+async function* parseGoogleStream(response: Response): AsyncGenerator<string, TokenUsage | undefined, unknown> {
     const reader = response.body!.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
+    let lastUsage: TokenUsage | undefined;
 
     while (true) {
         const { done, value } = await reader.read();
@@ -134,6 +146,16 @@ async function* parseGoogleStream(response: Response) {
 
             try {
                 const data = JSON.parse(jsonStr);
+
+                // Capture usage metadata
+                if (data.usageMetadata) {
+                    lastUsage = {
+                        promptTokenCount: data.usageMetadata.promptTokenCount || 0,
+                        candidatesTokenCount: data.usageMetadata.candidatesTokenCount || 0,
+                        totalTokenCount: data.usageMetadata.totalTokenCount || 0,
+                    };
+                }
+
                 // Handle different response formats (backend proxy might return direct part or full candidate)
                 const candidate = data.candidates?.[0];
                 if (candidate?.content?.parts?.[0]?.text) {
@@ -144,6 +166,8 @@ async function* parseGoogleStream(response: Response) {
             }
         }
     }
+
+    return lastUsage;
 }
 
 export async function* streamGeminiStructuredOutput(
