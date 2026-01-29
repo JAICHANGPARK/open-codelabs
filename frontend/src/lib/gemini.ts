@@ -35,6 +35,23 @@ if (browser && (envApiUrl === 'http://backend:8080' || !envApiUrl || envApiUrl.i
 
 const AI_PROXY_URL = `${BASE_URL}/api/ai/stream`;
 
+function getCookie(name: string): string | null {
+    if (!browser) return null;
+    const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+function getCsrfToken(): string | null {
+    return getCookie("__Host-oc_csrf") || getCookie("oc_csrf");
+}
+
+function withCsrf(headers?: HeadersInit): Headers {
+    const merged = new Headers(headers || {});
+    const token = getCsrfToken();
+    if (token) merged.set("X-CSRF-Token", token);
+    return merged;
+}
+
 export async function* streamGeminiResponseRobust(
     prompt: string,
     context: string,
@@ -81,7 +98,8 @@ export async function* streamGeminiResponseRobust(
 
         const response = await fetch(AI_PROXY_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: withCsrf({ "Content-Type": "application/json" }),
+            credentials: "include",
             body: JSON.stringify({
                 prompt: `Context:\n${context}\n\nQuestion:\n${prompt}`,
                 api_key: apiKey || undefined, // Send encrypted if we have it
@@ -192,7 +210,8 @@ export async function* streamGeminiStructuredOutput(
 
         const response = await fetch(AI_PROXY_URL, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: withCsrf({ "Content-Type": "application/json" }),
+            credentials: "include",
             body: JSON.stringify({
                 prompt: prompt,
                 system_instruction: systemPrompt,
