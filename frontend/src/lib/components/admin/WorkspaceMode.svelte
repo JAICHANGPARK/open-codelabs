@@ -3,6 +3,7 @@
     import { getCodeServerInfo, createCodeServer, createCodeServerBranch, createCodeServerFolder, downloadCodeServerWorkspace, type WorkspaceFile } from '$lib/api-backend';
     import type { Step } from '$lib/api';
     import { fade } from 'svelte/transition';
+    import { t } from 'svelte-i18n';
 
     let { codelabId, steps }: { codelabId: string; steps: Step[] } = $props();
 
@@ -66,12 +67,12 @@
 
     async function createWorkspace() {
         if (uploadedFiles.length === 0) {
-            error = 'Please upload at least one file for the workspace';
+            error = $t('workspace.errors.upload_required');
             return;
         }
 
         if (steps.length === 0) {
-            error = 'Please add steps to the codelab before creating a workspace';
+            error = $t('workspace.errors.steps_required');
             return;
         }
 
@@ -101,10 +102,10 @@
                 }
             }
 
-            success = 'Workspace created successfully!';
+            success = $t('workspace.success.created');
             await loadWorkspaceInfo();
         } catch (e) {
-            error = 'Failed to create workspace: ' + (e as Error).message;
+            error = $t('workspace.errors.create_failed', { error: (e as Error).message });
         } finally {
             creating = false;
         }
@@ -115,7 +116,7 @@
             error = '';
             await downloadCodeServerWorkspace(codelabId);
         } catch (e) {
-            error = 'Download failed: ' + (e as Error).message;
+            error = $t('workspace.errors.download_failed', { error: (e as Error).message });
         }
     }
 </script>
@@ -130,8 +131,8 @@
                 <FolderGit2 size={24} />
             </div>
             <div>
-                <h3 class="text-xl font-bold text-[#202124] dark:text-dark-text">Workspace Setup</h3>
-                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">Create and manage workspace files for hands-on coding exercises</p>
+                <h3 class="text-xl font-bold text-[#202124] dark:text-dark-text">{$t('workspace.title')}</h3>
+                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">{$t('workspace.subtitle')}</p>
             </div>
         </div>
     </div>
@@ -162,20 +163,24 @@
                     <div class="flex items-start justify-between mb-4">
                         <div>
                             <h3 class="text-lg font-bold text-[#202124] dark:text-dark-text mb-3">
-                                Workspace Active
+                                {$t('workspace.active_title')}
                             </h3>
                             <div class="space-y-2 text-sm">
                                 <p class="text-[#5F6368] dark:text-dark-text-muted">
-                                    <span class="font-medium text-[#202124] dark:text-dark-text">Structure:</span>
-                                    <span class="capitalize ml-2">{workspaceInfo.structure_type}</span>
+                                    <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.structure')}:</span>
+                                    <span class="capitalize ml-2">{workspaceInfo.structure_type === 'branch' ? $t('workspace.labels.branch') : $t('workspace.labels.folder')}</span>
                                 </p>
                                 <p class="text-[#5F6368] dark:text-dark-text-muted">
-                                    <span class="font-medium text-[#202124] dark:text-dark-text">Path:</span>
+                                    <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.path')}:</span>
                                     <code class="ml-2 bg-white dark:bg-dark-bg px-2 py-0.5 rounded text-xs font-mono">{workspaceInfo.path}</code>
                                 </p>
                                 <p class="text-[#5F6368] dark:text-dark-text-muted">
-                                    <span class="font-medium text-[#202124] dark:text-dark-text">Steps:</span>
-                                    <span class="ml-2">{steps.length} steps × 2 ({workspaceInfo.structure_type === 'branch' ? 'branches' : 'folders'}) = {steps.length * 2} total</span>
+                                    <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.steps')}:</span>
+                                    <span class="ml-2">{$t('workspace.steps_summary', {
+                                        count: steps.length,
+                                        unit: workspaceInfo.structure_type === 'branch' ? $t('workspace.labels.branches') : $t('workspace.labels.folders'),
+                                        total: steps.length * 2
+                                    })}</span>
                                 </p>
                             </div>
                         </div>
@@ -188,7 +193,7 @@
                             class="flex items-center gap-2 px-4 py-2 bg-[#4285F4] text-white rounded-lg hover:bg-[#1A73E8] transition-colors text-sm font-medium shadow-sm"
                         >
                             <Download size={16} />
-                            Download Workspace
+                            {$t('workspace.download')}
                         </button>
                     </div>
                 </div>
@@ -198,7 +203,7 @@
                     <!-- Structure Type Selection -->
                     <div class="bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-xl border border-[#E8EAED] dark:border-dark-border">
                         <label class="block text-sm font-bold text-[#202124] dark:text-dark-text mb-3">
-                            Workspace Structure
+                            {$t('workspace.structure_title')}
                         </label>
                         <div class="flex gap-4">
                             <label class="flex items-center gap-2 cursor-pointer">
@@ -209,7 +214,7 @@
                                     class="w-4 h-4 text-[#4285F4]"
                                 />
                                 <span class="text-sm text-[#5F6368] dark:text-dark-text-muted">
-                                    Branch-based (Git branches)
+                                    {$t('workspace.structure_options.branch')}
                                 </span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
@@ -220,7 +225,7 @@
                                     class="w-4 h-4 text-[#4285F4]"
                                 />
                                 <span class="text-sm text-[#5F6368] dark:text-dark-text-muted">
-                                    Folder-based (Directories)
+                                    {$t('workspace.structure_options.folder')}
                                 </span>
                             </label>
                         </div>
@@ -229,10 +234,10 @@
                     <!-- File Upload -->
                     <div class="bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-xl border border-[#E8EAED] dark:border-dark-border">
                         <label class="block text-sm font-bold text-[#202124] dark:text-dark-text mb-3">
-                            Base Files
+                            {$t('workspace.base_files')}
                         </label>
                         <p class="text-xs text-[#5F6368] dark:text-dark-text-muted mb-4">
-                            Upload the initial files that will be copied to all step branches/folders
+                            {$t('workspace.base_files_desc')}
                         </p>
 
                         <input
@@ -248,7 +253,7 @@
                             class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-lg hover:bg-[#F8F9FA] dark:hover:bg-dark-hover transition-colors text-sm font-medium text-[#5F6368] dark:text-dark-text"
                         >
                             <FileUp size={16} />
-                            Upload Files
+                            {$t('workspace.upload_files')}
                         </button>
 
                         {#if uploadedFiles.length > 0}
@@ -262,7 +267,7 @@
                                             onclick={() => removeFile(i)}
                                             class="text-[#EA4335] hover:text-[#D93025] text-xs font-medium"
                                         >
-                                            Remove
+                                            {$t('workspace.remove_file')}
                                         </button>
                                     </div>
                                 {/each}
@@ -275,11 +280,11 @@
                         <div class="flex items-start gap-3">
                             <FolderGit2 class="text-[#4285F4] shrink-0 mt-0.5" size={20} />
                             <div class="text-sm text-[#1967D2] dark:text-[#8AB4F8]">
-                                <p class="font-medium mb-2">What happens when you create a workspace?</p>
+                                <p class="font-medium mb-2">{$t('workspace.info_title')}</p>
                                 <ul class="list-disc list-inside space-y-1 text-xs">
-                                    <li>For each step, two {structureType === 'branch' ? 'branches' : 'folders'} are created: <code class="bg-white/50 px-1 rounded">step-N-start</code> and <code class="bg-white/50 px-1 rounded">step-N-end</code></li>
-                                    <li>All uploaded base files are copied to each {structureType === 'branch' ? 'branch' : 'folder'}</li>
-                                    <li>You can later download, modify, and re-upload specific step files</li>
+                                    <li>{$t('workspace.info_step_create', { unit: structureType === 'branch' ? $t('workspace.labels.branches') : $t('workspace.labels.folders') })} <code class="bg-white/50 px-1 rounded">step-N-start</code>, <code class="bg-white/50 px-1 rounded">step-N-end</code></li>
+                                    <li>{$t('workspace.info_copy_base', { unit: structureType === 'branch' ? $t('workspace.labels.branch') : $t('workspace.labels.folder') })}</li>
+                                    <li>{$t('workspace.info_modify_later')}</li>
                                 </ul>
                             </div>
                         </div>
@@ -293,10 +298,10 @@
                     >
                         {#if creating}
                             <Loader2 class="animate-spin" size={16} />
-                            Creating Workspace...
+                            {$t('workspace.creating_button')}
                         {:else}
                             <FolderGit2 size={16} />
-                            Create Workspace
+                            {$t('workspace.create_button')}
                         {/if}
                     </button>
                 </div>
