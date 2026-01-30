@@ -2,6 +2,7 @@
     import { onMount } from "svelte";
     import { browser } from "$app/environment";
     import { streamGeminiResponseRobust } from "$lib/gemini";
+    import { saveAiConversation } from "$lib/api";
     import { X, Send, Key, Sparkles, Loader2 } from "lucide-svelte";
     import { attendeeMarked as marked } from "$lib/markdown";
     import DOMPurify from "dompurify";
@@ -9,8 +10,10 @@
     import { t } from "svelte-i18n";
     import FocusTrap from "$lib/components/FocusTrap.svelte";
 
-    let { context = "", onClose } = $props<{
+    let { context = "", codelabId = "", stepNumber, onClose } = $props<{
         context: string;
+        codelabId?: string;
+        stepNumber?: number;
         onClose: () => void;
     }>();
 
@@ -59,6 +62,7 @@
         loading = true;
         response = ""; // Clear previous
         const currentPrompt = prompt;
+        const fullQuestion = context ? `${context}\n\n${currentPrompt}` : currentPrompt;
         prompt = ""; // Clear input immediately
 
         try {
@@ -68,6 +72,22 @@
 
             for await (const chunk of stream) {
                 response += chunk;
+            }
+
+            // Save conversation to database if codelabId is provided
+            if (codelabId && response) {
+                try {
+                    await saveAiConversation({
+                        codelab_id: codelabId,
+                        step_number: stepNumber,
+                        question: fullQuestion,
+                        answer: response,
+                        model: "gemini-1.5-flash", // Default model
+                    });
+                } catch (saveError) {
+                    console.error("Failed to save AI conversation:", saveError);
+                    // Don't show error to user, just log it
+                }
             }
         } catch (e: any) {
             console.error(e);
