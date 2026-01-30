@@ -1,0 +1,25 @@
+services:
+  backend:
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-open-codelabs}/open-codelabs-backend:${IMAGE_TAG:-latest}
+    ports:
+      - "8080:8080"
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - ADMIN_ID=${ADMIN_ID}
+      - ADMIN_PW=${ADMIN_PW}
+    volumes:
+      - ${DATA_VOLUME_PATH}/data:/app/data
+      - ${DATA_VOLUME_PATH}/uploads:/app/static/uploads
+      - ${DATA_VOLUME_PATH}/workspaces:/app/workspaces
+
+  frontend:
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-open-codelabs}/open-codelabs-frontend:${IMAGE_TAG:-latest}
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_ADMIN_ENCRYPTION_PASSWORD=${ADMIN_PW}
+      - PORT=${FRONTEND_PORT}
+      - HOST=${FRONTEND_HOST}
+    depends_on:
+      - backend
