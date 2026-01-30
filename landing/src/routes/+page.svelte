@@ -129,9 +129,18 @@
 				{
 					title: lang === "ko" ? "컨테이너 실행" : "Run Container",
 					code:
-						quickstartType === "docker"
-							? "docker compose up --build"
-							: "podman-compose up --build",
+						(lang === "ko"
+							? "# 소스 빌드\n"
+							: "# Build from source\n") +
+						(quickstartType === "docker"
+							? "docker compose up --build\n"
+							: "podman-compose up --build\n") +
+						(lang === "ko"
+							? "# GitHub 이미지\n"
+							: "# GitHub image\n") +
+						(quickstartType === "docker"
+							? "docker compose -f docker-compose.images.yml up"
+							: "podman-compose -f docker-compose.images.yml up"),
 				},
 				{
 					title: lang === "ko" ? "접속 및 관리" : "Access & Manage",
@@ -416,6 +425,32 @@
 								: "Apply fixes and finalize the output",
 					},
 				],
+			},
+			agentGraph: {
+				eyebrow: lang === "ko" ? "프로 모드 그래프" : "Pro mode graph",
+				title:
+					lang === "ko"
+						? "프로 모드 에이전트 구동 방식"
+						: "Pro mode agent execution flow",
+				desc:
+					lang === "ko"
+						? "플랜에서 검색어를 만들고 Google Search 도구로 최신 정보를 보강합니다."
+						: "Plans generate queries, enriched through the Google Search tool.",
+				ariaLabel:
+					lang === "ko"
+						? "프로 모드 에이전트 흐름과 Google Search 도구 포함 그래프"
+						: "Pro mode agent flow graph including the Google Search tool",
+				labels: {
+					inputs: lang === "ko" ? "입력" : "Inputs",
+					plan: lang === "ko" ? "플랜" : "Plan",
+					draft: lang === "ko" ? "초안" : "Draft",
+					review: lang === "ko" ? "리뷰" : "Review",
+					revise: lang === "ko" ? "수정" : "Revise",
+					final: lang === "ko" ? "완성" : "Final",
+					queries: lang === "ko" ? "검색어" : "Queries",
+					googleSearch: lang === "ko" ? "Google Search" : "Google Search",
+					sources: lang === "ko" ? "출처" : "Sources",
+				},
 			},
 		},
 		proReady: {
@@ -1080,11 +1115,11 @@
 					</div>
 					<div class="workflow-steps relative mt-6 space-y-4">
 						<div class="workflow-rail"></div>
-						{#each content.aiModes.workflow.steps as step, i}
-							<div
-								class="workflow-step rounded-2xl border p-4 transition-colors {isDark
-									? 'bg-neutral-950/60 border-neutral-800'
-									: 'bg-neutral-50 border-neutral-200'}"
+					{#each content.aiModes.workflow.steps as step, i}
+						<div
+							class="workflow-step rounded-2xl border p-4 transition-colors {isDark
+								? 'bg-neutral-950/60 border-neutral-800'
+								: 'bg-neutral-50 border-neutral-200'}"
 								style={`--delay:${i * 0.4}s; transition-delay:${i * 120}ms`}
 							>
 								<div class="workflow-dot"></div>
@@ -1102,6 +1137,274 @@
 						{/each}
 					</div>
 				</div>
+			</div>
+		</div>
+	</section>
+
+	<section
+		id="agent-graph"
+		class="py-24 transition-colors duration-300 {isDark
+			? 'bg-neutral-900'
+			: 'bg-neutral-50'}"
+	>
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="text-center mb-12 reveal">
+				<p
+					class="text-blue-500 font-bold uppercase tracking-[0.2em] text-xs mb-3 inline-flex items-center justify-center gap-2"
+				>
+					<GitBranch class="w-3 h-3" />
+					{content.aiModes.agentGraph.eyebrow}
+				</p>
+				<h2 class="text-3xl sm:text-4xl font-black mb-4 tracking-tight">
+					{content.aiModes.agentGraph.title}
+				</h2>
+				<p
+					class="{isDark
+						? 'text-neutral-400'
+						: 'text-neutral-600'} max-w-2xl mx-auto"
+				>
+					{content.aiModes.agentGraph.desc}
+				</p>
+			</div>
+			<div
+				class="agent-graph-frame reveal rounded-[2.5rem] border p-6 sm:p-8 lg:p-10 {isDark
+					? 'bg-neutral-950/60 border-neutral-800'
+					: 'bg-white border-neutral-200 shadow-sm'}"
+				style={`--graph-node:${isDark ? "#0b1220" : "#ffffff"}; --graph-node-border:${isDark ? "#1f2937" : "#e2e8f0"}; --graph-node-accent:${isDark ? "#1e3a8a" : "#eff6ff"}; --graph-node-accent-border:${isDark ? "#2563eb" : "#93c5fd"}; --graph-text:${isDark ? "#e2e8f0" : "#0f172a"}; --graph-text-accent:${isDark ? "#e0f2fe" : "#1d4ed8"}; --graph-line:${isDark ? "rgba(59, 130, 246, 0.55)" : "rgba(37, 99, 235, 0.35)"}; --graph-accent:${isDark ? "#38bdf8" : "#2563eb"};`}
+			>
+				<svg
+					class="agent-graph-svg"
+					viewBox="0 0 720 200"
+					role="img"
+					aria-label={content.aiModes.agentGraph.ariaLabel}
+				>
+					<defs>
+						<marker
+							id="agent-arrow"
+							viewBox="0 0 10 10"
+							refX="8"
+							refY="5"
+							markerWidth="6"
+							markerHeight="6"
+							orient="auto"
+						>
+							<path
+								d="M 0 0 L 10 5 L 0 10 Z"
+								fill="var(--graph-line)"
+							/>
+						</marker>
+						<marker
+							id="agent-arrow-accent"
+							viewBox="0 0 10 10"
+							refX="8"
+							refY="5"
+							markerWidth="6"
+							markerHeight="6"
+							orient="auto"
+						>
+							<path
+								d="M 0 0 L 10 5 L 0 10 Z"
+								fill="var(--graph-accent)"
+							/>
+						</marker>
+					</defs>
+					<g
+						class="agent-graph-lines"
+						fill="none"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+					>
+						<line
+							class="agent-graph-line"
+							x1="110"
+							y1="36"
+							x2="146"
+							y2="36"
+							stroke="var(--graph-line)"
+							marker-end="url(#agent-arrow)"
+						/>
+						<line
+							class="agent-graph-line"
+							x1="230"
+							y1="36"
+							x2="266"
+							y2="36"
+							stroke="var(--graph-line)"
+							marker-end="url(#agent-arrow)"
+						/>
+						<line
+							class="agent-graph-line"
+							x1="350"
+							y1="36"
+							x2="386"
+							y2="36"
+							stroke="var(--graph-line)"
+							marker-end="url(#agent-arrow)"
+						/>
+						<line
+							class="agent-graph-line"
+							x1="470"
+							y1="36"
+							x2="506"
+							y2="36"
+							stroke="var(--graph-line)"
+							marker-end="url(#agent-arrow)"
+						/>
+						<line
+							class="agent-graph-line"
+							x1="590"
+							y1="36"
+							x2="626"
+							y2="36"
+							stroke="var(--graph-line)"
+							marker-end="url(#agent-arrow)"
+						/>
+						<line
+							class="agent-graph-line agent-graph-line--accent"
+							x1="188"
+							y1="52"
+							x2="188"
+							y2="120"
+							stroke="var(--graph-accent)"
+							marker-end="url(#agent-arrow-accent)"
+						/>
+						<line
+							class="agent-graph-line agent-graph-line--accent"
+							x1="224"
+							y1="136"
+							x2="248"
+							y2="136"
+							stroke="var(--graph-accent)"
+							marker-end="url(#agent-arrow-accent)"
+						/>
+						<line
+							class="agent-graph-line agent-graph-line--accent"
+							x1="368"
+							y1="136"
+							x2="392"
+							y2="136"
+							stroke="var(--graph-accent)"
+							marker-end="url(#agent-arrow-accent)"
+						/>
+						<path
+							class="agent-graph-line agent-graph-line--accent"
+							d="M 428 120 C 428 92 360 68 308 52"
+							stroke="var(--graph-accent)"
+							marker-end="url(#agent-arrow-accent)"
+						/>
+					</g>
+					<g class="agent-graph-nodes">
+						<rect
+							class="agent-graph-node"
+							x="26"
+							y="20"
+							width="84"
+							height="32"
+							rx="12"
+						/>
+						<rect
+							class="agent-graph-node"
+							x="146"
+							y="20"
+							width="84"
+							height="32"
+							rx="12"
+						/>
+						<rect
+							class="agent-graph-node"
+							x="266"
+							y="20"
+							width="84"
+							height="32"
+							rx="12"
+						/>
+						<rect
+							class="agent-graph-node"
+							x="386"
+							y="20"
+							width="84"
+							height="32"
+							rx="12"
+						/>
+						<rect
+							class="agent-graph-node"
+							x="506"
+							y="20"
+							width="84"
+							height="32"
+							rx="12"
+						/>
+						<rect
+							class="agent-graph-node"
+							x="626"
+							y="20"
+							width="84"
+							height="32"
+							rx="12"
+						/>
+						<rect
+							class="agent-graph-node"
+							x="152"
+							y="120"
+							width="72"
+							height="32"
+							rx="12"
+						/>
+						<rect
+							class="agent-graph-node agent-graph-node--accent"
+							x="248"
+							y="120"
+							width="120"
+							height="32"
+							rx="12"
+						/>
+						<rect
+							class="agent-graph-node"
+							x="392"
+							y="120"
+							width="72"
+							height="32"
+							rx="12"
+						/>
+					</g>
+					<g
+						class="agent-graph-labels"
+						text-anchor="middle"
+						dominant-baseline="middle"
+					>
+						<text class="agent-graph-text" x="68" y="36">
+							{content.aiModes.agentGraph.labels.inputs}
+						</text>
+						<text class="agent-graph-text" x="188" y="36">
+							{content.aiModes.agentGraph.labels.plan}
+						</text>
+						<text class="agent-graph-text" x="308" y="36">
+							{content.aiModes.agentGraph.labels.draft}
+						</text>
+						<text class="agent-graph-text" x="428" y="36">
+							{content.aiModes.agentGraph.labels.review}
+						</text>
+						<text class="agent-graph-text" x="548" y="36">
+							{content.aiModes.agentGraph.labels.revise}
+						</text>
+						<text class="agent-graph-text" x="668" y="36">
+							{content.aiModes.agentGraph.labels.final}
+						</text>
+						<text class="agent-graph-text" x="188" y="136">
+							{content.aiModes.agentGraph.labels.queries}
+						</text>
+						<text
+							class="agent-graph-text agent-graph-text--accent"
+							x="308"
+							y="136"
+						>
+							{content.aiModes.agentGraph.labels.googleSearch}
+						</text>
+						<text class="agent-graph-text" x="428" y="136">
+							{content.aiModes.agentGraph.labels.sources}
+						</text>
+					</g>
+				</svg>
 			</div>
 		</div>
 	</section>
@@ -1674,7 +1977,7 @@
 						? 'text-neutral-500'
 						: 'text-neutral-500'}"
 				>
-					© 2025 Open Codelabs Project. Released under MIT License.
+					© 2026 Open Codelabs Project. Released under MIT License.
 				</p>
 				<div class="flex gap-6">
 					<a
@@ -1783,6 +2086,71 @@
 		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.12);
 		animation: workflow-pulse 2.6s ease-in-out infinite;
 		animation-delay: var(--delay);
+	}
+
+	.agent-graph-frame {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.agent-graph-frame::before {
+		content: "";
+		position: absolute;
+		inset: -40% -20%;
+		background:
+			radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18), transparent 55%),
+			linear-gradient(120deg, rgba(59, 130, 246, 0.08), rgba(99, 102, 241, 0.12), transparent);
+		opacity: 0.7;
+		pointer-events: none;
+	}
+
+	.agent-graph-svg {
+		position: relative;
+		z-index: 1;
+		width: 100%;
+		height: clamp(240px, 32vw, 420px);
+		display: block;
+	}
+
+	.agent-graph-node {
+		fill: var(--graph-node);
+		stroke: var(--graph-node-border);
+		stroke-width: 1.2;
+	}
+
+	.agent-graph-node--accent {
+		fill: var(--graph-node-accent);
+		stroke: var(--graph-node-accent-border);
+	}
+
+	.agent-graph-text {
+		font-family: var(--font-sans);
+		font-size: clamp(11px, 1.2vw, 14px);
+		font-weight: 700;
+		letter-spacing: 0.03em;
+		fill: var(--graph-text);
+	}
+
+	.agent-graph-text--accent {
+		fill: var(--graph-text-accent);
+	}
+
+	.agent-graph-line {
+		stroke-width: 2;
+		stroke-dasharray: 10 16;
+		animation: agent-flow 3.4s linear infinite;
+	}
+
+	.agent-graph-line--accent {
+		stroke-width: 2.4;
+		stroke-dasharray: 6 10;
+		animation-duration: 2.6s;
+		filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.45));
+	}
+
+	.agent-graph-lines line,
+	.agent-graph-lines path {
+		vector-effect: non-scaling-stroke;
 	}
 
 	.prep-flow {
@@ -2088,6 +2456,12 @@
 		}
 	}
 
+	@keyframes agent-flow {
+		to {
+			stroke-dashoffset: -180;
+		}
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.workflow-sheen,
 		.workflow-rail::after,
@@ -2096,7 +2470,8 @@
 		.prep-dot,
 		.branch-rail::after,
 		.branch-node::before,
-		.folder-tree::after {
+		.folder-tree::after,
+		.agent-graph-line {
 			animation: none;
 		}
 	}
