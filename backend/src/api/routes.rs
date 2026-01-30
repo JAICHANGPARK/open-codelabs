@@ -1,6 +1,6 @@
 use crate::api::handlers::{
     admin::{get_session, login, logout, update_settings},
-    ai::proxy_gemini_stream,
+    ai::{get_ai_conversations, proxy_gemini_stream, save_ai_conversation},
     attendees::{
         complete_codelab, get_attendees, get_certificate, get_help_requests, register_attendee,
         request_help, resolve_help_request,
@@ -98,6 +98,8 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/api/upload/image", post(upload_image))
         .route("/api/upload/material", post(upload_material_file))
         .route("/api/ai/stream", post(proxy_gemini_stream))
+        .route("/api/ai/conversations", post(save_ai_conversation))
+        .route("/api/codelabs/{id}/ai/conversations", get(get_ai_conversations))
         .route("/api/ws/{id}", get(ws_handler))
         .route("/api/codeserver", post(create_codeserver))
         .route(
