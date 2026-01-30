@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { login, loginWithGoogle, isSupabaseMode, isServerlessMode, getSession } from "$lib/api";
     import { goto } from "$app/navigation";
-    import { Lock, User, LogIn, AlertCircle, Github, FileText as FileIcon, Chrome } from "lucide-svelte";
+    import { Lock, User, LogIn, AlertCircle, Github, FileText as FileIcon, Chrome, X } from "lucide-svelte";
     import { fade, fly } from "svelte/transition";
     import { t } from "svelte-i18n";
 
@@ -10,6 +10,7 @@
     let admin_pw = $state("");
     let error = $state("");
     let loading = $state(false);
+    let showTrouble = $state(false);
     const supabaseRedirectKey = "supabase_oauth_redirect";
 
     onMount(async () => {
@@ -201,12 +202,81 @@
                 <div class="pt-2 text-center">
                     <button
                         class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] transition-colors"
+                        onclick={() => (showTrouble = true)}
                     >
                         {$t("login.trouble")}
                     </button>
                 </div>
             </div>
         </div>
+
+        {#if showTrouble}
+            <div class="fixed inset-0 z-40 flex items-center justify-center px-4" role="dialog" aria-modal="true">
+                <button
+                    class="absolute inset-0 bg-black/40"
+                    aria-label={$t("common.close")}
+                    onclick={() => (showTrouble = false)}
+                ></button>
+                <div class="relative w-full max-w-lg bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-[#E8EAED] dark:border-dark-border p-6" in:fade>
+                    <div class="flex items-start justify-between gap-4 mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-[#202124] dark:text-dark-text">
+                                {$t("login.trouble_title")}
+                            </h2>
+                            {#if isServerlessMode()}
+                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mt-1">
+                                    {$t("login.trouble_serverless_desc")}
+                                </p>
+                            {:else}
+                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mt-1">
+                                    {$t("login.trouble_local_desc")}
+                                </p>
+                            {/if}
+                        </div>
+                        <button
+                            class="p-2 rounded-full hover:bg-[#F1F3F4] dark:hover:bg-white/10 transition-colors"
+                            aria-label={$t("common.close")}
+                            onclick={() => (showTrouble = false)}
+                        >
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    {#if isServerlessMode()}
+                        <div class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                            {$t("login.trouble_serverless_hint")}
+                        </div>
+                    {:else}
+                        <div class="space-y-4">
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-widest text-[#5F6368] dark:text-dark-text-muted">
+                                    {$t("login.trouble_local_env_title")}
+                                </div>
+                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mt-1">
+                                    {$t("login.trouble_local_env_desc")}
+                                </p>
+                                <pre class="mt-2 text-xs bg-[#F8F9FA] dark:bg-dark-bg text-[#202124] dark:text-dark-text rounded-xl p-3 overflow-auto border border-[#E8EAED] dark:border-dark-border">ADMIN_ID=your_admin_id
+ADMIN_PW=your_admin_pw
+DATABASE_URL=sqlite://backend.db</pre>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold uppercase tracking-widest text-[#5F6368] dark:text-dark-text-muted">
+                                    {$t("login.trouble_local_commands_title")}
+                                </div>
+                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mt-1">
+                                    {$t("login.trouble_local_commands_desc")}
+                                </p>
+                                <pre class="mt-2 text-xs bg-[#F8F9FA] dark:bg-dark-bg text-[#202124] dark:text-dark-text rounded-xl p-3 overflow-auto border border-[#E8EAED] dark:border-dark-border">cd backend && cargo run
+cd frontend && bun run dev</pre>
+                            </div>
+                            <p class="text-xs text-[#9AA0A6] dark:text-dark-text-muted">
+                                {$t("login.trouble_local_note")}
+                            </p>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+        {/if}
 
         <div class="mt-8 flex flex-col items-center gap-4">
             <div class="flex items-center gap-4">
@@ -231,7 +301,7 @@
                 </a>
             </div>
             <p class="text-[#9AA0A6] dark:text-dark-text-muted text-sm font-medium">
-                {$t("common.title")} &copy; 2025
+                {$t("common.title")} &copy; 2026
             </p>
         </div>
     </div>
