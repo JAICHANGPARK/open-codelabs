@@ -1,6 +1,7 @@
 pub mod admin;
 pub mod ai;
 pub mod attendees;
+pub mod audit;
 pub mod codeserver;
 pub mod codelabs;
 pub mod feedback;
