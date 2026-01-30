@@ -10,6 +10,7 @@
         requestHelp,
         getWsUrl,
         getChatHistory,
+        getSession,
         ASSET_URL,
         submitFeedback,
         completeCodelab,
@@ -76,6 +77,7 @@
     let currentStepIndex = $state(0);
     let showSidebar = $state(true);
     let showChat = $state(false);
+    let showProfile = $state(false);
     let showGuide = $state(false);
     let showPlayground = $state(false);
     let isFinished = $state(false);
@@ -117,6 +119,7 @@
     let chatTab = $state<"public" | "direct">("public");
     let hasNewDm = $state(false);
     let lastStepId = $state<string | null>(null);
+    let profileRef = $state<HTMLDivElement | null>(null);
 
     const defaultPlaygrounds: PlaygroundBlock[] = [
         { language: "dart", code: "" },
@@ -199,6 +202,25 @@
         };
     });
 
+    $effect(() => {
+        if (!browser || !showProfile) return;
+        const handler = (event: MouseEvent) => {
+            if (!profileRef) return;
+            if (!profileRef.contains(event.target as Node)) {
+                showProfile = false;
+            }
+        };
+        document.addEventListener("click", handler);
+        return () => document.removeEventListener("click", handler);
+    });
+
+    function formatTimestamp(value?: string | null) {
+        if (!value) return "";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString($locale || "en");
+    }
+
     let wsCleanup: any;
     onMount(async () => {
         // Check for registration
@@ -208,6 +230,22 @@
             return;
         }
         attendee = JSON.parse(savedAttendee);
+        if (!isServerlessMode()) {
+            try {
+                const session = await getSession();
+                const sessionMatches =
+                    session?.role === "attendee" && session.codelab_id === id;
+                if (!sessionMatches) {
+                    localStorage.removeItem(`attendee_${id}`);
+                    goto(`/codelabs/${id}/entry`);
+                    return;
+                }
+            } catch (e) {
+                localStorage.removeItem(`attendee_${id}`);
+                goto(`/codelabs/${id}/entry`);
+                return;
+            }
+        }
 
         try {
             const data = await getCodelab(id);
@@ -668,7 +706,7 @@
     );
 </script>
 
-<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white focus:text-[#202124] focus:p-3 focus:rounded-lg focus:shadow-lg">
+<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white dark:focus:bg-dark-surface focus:text-[#202124] dark:focus:text-dark-text focus:p-3 focus:rounded-lg focus:shadow-lg">
     {$t("common.skip_to_main") || "Skip to main content"}
 </a>
 
@@ -780,11 +818,69 @@
                 {/if}
             </button>
 
-            <div
-                class="w-8 h-8 rounded-full bg-[#E8EAED] dark:bg-white/10 flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted border-2 border-white dark:border-dark-surface shadow-sm"
-                title={attendee?.name}
-            >
-                <User size={18} />
+            <div class="relative" bind:this={profileRef}>
+                <button
+                    class="w-8 h-8 rounded-full bg-[#E8EAED] dark:bg-white/10 flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted border-2 border-white dark:border-dark-surface shadow-sm hover:bg-white dark:hover:bg-white/20 transition-colors"
+                    title={attendee?.name || $t("profile.title")}
+                    aria-label={$t("profile.title")}
+                    aria-expanded={showProfile}
+                    onclick={() => (showProfile = !showProfile)}
+                >
+                    <User size={18} />
+                </button>
+
+                {#if showProfile}
+                    <div
+                        class="absolute right-0 mt-3 w-72 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl shadow-2xl z-40 overflow-hidden"
+                    >
+                        <div class="p-4 border-b border-[#F1F3F4] dark:border-dark-border">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-full bg-[#4285F4]/10 text-[#4285F4] flex items-center justify-center font-bold">
+                                    {attendee?.name
+                                        ? attendee.name.slice(0, 2).toUpperCase()
+                                        : "?"}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="font-bold text-[#202124] dark:text-dark-text truncate">
+                                        {attendee?.name || $t("attendee.anonymous_user")}
+                                    </div>
+                                    <div class="text-xs text-[#5F6368] dark:text-dark-text-muted truncate">
+                                        {codelab?.title || $t("common.title")}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-4 space-y-3 text-sm">
+                            <div class="flex items-center justify-between gap-4">
+                                <span class="text-[#5F6368] dark:text-dark-text-muted">
+                                    {$t("profile.email")}
+                                </span>
+                                <span class="text-[#202124] dark:text-dark-text text-right truncate max-w-[160px]">
+                                    {attendee?.email || $t("profile.not_available")}
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <span class="text-[#5F6368] dark:text-dark-text-muted">
+                                    {$t("profile.attendee_id")}
+                                </span>
+                                <span class="text-[#202124] dark:text-dark-text text-right truncate max-w-[160px]">
+                                    {attendee?.id || "-"}
+                                </span>
+                            </div>
+                            <div class="flex items-center justify-between gap-4">
+                                <span class="text-[#5F6368] dark:text-dark-text-muted">
+                                    {$t("profile.registered_at")}
+                                </span>
+                                <span class="text-[#202124] dark:text-dark-text text-right truncate max-w-[160px]">
+                                    {attendee?.created_at
+                                        ? formatTimestamp(attendee.created_at)
+                                        : $t("profile.not_available")}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {/if}
             </div>
         </div>
     </header>
