@@ -33,6 +33,7 @@ export interface Attendee {
     id: string;
     codelab_id: string;
     name: string;
+    email?: string;
     code?: string;
     current_step?: number;
     is_completed?: boolean;
