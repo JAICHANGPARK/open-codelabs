@@ -10,6 +10,7 @@
     let id = page.params.id as string;
     let codelab = $state<Codelab | null>(null);
     let name = $state("");
+    let email = $state("");
     let code = $state("");
     let loading = $state(true);
     let submitting = $state(false);
@@ -48,7 +49,7 @@
         submitting = true;
         error = "";
         try {
-            const attendee = await registerAttendee(id, name, code);
+            const attendee = await registerAttendee(id, name, code, email || undefined);
             localStorage.setItem(`attendee_${id}`, JSON.stringify(attendee));
             goto(`/codelabs/${id}`);
         } catch (e: any) {
@@ -151,6 +152,29 @@
                                 placeholder={$t("attendee.nickname_placeholder")}
                                 class="w-full pl-12 pr-4 py-3.5 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 transition-all text-[#202124]"
                                 required
+                            />
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label
+                            for="email"
+                            class="text-xs font-bold text-[#5F6368] uppercase tracking-wider ml-1"
+                        >
+                            {$t("attendee.email")} <span class="text-[#9AA0A6] font-normal lowercase">({$t("common.optional")})</span>
+                        </label>
+                        <div class="relative group">
+                            <div
+                                class="absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA0A6] group-focus-within:text-[#4285F4] transition-colors"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m2 7 8.97 5.7a1.94 1.94 0 0 0 2.06 0L22 7"/></svg>
+                            </div>
+                            <input
+                                id="email"
+                                type="email"
+                                bind:value={email}
+                                placeholder={$t("attendee.email_placeholder")}
+                                class="w-full pl-12 pr-4 py-3.5 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 transition-all text-[#202124]"
                             />
                         </div>
                     </div>
