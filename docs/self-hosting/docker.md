@@ -37,17 +37,52 @@ services:
 
 ```bash
 # 빌드 및 실행
-docker-compose up --build
+docker compose up --build
 
 # 백그라운드 실행
-docker-compose up -d
+docker compose up -d
 
 # 로그 확인
-docker-compose logs -f
+docker compose logs -f
 
 # 중지
-docker-compose down
+docker compose down
 ```
+
+!!! note
+    환경에 따라 `docker compose` 대신 `docker-compose`를 사용할 수 있습니다.
+
+## GitHub Container Registry 이미지 사용
+
+로컬 빌드 대신 GHCR 이미지를 사용할 수 있습니다. `docker-compose.images.yml`을 이용하세요.
+
+### 1. 환경 변수 준비
+
+프로젝트 루트에 `.env`를 만들고 아래 값을 설정합니다.
+
+```bash
+IMAGE_REGISTRY=ghcr.io
+IMAGE_NAMESPACE=open-codelabs
+IMAGE_TAG=latest
+
+DATA_VOLUME_PATH=./backend
+DATABASE_URL=sqlite:/app/data/sqlite.db?mode=rwc
+ADMIN_ID=admin
+ADMIN_PW=admin123
+
+FRONTEND_PORT=5173
+FRONTEND_HOST=0.0.0.0
+VITE_API_URL=http://localhost:8080
+```
+
+### 2. 실행
+
+```bash
+docker compose -f docker-compose.images.yml up -d
+```
+
+!!! tip
+    `IMAGE_TAG`를 `latest` 대신 릴리스 태그로 지정하면 버전을 고정할 수 있습니다.
 
 ## Backend Dockerfile
 

@@ -49,6 +49,10 @@ Docker는 가장 간단하고 권장되는 설치 방법입니다.
 
     WSL2를 사용하는 것을 권장합니다.
 
+!!! note
+    Docker Desktop에는 Docker Compose가 기본 포함됩니다. Linux는 `docker-compose-plugin` 설치가 필요할 수 있습니다.
+    환경에 따라 `docker compose` 대신 `docker-compose`를 사용해야 할 수 있습니다.
+
 ### 2. 프로젝트 클론
 
 ```bash
@@ -77,7 +81,7 @@ services:
 ### 4. 실행
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 - `-d`: 백그라운드에서 실행
@@ -86,29 +90,29 @@ docker-compose up -d
 
 ```bash
 # 모든 서비스 로그
-docker-compose logs -f
+docker compose logs -f
 
 # Backend만
-docker-compose logs -f backend
+docker compose logs -f backend
 
 # Frontend만
-docker-compose logs -f frontend
+docker compose logs -f frontend
 ```
 
 ### 6. 중지 및 시작
 
 ```bash
 # 중지
-docker-compose stop
+docker compose stop
 
 # 시작
-docker-compose start
+docker compose start
 
 # 중지 및 컨테이너 제거
-docker-compose down
+docker compose down
 
 # 볼륨까지 제거 (데이터 삭제)
-docker-compose down -v
+docker compose down -v
 ```
 
 ## Podman으로 설치하기
@@ -140,7 +144,7 @@ Docker 대신 Podman을 사용하는 경우:
 podman-compose up -d
 ```
 
-나머지 명령어는 `docker-compose` 대신 `podman-compose`를 사용하면 됩니다.
+나머지 명령어는 `docker compose` 대신 `podman-compose`를 사용하면 됩니다.
 
 ## 로컬 개발 환경 설치
 
@@ -244,10 +248,10 @@ Frontend는 `http://localhost:5173`에서 실행됩니다.
 
 ```bash
 # 프로덕션 이미지 빌드
-docker-compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml build
 
 # 실행
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 ### 로컬 프로덕션 빌드
@@ -300,9 +304,9 @@ sqlx migrate add <migration_name>
 
 ```bash
 # Docker 사용 시
-docker-compose down -v
+docker compose down -v
 rm -rf backend/data/sqlite.db
-docker-compose up -d
+docker compose up -d
 
 # 로컬 개발 시
 rm -rf backend/data/sqlite.db
@@ -386,7 +390,7 @@ cargo run
 
 ```bash
 # 캐시 없이 다시 빌드
-docker-compose build --no-cache
+docker compose build --no-cache
 
 # Docker 시스템 정리
 docker system prune -a

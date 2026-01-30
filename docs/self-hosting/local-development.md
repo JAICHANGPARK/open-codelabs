@@ -88,16 +88,26 @@ backend/
 ├── .env                    # 환경 변수
 ├── src/
 │   ├── main.rs            # 엔트리 포인트
-│   ├── models.rs          # 데이터 모델
-│   ├── state.rs           # 애플리케이션 상태
-│   └── handlers/          # API 핸들러
-│       ├── mod.rs
-│       ├── admin.rs
-│       ├── codelabs.rs
-│       ├── attendees.rs
-│       ├── feedback.rs
-│       ├── upload.rs
-│       └── websocket.rs
+│   ├── lib.rs             # 공용 모듈
+│   ├── api/               # 라우팅/핸들러
+│   │   ├── routes.rs
+│   │   └── handlers/
+│   │       ├── admin.rs
+│   │       ├── ai.rs
+│   │       ├── attendees.rs
+│   │       ├── audit.rs
+│   │       ├── codelabs.rs
+│   │       ├── codeserver.rs
+│   │       ├── feedback.rs
+│   │       ├── materials.rs
+│   │       ├── quizzes.rs
+│   │       ├── submissions.rs
+│   │       ├── upload.rs
+│   │       └── websocket.rs
+│   ├── domain/            # 도메인 모델/서비스
+│   ├── infrastructure/    # DB/감사 로그
+│   ├── middleware/        # 인증/보안
+│   └── utils/             # 유틸리티
 ├── migrations/            # 데이터베이스 마이그레이션
 │   ├── 20251226161500_init.sql
 │   ├── 20251226161600_attendees.sql
@@ -244,7 +254,7 @@ RUST_LOG=debug
 RUST_LOG=backend=debug,tower_http=info,sqlx=warn
 
 # 특정 핸들러만
-RUST_LOG=backend::handlers::codelabs=trace
+RUST_LOG=backend::api::handlers::codelabs=trace
 ```
 
 #### LLDB 디버거
@@ -288,18 +298,29 @@ frontend/
 ├── src/
 │   ├── app.html          # HTML 템플릿
 │   ├── app.css           # 글로벌 스타일
+│   ├── hooks.server.ts   # 서버 훅
 │   ├── lib/              # 라이브러리
-│   │   ├── api.ts        # API 클라이언트
-│   │   ├── Progress.ts   # 진행 상황 관리
-│   │   └── i18n/         # 다국어 지원
+│   │   ├── api.ts        # API 라우터
+│   │   ├── api-backend.ts
+│   │   ├── api-firebase.ts
+│   │   ├── api-supabase.ts
+│   │   ├── components/   # 공용 컴포넌트
+│   │   ├── i18n/         # 다국어 지원
+│   │   └── types.ts      # 공용 타입
 │   └── routes/           # 페이지 라우트
 │       ├── +layout.svelte
 │       ├── +page.svelte
 │       ├── admin/
 │       │   ├── +page.svelte
-│       │   └── [id]/
+│       │   ├── [id]/
+│       │   └── audit-logs/
 │       ├── codelabs/
+│       │   ├── +page.svelte
 │       │   └── [id]/
+│       ├── codelabs/[id]/entry/
+│       ├── codelabs/[id]/live/
+│       ├── certificate/[id]/
+│       ├── verify/[id]/
 │       └── login/
 └── static/               # 정적 파일
     └── favicon.png

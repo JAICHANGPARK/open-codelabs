@@ -13,10 +13,17 @@ erDiagram
     CODELABS ||--o{ FEEDBACK : "collects"
     CODELABS ||--o{ MATERIALS : "provides"
     CODELABS ||--o{ QUIZZES : "includes"
+    CODELABS ||--o{ QUIZ_SUBMISSIONS : "aggregates"
+    CODELABS ||--o{ SUBMISSIONS : "collects"
+    CODELABS ||--o{ AI_CONVERSATIONS : "stores"
+    CODELABS ||--|| CODESERVER_WORKSPACES : "workspace"
+    CODELABS ||--o{ AUDIT_LOGS : "audits"
     
     ATTENDEES ||--o{ HELP_REQUESTS : "makes"
     ATTENDEES ||--o{ FEEDBACK : "submits"
     ATTENDEES ||--o{ QUIZ_SUBMISSIONS : "answers"
+    ATTENDEES ||--o{ SUBMISSIONS : "uploads"
+    ATTENDEES ||--o{ AI_CONVERSATIONS : "asks"
     
     QUIZZES ||--o{ QUIZ_SUBMISSIONS : "has"
 ```
@@ -37,7 +44,8 @@ CREATE TABLE IF NOT EXISTS codelabs (
     is_public INTEGER NOT NULL DEFAULT 1,
     quiz_enabled INTEGER DEFAULT 0,
     require_quiz INTEGER DEFAULT 0,
-    require_feedback INTEGER DEFAULT 0
+    require_feedback INTEGER DEFAULT 0,
+    guide_markdown TEXT
 );
 ```
 
@@ -52,6 +60,7 @@ CREATE TABLE IF NOT EXISTS codelabs (
 | `quiz_enabled` | INTEGER | 퀴즈 활성화 여부 | DEFAULT 0 |
 | `require_quiz` | INTEGER | 수료 시 퀴즈 통과 필수 여부 | DEFAULT 0 |
 | `require_feedback` | INTEGER | 수료 시 피드백 제출 필수 여부 | DEFAULT 0 |
+| `guide_markdown` | TEXT | 준비 가이드 Markdown | - |
 
 ### steps
 
@@ -86,6 +95,7 @@ CREATE TABLE IF NOT EXISTS attendees (
     codelab_id VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     code VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
     created_at TEXT DEFAULT CURRENT_TIMESTAMP,
     current_step INTEGER DEFAULT 1,
     is_completed INTEGER DEFAULT 0,
@@ -100,6 +110,7 @@ CREATE TABLE IF NOT EXISTS attendees (
 | `codelab_id` | VARCHAR | 참여 중인 Codelab ID | FOREIGN KEY |
 | `name` | VARCHAR | 참가자 이름 | NOT NULL |
 | `code` | VARCHAR | 참가 코드 | NOT NULL |
+| `email` | VARCHAR | 이메일 (선택) | - |
 | `current_step` | INTEGER | 현재 진행 중인 Step 번호 | DEFAULT 1 |
 | `is_completed` | INTEGER | 수료 여부 (1: 완료, 0: 진행 중) | DEFAULT 0 |
 | `completed_at` | TEXT | 수료 일시 | - |
@@ -267,6 +278,122 @@ CREATE TABLE IF NOT EXISTS quiz_submissions (
 | `is_correct` | INTEGER | 정답 여부 (1: 정답, 0: 오답) | NOT NULL |
 | `created_at` | TEXT | 제출 시간 | DEFAULT CURRENT_TIMESTAMP |
 
+### submissions
+
+참가자 제출 파일(과제)을 저장합니다.
+
+```sql
+CREATE TABLE IF NOT EXISTS submissions (
+    id TEXT PRIMARY KEY,
+    codelab_id TEXT NOT NULL,
+    attendee_id TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    file_name TEXT NOT NULL,
+    file_size INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (codelab_id) REFERENCES codelabs (id),
+    FOREIGN KEY (attendee_id) REFERENCES attendees (id)
+);
+```
+
+| 컬럼 | 타입 | 설명 | 제약 |
+|------|------|------|------|
+| `id` | TEXT | UUID | PRIMARY KEY |
+| `codelab_id` | TEXT | Codelab ID | FOREIGN KEY |
+| `attendee_id` | TEXT | 참가자 ID | FOREIGN KEY |
+| `file_path` | TEXT | 저장 경로 | NOT NULL |
+| `file_name` | TEXT | 원본 파일명 | NOT NULL |
+| `file_size` | INTEGER | 파일 크기 | NOT NULL |
+| `created_at` | DATETIME | 제출 시간 | DEFAULT CURRENT_TIMESTAMP |
+
+### audit_logs
+
+관리자/참가자 이벤트 로그를 저장합니다.
+
+```sql
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id VARCHAR(255) PRIMARY KEY NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    actor_type VARCHAR(50) NOT NULL,
+    actor_id VARCHAR(255),
+    target_id VARCHAR(255),
+    codelab_id VARCHAR(255),
+    ip VARCHAR(64),
+    user_agent TEXT,
+    metadata TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+| 컬럼 | 타입 | 설명 | 제약 |
+|------|------|------|------|
+| `id` | VARCHAR | UUID | PRIMARY KEY |
+| `action` | VARCHAR | 이벤트 키 | NOT NULL |
+| `actor_type` | VARCHAR | actor 유형 (admin/attendee) | NOT NULL |
+| `actor_id` | VARCHAR | actor ID | - |
+| `target_id` | VARCHAR | 대상 ID | - |
+| `codelab_id` | VARCHAR | Codelab ID | - |
+| `ip` | VARCHAR | 요청 IP | - |
+| `user_agent` | TEXT | User-Agent | - |
+| `metadata` | TEXT | 추가 메타데이터(JSON) | - |
+| `created_at` | TEXT | 생성 시간 | DEFAULT CURRENT_TIMESTAMP |
+
+### codeserver_workspaces
+
+코드 서버 워크스페이스를 저장합니다.
+
+```sql
+CREATE TABLE IF NOT EXISTS codeserver_workspaces (
+    id TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+    codelab_id TEXT NOT NULL UNIQUE,
+    url TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    structure_type TEXT NOT NULL DEFAULT 'branch',
+    FOREIGN KEY (codelab_id) REFERENCES codelabs(id) ON DELETE CASCADE
+);
+```
+
+| 컬럼 | 타입 | 설명 | 제약 |
+|------|------|------|------|
+| `id` | TEXT | UUID | PRIMARY KEY |
+| `codelab_id` | TEXT | Codelab ID | UNIQUE, FOREIGN KEY |
+| `url` | TEXT | 워크스페이스 경로 | NOT NULL |
+| `structure_type` | TEXT | 구조 유형 (branch/folder) | DEFAULT 'branch' |
+| `created_at` | TEXT | 생성 시간 | DEFAULT datetime('now') |
+
+### ai_conversations
+
+AI 질문/응답 히스토리를 저장합니다.
+
+```sql
+CREATE TABLE IF NOT EXISTS ai_conversations (
+    id TEXT PRIMARY KEY,
+    codelab_id TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    user_type TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    step_number INTEGER,
+    question TEXT NOT NULL,
+    answer TEXT NOT NULL,
+    model TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (codelab_id) REFERENCES codelabs(id) ON DELETE CASCADE
+);
+```
+
+| 컬럼 | 타입 | 설명 | 제약 |
+|------|------|------|------|
+| `id` | TEXT | UUID | PRIMARY KEY |
+| `codelab_id` | TEXT | Codelab ID | FOREIGN KEY |
+| `user_id` | TEXT | 사용자 ID | NOT NULL |
+| `user_type` | TEXT | 사용자 유형 (admin/attendee) | NOT NULL |
+| `user_name` | TEXT | 사용자 이름 | NOT NULL |
+| `step_number` | INTEGER | 단계 번호 | - |
+| `question` | TEXT | 질문 | NOT NULL |
+| `answer` | TEXT | 답변 | NOT NULL |
+| `model` | TEXT | 모델명 | - |
+| `created_at` | TIMESTAMP | 생성 시간 | DEFAULT CURRENT_TIMESTAMP |
+
 ## 마이그레이션 목록
 
 시스템은 `sqlx`를 사용하여 데이터베이스 스키마를 관리합니다. `backend/migrations/` 폴더 내의 파일들은 다음 순서로 적용됩니다.
@@ -283,3 +410,10 @@ CREATE TABLE IF NOT EXISTS quiz_submissions (
 10. `20251229161000_quizzes.sql`: 퀴즈 설정 필드 및 퀴즈 테이블 생성
 11. `20251230113000_add_quiz_type.sql`: 퀴즈 유형 필드 추가
 12. `20251230120000_quiz_submissions.sql`: 퀴즈 제출 결과 테이블 생성
+13. `20251231120000_add_guide_to_codelabs.sql`: Codelab 가이드 필드 추가
+14. `20251231130000_submissions.sql`: 제출물 테이블 생성
+15. `20260102090000_audit_logs.sql`: 감사 로그 테이블 생성
+16. `20260129000000_codeserver_containers.sql`: 코드 서버 워크스페이스 테이블 생성
+17. `20260129100000_add_workspace_structure_type.sql`: 워크스페이스 구조 유형 추가
+18. `20260130000000_add_email_to_attendees.sql`: 참가자 이메일 필드 추가
+19. `20260130010000_ai_conversations.sql`: AI 대화 테이블 생성
