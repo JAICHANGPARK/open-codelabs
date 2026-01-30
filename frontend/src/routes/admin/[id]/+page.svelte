@@ -65,6 +65,7 @@
     import SubmissionsMode from "$lib/components/admin/SubmissionsMode.svelte";
     import RaffleMode from "$lib/components/admin/RaffleMode.svelte";
     import CertificateMode from "$lib/components/admin/CertificateMode.svelte";
+    import AiConversationsMode from "$lib/components/admin/AiConversationsMode.svelte";
     import WorkspaceBrowser from "$lib/components/admin/WorkspaceBrowser.svelte";
     import WorkspaceMode from "$lib/components/admin/WorkspaceMode.svelte";
 
@@ -2208,6 +2209,8 @@
                                     {removeQuiz}
                                     {handleQuizSave}
                                 />
+                            {:else if mode === "ai"}
+                                <AiConversationsMode codelabId={id} />
                             {/if}
                         </div>
                     </div>
