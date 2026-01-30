@@ -255,7 +255,7 @@ Return JSON that matches the schema exactly.
         const remainingSlots = () => MAX_FILES - (uploadedFiles.length + pendingFiles.length);
 
         if (remainingSlots() <= 0) {
-            alert("You can upload up to 10 files per prompt.");
+            alert(`You can upload up to ${MAX_FILES} files per prompt.`);
             return;
         }
 
@@ -263,7 +263,7 @@ Return JSON that matches the schema exactly.
         try {
             for (const file of Array.from(target.files)) {
                 if (remainingSlots() <= 0) {
-                    alert("You can upload up to 10 files per prompt.");
+                    alert(`You can upload up to ${MAX_FILES} files per prompt.`);
                     break;
                 }
 

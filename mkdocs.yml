@@ -49,6 +49,7 @@ plugins:
         - locale: ko
           name: 한국어
           build: true
+          default: true
         - locale: en
           name: English
           build: true
