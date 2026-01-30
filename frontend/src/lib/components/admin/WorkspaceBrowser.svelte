@@ -94,7 +94,7 @@
 <div class="workspace-browser">
     <div class="header">
         <h2>Workspace Browser</h2>
-        <button on:click={onClose} class="close-btn">✕</button>
+        <button onclick={onClose} class="close-btn">✕</button>
     </div>
 
     {#if error}
@@ -108,7 +108,7 @@
                 <select
                     id="item"
                     bind:value={selectedItem}
-                    on:change={handleItemChange}
+                    onchange={handleItemChange}
                     disabled={loading}
                 >
                     {#each items as item}
@@ -128,8 +128,8 @@
                         {#each files as file}
                             <li
                                 class:selected={selectedFile === file}
-                                on:click={() => loadFileContent(file)}
-                                on:keydown={(e) => e.key === 'Enter' && loadFileContent(file)}
+                                onclick={() => loadFileContent(file)}
+                                onkeydown={(e) => e.key === 'Enter' && loadFileContent(file)}
                                 role="button"
                                 tabindex="0"
                             >
