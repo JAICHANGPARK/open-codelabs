@@ -581,7 +581,7 @@
         "saving": "저장 중...",
         "create_button": "코드랩 만들기",
         "upload_files": "파일 / Zip 업로드",
-        "upload_limits": "제한: 프롬프트당 최대 {maxFiles}개 파일. ZIP 파일: 최대 {maxZipFiles}개 파일, {maxSizeMb}MB, 오디오/비디오 불가.",
+        "upload_limits": "제한: 프롬프트당 최대 {maxFiles}개 파일, 파일당 {maxSizeMb}MB. ZIP 파일: 최대 {maxZipFiles}개 파일, 오디오/비디오 불가.",
         "error_upload": "파일 업로드에 실패했습니다.",
         "error_parse": "AI 응답을 분석하는 동안 예기치 않은 오류가 발생했습니다. 다시 시도해주세요.",
         "error_generate": "생성 실패",

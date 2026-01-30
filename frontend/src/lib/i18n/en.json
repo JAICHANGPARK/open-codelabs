@@ -581,7 +581,7 @@
         "saving": "Saving...",
         "create_button": "Create Codelab",
         "upload_files": "Upload Files / Zip",
-        "upload_limits": "Limit: up to {maxFiles} files per prompt. ZIP files: up to {maxZipFiles} files, {maxSizeMb} MB, no audio/video.",
+        "upload_limits": "Limit: up to {maxFiles} files per prompt, {maxSizeMb} MB each. ZIP files: up to {maxZipFiles} files, no audio/video.",
         "error_upload": "Failed to upload files.",
         "error_parse": "An unexpected error occurred while parsing the AI response. Please try again.",
         "error_generate": "Generation failed",
