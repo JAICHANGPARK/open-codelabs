@@ -138,9 +138,39 @@ export async function getSession(): Promise<{ role: string; sub: string; exp: nu
     return res.json();
 }
 
+export interface AuditLog {
+    id: string;
+    action: string;
+    actor_type: string;
+    actor_id?: string;
+    target_id?: string;
+    codelab_id?: string;
+    ip?: string;
+    user_agent?: string;
+    metadata?: string;
+    created_at: string;
+}
+
+export async function getAuditLogs(params?: {
+    limit?: number;
+    offset?: number;
+    codelab_id?: string;
+    action?: string;
+}): Promise<AuditLog[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.offset) searchParams.append('offset', params.offset.toString());
+    if (params?.codelab_id) searchParams.append('codelab_id', params.codelab_id);
+    if (params?.action) searchParams.append('action', params.action);
+
+    const res = await apiFetch(`/admin/audit-logs?${searchParams.toString()}`);
+    if (!res.ok) throw new Error('Failed to fetch audit logs');
+    return res.json();
+}
+
 export async function saveAdminSettings(payload: { gemini_api_key: string }): Promise<void> {
     let finalPayload = { ...payload };
-    
+
     // Encrypt the API key using admin password if available
     if (browser) {
         const adminPw = getEncryptionPassword();
