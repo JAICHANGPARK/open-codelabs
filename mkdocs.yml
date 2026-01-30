@@ -82,6 +82,7 @@ nav:
       - GCP (Google Cloud): self-hosting/gcp.md
       - AWS (Amazon Web Services): self-hosting/aws.md
       - 파이어베이스 (Firebase): self-hosting/firebase.md
+      - Supabase: self-hosting/supabase.md
 #      - GitHub Pages (Docs): self-hosting/github-pages.md
       - 로컬 개발 환경: self-hosting/local-development.md
       - 공개 배포 (ngrok/bore/cloudflare): self-hosting/public-deployment.md
