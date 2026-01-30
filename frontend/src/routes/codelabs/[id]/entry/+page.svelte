@@ -3,7 +3,7 @@
     import { fly, fade } from "svelte/transition";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
-    import { getCodelab, registerAttendee, loginWithGoogle, isFirebaseMode, type Codelab } from "$lib/api";
+    import { getCodelab, registerAttendee, loginWithGoogle, onAuthChange, isSupabaseMode, isServerlessMode, type Codelab } from "$lib/api";
     import { User, KeyRound, ArrowRight, Loader2, Chrome, Lock, X } from "lucide-svelte";
     import { t } from "svelte-i18n";
 
@@ -16,8 +16,10 @@
     let submitting = $state(false);
     let error = $state("");
     let errorType = $state("");
+    const supabaseJoinKey = "supabase_oauth_join";
 
     onMount(async () => {
+        let cleanup: (() => void) | undefined;
         try {
             const data = await getCodelab(id);
             codelab = data[0];
@@ -26,6 +28,37 @@
             const savedAttendee = localStorage.getItem(`attendee_${id}`);
             if (savedAttendee) {
                 goto(`/codelabs/${id}`);
+            }
+
+            if (isSupabaseMode()) {
+                cleanup = onAuthChange(async (user) => {
+                    if (!user) return;
+                    const pending = sessionStorage.getItem(supabaseJoinKey);
+                    if (pending !== id) return;
+                    sessionStorage.removeItem(supabaseJoinKey);
+
+                    const displayName =
+                        user.displayName ||
+                        (user.email ? user.email.split("@")[0] : "") ||
+                        $t("attendee.anonymous_user");
+                    const userCode = user.uid ? user.uid.substring(0, 8) : "";
+
+                    try {
+                        const attendee = await registerAttendee(
+                            id,
+                            displayName,
+                            userCode || "supabase",
+                            user.email || undefined,
+                        );
+                        localStorage.setItem(
+                            `attendee_${id}`,
+                            JSON.stringify(attendee),
+                        );
+                        goto(`/codelabs/${id}`);
+                    } catch (e: any) {
+                        error = $t("attendee.error_registration_failed");
+                    }
+                });
             }
         } catch (e: any) {
             if (e.message === 'PRIVATE_CODELAB') {
@@ -38,6 +71,8 @@
         } finally {
             loading = false;
         }
+
+        return cleanup;
     });
 
     async function handleSubmit() {
@@ -67,6 +102,11 @@
         submitting = true;
         error = "";
         try {
+            if (isSupabaseMode()) {
+                sessionStorage.setItem(supabaseJoinKey, id);
+                await loginWithGoogle();
+                return;
+            }
             const { user } = await loginWithGoogle();
             const emailPart = user.email ? user.email.split('@')[0] : "";
             const displayName = user.displayName || emailPart || $t("attendee.anonymous_user");
@@ -219,7 +259,7 @@
                         {/if}
                     </button>
 
-                    {#if isFirebaseMode()}
+                    {#if isServerlessMode()}
                         <div class="relative py-2">
                             <div class="absolute inset-0 flex items-center">
                                 <div class="w-full border-t border-[#F1F3F4]"></div>
