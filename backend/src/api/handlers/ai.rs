@@ -1,13 +1,14 @@
+use crate::domain::models::{AiConversation, SaveAiConversationPayload};
 use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::middleware::auth::AuthSession;
 use crate::utils::crypto::decrypt_with_password;
-use crate::utils::error::{bad_request, internal_error};
+use crate::utils::error::{bad_request, forbidden, internal_error};
 use crate::middleware::request_info::RequestInfo;
 use crate::infrastructure::database::AppState;
 use crate::utils::validation::validate_prompt;
 use axum::{
     body::Body,
-    extract::State,
+    extract::{Path, State},
     http::{header, StatusCode},
     response::{IntoResponse, Response},
     Json,
@@ -24,6 +25,8 @@ pub struct AiRequest {
     pub model: Option<String>,
     pub generation_config: Option<serde_json::Value>,
     pub tools: Option<serde_json::Value>,
+    pub codelab_id: Option<String>,
+    pub step_number: Option<i32>,
 }
 
 pub async fn proxy_gemini_stream(
@@ -32,9 +35,30 @@ pub async fn proxy_gemini_stream(
     info: RequestInfo,
     Json(payload): Json<AiRequest>,
 ) -> impl IntoResponse {
-    if session.require_admin().is_err() {
+    // Allow both admin and attendees to use AI
+    let (user_id, user_type, user_name) = if let Ok(admin) = session.require_admin() {
+        (admin.sub, "admin".to_string(), "Admin".to_string())
+    } else if let Ok(attendee) = session.require_attendee() {
+        // For attendees, verify they belong to the codelab if codelab_id is provided
+        if let Some(codelab_id) = &payload.codelab_id {
+            if attendee.codelab_id.as_deref() != Some(codelab_id.as_str()) {
+                return forbidden().into_response();
+            }
+        }
+        // Get attendee name from database
+        let attendee_name = match sqlx::query_scalar::<_, String>(&state.q("SELECT name FROM attendees WHERE id = ?"))
+            .bind(&attendee.sub)
+            .fetch_one(&state.pool)
+            .await
+        {
+            Ok(name) => name,
+            Err(_) => "Unknown".to_string(),
+        };
+        (attendee.sub, "attendee".to_string(), attendee_name)
+    } else {
         return (StatusCode::UNAUTHORIZED, "Unauthorized".to_string()).into_response();
-    }
+    };
+
     if let Err(err) = validate_prompt(&payload.prompt) {
         return err.into_response();
     }
@@ -119,17 +143,24 @@ pub async fn proxy_gemini_stream(
 
     let stream = response.bytes_stream();
 
+    // Record audit log with user information and codelab context
+    let metadata = serde_json::json!({
+        "prompt_length": payload.prompt.len(),
+        "model": model,
+        "step_number": payload.step_number,
+    });
+
     record_audit(
         &state,
         AuditEntry {
-            action: "ai_proxy_request".to_string(),
-            actor_type: "admin".to_string(),
-            actor_id: Some(state.admin_id.clone()),
+            action: "ai_query".to_string(),
+            actor_type: user_type.clone(),
+            actor_id: Some(user_id.clone()),
             target_id: None,
-            codelab_id: None,
+            codelab_id: payload.codelab_id.clone(),
             ip: Some(info.ip),
             user_agent: info.user_agent,
-            metadata: None,
+            metadata: Some(metadata),
         },
     )
     .await;
@@ -140,6 +171,71 @@ pub async fn proxy_gemini_stream(
         .header(header::CONNECTION, "keep-alive")
         .body(Body::from_stream(stream))
         .unwrap()
+}
+
+pub async fn save_ai_conversation(
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+    _info: RequestInfo,
+    Json(payload): Json<SaveAiConversationPayload>,
+) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+    // Get user information
+    let (user_id, user_type, user_name) = if let Ok(admin) = session.require_admin() {
+        (admin.sub, "admin".to_string(), "Admin".to_string())
+    } else if let Ok(attendee) = session.require_attendee() {
+        // Verify attendee belongs to the codelab
+        if attendee.codelab_id.as_deref() != Some(payload.codelab_id.as_str()) {
+            return Err(forbidden());
+        }
+        // Get attendee name
+        let attendee_name = sqlx::query_scalar::<_, String>(&state.q("SELECT name FROM attendees WHERE id = ?"))
+            .bind(&attendee.sub)
+            .fetch_one(&state.pool)
+            .await
+            .map_err(internal_error)?;
+        (attendee.sub, "attendee".to_string(), attendee_name)
+    } else {
+        return Err((StatusCode::UNAUTHORIZED, "Unauthorized".to_string()));
+    };
+
+    let conversation_id = uuid::Uuid::new_v4().to_string();
+
+    sqlx::query(&state.q(
+        "INSERT INTO ai_conversations (id, codelab_id, user_id, user_type, user_name, step_number, question, answer, model) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    ))
+    .bind(&conversation_id)
+    .bind(&payload.codelab_id)
+    .bind(&user_id)
+    .bind(&user_type)
+    .bind(&user_name)
+    .bind(payload.step_number)
+    .bind(&payload.question)
+    .bind(&payload.answer)
+    .bind(&payload.model)
+    .execute(&state.pool)
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(serde_json::json!({ "id": conversation_id })))
+}
+
+pub async fn get_ai_conversations(
+    Path(codelab_id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+) -> Result<Json<Vec<AiConversation>>, (StatusCode, String)> {
+    // Only admin can view all AI conversations
+    session.require_admin()?;
+
+    let conversations = sqlx::query_as::<_, AiConversation>(&state.q(
+        "SELECT * FROM ai_conversations WHERE codelab_id = ? ORDER BY created_at DESC",
+    ))
+    .bind(&codelab_id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(conversations))
 }
 
 fn is_valid_model(model: &str) -> bool {
