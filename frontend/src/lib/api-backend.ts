@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import { encryptForBackend, getEncryptionPassword } from './crypto';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee } from './types';
-export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee };
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload } from './types';
+export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload };
 
 const envApiUrl = import.meta.env.VITE_API_URL;
 let BASE_URL = envApiUrl || 'http://localhost:8080';
@@ -235,7 +235,10 @@ export async function requestHelp(codelabId: string, stepNumber: number): Promis
         },
         body: JSON.stringify({ step_number: stepNumber }),
     });
-    if (!res.ok) throw new Error('Help request failed');
+    if (!res.ok) {
+        const errorText = await res.text().catch(() => 'Unknown error');
+        throw new Error(`Help request failed (${res.status}): ${errorText}`);
+    }
 }
 
 export async function getHelpRequests(codelabId: string): Promise<HelpRequest[]> {
@@ -511,4 +514,20 @@ export async function getWorkspaceFolderFileContent(codelabId: string, folder: s
 export async function deleteCodeServer(codelabId: string): Promise<void> {
     const res = await apiFetch(`/codeserver/${codelabId}`, { method: 'DELETE' });
     if (!res.ok) throw new Error('Failed to delete code server');
+}
+
+export async function saveAiConversation(payload: SaveAiConversationPayload): Promise<{ id: string }> {
+    const res = await apiFetch('/ai/conversations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error('Failed to save AI conversation');
+    return res.json();
+}
+
+export async function getAiConversations(codelabId: string): Promise<AiConversation[]> {
+    const res = await apiFetch(`/codelabs/${codelabId}/ai/conversations`);
+    if (!res.ok) throw new Error('Failed to get AI conversations');
+    return res.json();
 }
