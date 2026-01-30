@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { login, loginWithGoogle, isFirebaseMode } from "$lib/api";
+    import { onMount } from "svelte";
+    import { login, loginWithGoogle, isSupabaseMode, isServerlessMode, getSession } from "$lib/api";
     import { goto } from "$app/navigation";
     import { Lock, User, LogIn, AlertCircle, Github, FileText as FileIcon, Chrome } from "lucide-svelte";
     import { fade, fly } from "svelte/transition";
@@ -9,6 +10,24 @@
     let admin_pw = $state("");
     let error = $state("");
     let loading = $state(false);
+    const supabaseRedirectKey = "supabase_oauth_redirect";
+
+    onMount(async () => {
+        if (!isSupabaseMode()) return;
+        try {
+            const session = await getSession();
+            if (!session) return;
+            const redirectTo = sessionStorage.getItem(supabaseRedirectKey);
+            if (redirectTo) {
+                sessionStorage.removeItem(supabaseRedirectKey);
+                goto(redirectTo);
+                return;
+            }
+            goto("/admin");
+        } catch (e) {
+            console.error("Supabase session check failed", e);
+        }
+    });
 
     async function handleLogin() {
         if (!admin_id || !admin_pw) {
@@ -19,7 +38,7 @@
         error = "";
         try {
             const result = await login(admin_id, admin_pw);
-            if (isFirebaseMode() && (result as any)?.token) {
+            if (isServerlessMode() && (result as any)?.token) {
                 localStorage.setItem("adminToken", (result as any).token);
             }
             sessionStorage.setItem("adminPassword", admin_pw);
@@ -38,6 +57,11 @@
         loading = true;
         error = "";
         try {
+            if (isSupabaseMode()) {
+                sessionStorage.setItem(supabaseRedirectKey, "/admin");
+                await loginWithGoogle();
+                return;
+            }
             const { token, user } = await loginWithGoogle();
             localStorage.setItem("adminToken", token);
             // Store user info if needed
@@ -154,7 +178,7 @@
                     {/if}
                 </button>
 
-                {#if isFirebaseMode()}
+                {#if isServerlessMode()}
                     <div class="relative py-2">
                         <div class="absolute inset-0 flex items-center">
                             <div class="w-full border-t border-[#F1F3F4] dark:border-dark-border"></div>
