@@ -5,6 +5,7 @@
 [![Bun](https://img.shields.io/badge/bun-v1.0+-black.svg)](https://bun.sh/)
 [![Docker](https://img.shields.io/badge/docker-blue.svg)](https://www.docker.com/)
 [![Firebase](https://img.shields.io/badge/firebase-yellow.svg)](https://firebase.google.com/)
+[![Supabase](https://img.shields.io/badge/supabase-3FCF8E.svg)](https://supabase.com/)
 
 **Open Codelabs**는 Google Codelab 스타일의 핸즈온 세션을 손쉽게 운영하고 관리할 수 있도록 설계된 오픈 소스 플랫폼입니다. 최신 기술 스택으로 구축되었으며, 퍼실리테이터(관리자)와 참가자
 역할을 모두 지원합니다. 콘텐츠는 Markdown으로 직접 관리하거나 AI를 통해 자동으로 생성할 수 있습니다.
@@ -20,8 +21,7 @@
 - **퀴즈·피드백·수료증**: 퀴즈와 피드백 제출을 수료 조건으로 설정하고, 검증 URL이 포함된 수료증을 자동 발급합니다.
 - **준비 가이드 & 자료 관리**: 사전 준비 가이드를 직접 작성하거나 AI로 생성하고, 링크/파일을 한 곳에서 배포합니다.
 - **라이브 워크숍 도구**: 실시간 채팅/DM, 도움 요청 큐, 제출물 패널, 수료증 보유자만 대상인 룰렛 추첨 기능을 제공합니다.
-- **멀티 런타임 지원**: 로컬/프라이빗 세션을 위한 **Rust (Axum) + SQLite** 백엔드 실행 또는 서버리스 환경을 위한 **Firebase (Firestore/Hosting)** 배포를
-  지원합니다.
+- **멀티 런타임 지원**: 로컬/프라이빗 세션을 위한 **Rust (Axum) + SQLite** 백엔드 실행 또는 서버리스 환경을 위한 **Firebase (Firestore/Hosting)** 또는 **Supabase** 배포를 지원합니다.
 - **Google Codelab Look & Feel**: 익숙하고 가독성 높은 구글 스타일의 디자인을 차용했습니다.
 - **간편한 외부 공개**: `ngrok`, `bore`, `cloudflared`(Cloudflare Tunnel) 통합 스크립트를 통해 로컬 서버를 즉시 외부에 공개하고 QR 코드로 접속할 수 있게 지원합니다.
 - **다국어 지원**: 글로벌 워크숍 운영을 위한 i18n 지원이 내장되어 있습니다.
@@ -71,7 +71,7 @@ podman-compose up --build
 
 ### Cloud (서버리스 옵션)
 
-- **Platform**: [Firebase](https://firebase.google.com/) (Hosting, Firestore, Storage)
+- **Platform**: [Firebase](https://firebase.google.com/) (Hosting, Firestore, Storage) 또는 [Supabase](https://supabase.com/) (Postgres, Auth, Storage, Realtime)
 
 ---
 
