@@ -20,7 +20,7 @@
         addMaterial,
         deleteMaterial,
         uploadMaterial,
-        isFirebaseMode,
+        isServerlessMode,
         listenToWsReplacement,
         sendChatMessage,
         type Codelab,
@@ -1332,7 +1332,7 @@
     }
 
     function initWebSocket() {
-        if (isFirebaseMode()) {
+        if (isServerlessMode()) {
             return listenToWsReplacement(id, (data) => {
                 if (data.type === "chat") {
                     if (messages.find(m => m.text === data.message && m.sender === data.sender_name)) return;
@@ -1412,7 +1412,7 @@
 
     function sendBroadcast() {
         if (!chatMessage.trim()) return;
-        if (isFirebaseMode()) {
+        if (isServerlessMode()) {
             sendChatMessage(id, {
                 sender: "Facilitator",
                 message: chatMessage.trim(),
@@ -1438,7 +1438,7 @@
     function sendDM() {
         if (!dmTarget || !dmMessage.trim()) return;
 
-        if (isFirebaseMode()) {
+        if (isServerlessMode()) {
             sendChatMessage(id, {
                 sender: "Facilitator",
                 message: dmMessage.trim(),
