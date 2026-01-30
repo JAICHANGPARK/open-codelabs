@@ -110,6 +110,21 @@
             "assessment": "Assessment",
             "admin": "Admin"
         },
+        "tab_descriptions": {
+            "edit": "Edit step content and structure.",
+            "preview": "Preview the rendered Markdown.",
+            "guide": "Write pre-session preparation notes.",
+            "materials": "Manage files and links for attendees.",
+            "live": "Monitor attendee progress and chat.",
+            "feedback": "Review attendee feedback.",
+            "raffle": "Pick a raffle winner.",
+            "quiz": "Create quizzes and review results.",
+            "submissions": "Review uploaded submissions.",
+            "certificate": "Issue completion certificates.",
+            "workspace": "Browse or download workspace files.",
+            "settings": "Configure visibility and requirements.",
+            "ai": "Generate or improve content with AI."
+        },
         "delete_step": "Delete Step",
         "copy_url": "Copy URL",
         "placeholder_step_title": "Untitled Step",
@@ -293,13 +308,20 @@
         "info_modify_later": "You can later download, modify, and re-upload specific step files",
         "create_button": "Create Workspace",
         "creating_button": "Creating Workspace...",
-        "browser_title": "Workspace Browser",
-        "browser_files_title": "Files",
-        "loading": "Loading...",
-        "loading_file": "Loading file...",
-        "no_files": "No files found",
-        "select_file": "Select a file to view its content",
-        "errors": {
+    "browser_title": "Workspace Browser",
+    "browser_files_title": "Files",
+    "browser_empty": "Create a workspace to browse files.",
+    "loading": "Loading...",
+    "loading_file": "Loading file...",
+    "no_files": "No files found",
+    "select_file": "Select a file to view its content",
+    "notebook": {
+      "markdown_label": "Markdown",
+      "code_label": "Code",
+      "empty": "No notebook cells found.",
+      "invalid": "Invalid notebook file."
+    },
+    "errors": {
             "upload_required": "Please upload at least one file for the workspace",
             "steps_required": "Please add steps to the codelab before creating a workspace",
             "create_failed": "Failed to create workspace: {error}",
@@ -310,13 +332,27 @@
             "firebase_unavailable": "Code Server workspace is not available in Firebase mode",
             "not_found": "Workspace not found. Make sure to enable 'Code Server Workspace' when creating the codelab and upload workspace files."
         },
-        "success": {
-            "created": "Workspace created successfully!"
-        },
-        "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
-        }
+    "success": {
+      "created": "Workspace created successfully!"
+    },
+    "ai_title": "AI Step Workspace",
+    "ai_desc": "Generate step-by-step start/end code with Gemini.",
+    "ai_button": "Generate Step Code",
+    "ai_running": "Generating step code...",
+    "ai_progress": "Generating steps {current}/{total}...",
+    "ai_progress_start": "Generating step {current} start ({current}/{total})...",
+    "ai_progress_end": "Generating step {current} end ({current}/{total})...",
+    "ai_done": "AI generation completed.",
+    "ai_response_title": "AI Response (Raw)",
+    "ai_response_step": "Step {step} {phase}",
+    "ai_response_waiting": "Waiting for AI response...",
+    "ai_step_summary": "Step {step} {phase}: {updated} updated, {deleted} deleted",
+    "ai_phase_start": "start",
+    "ai_phase_end": "end",
+    "actions": {
+      "browse": "Browse Workspace Files",
+      "download": "Download Workspace"
+    }
     },
     "attendee": {
         "join_title": "Join Codelab",
@@ -336,6 +372,15 @@
         "return_home": "Return to Home",
         "codelab_not_found": "Codelab not found",
         "anonymous_user": "Anonymous"
+    },
+    "profile": {
+        "title": "Your Profile",
+        "name": "Name",
+        "email": "Email",
+        "codelab": "Codelab",
+        "attendee_id": "Attendee ID",
+        "registered_at": "Registered",
+        "not_available": "Not provided"
     },
     "feedback": {
         "done_title": "You're all done!",
@@ -433,7 +478,16 @@
         "error_fields": "Please fill in all fields",
         "error_credentials": "Invalid Admin ID or Password",
         "placeholder_id": "Enter admin ID",
-        "trouble": "Trouble logging in?"
+        "trouble": "Trouble logging in?",
+        "trouble_title": "Having trouble logging in?",
+        "trouble_local_desc": "If you're running locally, make sure the backend is running and your admin credentials are set.",
+        "trouble_local_env_title": "Required env",
+        "trouble_local_env_desc": "Set these in your backend environment or `.env` file.",
+        "trouble_local_commands_title": "Run locally",
+        "trouble_local_commands_desc": "Start the backend and frontend servers:",
+        "trouble_local_note": "After updating env values, restart the backend.",
+        "trouble_serverless_desc": "If you're using Supabase or Firebase, use Google sign-in and confirm your auth provider settings.",
+        "trouble_serverless_hint": "If Google sign-in doesn't open, check popup blockers or try a different browser."
     },
     "home": {
         "subtitle": "Host perfect hands-on sessions with interactive step-by-step guides.",
