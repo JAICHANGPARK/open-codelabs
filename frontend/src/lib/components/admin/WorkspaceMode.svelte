@@ -17,9 +17,13 @@
     let structureType = $state<'branch' | 'folder'>('branch');
     let uploadedFiles = $state<{ name: string; content: string }[]>([]);
     let fileInput: HTMLInputElement;
+    let initialized = $state(false);
 
     $effect(() => {
-        loadWorkspaceInfo();
+        if (!initialized) {
+            initialized = true;
+            loadWorkspaceInfo();
+        }
     });
 
     async function loadWorkspaceInfo() {
@@ -30,6 +34,7 @@
             workspaceInfo = info;
             workspaceExists = true;
         } catch (e) {
+            // Workspace doesn't exist yet - this is normal
             workspaceExists = false;
             workspaceInfo = null;
         } finally {
