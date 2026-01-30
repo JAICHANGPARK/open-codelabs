@@ -110,6 +110,21 @@
             "assessment": "평가",
             "admin": "관리"
         },
+        "tab_descriptions": {
+            "edit": "단계 내용을 수정하고 구성합니다.",
+            "preview": "렌더링된 마크다운을 미리봅니다.",
+            "guide": "사전 준비 안내를 작성합니다.",
+            "materials": "참가자용 자료와 링크를 관리합니다.",
+            "live": "실시간 진행과 채팅을 모니터링합니다.",
+            "feedback": "참가자 피드백을 확인합니다.",
+            "raffle": "추첨 대상자를 뽑습니다.",
+            "quiz": "퀴즈를 만들고 결과를 확인합니다.",
+            "submissions": "제출물을 확인합니다.",
+            "certificate": "수료증을 발급합니다.",
+            "workspace": "워크스페이스 파일을 확인/다운로드합니다.",
+            "settings": "공개/요건 등 설정을 관리합니다.",
+            "ai": "AI로 콘텐츠를 생성/개선합니다."
+        },
         "delete_step": "단계 삭제",
         "copy_url": "URL 복사",
         "placeholder_step_title": "단계 제목을 입력하세요",
@@ -295,10 +310,17 @@
         "creating_button": "워크스페이스 생성 중...",
         "browser_title": "워크스페이스 브라우저",
         "browser_files_title": "파일",
+        "browser_empty": "워크스페이스를 생성하면 파일을 탐색할 수 있습니다.",
         "loading": "로딩 중...",
         "loading_file": "파일 불러오는 중...",
         "no_files": "파일이 없습니다",
         "select_file": "내용을 보려면 파일을 선택하세요",
+        "notebook": {
+            "markdown_label": "마크다운",
+            "code_label": "코드",
+            "empty": "노트북 셀이 없습니다.",
+            "invalid": "노트북 파일이 올바르지 않습니다."
+        },
         "errors": {
             "upload_required": "워크스페이스에 사용할 파일을 최소 1개 업로드하세요",
             "steps_required": "워크스페이스를 만들기 전에 코드랩 단계를 추가하세요",
@@ -313,6 +335,20 @@
         "success": {
             "created": "워크스페이스가 생성되었습니다!"
         },
+        "ai_title": "AI 단계 워크스페이스",
+        "ai_desc": "Gemini로 단계별 start/end 코드를 생성합니다.",
+        "ai_button": "단계 코드 생성",
+        "ai_running": "단계 코드 생성 중...",
+        "ai_progress": "{current}/{total} 단계 생성 중...",
+        "ai_progress_start": "{current}/{total} 단계 중 {current}단계 시작 생성 중...",
+        "ai_progress_end": "{current}/{total} 단계 중 {current}단계 완료 생성 중...",
+        "ai_done": "AI 생성이 완료되었습니다.",
+        "ai_response_title": "AI 응답 (원문)",
+        "ai_response_step": "{step}단계 {phase}",
+        "ai_response_waiting": "AI 응답을 기다리는 중...",
+        "ai_step_summary": "{step}단계 {phase}: 수정 {updated}개, 삭제 {deleted}개",
+        "ai_phase_start": "시작",
+        "ai_phase_end": "완료",
         "actions": {
             "browse": "워크스페이스 파일 탐색",
             "download": "워크스페이스 다운로드"
@@ -336,6 +372,15 @@
         "return_home": "홈으로 돌아가기",
         "codelab_not_found": "코드랩을 찾을 수 없습니다",
         "anonymous_user": "익명"
+    },
+    "profile": {
+        "title": "참여자 정보",
+        "name": "이름",
+        "email": "이메일",
+        "codelab": "코드랩",
+        "attendee_id": "참여자 ID",
+        "registered_at": "등록일",
+        "not_available": "미입력"
     },
     "feedback": {
         "done_title": "모든 단계를 완료했습니다!",
@@ -433,7 +478,16 @@
         "error_fields": "모든 필드를 채워주세요",
         "error_credentials": "아이디 또는 비밀번호가 잘못되었습니다",
         "placeholder_id": "관리자 ID를 입력하세요",
-        "trouble": "로그인에 문제가 있나요?"
+        "trouble": "로그인에 문제가 있나요?",
+        "trouble_title": "로그인에 문제가 있나요?",
+        "trouble_local_desc": "로컬에서 실행 중이라면 백엔드가 실행 중인지와 관리자 계정을 설정했는지 확인하세요.",
+        "trouble_local_env_title": "필수 환경 변수",
+        "trouble_local_env_desc": "백엔드 환경 변수 또는 `.env`에 설정하세요.",
+        "trouble_local_commands_title": "로컬 실행",
+        "trouble_local_commands_desc": "백엔드와 프론트엔드를 실행하세요:",
+        "trouble_local_note": "환경 변수를 바꿨다면 백엔드를 재시작하세요.",
+        "trouble_serverless_desc": "Supabase/Firebase를 사용하는 경우 Google 로그인과 인증 제공자 설정을 확인하세요.",
+        "trouble_serverless_hint": "Google 로그인 창이 뜨지 않으면 팝업 차단을 해제하거나 다른 브라우저를 시도하세요."
     },
     "home": {
         "subtitle": "대화형 단계별 가이드로 완벽한 핸즈온 세션을 운영하세요.",
