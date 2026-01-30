@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Award, RefreshCcw, Shuffle, Trophy, Users } from "lucide-svelte";
+  import { Award, RefreshCcw, Shuffle, Trophy, Users, Download } from "lucide-svelte";
   import { t } from "svelte-i18n";
   import type { Attendee } from "$lib/api";
 
@@ -42,6 +42,10 @@
     const date = new Date(timestamp);
     if (Number.isNaN(date.getTime())) return timestamp;
     return date.toLocaleString();
+  }
+
+  function downloadCertificate(attendeeId: string) {
+    window.open(`/certificate/${attendeeId}`, '_blank');
   }
 
   function spinWheel() {
@@ -184,11 +188,11 @@
     <div class="space-y-2 max-h-[520px] overflow-y-auto pr-1">
       {#each eligible as attendee}
         <div class="flex items-center justify-between p-3 rounded-xl border border-[#E8EAED] dark:border-dark-border bg-[#F8F9FA] dark:bg-white/5">
-          <div class="flex items-center gap-3 min-w-0">
+          <div class="flex items-center gap-3 min-w-0 flex-1">
             <div class="w-10 h-10 rounded-full bg-[#E8EAED] dark:bg-white/10 flex items-center justify-center text-sm font-bold text-[#3C4043] dark:text-dark-text">
               {attendee.name.slice(0, 2).toUpperCase()}
             </div>
-            <div class="min-w-0">
+            <div class="min-w-0 flex-1">
               <p class="font-bold text-[#202124] dark:text-dark-text truncate">{attendee.name}</p>
               {#if attendee.completed_at}
                 <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
@@ -197,9 +201,18 @@
               {/if}
             </div>
           </div>
-          <div class="flex items-center gap-2 text-[#34A853] dark:text-emerald-300 text-xs font-bold uppercase tracking-wide">
-            <Award size={16} />
-            {$t("raffle.eligible_badge")}
+          <div class="flex items-center gap-2">
+            <button
+              onclick={() => downloadCertificate(attendee.id)}
+              class="p-2 rounded-lg bg-white dark:bg-dark-bg hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/20 text-[#4285F4] border border-[#E8EAED] dark:border-dark-border transition-all"
+              title="Download Certificate"
+            >
+              <Download size={16} />
+            </button>
+            <div class="flex items-center gap-1 text-[#34A853] dark:text-emerald-300 text-xs font-bold uppercase tracking-wide">
+              <Award size={16} />
+              <span class="hidden sm:inline">{$t("raffle.eligible_badge")}</span>
+            </div>
           </div>
         </div>
       {:else}
