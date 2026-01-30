@@ -752,9 +752,10 @@ Return JSON that matches the schema exactly.
                             await createCodeServerFolder(codelab.id, i + 1, 'end', workspaceFiles);
                         }
                     }
+                    console.log('Workspace created successfully');
                 } catch (e) {
-                    console.error('Failed to create workspace', e);
-                    // Don't fail the whole process if workspace creation fails
+                    console.error('Failed to create workspace:', e);
+                    alert('Warning: Workspace creation failed. Error: ' + (e as Error).message + '\nThe codelab was created but workspace features will not work.');
                 }
             }
 
