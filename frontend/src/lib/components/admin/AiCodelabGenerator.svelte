@@ -11,6 +11,7 @@
         Upload,
         Trash2,
         FileText,
+        Github,
     } from "lucide-svelte";
     import {
         streamGeminiStructuredOutput,
@@ -1428,12 +1429,20 @@ Return JSON that matches the schema exactly.
                         <button
                             onclick={() => setGenerationMode("advanced")}
                             disabled={loading || advancedLoading}
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
+                            class="group relative px-4 py-2 rounded-xl text-xs font-bold transition-all border overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed {generationMode ===
                             'advanced'
-                                ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
-                                : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
+                                ? 'text-white border-[#1A73E8] bg-[#1A73E8] shadow-lg shadow-[#4285F4]/25'
+                                : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4] hover:shadow-md'}"
                         >
-                            {$t("ai_generator.mode_advanced")}
+                            <span class="relative z-10 flex items-center gap-1">
+                                <Sparkles
+                                    size={14}
+                                    class={generationMode === "advanced"
+                                        ? "text-white/90"
+                                        : "text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"}
+                                />
+                                <span>{$t("ai_generator.mode_advanced")}</span>
+                            </span>
                         </button>
                     </div>
                 </div>
@@ -1447,17 +1456,21 @@ Return JSON that matches the schema exactly.
                         <div
                             class="flex flex-col gap-3 rounded-2xl border border-[#DADCE0] dark:border-dark-border bg-white dark:bg-dark-surface/50 p-4 shadow-sm"
                         >
-                            <p class="text-sm text-[#3C4043] dark:text-dark-text">
-                                {$t("ai_generator.mode_advanced_star_message")}
-                            </p>
-                            <a
-                                class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#202124] text-white px-4 py-2 text-xs font-bold hover:bg-black transition-colors"
-                                href="https://github.com/JAICHANGPARK/open-codelabs"
-                                target="_blank"
-                                rel="noreferrer"
-                            >
-                                {$t("ai_generator.mode_advanced_star_button")}
-                            </a>
+                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                <p class="text-sm text-[#3C4043] dark:text-dark-text">
+                                    {$t("ai_generator.mode_advanced_star_message")}
+                                </p>
+                                <a
+                                    class="flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide transition-all hover:scale-105 border-[#E8EAED] text-[#5F6368] hover:text-[#4285F4] dark:border-dark-border dark:text-dark-text-muted dark:hover:text-white"
+                                    href="https://github.com/JAICHANGPARK/open-codelabs"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    aria-label={$t("ai_generator.mode_advanced_star_button")}
+                                >
+                                    <Github size={14} />
+                                    <span>{$t("ai_generator.mode_advanced_star_button")}</span>
+                                </a>
+                            </div>
                         </div>
                     {/if}
                 </div>
