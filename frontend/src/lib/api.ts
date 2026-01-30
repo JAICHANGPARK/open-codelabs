@@ -1,8 +1,8 @@
 import * as backend from './api-backend';
 import * as firebase from './api-firebase';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee } from './types';
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload } from './types';
 
-export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee };
+export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload };
 
 const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true';
 
@@ -116,3 +116,11 @@ export const deleteCodeServer = USE_FIREBASE
     ? async (_codelabId: string) => { throw new Error('Not supported in Firebase mode'); }
     : backend.deleteCodeServer;
 export type { CodeServerInfo, WorkspaceFile } from './api-backend';
+
+// AI Conversation API (Backend only)
+export const saveAiConversation = USE_FIREBASE
+    ? async (_payload: SaveAiConversationPayload) => { /* Not supported in Firebase mode */ }
+    : backend.saveAiConversation;
+export const getAiConversations = USE_FIREBASE
+    ? async (_codelabId: string) => []
+    : backend.getAiConversations;
