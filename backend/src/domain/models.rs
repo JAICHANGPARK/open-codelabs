@@ -274,6 +274,29 @@ pub struct SubmissionWithAttendee {
     pub created_at: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct AiConversation {
+    pub id: String,
+    pub codelab_id: String,
+    pub user_id: String,
+    pub user_type: String,
+    pub user_name: String,
+    pub step_number: Option<i32>,
+    pub question: String,
+    pub answer: String,
+    pub model: Option<String>,
+    pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SaveAiConversationPayload {
+    pub codelab_id: String,
+    pub step_number: Option<i32>,
+    pub question: String,
+    pub answer: String,
+    pub model: Option<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
