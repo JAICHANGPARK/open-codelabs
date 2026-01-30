@@ -122,3 +122,24 @@ export interface Submission {
 export interface SubmissionWithAttendee extends Submission {
     attendee_name: string;
 }
+
+export interface AiConversation {
+    id: string;
+    codelab_id: string;
+    user_id: string;
+    user_type: 'admin' | 'attendee';
+    user_name: string;
+    step_number?: number;
+    question: string;
+    answer: string;
+    model?: string;
+    created_at?: string;
+}
+
+export interface SaveAiConversationPayload {
+    codelab_id: string;
+    step_number?: number;
+    question: string;
+    answer: string;
+    model?: string;
+}
