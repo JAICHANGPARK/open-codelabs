@@ -46,10 +46,10 @@ plugins:
       docs_structure: folder
       fallback_to_default: true
       languages:
-        ko:
+        - locale: ko
           name: 한국어
           build: true
-        en:
+        - locale: en
           name: English
           build: true
       nav_translations:

@@ -125,7 +125,8 @@
     let fileInput = $state<HTMLInputElement>();
     const MAX_FILES = 10;
     const MAX_ZIP_FILES = 10;
-    const MAX_FILE_SIZE_BYTES = 1024 * 1024 * 1024; // 1GB per file/zip
+    const MAX_FILE_SIZE_MB = 100;
+    const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
     const SYSTEM_PROMPT = `
 You are a world-class Technical Content Engineer and Developer Advocate. 
@@ -266,27 +267,43 @@ Return JSON that matches the schema exactly.
                     break;
                 }
 
+                const isZip = file.name.toLowerCase().endsWith(".zip");
+
                 if (file.size > MAX_FILE_SIZE_BYTES) {
-                    alert(`${file.name} exceeds the 1GB file size limit.`);
+                    alert(`${file.name} exceeds the ${MAX_FILE_SIZE_MB} MB file size limit.`);
+                    continue;
+                }
+
+                if (isZip) {
+                    const { added, truncated, blockedReason } = await extractCodeFromZip(
+                        file,
+                        remainingSlots(),
+                    );
+                    if (blockedReason === "too_many_files") {
+                        alert(`ZIP files can contain up to ${MAX_ZIP_FILES} files.`);
+                        continue;
+                    }
+                    if (blockedReason === "media") {
+                        alert("ZIP files can't include audio or video files.");
+                        continue;
+                    }
+                    pendingFiles.push(...added);
+                    if (truncated) {
+                        alert(
+                            `ZIP upload limit reached (max ${MAX_FILES} files per prompt). Extra files were skipped.`,
+                        );
+                    }
+                    continue;
+                }
+
+                if (isMediaFile(file.name)) {
+                    alert(`${file.name} is an audio/video file and cannot be uploaded.`);
                     continue;
                 }
 
                 if (shouldSkipFile(file.name)) {
-                    alert(`${file.name} is skipped (env/media/build/binary artifact).`);
+                    alert(`${file.name} is skipped (env/build/binary artifact).`);
                     continue;
-                }
-
-                if (file.name.endsWith(".zip")) {
-                    const { added, truncated } = await extractCodeFromZip(
-                        file,
-                        remainingSlots(),
-                    );
-                    pendingFiles.push(...added);
-                    if (truncated) {
-                        alert(
-                            `ZIP upload limit reached (max ${MAX_ZIP_FILES} files per zip and ${MAX_FILES} per prompt). Extra files were skipped.`,
-                        );
-                    }
                 } else {
                     const content = await file.text();
                     pendingFiles.push({ name: file.name, content });
@@ -311,21 +328,35 @@ Return JSON that matches the schema exactly.
     async function extractCodeFromZip(
         file: File,
         allowedCount: number,
-    ): Promise<{ added: { name: string; content: string }[]; truncated: boolean }> {
+    ): Promise<{
+        added: { name: string; content: string }[];
+        truncated: boolean;
+        blockedReason: "too_many_files" | "media" | null;
+    }> {
         const zip = new JSZip();
         const content = await zip.loadAsync(file);
         const added: { name: string; content: string }[] = [];
         let truncated = false;
+        const entries = Object.entries(content.files).filter(([, entry]) => !entry.dir);
 
-        for (const [path, zipEntry] of Object.entries(content.files)) {
-            if (zipEntry.dir) continue;
+        if (entries.length > MAX_ZIP_FILES) {
+            return { added, truncated, blockedReason: "too_many_files" };
+        }
+
+        for (const [path] of entries) {
+            if (isMediaFile(path)) {
+                return { added, truncated, blockedReason: "media" };
+            }
+        }
+
+        for (const [path, zipEntry] of entries) {
             const lowerPath = path.toLowerCase();
 
             // Filter out binary and ignored files
             const isIgnored = shouldSkipFile(lowerPath);
             if (isIgnored) continue;
 
-            if (added.length >= Math.min(MAX_ZIP_FILES, allowedCount)) {
+            if (added.length >= allowedCount) {
                 truncated = true;
                 break;
             }
@@ -336,7 +367,7 @@ Return JSON that matches the schema exactly.
             }
         }
 
-        return { added, truncated };
+        return { added, truncated, blockedReason: null };
     }
 
     function removeFile(index: number) {
@@ -1507,7 +1538,9 @@ Return JSON that matches the schema exactly.
                         </div>
                     </div>
                     <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
-                        Limit: up to 10 files per prompt (zip may contain max 10 files), max 1GB each, no audio/video files.
+                        {$t("ai_generator.upload_limits", {
+                            values: { maxFiles: MAX_FILES, maxZipFiles: MAX_ZIP_FILES, maxSizeMb: MAX_FILE_SIZE_MB }
+                        })}
                     </p>
 
                     <!-- Uploaded Files List -->
@@ -1835,7 +1868,9 @@ Return JSON that matches the schema exactly.
                         </div>
                     </div>
                     <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
-                        Limit: up to 10 files per prompt (zip may contain max 10 files), max 1GB each, no audio/video files.
+                        {$t("ai_generator.upload_limits", {
+                            values: { maxFiles: MAX_FILES, maxZipFiles: MAX_ZIP_FILES, maxSizeMb: MAX_FILE_SIZE_MB }
+                        })}
                     </p>
 
                     <!-- Uploaded Files List -->
