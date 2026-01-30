@@ -130,7 +130,21 @@ pub async fn get_attendees(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
 ) -> Result<Json<Vec<Attendee>>, (StatusCode, String)> {
-    session.require_admin()?;
+    // Allow both admin and attendees of this codelab to view attendees
+    let is_admin = session
+        .claims
+        .as_ref()
+        .map(|claims| claims.role == "admin")
+        .unwrap_or(false);
+
+    if !is_admin {
+        // If not admin, must be an attendee of this codelab
+        let attendee = session.require_attendee()?;
+        if attendee.codelab_id.as_deref() != Some(id.as_str()) {
+            return Err(forbidden());
+        }
+    }
+
     let mut attendees = sqlx::query_as::<_, Attendee>(
         &state.q("SELECT * FROM attendees WHERE codelab_id = ? ORDER BY created_at DESC"),
     )
@@ -139,9 +153,17 @@ pub async fn get_attendees(
     .await
     .map_err(internal_error)?;
 
-    for attendee in attendees.iter_mut() {
-        if let Ok(decrypted) = decrypt_with_password(&attendee.code, &state.admin_pw) {
-            attendee.code = decrypted;
+    // Only decrypt codes for admins
+    if is_admin {
+        for attendee in attendees.iter_mut() {
+            if let Ok(decrypted) = decrypt_with_password(&attendee.code, &state.admin_pw) {
+                attendee.code = decrypted;
+            }
+        }
+    } else {
+        // For attendees, clear the code field for privacy
+        for attendee in attendees.iter_mut() {
+            attendee.code = String::new();
         }
     }
 
@@ -211,11 +233,25 @@ pub async fn get_help_requests(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
 ) -> Result<Json<Vec<HelpRequest>>, (StatusCode, String)> {
-    session.require_admin()?;
+    // Allow both admin and attendees of this codelab to view help requests
+    let is_admin = session
+        .claims
+        .as_ref()
+        .map(|claims| claims.role == "admin")
+        .unwrap_or(false);
+
+    if !is_admin {
+        // If not admin, must be an attendee of this codelab
+        let attendee = session.require_attendee()?;
+        if attendee.codelab_id.as_deref() != Some(id.as_str()) {
+            return Err(forbidden());
+        }
+    }
+
     let requests = sqlx::query_as::<_, HelpRequest>(&state.q(
-        "SELECT hr.*, a.name as attendee_name FROM help_requests hr 
-         JOIN attendees a ON hr.attendee_id = a.id 
-         WHERE hr.codelab_id = ? AND hr.status = 'pending' 
+        "SELECT hr.*, a.name as attendee_name FROM help_requests hr
+         JOIN attendees a ON hr.attendee_id = a.id
+         WHERE hr.codelab_id = ? AND hr.status = 'pending'
          ORDER BY hr.created_at DESC",
     ))
     .bind(&id)
