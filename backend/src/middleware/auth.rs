@@ -204,7 +204,18 @@ where
         let token = jar
             .get(&state.auth.cookie_name)
             .map(|cookie| cookie.value().to_string());
-        let claims = token.and_then(|value| state.auth.verify_token(&value));
+
+        if token.is_none() {
+            eprintln!("AuthSession: No session cookie found (cookie_name={})", state.auth.cookie_name);
+        }
+
+        let claims = token.and_then(|value| {
+            let result = state.auth.verify_token(&value);
+            if result.is_none() {
+                eprintln!("AuthSession: Token verification failed");
+            }
+            result
+        });
         Ok(Self { claims })
     }
 }
