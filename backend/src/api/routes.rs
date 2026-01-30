@@ -5,6 +5,7 @@ use crate::api::handlers::{
         complete_codelab, get_attendees, get_certificate, get_help_requests, register_attendee,
         request_help, resolve_help_request,
     },
+    audit::get_audit_logs,
     codeserver::{
         create_branch, create_codeserver, create_folder, delete_codeserver, download_workspace,
         get_codeserver_info, list_branches, list_files, list_folder_files, list_folders,
@@ -39,6 +40,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/api/logout", post(logout))
         .route("/api/session", get(get_session))
         .route("/api/admin/settings", post(update_settings))
+        .route("/api/admin/audit-logs", get(get_audit_logs))
         .route("/api/codelabs", get(list_codelabs).post(create_codelab))
         .route(
             "/api/codelabs/{id}",
