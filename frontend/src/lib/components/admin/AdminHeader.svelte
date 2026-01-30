@@ -290,6 +290,16 @@
                     <span>{$t("editor.feedback_tab")}</span>
                 </button>
                 <button
+                    onclick={() => (mode = "ai")}
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
+                    'ai'
+                        ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
+                        : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
+                >
+                    <Sparkles size={14} />
+                    <span>AI</span>
+                </button>
+                <button
                     onclick={() => (mode = "submissions")}
                     class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'submissions'
