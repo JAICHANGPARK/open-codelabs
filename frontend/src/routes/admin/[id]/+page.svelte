@@ -1662,14 +1662,14 @@
         } catch (e) {
             if (e instanceof Error) {
                 if (e.message.includes('Not supported')) {
-                    alert("Code Server workspace is not available in Firebase mode");
+                    alert($t('workspace.errors.firebase_unavailable'));
                 } else if (e.message.includes('not found')) {
-                    alert("Workspace not found. Make sure to enable 'Code Server Workspace' when creating the codelab and upload workspace files.");
+                    alert($t('workspace.errors.not_found'));
                 } else {
-                    alert("Download failed: " + e.message);
+                    alert($t('workspace.errors.download_failed', { error: e.message }));
                 }
             } else {
-                alert("Download failed: " + e);
+                alert($t('workspace.errors.download_failed', { error: String(e) }));
             }
         }
     }
