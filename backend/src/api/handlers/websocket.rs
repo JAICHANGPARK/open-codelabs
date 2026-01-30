@@ -181,12 +181,14 @@ async fn handle_socket(
                                 .bind(attendee_id)
                                 .execute(&state_clone.pool)
                                 .await;
+                                let payload = serde_json::json!({
+                                    "type": "step_progress",
+                                    "attendee_id": attendee_id,
+                                    "step_number": step_number
+                                })
+                                .to_string();
+                                let _ = tx_broadcast.send(payload);
                             }
-                        }
-
-                        // Broadcast step progress to facilitators
-                        if role == Role::Attendee {
-                            let _ = tx_broadcast.send(text.to_string());
                         }
                     }
                     _ => {}
