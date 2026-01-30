@@ -66,12 +66,13 @@ pub async fn register_attendee(
         .map_err(|err| internal_error(err))?;
 
     sqlx::query(&state.q(
-        "INSERT INTO attendees (id, codelab_id, name, code, current_step) VALUES (?, ?, ?, ?, 1)",
+        "INSERT INTO attendees (id, codelab_id, name, code, email, current_step) VALUES (?, ?, ?, ?, ?, 1)",
     ))
     .bind(&attendee_id)
     .bind(&id)
     .bind(&payload.name)
     .bind(&encrypted_code)
+    .bind(&payload.email)
     .execute(&state.pool)
     .await
     .map_err(internal_error)?;
