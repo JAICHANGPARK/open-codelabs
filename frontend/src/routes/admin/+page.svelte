@@ -26,6 +26,7 @@
         Settings,
         Sparkles,
         Github,
+        ShieldCheck,
         FileText,
         X,
         Copy,
@@ -266,7 +267,7 @@
                     title="Audit Logs"
                     aria-label="Audit Logs"
                 >
-                    <FileText size={20} />
+                    <ShieldCheck size={20} />
                 </a>
                 <button
                     onclick={() => (showSettingsModal = true)}
