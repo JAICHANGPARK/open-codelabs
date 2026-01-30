@@ -52,6 +52,7 @@
 			features: lang === "ko" ? "주요 기능" : "Features",
 			roles: lang === "ko" ? "사용자별 기능" : "Roles",
 			liveOps: lang === "ko" ? "라이브 운영" : "Live Ops",
+			aiModes: lang === "ko" ? "AI 생성 모드" : "AI Modes",
 			quickstart: lang === "ko" ? "빠른 시작" : "Quickstart",
 			getStarted: lang === "ko" ? "시작하기" : "Get Started",
 		},
@@ -451,6 +452,44 @@
 					googleSearch: lang === "ko" ? "Google Search" : "Google Search",
 					sources: lang === "ko" ? "출처" : "Sources",
 				},
+				details: {
+					inputs:
+						lang === "ko"
+							? "목표, 대상, 코드/자료, 환경 요구사항을 입력해 워크숍 맥락을 정의합니다. 이 입력이 전체 설계의 기준이 됩니다."
+							: "Provide goals, audience, code/assets, and environment needs. These inputs anchor the whole flow.",
+					plan:
+						lang === "ko"
+							? "단계 흐름, 검증 포인트, 선행 지식, 최신 정보 확인 키워드를 설계합니다. 생성과 검색의 기준이 됩니다."
+							: "Design steps, checks, prerequisites, and keywords for fresh info. This guides generation and lookup.",
+					draft:
+						lang === "ko"
+							? "플랜을 토대로 설명, 코드, 체크리스트 초안을 만듭니다. 각 단계의 기대 결과를 함께 구성합니다."
+							: "Generate instructions, code, and checklists from the plan. Define expected outcomes per step.",
+					review:
+						lang === "ko"
+							? "퍼실리테이터 관점으로 흐름, 난이도, 누락 항목을 점검합니다. 실행 오류나 오해 소지를 표시합니다."
+							: "Check flow, difficulty, and missing prerequisites. Flag errors or ambiguous steps.",
+					revise:
+						lang === "ko"
+							? "리뷰 피드백을 반영해 문맥, 코드, 검증을 보완합니다. 단계 간 일관성과 가독성을 다듬습니다."
+							: "Apply review feedback to polish context, code, and checks. Refine clarity and consistency.",
+					final:
+						lang === "ko"
+							? "배포 가능한 코드랩과 준비 가이드로 확정합니다. 공유·배포 가능한 최종본입니다."
+							: "Finalize the codelab and prep guide for delivery. Ready to share and run.",
+					queries:
+						lang === "ko"
+							? "플랜에서 추출한 최신 정보 확인 키워드입니다. 공식 문서/변경 사항을 찾는 기준입니다."
+							: "Keywords extracted for up-to-date verification. Anchors official doc lookup.",
+					googleSearch:
+						lang === "ko"
+							? "Google Search로 공식 문서와 변경 사항을 확인합니다. 최신 레퍼런스를 수집합니다."
+							: "Use Google Search to verify docs and recent changes. Collect the latest references.",
+					sources:
+						lang === "ko"
+							? "검증된 링크와 레퍼런스를 정리해 인용합니다. 참여자가 신뢰할 근거를 제공합니다."
+							: "Capture verified links and cite references. Provide trusted sources for attendees.",
+				},
 			},
 		},
 		proReady: {
@@ -649,10 +688,28 @@
 						>{content.nav.liveOps}</a
 					>
 					<a
+						href="#ai-modes"
+						class="hover:text-blue-500 transition-colors"
+						>{content.nav.aiModes}</a
+					>
+					<a
 						href="#quickstart"
 						class="hover:text-blue-500 transition-colors"
 						>{content.nav.quickstart}</a
 					>
+					<a
+						href="https://github.com/jaichangpark/open-codelabs"
+						class="flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide transition-all hover:scale-105 {isDark
+							? 'border-neutral-800 text-neutral-400 hover:text-white'
+							: 'border-neutral-200 text-neutral-600 hover:text-blue-600'}"
+						aria-label="GitHub stars"
+					>
+						<img
+							src="https://img.shields.io/github/stars/jaichangpark/open-codelabs?style=flat&label=Stars&logo=github&color=0ea5e9&labelColor=111827"
+							alt="GitHub stars"
+							class="h-4 w-auto"
+						/>
+					</a>
 					<button
 						onclick={toggleLang}
 						class="flex items-center gap-1 px-3 py-1 rounded-full border transition-colors {isDark
@@ -1170,241 +1227,398 @@
 				class="agent-graph-frame reveal rounded-[2.5rem] border p-6 sm:p-8 lg:p-10 {isDark
 					? 'bg-neutral-950/60 border-neutral-800'
 					: 'bg-white border-neutral-200 shadow-sm'}"
-				style={`--graph-node:${isDark ? "#0b1220" : "#ffffff"}; --graph-node-border:${isDark ? "#1f2937" : "#e2e8f0"}; --graph-node-accent:${isDark ? "#1e3a8a" : "#eff6ff"}; --graph-node-accent-border:${isDark ? "#2563eb" : "#93c5fd"}; --graph-text:${isDark ? "#e2e8f0" : "#0f172a"}; --graph-text-accent:${isDark ? "#e0f2fe" : "#1d4ed8"}; --graph-line:${isDark ? "rgba(59, 130, 246, 0.55)" : "rgba(37, 99, 235, 0.35)"}; --graph-accent:${isDark ? "#38bdf8" : "#2563eb"};`}
+				style={`--graph-node:${isDark ? "#0b1220" : "#ffffff"}; --graph-node-border:${isDark ? "#1f2937" : "#e2e8f0"}; --graph-node-accent:${isDark ? "#1e3a8a" : "#eff6ff"}; --graph-node-accent-border:${isDark ? "#2563eb" : "#93c5fd"}; --graph-text:${isDark ? "#e2e8f0" : "#0f172a"}; --graph-text-accent:${isDark ? "#e0f2fe" : "#1d4ed8"}; --graph-line:${isDark ? "rgba(59, 130, 246, 0.55)" : "rgba(37, 99, 235, 0.35)"}; --graph-accent:${isDark ? "#38bdf8" : "#2563eb"}; --graph-tooltip-bg:${isDark ? "#0b1220" : "#ffffff"}; --graph-tooltip-border:${isDark ? "#1f2937" : "#e2e8f0"}; --graph-tooltip-shadow:${isDark ? "rgba(15, 23, 42, 0.55)" : "rgba(15, 23, 42, 0.12)"};`}
 			>
-				<svg
-					class="agent-graph-svg"
-					viewBox="0 0 720 200"
-					role="img"
-					aria-label={content.aiModes.agentGraph.ariaLabel}
-				>
-					<defs>
-						<marker
-							id="agent-arrow"
-							viewBox="0 0 10 10"
-							refX="8"
-							refY="5"
-							markerWidth="6"
-							markerHeight="6"
-							orient="auto"
-						>
-							<path
-								d="M 0 0 L 10 5 L 0 10 Z"
-								fill="var(--graph-line)"
-							/>
-						</marker>
-						<marker
-							id="agent-arrow-accent"
-							viewBox="0 0 10 10"
-							refX="8"
-							refY="5"
-							markerWidth="6"
-							markerHeight="6"
-							orient="auto"
-						>
-							<path
-								d="M 0 0 L 10 5 L 0 10 Z"
-								fill="var(--graph-accent)"
-							/>
-						</marker>
-					</defs>
-					<g
-						class="agent-graph-lines"
-						fill="none"
-						stroke-linecap="round"
-						stroke-linejoin="round"
+				<div class="agent-graph-canvas">
+					<svg
+						class="agent-graph-svg"
+						viewBox="0 0 720 200"
+						role="img"
+						aria-label={content.aiModes.agentGraph.ariaLabel}
 					>
-						<line
-							class="agent-graph-line"
-							x1="110"
-							y1="36"
-							x2="146"
-							y2="36"
-							stroke="var(--graph-line)"
-							marker-end="url(#agent-arrow)"
-						/>
-						<line
-							class="agent-graph-line"
-							x1="230"
-							y1="36"
-							x2="266"
-							y2="36"
-							stroke="var(--graph-line)"
-							marker-end="url(#agent-arrow)"
-						/>
-						<line
-							class="agent-graph-line"
-							x1="350"
-							y1="36"
-							x2="386"
-							y2="36"
-							stroke="var(--graph-line)"
-							marker-end="url(#agent-arrow)"
-						/>
-						<line
-							class="agent-graph-line"
-							x1="470"
-							y1="36"
-							x2="506"
-							y2="36"
-							stroke="var(--graph-line)"
-							marker-end="url(#agent-arrow)"
-						/>
-						<line
-							class="agent-graph-line"
-							x1="590"
-							y1="36"
-							x2="626"
-							y2="36"
-							stroke="var(--graph-line)"
-							marker-end="url(#agent-arrow)"
-						/>
-						<line
-							class="agent-graph-line agent-graph-line--accent"
-							x1="188"
-							y1="52"
-							x2="188"
-							y2="120"
-							stroke="var(--graph-accent)"
-							marker-end="url(#agent-arrow-accent)"
-						/>
-						<line
-							class="agent-graph-line agent-graph-line--accent"
-							x1="224"
-							y1="136"
-							x2="248"
-							y2="136"
-							stroke="var(--graph-accent)"
-							marker-end="url(#agent-arrow-accent)"
-						/>
-						<line
-							class="agent-graph-line agent-graph-line--accent"
-							x1="368"
-							y1="136"
-							x2="392"
-							y2="136"
-							stroke="var(--graph-accent)"
-							marker-end="url(#agent-arrow-accent)"
-						/>
-						<path
-							class="agent-graph-line agent-graph-line--accent"
-							d="M 428 120 C 428 92 360 68 308 52"
-							stroke="var(--graph-accent)"
-							marker-end="url(#agent-arrow-accent)"
-						/>
-					</g>
-					<g class="agent-graph-nodes">
-						<rect
-							class="agent-graph-node"
-							x="26"
-							y="20"
-							width="84"
-							height="32"
-							rx="12"
-						/>
-						<rect
-							class="agent-graph-node"
-							x="146"
-							y="20"
-							width="84"
-							height="32"
-							rx="12"
-						/>
-						<rect
-							class="agent-graph-node"
-							x="266"
-							y="20"
-							width="84"
-							height="32"
-							rx="12"
-						/>
-						<rect
-							class="agent-graph-node"
-							x="386"
-							y="20"
-							width="84"
-							height="32"
-							rx="12"
-						/>
-						<rect
-							class="agent-graph-node"
-							x="506"
-							y="20"
-							width="84"
-							height="32"
-							rx="12"
-						/>
-						<rect
-							class="agent-graph-node"
-							x="626"
-							y="20"
-							width="84"
-							height="32"
-							rx="12"
-						/>
-						<rect
-							class="agent-graph-node"
-							x="152"
-							y="120"
-							width="72"
-							height="32"
-							rx="12"
-						/>
-						<rect
-							class="agent-graph-node agent-graph-node--accent"
-							x="248"
-							y="120"
-							width="120"
-							height="32"
-							rx="12"
-						/>
-						<rect
-							class="agent-graph-node"
-							x="392"
-							y="120"
-							width="72"
-							height="32"
-							rx="12"
-						/>
-					</g>
-					<g
-						class="agent-graph-labels"
-						text-anchor="middle"
-						dominant-baseline="middle"
-					>
-						<text class="agent-graph-text" x="68" y="36">
-							{content.aiModes.agentGraph.labels.inputs}
-						</text>
-						<text class="agent-graph-text" x="188" y="36">
-							{content.aiModes.agentGraph.labels.plan}
-						</text>
-						<text class="agent-graph-text" x="308" y="36">
-							{content.aiModes.agentGraph.labels.draft}
-						</text>
-						<text class="agent-graph-text" x="428" y="36">
-							{content.aiModes.agentGraph.labels.review}
-						</text>
-						<text class="agent-graph-text" x="548" y="36">
-							{content.aiModes.agentGraph.labels.revise}
-						</text>
-						<text class="agent-graph-text" x="668" y="36">
-							{content.aiModes.agentGraph.labels.final}
-						</text>
-						<text class="agent-graph-text" x="188" y="136">
-							{content.aiModes.agentGraph.labels.queries}
-						</text>
-						<text
-							class="agent-graph-text agent-graph-text--accent"
-							x="308"
-							y="136"
+						<defs>
+							<marker
+								id="agent-arrow"
+								viewBox="0 0 10 10"
+								refX="8"
+								refY="5"
+								markerWidth="6"
+								markerHeight="6"
+								orient="auto"
+							>
+								<path
+									d="M 0 0 L 10 5 L 0 10 Z"
+									fill="var(--graph-line)"
+								/>
+							</marker>
+							<marker
+								id="agent-arrow-accent"
+								viewBox="0 0 10 10"
+								refX="8"
+								refY="5"
+								markerWidth="6"
+								markerHeight="6"
+								orient="auto"
+							>
+								<path
+									d="M 0 0 L 10 5 L 0 10 Z"
+									fill="var(--graph-accent)"
+								/>
+							</marker>
+						</defs>
+						<g
+							class="agent-graph-lines"
+							fill="none"
+							stroke-linecap="round"
+							stroke-linejoin="round"
 						>
-							{content.aiModes.agentGraph.labels.googleSearch}
-						</text>
-						<text class="agent-graph-text" x="428" y="136">
-							{content.aiModes.agentGraph.labels.sources}
-						</text>
-					</g>
-				</svg>
+							<line
+								class="agent-graph-line"
+								x1="110"
+								y1="36"
+								x2="146"
+								y2="36"
+								stroke="var(--graph-line)"
+								marker-end="url(#agent-arrow)"
+							/>
+							<line
+								class="agent-graph-line"
+								x1="230"
+								y1="36"
+								x2="266"
+								y2="36"
+								stroke="var(--graph-line)"
+								marker-end="url(#agent-arrow)"
+							/>
+							<line
+								class="agent-graph-line"
+								x1="350"
+								y1="36"
+								x2="386"
+								y2="36"
+								stroke="var(--graph-line)"
+								marker-end="url(#agent-arrow)"
+							/>
+							<line
+								class="agent-graph-line"
+								x1="470"
+								y1="36"
+								x2="506"
+								y2="36"
+								stroke="var(--graph-line)"
+								marker-end="url(#agent-arrow)"
+							/>
+							<line
+								class="agent-graph-line"
+								x1="590"
+								y1="36"
+								x2="626"
+								y2="36"
+								stroke="var(--graph-line)"
+								marker-end="url(#agent-arrow)"
+							/>
+							<line
+								class="agent-graph-line agent-graph-line--accent"
+								x1="188"
+								y1="52"
+								x2="188"
+								y2="120"
+								stroke="var(--graph-accent)"
+								marker-end="url(#agent-arrow-accent)"
+							/>
+							<line
+								class="agent-graph-line agent-graph-line--accent"
+								x1="224"
+								y1="136"
+								x2="248"
+								y2="136"
+								stroke="var(--graph-accent)"
+								marker-end="url(#agent-arrow-accent)"
+							/>
+							<line
+								class="agent-graph-line agent-graph-line--accent"
+								x1="368"
+								y1="136"
+								x2="392"
+								y2="136"
+								stroke="var(--graph-accent)"
+								marker-end="url(#agent-arrow-accent)"
+							/>
+							<path
+								class="agent-graph-line agent-graph-line--accent"
+								d="M 428 120 C 428 92 360 68 308 52"
+								stroke="var(--graph-accent)"
+								marker-end="url(#agent-arrow-accent)"
+							/>
+						</g>
+						<g class="agent-graph-nodes">
+							<rect
+								class="agent-graph-node"
+								x="26"
+								y="20"
+								width="84"
+								height="32"
+								rx="12"
+							/>
+							<rect
+								class="agent-graph-node"
+								x="146"
+								y="20"
+								width="84"
+								height="32"
+								rx="12"
+							/>
+							<rect
+								class="agent-graph-node"
+								x="266"
+								y="20"
+								width="84"
+								height="32"
+								rx="12"
+							/>
+							<rect
+								class="agent-graph-node"
+								x="386"
+								y="20"
+								width="84"
+								height="32"
+								rx="12"
+							/>
+							<rect
+								class="agent-graph-node"
+								x="506"
+								y="20"
+								width="84"
+								height="32"
+								rx="12"
+							/>
+							<rect
+								class="agent-graph-node"
+								x="626"
+								y="20"
+								width="84"
+								height="32"
+								rx="12"
+							/>
+							<rect
+								class="agent-graph-node"
+								x="152"
+								y="120"
+								width="72"
+								height="32"
+								rx="12"
+							/>
+							<rect
+								class="agent-graph-node agent-graph-node--accent"
+								x="248"
+								y="120"
+								width="120"
+								height="32"
+								rx="12"
+							/>
+							<rect
+								class="agent-graph-node"
+								x="392"
+								y="120"
+								width="72"
+								height="32"
+								rx="12"
+							/>
+						</g>
+						<g
+							class="agent-graph-labels"
+							text-anchor="middle"
+							dominant-baseline="middle"
+						>
+							<text class="agent-graph-text" x="68" y="36">
+								{content.aiModes.agentGraph.labels.inputs}
+							</text>
+							<text class="agent-graph-text" x="188" y="36">
+								{content.aiModes.agentGraph.labels.plan}
+							</text>
+							<text class="agent-graph-text" x="308" y="36">
+								{content.aiModes.agentGraph.labels.draft}
+							</text>
+							<text class="agent-graph-text" x="428" y="36">
+								{content.aiModes.agentGraph.labels.review}
+							</text>
+							<text class="agent-graph-text" x="548" y="36">
+								{content.aiModes.agentGraph.labels.revise}
+							</text>
+							<text class="agent-graph-text" x="668" y="36">
+								{content.aiModes.agentGraph.labels.final}
+							</text>
+							<text class="agent-graph-text" x="188" y="136">
+								{content.aiModes.agentGraph.labels.queries}
+							</text>
+							<text
+								class="agent-graph-text agent-graph-text--accent"
+								x="308"
+								y="136"
+							>
+								{content.aiModes.agentGraph.labels.googleSearch}
+							</text>
+							<text class="agent-graph-text" x="428" y="136">
+								{content.aiModes.agentGraph.labels.sources}
+							</text>
+						</g>
+					</svg>
+					<div class="agent-graph-hotspots">
+					<button
+						type="button"
+						class="agent-graph-hotspot agent-graph-hotspot--left"
+						style="--x: 3.6%; --y: 10%; --w: 11.7%; --h: 16%;"
+						aria-label={content.aiModes.agentGraph.labels.inputs +
+							": " +
+							content.aiModes.agentGraph.details.inputs}
+					>
+						<span class="agent-graph-tooltip">
+							<span class="agent-graph-tooltip-title">
+								{content.aiModes.agentGraph.labels.inputs}
+							</span>
+							<span class="agent-graph-tooltip-text">
+								{content.aiModes.agentGraph.details.inputs}
+							</span>
+						</span>
+					</button>
+					<button
+						type="button"
+						class="agent-graph-hotspot"
+						style="--x: 20.3%; --y: 10%; --w: 11.7%; --h: 16%;"
+						aria-label={content.aiModes.agentGraph.labels.plan +
+							": " +
+							content.aiModes.agentGraph.details.plan}
+					>
+						<span class="agent-graph-tooltip">
+							<span class="agent-graph-tooltip-title">
+								{content.aiModes.agentGraph.labels.plan}
+							</span>
+							<span class="agent-graph-tooltip-text">
+								{content.aiModes.agentGraph.details.plan}
+							</span>
+						</span>
+					</button>
+					<button
+						type="button"
+						class="agent-graph-hotspot"
+						style="--x: 36.9%; --y: 10%; --w: 11.7%; --h: 16%;"
+						aria-label={content.aiModes.agentGraph.labels.draft +
+							": " +
+							content.aiModes.agentGraph.details.draft}
+					>
+						<span class="agent-graph-tooltip">
+							<span class="agent-graph-tooltip-title">
+								{content.aiModes.agentGraph.labels.draft}
+							</span>
+							<span class="agent-graph-tooltip-text">
+								{content.aiModes.agentGraph.details.draft}
+							</span>
+						</span>
+					</button>
+					<button
+						type="button"
+						class="agent-graph-hotspot"
+						style="--x: 53.6%; --y: 10%; --w: 11.7%; --h: 16%;"
+						aria-label={content.aiModes.agentGraph.labels.review +
+							": " +
+							content.aiModes.agentGraph.details.review}
+					>
+						<span class="agent-graph-tooltip">
+							<span class="agent-graph-tooltip-title">
+								{content.aiModes.agentGraph.labels.review}
+							</span>
+							<span class="agent-graph-tooltip-text">
+								{content.aiModes.agentGraph.details.review}
+							</span>
+						</span>
+					</button>
+					<button
+						type="button"
+						class="agent-graph-hotspot"
+						style="--x: 70.3%; --y: 10%; --w: 11.7%; --h: 16%;"
+						aria-label={content.aiModes.agentGraph.labels.revise +
+							": " +
+							content.aiModes.agentGraph.details.revise}
+					>
+						<span class="agent-graph-tooltip">
+							<span class="agent-graph-tooltip-title">
+								{content.aiModes.agentGraph.labels.revise}
+							</span>
+							<span class="agent-graph-tooltip-text">
+								{content.aiModes.agentGraph.details.revise}
+							</span>
+						</span>
+					</button>
+					<button
+						type="button"
+						class="agent-graph-hotspot agent-graph-hotspot--right"
+						style="--x: 86.9%; --y: 10%; --w: 11.7%; --h: 16%;"
+						aria-label={content.aiModes.agentGraph.labels.final +
+							": " +
+							content.aiModes.agentGraph.details.final}
+					>
+						<span class="agent-graph-tooltip">
+							<span class="agent-graph-tooltip-title">
+								{content.aiModes.agentGraph.labels.final}
+							</span>
+							<span class="agent-graph-tooltip-text">
+								{content.aiModes.agentGraph.details.final}
+							</span>
+						</span>
+					</button>
+					<button
+						type="button"
+						class="agent-graph-hotspot"
+						style="--x: 21.1%; --y: 60%; --w: 10%; --h: 16%;"
+						aria-label={content.aiModes.agentGraph.labels.queries +
+							": " +
+							content.aiModes.agentGraph.details.queries}
+					>
+						<span class="agent-graph-tooltip">
+							<span class="agent-graph-tooltip-title">
+								{content.aiModes.agentGraph.labels.queries}
+							</span>
+							<span class="agent-graph-tooltip-text">
+								{content.aiModes.agentGraph.details.queries}
+							</span>
+						</span>
+					</button>
+					<button
+						type="button"
+						class="agent-graph-hotspot"
+						style="--x: 34.4%; --y: 60%; --w: 16.7%; --h: 16%;"
+						aria-label={content.aiModes.agentGraph.labels.googleSearch +
+							": " +
+							content.aiModes.agentGraph.details.googleSearch}
+					>
+						<span class="agent-graph-tooltip">
+							<span class="agent-graph-tooltip-title">
+								{content.aiModes.agentGraph.labels.googleSearch}
+							</span>
+							<span class="agent-graph-tooltip-text">
+								{content.aiModes.agentGraph.details.googleSearch}
+							</span>
+						</span>
+					</button>
+					<button
+						type="button"
+						class="agent-graph-hotspot"
+						style="--x: 54.4%; --y: 60%; --w: 10%; --h: 16%;"
+						aria-label={content.aiModes.agentGraph.labels.sources +
+							": " +
+							content.aiModes.agentGraph.details.sources}
+					>
+						<span class="agent-graph-tooltip">
+							<span class="agent-graph-tooltip-title">
+								{content.aiModes.agentGraph.labels.sources}
+							</span>
+							<span class="agent-graph-tooltip-text">
+								{content.aiModes.agentGraph.details.sources}
+							</span>
+						</span>
+					</button>
+					</div>
+				</div>
 			</div>
 		</div>
 	</section>
@@ -2090,25 +2304,32 @@
 
 	.agent-graph-frame {
 		position: relative;
-		overflow: hidden;
+		overflow: visible;
 	}
 
 	.agent-graph-frame::before {
 		content: "";
 		position: absolute;
-		inset: -40% -20%;
+		inset: 0;
 		background:
 			radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.18), transparent 55%),
 			linear-gradient(120deg, rgba(59, 130, 246, 0.08), rgba(99, 102, 241, 0.12), transparent);
 		opacity: 0.7;
 		pointer-events: none;
+		border-radius: inherit;
+	}
+
+	.agent-graph-canvas {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 18 / 5;
 	}
 
 	.agent-graph-svg {
 		position: relative;
 		z-index: 1;
 		width: 100%;
-		height: clamp(240px, 32vw, 420px);
+		height: 100%;
 		display: block;
 	}
 
@@ -2133,6 +2354,132 @@
 
 	.agent-graph-text--accent {
 		fill: var(--graph-text-accent);
+	}
+
+	.agent-graph-hotspots {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		pointer-events: none;
+	}
+
+	.agent-graph-hotspot {
+		--pad: 0.7%;
+		--tooltip-x: 50%;
+		--tooltip-top: auto;
+		--tooltip-bottom: calc(100% + 12px);
+		--tooltip-translate-x: -50%;
+		--tooltip-translate-y: 6px;
+		--tooltip-arrow-x: 50%;
+		position: absolute;
+		left: calc(var(--x) - var(--pad));
+		top: calc(var(--y) - var(--pad));
+		width: calc(var(--w) + (var(--pad) * 2));
+		height: calc(var(--h) + (var(--pad) * 2));
+		border: none;
+		padding: 0;
+		background: transparent;
+		border-radius: 12px;
+		cursor: help;
+		pointer-events: auto;
+	}
+
+	.agent-graph-hotspot::before {
+		content: "";
+		position: absolute;
+		inset: 0;
+		border-radius: inherit;
+		background: rgba(56, 189, 248, 0.08);
+		opacity: 0;
+		transition: opacity 0.2s ease;
+	}
+
+	.agent-graph-hotspot--left {
+		--tooltip-x: 0%;
+		--tooltip-translate-x: 0%;
+		--tooltip-arrow-x: 12%;
+	}
+
+	.agent-graph-hotspot--right {
+		--tooltip-x: 100%;
+		--tooltip-translate-x: -100%;
+		--tooltip-arrow-x: 88%;
+	}
+
+	.agent-graph-tooltip {
+		position: absolute;
+		left: var(--tooltip-x);
+		top: var(--tooltip-top);
+		bottom: var(--tooltip-bottom);
+		transform: translate(var(--tooltip-translate-x), var(--tooltip-translate-y))
+			scale(0.98);
+		opacity: 0;
+		padding: 10px 12px;
+		border-radius: 12px;
+		background: var(--graph-tooltip-bg);
+		border: 1px solid var(--graph-tooltip-border);
+		box-shadow: 0 14px 30px var(--graph-tooltip-shadow);
+		width: max-content;
+		max-width: 280px;
+		text-align: left;
+		pointer-events: none;
+		transition:
+			opacity 0.2s ease,
+			transform 0.2s ease;
+	}
+
+	.agent-graph-tooltip::before,
+	.agent-graph-tooltip::after {
+		content: "";
+		position: absolute;
+		left: var(--tooltip-arrow-x);
+		transform: translateX(-50%);
+		border-style: solid;
+	}
+
+	.agent-graph-tooltip::before {
+		bottom: -8px;
+		border-width: 8px 8px 0 8px;
+		border-color: var(--graph-tooltip-border) transparent transparent transparent;
+	}
+
+	.agent-graph-tooltip::after {
+		bottom: -7px;
+		border-width: 7px 7px 0 7px;
+		border-color: var(--graph-tooltip-bg) transparent transparent transparent;
+	}
+
+	.agent-graph-tooltip-title {
+		display: block;
+		font-size: 12px;
+		font-weight: 800;
+		color: var(--graph-text);
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+	}
+
+	.agent-graph-tooltip-text {
+		display: block;
+		margin-top: 6px;
+		font-size: 12px;
+		line-height: 1.45;
+		color: var(--graph-text);
+	}
+
+	.agent-graph-hotspot:hover::before,
+	.agent-graph-hotspot:focus-visible::before {
+		opacity: 1;
+	}
+
+	.agent-graph-hotspot:hover .agent-graph-tooltip,
+	.agent-graph-hotspot:focus-visible .agent-graph-tooltip {
+		opacity: 1;
+		transform: translate(var(--tooltip-translate-x), 0) scale(1);
+	}
+
+	.agent-graph-hotspot:focus-visible {
+		outline: 2px solid var(--graph-accent);
+		outline-offset: 2px;
 	}
 
 	.agent-graph-line {
