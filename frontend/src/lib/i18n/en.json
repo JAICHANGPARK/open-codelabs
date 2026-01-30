@@ -104,6 +104,12 @@
         "no_messages_desc": "No messages from the facilitator yet.",
         "dm_select_prompt": "Select an attendee from the list to send a direct message",
         "feedback_tab": "Feedback",
+        "tab_groups": {
+            "authoring": "Authoring",
+            "operations": "Operations",
+            "assessment": "Assessment",
+            "admin": "Admin"
+        },
         "delete_step": "Delete Step",
         "copy_url": "Copy URL",
         "placeholder_step_title": "Untitled Step",
@@ -211,10 +217,11 @@
         "guide_empty_preview": "No guide written yet. Generate one with AI or write your own.",
         "export_codelab": "Export Codelab",
         "save_changes": "Save Changes",
-        "stuck_on_step": "Stuck on step {step}",
-        "split_view": "Split View",
-        "certificate_tab": "Certificates",
-        "quiz_tab": "Quiz",
+    "stuck_on_step": "Stuck on step {step}",
+    "split_view": "Split View",
+    "certificate_tab": "Certificates",
+    "workspace_tab": "Workspace",
+    "quiz_tab": "Quiz",
         "quiz_settings": "Quiz Settings",
         "quiz_enabled": "Enable Quiz",
         "quiz_question": "Question",
@@ -255,6 +262,61 @@
         "no_materials": "No materials added yet.",
         "delete_material_confirm": "Are you sure you want to delete this material?",
         "upload_file": "Upload File"
+    },
+    "workspace": {
+        "title": "Workspace Setup",
+        "subtitle": "Create and manage workspace files for hands-on coding exercises",
+        "active_title": "Workspace Active",
+        "labels": {
+            "structure": "Structure",
+            "path": "Path",
+            "steps": "Steps",
+            "branch": "Branch",
+            "folder": "Folder",
+            "branches": "branches",
+            "folders": "folders"
+        },
+        "steps_summary": "{count} steps × 2 ({unit}) = {total} total",
+        "download": "Download Workspace",
+        "structure_title": "Workspace Structure",
+        "structure_options": {
+            "branch": "Branch-based (Git branches)",
+            "folder": "Folder-based (Directories)"
+        },
+        "base_files": "Base Files",
+        "base_files_desc": "Upload the initial files that will be copied to all step branches/folders",
+        "upload_files": "Upload Files",
+        "remove_file": "Remove",
+        "info_title": "What happens when you create a workspace?",
+        "info_step_create": "For each step, two {unit} are created:",
+        "info_copy_base": "All uploaded base files are copied to each {unit}",
+        "info_modify_later": "You can later download, modify, and re-upload specific step files",
+        "create_button": "Create Workspace",
+        "creating_button": "Creating Workspace...",
+        "browser_title": "Workspace Browser",
+        "browser_files_title": "Files",
+        "loading": "Loading...",
+        "loading_file": "Loading file...",
+        "no_files": "No files found",
+        "select_file": "Select a file to view its content",
+        "errors": {
+            "upload_required": "Please upload at least one file for the workspace",
+            "steps_required": "Please add steps to the codelab before creating a workspace",
+            "create_failed": "Failed to create workspace: {error}",
+            "download_failed": "Download failed: {error}",
+            "load_workspace_failed": "Failed to load workspace: {error}",
+            "load_files_failed": "Failed to load files: {error}",
+            "load_file_content_failed": "Failed to load file content: {error}",
+            "firebase_unavailable": "Code Server workspace is not available in Firebase mode",
+            "not_found": "Workspace not found. Make sure to enable 'Code Server Workspace' when creating the codelab and upload workspace files."
+        },
+        "success": {
+            "created": "Workspace created successfully!"
+        },
+        "actions": {
+            "browse": "Browse Workspace Files",
+            "download": "Download Workspace"
+        }
     },
     "attendee": {
         "join_title": "Join Codelab",
