@@ -6,7 +6,8 @@
     import { locale, waitLocale, t } from "svelte-i18n";
     import "$lib/i18n";
     import "../app.css";
-    import { Languages, LogOut, Sun, Moon, Github, FileText as FileIcon, Eye } from "lucide-svelte";
+    import { Languages, LogOut, Sun, Moon, Github, FileText as FileIcon, Accessibility } from "lucide-svelte";
+    import { ModeWatcher, toggleMode } from "mode-watcher";
     import { themeState } from "$lib/theme.svelte";
     import { logout, onAuthChange, isFirebaseMode, isSupabaseMode, isServerlessMode, getSession } from "$lib/api";
 
@@ -178,6 +179,8 @@
     />
 </svelte:head>
 
+<ModeWatcher modeStorageKey="theme" />
+
 {#if i18nLoaded}
     {@render children()}
 
@@ -212,7 +215,7 @@
         <div class="relative">
             <button
                 onclick={() => langMenuOpen = !langMenuOpen}
-                class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
+                class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4285F4] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
                 title={$t("common.change_language")}
                 aria-label={$t("common.change_language")}
                 aria-haspopup="true"
@@ -242,34 +245,37 @@
         <!-- Colorblind Mode Toggle -->
         <button
             onclick={() => themeState.toggleColorblind()}
-            class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all {themeState.isColorblind ? 'ring-2 ring-[#4285F4] border-transparent' : ''}"
+            class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4285F4] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg {themeState.isColorblind ? 'ring-2 ring-[#4285F4] border-transparent' : ''}"
             title={$t("common.toggle_colorblind")}
             aria-label={$t("common.toggle_colorblind")}
             aria-pressed={themeState.isColorblind}
         >
             <span class="sr-only">{$t("common.toggle_colorblind")}</span>
-            <Eye size={20} class={themeState.isColorblind ? "text-[#4285F4]" : ""} />
+            <Accessibility size={20} class={themeState.isColorblind ? "text-[#4285F4]" : ""} />
         </button>
 
         <!-- Theme Toggle -->
         <button
-            onclick={() => themeState.toggle()}
-            class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"
+            onclick={() => toggleMode()}
+            class="relative w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4285F4] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
             title={$t("common.toggle_theme")}
             aria-label={$t("common.toggle_theme")}
         >
-            {#if themeState.current === 'light'}
-                <Moon size={20} />
-            {:else}
-                <Sun size={20} />
-            {/if}
+            <Sun
+                size={20}
+                class="scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90"
+            />
+            <Moon
+                size={20}
+                class="absolute scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0"
+            />
         </button>
 
         <!-- Logout button if in admin -->
         {#if page.url.pathname.startsWith("/admin")}
             <button
                 onclick={handleLogout}
-                class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-red-400 hover:text-red-500 hover:border-red-500 transition-all"
+                class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-red-400 hover:text-red-500 hover:border-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
                 title={$t("common.logout")}
                 aria-label={$t("common.logout")}
             >
