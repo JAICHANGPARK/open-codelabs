@@ -220,18 +220,19 @@ export async function getSession(): Promise<{ role: string; sub: string } | null
     return { role: 'admin', sub: 'firebase' };
 }
 
-export async function registerAttendee(codelabId: string, name: string, code: string): Promise<Attendee> {
+export async function registerAttendee(codelabId: string, name: string, code: string, email?: string): Promise<Attendee> {
     const user = auth.currentUser;
     const attendeesCollection = collection(db, `${CODELABS_COLLECTION}/${codelabId}/attendees`);
-    
+
     // Check duplicate
     const q = query(attendeesCollection, where("name", "==", name));
     const snapshot = await getDocs(q);
     if (!snapshot.empty) throw new Error('DUPLICATE_NAME');
-    
+
     const attendeeData = {
         name,
         code,
+        email: email || null,
         uid: user?.uid || null,
         codelab_id: codelabId,
         current_step: 1,
