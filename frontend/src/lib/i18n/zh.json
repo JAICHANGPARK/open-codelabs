@@ -101,6 +101,21 @@
             "assessment": "评估",
             "admin": "管理"
         },
+        "tab_descriptions": {
+            "edit": "编辑步骤内容与结构。",
+            "preview": "预览渲染后的 Markdown。",
+            "guide": "编写课前准备说明。",
+            "materials": "管理材料与链接。",
+            "live": "实时查看进度与聊天。",
+            "feedback": "查看学员反馈。",
+            "raffle": "抽取抽奖获奖者。",
+            "quiz": "创建测验并查看结果。",
+            "submissions": "查看提交内容。",
+            "certificate": "发放结业证书。",
+            "workspace": "查看/下载工作区文件。",
+            "settings": "配置可见性与要求。",
+            "ai": "用 AI 生成/改进内容。"
+        },
         "delete_step": "删除步骤",
         "copy_url": "复制 URL",
         "placeholder_step_title": "未命名步骤",
@@ -240,10 +255,17 @@
         "creating_button": "正在创建工作区...",
         "browser_title": "工作区浏览器",
         "browser_files_title": "文件",
+        "browser_empty": "创建工作区后即可浏览文件。",
         "loading": "加载中...",
         "loading_file": "正在加载文件...",
         "no_files": "未找到文件",
         "select_file": "选择一个文件以查看内容",
+        "notebook": {
+            "markdown_label": "Markdown",
+            "code_label": "代码",
+            "empty": "未找到笔记本单元格。",
+            "invalid": "笔记本文件无效。"
+        },
         "errors": {
             "upload_required": "请至少上传一个工作区文件",
             "steps_required": "创建工作区前请先添加代码实验步骤",
@@ -258,6 +280,20 @@
         "success": {
             "created": "工作区创建成功！"
         },
+        "ai_title": "AI 步骤工作区",
+        "ai_desc": "使用 Gemini 生成每个步骤的 start/end 代码。",
+        "ai_button": "生成步骤代码",
+        "ai_running": "正在生成步骤代码...",
+        "ai_progress": "正在生成第 {current}/{total} 步...",
+        "ai_progress_start": "正在生成第 {current} 步开始（{current}/{total}）...",
+        "ai_progress_end": "正在生成第 {current} 步完成（{current}/{total}）...",
+        "ai_done": "AI 生成完成。",
+        "ai_response_title": "AI 响应（原文）",
+        "ai_response_step": "第 {step} 步 {phase}",
+        "ai_response_waiting": "等待 AI 响应...",
+        "ai_step_summary": "第 {step} 步 {phase}：更新 {updated} 个，删除 {deleted} 个",
+        "ai_phase_start": "开始",
+        "ai_phase_end": "完成",
         "actions": {
             "browse": "浏览工作区文件",
             "download": "下载工作区"
@@ -279,6 +315,15 @@
         "return_home": "返回首页",
         "codelab_not_found": "找不到代码实验室",
         "anonymous_user": "匿名"
+    },
+    "profile": {
+        "title": "个人资料",
+        "name": "姓名",
+        "email": "邮箱",
+        "codelab": "代码实验室",
+        "attendee_id": "参与者ID",
+        "registered_at": "注册时间",
+        "not_available": "未提供"
     },
     "feedback": {
         "done_title": "您已完成！",
@@ -350,7 +395,16 @@
         "error_fields": "请填写所有字段",
         "error_credentials": "管理员 ID 或密码无效",
         "placeholder_id": "请输入管理员 ID",
-        "trouble": "登录遇到困难？"
+        "trouble": "登录遇到困难？",
+        "trouble_title": "登录遇到困难？",
+        "trouble_local_desc": "如果在本地运行，请确认后端已启动且管理员账号已配置。",
+        "trouble_local_env_title": "必需环境变量",
+        "trouble_local_env_desc": "在后端环境变量或 `.env` 中设置。",
+        "trouble_local_commands_title": "本地运行",
+        "trouble_local_commands_desc": "启动后端与前端：",
+        "trouble_local_note": "修改环境变量后请重启后端。",
+        "trouble_serverless_desc": "使用 Supabase/Firebase 时，请使用 Google 登录并检查认证提供方设置。",
+        "trouble_serverless_hint": "如果 Google 登录窗口未弹出，请检查弹窗拦截或更换浏览器。"
     },
     "home": {
         "subtitle": "通过互动的分步指南开展完美的动手实践课程。",
