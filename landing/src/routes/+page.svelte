@@ -55,6 +55,7 @@
 			aiModes: lang === "ko" ? "AI 생성 모드" : "AI Modes",
 			quickstart: lang === "ko" ? "빠른 시작" : "Quickstart",
 			getStarted: lang === "ko" ? "시작하기" : "Get Started",
+			skip: lang === "ko" ? "본문으로 건너뛰기" : "Skip to content",
 		},
 		hero: {
 			badge: lang === "ko" ? "AI 기반" : "Powered by Gemini",
@@ -647,13 +648,15 @@
 <div
 	class="min-h-screen transition-colors duration-300 {isDark
 		? 'bg-neutral-950 text-white'
-		: 'bg-neutral-50 text-neutral-900'} font-sans selection:bg-blue-500/30"
+		: 'bg-neutral-50 text-neutral-900'} font-sans selection:bg-blue-500/30 relative"
 >
+	<a href="#main-content" class="skip-link">{content.nav.skip}</a>
 	<!-- Navigation -->
 	<nav
 		class="sticky top-0 z-50 border-b transition-colors duration-300 {isDark
 			? 'bg-neutral-950/80 border-neutral-800'
 			: 'bg-white/80 border-neutral-200'} backdrop-blur-md"
+		aria-label={lang === "ko" ? "주요 탐색" : "Primary navigation"}
 	>
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 			<div class="flex justify-between h-16 items-center">
@@ -715,6 +718,9 @@
 						class="flex items-center gap-1 px-3 py-1 rounded-full border transition-colors {isDark
 							? 'border-neutral-800 hover:bg-neutral-900'
 							: 'border-neutral-200 hover:bg-neutral-50'}"
+						aria-label={lang === "ko"
+							? "Switch to English"
+							: "한국어로 전환"}
 					>
 						<Globe class="w-4 h-4" />
 						{lang === "ko" ? "English" : "한국어"}
@@ -724,7 +730,14 @@
 						class="p-2 rounded-full border transition-colors {isDark
 							? 'border-neutral-800 hover:bg-neutral-900 text-yellow-400'
 							: 'border-neutral-200 hover:bg-neutral-50 text-blue-600'}"
-						aria-label="Toggle Theme"
+						aria-label={isDark
+							? lang === "ko"
+								? "라이트 모드로 전환"
+								: "Switch to light mode"
+							: lang === "ko"
+								? "다크 모드로 전환"
+								: "Switch to dark mode"}
+						aria-pressed={isDark}
 					>
 						{#if isDark}
 							<Sun class="w-4 h-4" />
@@ -745,6 +758,7 @@
 		</div>
 	</nav>
 
+	<main id="main-content" tabindex="-1">
 	<!-- Hero Section -->
 	<header class="relative overflow-hidden py-24 sm:py-32">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -801,6 +815,7 @@
 			class="absolute inset-0 -z-0 pointer-events-none transition-opacity duration-500 {isDark
 				? 'opacity-50'
 				: 'opacity-20'}"
+			aria-hidden="true"
 		>
 			<LetterGlitch
 				glitchColors={isDark
@@ -1967,33 +1982,52 @@
 					class="inline-flex p-1 rounded-xl mb-8 {isDark
 						? 'bg-neutral-800'
 						: 'bg-neutral-100'}"
+					role="tablist"
+					aria-label={lang === "ko"
+						? "빠른 시작 선택"
+						: "Quickstart options"}
 				>
 					<button
 						onclick={() => (quickstartType = "docker")}
+						id="quickstart-tab-docker"
 						class="px-6 py-2 rounded-lg text-sm font-bold transition-all {quickstartType ===
 						'docker'
 							? isDark
 								? 'bg-neutral-700 text-white shadow-lg'
 								: 'bg-white text-blue-600 shadow-sm'
 							: 'text-neutral-500 hover:text-neutral-400'}"
+						role="tab"
+						aria-selected={quickstartType === "docker"}
+						aria-controls="quickstart-panel"
+						tabindex={quickstartType === "docker" ? 0 : -1}
 					>
 						{content.quickstart.tabs.docker}
 					</button>
 					<button
 						onclick={() => (quickstartType = "podman")}
+						id="quickstart-tab-podman"
 						class="px-6 py-2 rounded-lg text-sm font-bold transition-all {quickstartType ===
 						'podman'
 							? isDark
 								? 'bg-neutral-700 text-white shadow-lg'
 								: 'bg-white text-blue-600 shadow-sm'
 							: 'text-neutral-500 hover:text-neutral-400'}"
+						role="tab"
+						aria-selected={quickstartType === "podman"}
+						aria-controls="quickstart-panel"
+						tabindex={quickstartType === "podman" ? 0 : -1}
 					>
 						{content.quickstart.tabs.podman}
 					</button>
 				</div>
 			</div>
 
-			<div class="relative max-w-4xl mx-auto">
+			<div
+				id="quickstart-panel"
+				role="tabpanel"
+				aria-labelledby={`quickstart-tab-${quickstartType}`}
+				class="relative max-w-4xl mx-auto"
+			>
 				<div class="space-y-8 relative z-10">
 					{#each content.quickstart.steps as step, i}
 						<div
@@ -2166,6 +2200,8 @@
 		</div>
 	</section>
 
+	</main>
+
 	<!-- Footer -->
 	<footer
 		class="transition-colors duration-300 border-t {isDark
@@ -2211,6 +2247,27 @@
 <style>
 	:global(html) {
 		scroll-behavior: smooth;
+	}
+
+	.skip-link {
+		position: absolute;
+		left: 16px;
+		top: 16px;
+		transform: translateY(-200%);
+		background: #2563eb;
+		color: #fff;
+		padding: 10px 16px;
+		border-radius: 9999px;
+		font-weight: 700;
+		font-size: 12px;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		z-index: 60;
+		transition: transform 0.2s ease;
+	}
+
+	.skip-link:focus {
+		transform: translateY(0);
 	}
 
 	@keyframes fade-in {
