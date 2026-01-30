@@ -497,6 +497,7 @@
         "back": "返回",
         "saving": "正在保存...",
         "create_button": "创建代码实验室",
+        "upload_limits": "限制：每次提示最多 {maxFiles} 个文件。ZIP 文件：最多 {maxZipFiles} 个文件，{maxSizeMb} MB，不支持音频/视频。",
         "error_parse": "解析 AI 响应时发生意外错误。请重试。",
         "error_generate": "生成失败",
         "error_save": "保存代码实验室失败。"
