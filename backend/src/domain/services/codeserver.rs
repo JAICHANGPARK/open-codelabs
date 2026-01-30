@@ -8,6 +8,25 @@ pub struct CodeServerManager {
 }
 
 impl CodeServerManager {
+    async fn run_command(mut cmd: Command, context: &str) -> Result<()> {
+        let output = cmd.output().await?;
+        if output.status.success() {
+            return Ok(());
+        }
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let detail = if !stderr.trim().is_empty() {
+            stderr.trim()
+        } else if !stdout.trim().is_empty() {
+            stdout.trim()
+        } else {
+            "unknown error"
+        };
+
+        Err(anyhow!("{}: {}", context, detail))
+    }
+
     pub fn new() -> Result<Self> {
         let workspace_base = PathBuf::from("/app/workspaces");
         Ok(Self { workspace_base })
@@ -44,27 +63,41 @@ impl CodeServerManager {
     pub async fn init_git_repo(&self, codelab_id: &str) -> Result<()> {
         let workspace_path = self.workspace_base.join(codelab_id);
 
-        Command::new("git")
-            .arg("init")
-            .current_dir(&workspace_path)
-            .output()
-            .await?;
+        Self::run_command(
+            {
+                let mut cmd = Command::new("git");
+                cmd.arg("init").current_dir(&workspace_path);
+                cmd
+            },
+            "Failed to initialize git repository",
+        )
+        .await?;
 
-        Command::new("git")
-            .arg("config")
-            .arg("user.name")
-            .arg("Codelab")
-            .current_dir(&workspace_path)
-            .output()
-            .await?;
+        Self::run_command(
+            {
+                let mut cmd = Command::new("git");
+                cmd.arg("config")
+                    .arg("user.name")
+                    .arg("Codelab")
+                    .current_dir(&workspace_path);
+                cmd
+            },
+            "Failed to set git user.name",
+        )
+        .await?;
 
-        Command::new("git")
-            .arg("config")
-            .arg("user.email")
-            .arg("codelab@example.com")
-            .current_dir(&workspace_path)
-            .output()
-            .await?;
+        Self::run_command(
+            {
+                let mut cmd = Command::new("git");
+                cmd.arg("config")
+                    .arg("user.email")
+                    .arg("codelab@example.com")
+                    .current_dir(&workspace_path);
+                cmd
+            },
+            "Failed to set git user.email",
+        )
+        .await?;
 
         Ok(())
     }
@@ -80,29 +113,42 @@ impl CodeServerManager {
         let branch_name = format!("step-{}-{}", step_number, branch_type);
 
         // Commit current state
-        Command::new("git")
-            .arg("add")
-            .arg(".")
-            .current_dir(&workspace_path)
-            .output()
-            .await?;
+        Self::run_command(
+            {
+                let mut cmd = Command::new("git");
+                cmd.arg("add").arg(".").current_dir(&workspace_path);
+                cmd
+            },
+            "Failed to stage workspace files",
+        )
+        .await?;
 
-        Command::new("git")
-            .arg("commit")
-            .arg("-m")
-            .arg(format!("Step {} {}", step_number, branch_type))
-            .arg("--allow-empty")
-            .current_dir(&workspace_path)
-            .output()
-            .await?;
+        Self::run_command(
+            {
+                let mut cmd = Command::new("git");
+                cmd.arg("commit")
+                    .arg("-m")
+                    .arg(format!("Step {} {}", step_number, branch_type))
+                    .arg("--allow-empty")
+                    .current_dir(&workspace_path);
+                cmd
+            },
+            "Failed to create workspace commit",
+        )
+        .await?;
 
         // Create branch
-        Command::new("git")
-            .arg("branch")
-            .arg(&branch_name)
-            .current_dir(&workspace_path)
-            .output()
-            .await?;
+        Self::run_command(
+            {
+                let mut cmd = Command::new("git");
+                cmd.arg("branch")
+                    .arg(&branch_name)
+                    .current_dir(&workspace_path);
+                cmd
+            },
+            "Failed to create workspace branch",
+        )
+        .await?;
 
         Ok(())
     }
