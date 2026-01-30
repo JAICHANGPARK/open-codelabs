@@ -101,7 +101,8 @@ pub async fn proxy_gemini_stream(
     );
 
     let client = match reqwest::Client::builder()
-        .timeout(Duration::from_secs(60))
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(180))
         .redirect(reqwest::redirect::Policy::none())
         .build()
     {
@@ -137,6 +138,7 @@ pub async fn proxy_gemini_stream(
     let response = match client.post(&url).json(&body).send().await {
         Ok(res) => res,
         Err(e) => {
+            tracing::error!("Gemini request failed: {:?}", e);
             return internal_error(e).into_response();
         }
     };
