@@ -495,7 +495,9 @@
             setTimeout(() => (helpSent = false), 30000); // Prevent spamming
             alert($t("help.sent"));
         } catch (e) {
-            alert($t("help.failed"));
+            console.error("Help request failed:", e);
+            const errorMsg = e instanceof Error ? e.message : String(e);
+            alert($t("help.failed") + "\n" + errorMsg);
         }
     }
 
@@ -1306,6 +1308,8 @@
             {#if showGeminiModal}
                 <AskGemini
                     context={selectedContext}
+                    codelabId={id}
+                    stepNumber={currentStepIndex + 1}
                     onClose={() => (showGeminiModal = false)}
                 />
             {/if}
