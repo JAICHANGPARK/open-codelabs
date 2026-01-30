@@ -206,6 +206,13 @@ impl CodeServerManager {
     pub async fn archive_workspace(&self, codelab_id: &str) -> Result<Vec<u8>> {
         let workspace_path = self.workspace_base.join(codelab_id);
 
+        // Check if workspace directory exists
+        if !workspace_path.exists() {
+            return Err(anyhow!(
+                "Workspace directory does not exist. The workspace may not have been created yet."
+            ));
+        }
+
         let output = Command::new("tar")
             .arg("-czf")
             .arg("-")
