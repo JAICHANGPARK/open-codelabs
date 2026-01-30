@@ -16,6 +16,7 @@
         getQuizzes,
         submitQuiz,
         isFirebaseMode,
+        isServerlessMode,
         listenToWsReplacement,
         sendChatMessage,
         updateAttendeeProgress,
@@ -158,7 +159,7 @@
 
     $effect(() => {
         if (attendee) {
-            if (isFirebaseMode()) {
+            if (isServerlessMode()) {
                 updateAttendeeProgress(id, attendee.id, currentStepIndex + 1);
             } else if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(
@@ -358,7 +359,7 @@
     }
 
     function initWebSocket() {
-        if (isFirebaseMode()) {
+        if (isServerlessMode()) {
             return listenToWsReplacement(id, (data) => {
                 if (data.type === "chat") {
                     // Check if it's already in messages to avoid duplicates from history load
@@ -462,7 +463,7 @@
     function sendChat() {
         if (!chatMessage.trim() || !attendee) return;
 
-        if (isFirebaseMode()) {
+        if (isServerlessMode()) {
             sendChatMessage(id, {
                 sender: attendee.name,
                 message: chatMessage.trim(),
