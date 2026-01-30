@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { getWorkspaceBranches, getWorkspaceFiles, getWorkspaceFileContent, getCodeServerInfo } from '$lib/api-backend';
+    import { t } from 'svelte-i18n';
 
     export let codelabId: string;
     export let onClose: () => void;
@@ -40,7 +41,7 @@
                 await loadFiles();
             }
         } catch (e) {
-            error = 'Failed to load workspace: ' + (e as Error).message;
+            error = $t('workspace.errors.load_workspace_failed', { error: (e as Error).message });
         } finally {
             loading = false;
         }
@@ -61,7 +62,7 @@
                 files = await getWorkspaceFolderFiles(codelabId, selectedItem);
             }
         } catch (e) {
-            error = 'Failed to load files: ' + (e as Error).message;
+            error = $t('workspace.errors.load_files_failed', { error: (e as Error).message });
         } finally {
             loading = false;
         }
@@ -80,7 +81,7 @@
                 fileContent = await getWorkspaceFolderFileContent(codelabId, selectedItem, file);
             }
         } catch (e) {
-            error = 'Failed to load file content: ' + (e as Error).message;
+            error = $t('workspace.errors.load_file_content_failed', { error: (e as Error).message });
         } finally {
             loading = false;
         }
@@ -93,7 +94,7 @@
 
 <div class="workspace-browser">
     <div class="header">
-        <h2>Workspace Browser</h2>
+        <h2>{$t('workspace.browser_title')}</h2>
         <button onclick={onClose} class="close-btn">✕</button>
     </div>
 
@@ -104,7 +105,7 @@
     <div class="content">
         <div class="sidebar">
             <div class="branch-selector">
-                <label for="item">{structureType === 'branch' ? 'Branch' : 'Folder'}:</label>
+                <label for="item">{structureType === 'branch' ? $t('workspace.labels.branch') : $t('workspace.labels.folder')}:</label>
                 <select
                     id="item"
                     bind:value={selectedItem}
@@ -118,11 +119,11 @@
             </div>
 
             <div class="file-tree">
-                <h3>Files</h3>
+                <h3>{$t('workspace.browser_files_title')}</h3>
                 {#if loading && files.length === 0}
-                    <div class="loading">Loading...</div>
+                    <div class="loading">{$t('workspace.loading')}</div>
                 {:else if files.length === 0}
-                    <div class="empty">No files found</div>
+                    <div class="empty">{$t('workspace.no_files')}</div>
                 {:else}
                     <ul>
                         {#each files as file}
@@ -143,14 +144,14 @@
 
         <div class="file-viewer">
             {#if loading && selectedFile}
-                <div class="loading">Loading file...</div>
+                <div class="loading">{$t('workspace.loading_file')}</div>
             {:else if selectedFile}
                 <div class="file-header">
                     <h3>{selectedFile}</h3>
                 </div>
                 <pre class="code">{fileContent}</pre>
             {:else}
-                <div class="empty">Select a file to view its content</div>
+                <div class="empty">{$t('workspace.select_file')}</div>
             {/if}
         </div>
     </div>
