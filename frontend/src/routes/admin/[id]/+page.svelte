@@ -65,6 +65,7 @@
     import SubmissionsMode from "$lib/components/admin/SubmissionsMode.svelte";
     import RaffleMode from "$lib/components/admin/RaffleMode.svelte";
     import WorkspaceBrowser from "$lib/components/admin/WorkspaceBrowser.svelte";
+    import WorkspaceMode from "$lib/components/admin/WorkspaceMode.svelte";
 
     import { 
         getSubmissions,
@@ -76,7 +77,7 @@
 
     // Initialize mode from URL or default to 'edit'
     let initialMode = page.url.searchParams.get("mode");
-    let mode = $state<"edit" | "preview" | "guide" | "live" | "feedback" | "materials" | "quiz" | "submissions" | "settings" | "raffle">(
+    let mode = $state<"edit" | "preview" | "guide" | "live" | "feedback" | "materials" | "quiz" | "submissions" | "settings" | "workspace" | "raffle">(
         initialMode === "preview" ||
             initialMode === "guide" ||
             initialMode === "live" ||
@@ -85,6 +86,7 @@
             initialMode === "quiz" ||
             initialMode === "submissions" ||
             initialMode === "settings" ||
+            initialMode === "workspace" ||
             initialMode === "raffle"
             ? (initialMode as any)
             : "edit",
@@ -1655,8 +1657,14 @@
             const { downloadCodeServerWorkspace } = await import('$lib/api');
             await downloadCodeServerWorkspace(id);
         } catch (e) {
-            if (e instanceof Error && e.message.includes('Not supported')) {
-                alert("Code Server workspace not found for this codelab");
+            if (e instanceof Error) {
+                if (e.message.includes('Not supported')) {
+                    alert("Code Server workspace is not available in Firebase mode");
+                } else if (e.message.includes('not found')) {
+                    alert("Workspace not found. Make sure to enable 'Code Server Workspace' when creating the codelab and upload workspace files.");
+                } else {
+                    alert("Download failed: " + e.message);
+                }
             } else {
                 alert("Download failed: " + e);
             }
@@ -2070,6 +2078,7 @@
                 mode === "settings" ||
                 mode === "guide" ||
                 mode === "submissions" ||
+                mode === "workspace" ||
                 mode === "raffle"
                     ? "lg:col-span-12 w-full min-w-0"
                     : "lg:col-span-8 w-full min-w-0"}
@@ -2141,6 +2150,8 @@
                                     {saveSuccess}
                                     handleSave={handleUniversalSave}
                                 />
+                            {:else if mode === "workspace"}
+                                <WorkspaceMode codelabId={id} {steps} />
                             {:else if mode === "raffle"}
                                 <RaffleMode
                                     {attendees}
