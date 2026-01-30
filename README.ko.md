@@ -10,7 +10,7 @@
 **Open Codelabs**는 Google Codelab 스타일의 핸즈온 세션을 손쉽게 운영하고 관리할 수 있도록 설계된 오픈 소스 플랫폼입니다. 최신 기술 스택으로 구축되었으며, 퍼실리테이터(관리자)와 참가자
 역할을 모두 지원합니다. 콘텐츠는 Markdown으로 직접 관리하거나 AI를 통해 자동으로 생성할 수 있습니다.
 
-[English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md)
+[English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [中文](README.zh.md)
 
 ---
 
@@ -18,6 +18,7 @@
 
 - **퍼실리테이터 & 참가자 분리**: 관리자는 코드랩을 생성 및 관리하고, 참가자는 정교하게 설계된 UI를 통해 단계를 따라갈 수 있습니다.
 - **AI 코드랩 생성기**: Google Gemini AI를 사용하여 소스 코드나 참조 문서로부터 전문가 수준의 코드랩을 자동으로 생성합니다.
+- **Code Server 워크스페이스(선택)**: 코드랩별 code-server 워크스페이스를 만들고 단계별 스냅샷(브랜치/폴더 모드)과 다운로드를 지원합니다.
 - **퀴즈·피드백·수료증**: 퀴즈와 피드백 제출을 수료 조건으로 설정하고, 검증 URL이 포함된 수료증을 자동 발급합니다.
 - **준비 가이드 & 자료 관리**: 사전 준비 가이드를 직접 작성하거나 AI로 생성하고, 링크/파일을 한 곳에서 배포합니다.
 - **라이브 워크숍 도구**: 실시간 채팅/DM, 도움 요청 큐, 제출물 패널, 수료증 보유자만 대상인 룰렛 추첨 기능을 제공합니다.
@@ -50,6 +51,14 @@ podman-compose up --build
 ```
 
 또는 Podman의 Docker 호환 레이어를 사용하세요.
+
+### 🧱 사전 빌드 이미지 사용 (GHCR)
+로컬 빌드 없이 실행하려면 퍼블리시된 이미지를 사용할 수 있습니다:
+
+```bash
+cp .env.sample .env
+docker compose -f docker-compose.images.yml up
+```
 
 ---
 
@@ -86,6 +95,7 @@ open-codelabs/
 │   ├── src/          # 컴포넌트, 라우트 및 라이브러리
 │   └── static/       # 정적 에셋
 ├── docs/             # 문서 (MkDocs)
+├── docker-compose.images.yml # 사전 빌드 이미지용 컴포즈
 ├── docker-compose.yml # 전체 시스템 오케스트레이션
 └── run-public.sh     # 공개 배포 스크립트 (ngrok/bore/cloudflare)
 ```
@@ -141,6 +151,11 @@ bun run dev
 Docker Compose는 리포지토리 루트의 `.env`를 읽습니다. `.env.sample`을 복사해 `.env`로 만들고 필요한 값만 수정하세요.
 (로컬 개발은 `backend/.env.sample`, `frontend/.env.sample`을 최소 시작점으로 사용할 수 있습니다.)
 
+**이미지 (docker-compose.images.yml)**
+- `IMAGE_REGISTRY`: 사전 빌드 이미지 레지스트리 (기본값 `ghcr.io`).
+- `IMAGE_NAMESPACE`: 이미지 네임스페이스 또는 조직명 (기본값 `open-codelabs`).
+- `IMAGE_TAG`: 가져올 이미지 태그 (기본값 `latest`).
+
 **Backend**
 - `DATABASE_URL`: SQLx 연결 문자열 (sqlite/postgres). 예: `sqlite:/app/data/sqlite.db?mode=rwc`.
 - `ADMIN_ID`: 관리자 로그인 아이디.
@@ -168,6 +183,12 @@ Docker Compose는 리포지토리 루트의 `.env`를 읽습니다. `.env.sample
 **Frontend**
 - `VITE_API_URL`: 백엔드 API 기본 URL (예: `http://localhost:8080`, Docker에서는 `http://backend:8080`).
 - `VITE_ADMIN_ENCRYPTION_PASSWORD`: 브라우저에서 Gemini API 키를 암호화할 때 사용할 비밀번호. 백엔드 `ADMIN_PW`와 동일해야 복호화 가능.
+- `VITE_USE_SUPABASE`: `true`로 설정하면 Supabase 모드(서버리스, Rust 백엔드 없이)를 사용합니다.
+- `VITE_SUPABASE_URL`: Supabase 프로젝트 URL.
+- `VITE_SUPABASE_ANON_KEY`: Supabase anon 키.
+- `VITE_SUPABASE_STORAGE_BUCKET`: Supabase Storage 버킷 이름 (기본값 `open-codelabs`).
+- `VITE_ADMIN_ID`: Firebase/Supabase 모드용 관리자 로그인 ID.
+- `VITE_ADMIN_PW`: Firebase/Supabase 모드용 관리자 로그인 비밀번호.
 - `FRONTEND_PORT`: 프론트 서버/컨테이너 포트.
 - `FRONTEND_HOST`: 프론트 서버 바인딩 호스트(예: `0.0.0.0`).
 
@@ -178,6 +199,7 @@ Docker Compose는 리포지토리 루트의 `.env`를 읽습니다. `.env.sample
 - **AWS**: 컨테이너 기반 또는 VM 배포. [AWS 배포 가이드](docs/self-hosting/aws.md) 참조.
 - **GCP (Cloud Run)**: 컨테이너 기반 배포. [GCP 배포 가이드](docs/self-hosting/gcp.md) 참조.
 - **Firebase**: 가장 빠른 서버리스 설정. [Firebase 배포 가이드](docs/self-hosting/firebase.md) 참조.
+- **Supabase**: 서버리스 Postgres + Storage 구성. [Supabase 가이드](docs/self-hosting/supabase.md) 참조.
 
 ---
 
@@ -219,6 +241,9 @@ chmod +x run-public.sh
 
 전체 문서는 GitHub Pages에서 확인할 수 있습니다:
 **[📖 Open Codelabs 문서 보기](https://JAICHANGPARK.github.io/open-codelabs/)**
+
+추가 가이드:
+- [Code Server 워크스페이스 설정](docs/CODE_SERVER_SETUP.md)
 
 ---
 
