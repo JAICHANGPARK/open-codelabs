@@ -1,30 +1,140 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "tw-animate-css";
 
-@theme {
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
   --color-dark-bg: #121212;
   --color-dark-surface: #1e1e1e;
   --color-dark-border: #333333;
   --color-dark-text: #e8eaed;
   --color-dark-text-muted: #9aa0a6;
+  --color-dark-hover: #2a2a2a;
 }
 
-@custom-variant dark (&:where(.dark, .dark *));
-
 @layer base {
-  html, body {
+  html,
+  body {
     overscroll-behavior: none;
   }
 
-  body {
-    @apply bg-white text-[#3C4043] transition-colors duration-200;
+  * {
+    @apply border-border outline-ring/50;
   }
-  
+  body {
+    @apply bg-background text-foreground transition-colors duration-200;
+  }
+
   .dark body {
     background-color: var(--color-dark-bg);
     color: var(--color-dark-text);
   }
 
-  /* Colorblind Mode Support */
   .colorblind {
     --color-primary-accessible: #0056b3;
     --color-success-accessible: #006400;
@@ -41,219 +151,44 @@
     text-decoration-thickness: 2px !important;
   }
 
-  .colorblind button:not(.p-1, .p-2), .colorblind .btn {
+  .colorblind button:not(.p-1, .p-2),
+  .colorblind .btn {
     border: 2px solid currentColor !important;
   }
 }
 
-/* Syntax Highlighting Overrides - Always Dark for Code Blocks */
-.hljs, .prism {
-  background: transparent !important;
-  color: #e8eaed !important;
-}
-
-/* Improve contrast for comments */
-.hljs-comment,
-.hljs-quote,
-.token.comment,
-.token.prolog,
-.token.doctype,
-.token.cdata {
-  color: #8b949e !important;
-  font-style: italic !important;
-}
-
-.hljs-keyword,
-.hljs-selector-tag,
-.hljs-built_in,
-.hljs-name,
-.hljs-tag,
-.token.atrule,
-.token.attr-value,
-.token.keyword,
-.token.important,
-.token.bold {
-  color: #ff7b72 !important;
-}
-
-.hljs-string,
-.hljs-attr,
-.hljs-title,
-.hljs-section,
-.hljs-attribute,
-.hljs-literal,
-.hljs-template-tag,
-.hljs-template-variable,
-.hljs-type,
-.token.string,
-.token.char,
-.token.attr-name,
-.token.builtin,
-.token.inserted,
-.token.url {
-  color: #a5d6ff !important;
-}
-
-.hljs-deletion,
-.hljs-meta,
-.token.regex,
-.token.variable {
-  color: #79c0ff !important;
-}
-
-.hljs-operator,
-.hljs-constant,
-.token.operator,
-.token.entity {
-  color: #ff7b72 !important;
-}
-
-.hljs-function .hljs-title,
-.token.function,
-.token.class-name {
-  color: #d2a8ff !important;
-}
-
-.hljs-number,
-.token.boolean,
-.token.number,
-.token.property,
-.token.constant,
-.token.symbol,
-.token.deleted {
-  color: #79c0ff !important;
-}
-
-.token.punctuation,
-.hljs-punctuation {
-  color: #8b949e !important;
-}
-
-@plugin "@tailwindcss/typography";
-
-/* Markdown Body Styles (GitHub-like) */
-@layer components {
+@layer base {
   .markdown-body {
-    font-size: 1.125rem;
-    line-height: 1.75;
-    @apply text-[#3C4043] transition-colors duration-200;
+    font-size: 1.05rem;
+    line-height: 1.7;
   }
-
-  .dark .markdown-body {
-    color: #e8eaed;
+  .markdown-body pre {
+    background-color: #f8f9fa;
+    border: 1px solid #e8eaed;
+    border-radius: 12px;
+    padding: 16px;
+    overflow: auto;
   }
-
-  .markdown-body h1, 
-  .markdown-body h2, 
-  .markdown-body h3 {
-    @apply font-bold text-[#202124] mt-8 mb-4 border-b border-[#F1F3F4] pb-2;
+  .markdown-body code:not(pre code) {
+    font-family: inherit;
+    color: #c5221f;
+    background-color: #fce8e6;
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.9em;
   }
-
-  .dark .markdown-body h1, 
-  .dark .markdown-body h2, 
-  .dark .markdown-body h3 {
-    @apply text-white border-[#3C4043];
+  .markdown-body pre code {
+    font-family: "JetBrains Mono", "Google Sans Mono", monospace;
+    background-color: transparent;
+    padding: 0;
+    font-size: 0.95rem;
   }
-
-  .markdown-body h1 { font-size: 2.25rem; }
-  .markdown-body h2 { font-size: 1.5rem; }
-  .markdown-body h3 { font-size: 1.25rem; }
-
-  .markdown-body > :first-child {
-    margin-top: 0;
+  html.dark .markdown-body pre {
+    background-color: #1e1e1e;
+    border-color: #333333;
   }
-
-  .markdown-body p {
-    @apply mb-6;
-  }
-
-  .markdown-body strong {
-    @apply font-bold text-[#202124];
-  }
-
-  .dark .markdown-body strong {
-    @apply text-white;
-  }
-
-  .markdown-body ul, 
-  .markdown-body ol {
-    @apply mb-6 pl-6 list-disc;
-  }
-  
-  .markdown-body ol {
-    @apply list-decimal;
-  }
-
-  .markdown-body li {
-    @apply mb-2;
-  }
-
-  .markdown-body pre,
-  .prose pre {
-    background-color: #0d1117 !important;
-    border: 1px solid #30363d !important;
-    border-radius: 0.75rem !important;
-    padding: 1.5rem !important;
-    margin-top: 1.5rem !important;
-    margin-bottom: 1.5rem !important;
-    overflow-x: auto !important;
-    color: #e8eaed !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
-  }
-
-  /* Ensure code inside pre also has correct color */
-  .markdown-body pre code,
-  .prose pre code {
-    color: #e8eaed !important;
-    background: transparent !important;
-    padding: 0 !important;
-    border-radius: 0 !important;
-  }
-
-  /* Ensure prose code blocks look good in both modes (always dark) */
-  .prose {
-    --tw-prose-pre-code: #e8eaed;
-    --tw-prose-pre-bg: #0d1117;
-  }
-
-  /* Ensure prose works with dark mode */
-  .dark .prose {
-    --tw-prose-body: var(--color-dark-text);
-    --tw-prose-headings: white;
-    --tw-prose-lead: var(--color-dark-text-muted);
-    --tw-prose-links: #4285F4;
-    --tw-prose-bold: white;
-    --tw-prose-counters: var(--color-dark-text-muted);
-    --tw-prose-bullets: #5F6368;
-    --tw-prose-hr: var(--color-dark-border);
-    --tw-prose-quotes: var(--color-dark-text);
-    --tw-prose-quote-borders: var(--color-dark-border);
-    --tw-prose-captions: var(--color-dark-text-muted);
-    --tw-prose-code: white;
-    --tw-prose-pre-code: var(--color-dark-text);
-    --tw-prose-pre-bg: #0d1117;
-    --tw-prose-th-borders: var(--color-dark-border);
-    --tw-prose-td-borders: var(--color-dark-border);
-  }
-
-  .markdown-body code:not(pre code),
-  .prose code:not(pre code) {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    font-size: 0.85em;
-    background-color: rgba(175, 184, 193, 0.2);
-    padding: 0.2em 0.4em;
-    border-radius: 6px;
-    color: #24292e;
-    transition: background-color 0.2s;
-  }
-
-  .dark .markdown-body code:not(pre code),
-  .dark .prose code:not(pre code) {
-    background-color: rgba(110, 118, 129, 0.4);
-    color: #e8eaed;
-  }
-
-  .markdown-body blockquote {
-    @apply border-l-4 border-gray-200 dark:border-gray-700 pl-4 italic text-gray-600 dark:text-gray-400 my-6;
+  html.dark .markdown-body code:not(pre code) {
+    color: #ff8077;
+    background-color: rgba(234, 67, 53, 0.15);
   }
 }
