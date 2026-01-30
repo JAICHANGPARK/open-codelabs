@@ -8,7 +8,7 @@
     import "../app.css";
     import { Languages, LogOut, Sun, Moon, Github, FileText as FileIcon, Eye } from "lucide-svelte";
     import { themeState } from "$lib/theme.svelte";
-    import { logout, onAuthChange, isFirebaseMode, getSession } from "$lib/api";
+    import { logout, onAuthChange, isFirebaseMode, isSupabaseMode, isServerlessMode, getSession } from "$lib/api";
 
     let { children } = $props();
     let i18nLoaded = $state(false);
@@ -17,7 +17,7 @@
     let sessionRefreshing = $state(false);
 
     async function refreshSession() {
-        if (sessionRefreshing || !browser || isFirebaseMode()) return;
+        if (sessionRefreshing || !browser || isServerlessMode()) return;
         sessionRefreshing = true;
         try {
             const session = await getSession();
@@ -49,6 +49,18 @@
                             photoURL: user.photoURL
                         }));
                     });
+                }
+            });
+        } else if (isSupabaseMode()) {
+            cleanup = onAuthChange((user) => {
+                if (!user && page.url.pathname.startsWith("/admin")) {
+                    localStorage.removeItem("adminToken");
+                    localStorage.removeItem("user");
+                    goto("/login");
+                } else if (user) {
+                    const token = (user as any).accessToken || "supabase";
+                    localStorage.setItem("adminToken", token);
+                    localStorage.setItem("user", JSON.stringify(user));
                 }
             });
         } else {
@@ -96,7 +108,7 @@
         try {
             const isProtectedPath = pathname.startsWith("/admin");
 
-            if (isFirebaseMode()) {
+            if (isServerlessMode()) {
                 const token = localStorage.getItem("adminToken");
                 if (isProtectedPath && !token) {
                     goto("/login");
@@ -119,7 +131,7 @@
     async function handleLogout() {
         try {
             await logout();
-            if (isFirebaseMode()) {
+            if (isServerlessMode()) {
                 localStorage.removeItem("adminToken");
                 localStorage.removeItem("user");
             }
