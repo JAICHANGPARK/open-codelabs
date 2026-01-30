@@ -104,6 +104,12 @@
         "no_messages_desc": "퍼실리테이터로부터 아직 메시지가 없습니다.",
         "dm_select_prompt": "DM을 보내려면 참가자를 선택하세요.",
         "feedback_tab": "피드백",
+        "tab_groups": {
+            "authoring": "작성",
+            "operations": "운영",
+            "assessment": "평가",
+            "admin": "관리"
+        },
         "delete_step": "단계 삭제",
         "copy_url": "URL 복사",
         "placeholder_step_title": "단계 제목을 입력하세요",
@@ -211,10 +217,11 @@
         "guide_empty_preview": "작성된 가이드가 없습니다. AI로 생성하거나 직접 입력해보세요.",
         "export_codelab": "코드랩 내보내기",
         "save_changes": "변경사항 저장",
-        "stuck_on_step": "단계 {step}에서 멈춤",
-        "split_view": "분할 뷰",
-        "certificate_tab": "수료증",
-        "quiz_tab": "퀴즈",
+  "stuck_on_step": "단계 {step}에서 멈춤",
+  "split_view": "분할 뷰",
+  "certificate_tab": "수료증",
+  "workspace_tab": "워크스페이스",
+  "quiz_tab": "퀴즈",
         "quiz_settings": "퀴즈 설정",
         "quiz_enabled": "퀴즈 활성화",
         "quiz_question": "질문",
@@ -255,6 +262,61 @@
         "no_materials": "추가된 Material이 없습니다.",
         "delete_material_confirm": "이 자료를 삭제하시겠습니까?",
         "upload_file": "파일 업로드"
+    },
+    "workspace": {
+        "title": "워크스페이스 설정",
+        "subtitle": "핸즈온 실습용 워크스페이스 파일을 생성하고 관리하세요",
+        "active_title": "워크스페이스 활성화됨",
+        "labels": {
+            "structure": "구조",
+            "path": "경로",
+            "steps": "단계",
+            "branch": "브랜치",
+            "folder": "폴더",
+            "branches": "브랜치",
+            "folders": "폴더"
+        },
+        "steps_summary": "{count}단계 × 2 ({unit}) = 총 {total}개",
+        "download": "워크스페이스 다운로드",
+        "structure_title": "워크스페이스 구조",
+        "structure_options": {
+            "branch": "브랜치 기반 (Git 브랜치)",
+            "folder": "폴더 기반 (디렉터리)"
+        },
+        "base_files": "기본 파일",
+        "base_files_desc": "모든 단계 브랜치/폴더에 복사될 초기 파일을 업로드하세요",
+        "upload_files": "파일 업로드",
+        "remove_file": "삭제",
+        "info_title": "워크스페이스를 만들면 어떤 일이 일어나나요?",
+        "info_step_create": "각 단계마다 {unit} 2개가 생성됩니다:",
+        "info_copy_base": "업로드한 기본 파일이 각 {unit}에 복사됩니다",
+        "info_modify_later": "나중에 다운로드하여 특정 단계 파일을 수정 후 다시 업로드할 수 있습니다",
+        "create_button": "워크스페이스 생성",
+        "creating_button": "워크스페이스 생성 중...",
+        "browser_title": "워크스페이스 브라우저",
+        "browser_files_title": "파일",
+        "loading": "로딩 중...",
+        "loading_file": "파일 불러오는 중...",
+        "no_files": "파일이 없습니다",
+        "select_file": "내용을 보려면 파일을 선택하세요",
+        "errors": {
+            "upload_required": "워크스페이스에 사용할 파일을 최소 1개 업로드하세요",
+            "steps_required": "워크스페이스를 만들기 전에 코드랩 단계를 추가하세요",
+            "create_failed": "워크스페이스 생성 실패: {error}",
+            "download_failed": "다운로드 실패: {error}",
+            "load_workspace_failed": "워크스페이스 로드 실패: {error}",
+            "load_files_failed": "파일 목록 로드 실패: {error}",
+            "load_file_content_failed": "파일 내용 로드 실패: {error}",
+            "firebase_unavailable": "Firebase 모드에서는 Code Server 워크스페이스를 사용할 수 없습니다",
+            "not_found": "워크스페이스를 찾을 수 없습니다. 코드랩 생성 시 'Code Server Workspace'를 활성화하고 워크스페이스 파일을 업로드했는지 확인하세요."
+        },
+        "success": {
+            "created": "워크스페이스가 생성되었습니다!"
+        },
+        "actions": {
+            "browse": "워크스페이스 파일 탐색",
+            "download": "워크스페이스 다운로드"
+        }
     },
     "attendee": {
         "join_title": "코드랩 참여하기",
