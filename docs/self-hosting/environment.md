@@ -342,6 +342,47 @@ VITE_API_URL=https://abc123.trycloudflare.com
     - 빌드 타임에 코드에 삽입됨
     - 민감한 정보는 포함하지 마세요
 
+### VITE_USE_SUPABASE
+
+Enable Supabase serverless mode in the frontend.
+
+```bash
+VITE_USE_SUPABASE=true
+```
+
+### VITE_SUPABASE_URL
+
+Supabase project URL.
+
+```bash
+VITE_SUPABASE_URL=https://your-project.supabase.co
+```
+
+### VITE_SUPABASE_ANON_KEY
+
+Supabase public anon key (safe for client).
+
+```bash
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
+
+### VITE_SUPABASE_STORAGE_BUCKET
+
+Storage bucket name for uploads (images/materials/submissions).
+
+```bash
+VITE_SUPABASE_STORAGE_BUCKET=open-codelabs
+```
+
+### VITE_ADMIN_ID / VITE_ADMIN_PW
+
+Optional admin fallback for serverless mode (Supabase/Firebase).
+
+```bash
+VITE_ADMIN_ID=admin
+VITE_ADMIN_PW=admin
+```
+
 ### VITE_ADMIN_ENCRYPTION_PASSWORD
 
 Gemini API 키를 브라우저에서 암호화할 때 사용하는 비밀번호.
