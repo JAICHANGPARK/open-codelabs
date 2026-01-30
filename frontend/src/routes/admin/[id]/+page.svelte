@@ -324,59 +324,67 @@
         }
     }
 
+    function openAiMenuFromSelection(e: MouseEvent, offsetY = -40) {
+        const activeElement = document.activeElement as HTMLTextAreaElement;
+        const isTextArea =
+            activeElement && activeElement.tagName === "TEXTAREA";
+
+        if (!isTextArea) return false;
+
+        const start = activeElement.selectionStart;
+        const end = activeElement.selectionEnd;
+
+        if (start === end) return false;
+
+        const text = activeElement.value.substring(start, end);
+        if (!text.trim()) return false;
+
+        selectedText = text;
+        selectionRange = { start, end };
+        aiInstruction = "";
+
+        let x = e.clientX;
+        let y = e.clientY + offsetY;
+
+        const menuWidth = 320;
+        const menuHeight = 360;
+
+        if (x + menuWidth > window.innerWidth) {
+            x = window.innerWidth - menuWidth - 20;
+        }
+        if (x < 20) x = 20;
+
+        if (y + menuHeight > window.innerHeight) {
+            y = window.innerHeight - menuHeight - 20;
+        }
+        if (y < 20) y = 20;
+
+        menuPos = { x, y };
+        showAiMenu = true;
+        return true;
+    }
+
     function handleMouseUp(e: MouseEvent) {
         if (mode !== "edit") return;
 
-        // Timeout to let selection settle
         setTimeout(() => {
-            const activeElement = document.activeElement as HTMLTextAreaElement;
-            const isTextArea = activeElement && activeElement.tagName === "TEXTAREA";
-            
-            if (isTextArea) {
-                const start = activeElement.selectionStart;
-                const end = activeElement.selectionEnd;
+            if (openAiMenuFromSelection(e)) return;
 
-                if (start !== end) {
-                    const text = activeElement.value.substring(start, end);
-                    if (text.trim().length > 0) {
-                        selectedText = text;
-                        selectionRange = { start, end };
-                        aiInstruction = ""; // Reset instruction
-
-                        // Calculate position relative to viewport
-                        // If mouseup is outside textarea, we still show the menu near the mouse
-                        let x = e.clientX;
-                        let y = e.clientY - 40;
-
-                        // Ensure menu stays within viewport
-                        const menuWidth = 320; // w-80 = 20rem = 320px
-                        const menuHeight = 360;
-                        
-                        if (x + menuWidth > window.innerWidth) {
-                            x = window.innerWidth - menuWidth - 20;
-                        }
-                        if (x < 20) x = 20;
-                        
-                        if (y + menuHeight > window.innerHeight) {
-                            y = window.innerHeight - menuHeight - 20;
-                        }
-                        if (y < 20) y = 20;
-
-                        menuPos = { x, y };
-                        showAiMenu = true;
-                        return;
-                    }
-                }
-            }
-            
-            // Hide if clicked elsewhere and not loading and not clicking inside AI menu
             if (!aiLoading && showAiMenu) {
                 const target = e.target as HTMLElement;
-                if (!target.closest('.ai-menu-container')) {
+                if (!target.closest(".ai-menu-container")) {
                     showAiMenu = false;
                 }
             }
         }, 10);
+    }
+
+    function handleContextMenu(e: MouseEvent) {
+        if (mode !== "edit") return;
+        const opened = openAiMenuFromSelection(e, 8);
+        if (opened) {
+            e.preventDefault();
+        }
     }
 
 
@@ -2125,6 +2133,7 @@
                                     {handleKeydown}
                                     {handlePaste}
                                     {handleMouseUp}
+                                    {handleContextMenu}
                                     {improveWithAi}
                                     {syncEditorScroll}
                                     {syncPreviewScroll}
@@ -2135,6 +2144,7 @@
                                 <LiveMode
                                     {attendees}
                                     {helpRequests}
+                                    totalSteps={steps.length}
                                     bind:chatTab
                                     bind:dmTarget
                                     bind:dmMessage
@@ -2154,7 +2164,7 @@
                                     handleSave={handleUniversalSave}
                                 />
                             {:else if mode === "workspace"}
-                                <WorkspaceMode codelabId={id} {steps} />
+                                <WorkspaceMode codelabId={id} {steps} {geminiApiKey} />
                             {:else if mode === "raffle"}
                                 <RaffleMode
                                     {attendees}
