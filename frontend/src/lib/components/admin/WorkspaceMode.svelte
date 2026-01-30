@@ -1,11 +1,26 @@
 <script lang="ts">
-    import { FileUp, FolderGit2, Download, AlertCircle, CheckCircle2, Loader2 } from 'lucide-svelte';
-    import { getCodeServerInfo, createCodeServer, createCodeServerBranch, createCodeServerFolder, downloadCodeServerWorkspace, type WorkspaceFile } from '$lib/api-backend';
+    import { FileUp, FolderGit2, Download, AlertCircle, CheckCircle2, Loader2, Sparkles } from 'lucide-svelte';
+    import {
+        getCodeServerInfo,
+        createCodeServer,
+        createCodeServerBranch,
+        createCodeServerFolder,
+        downloadCodeServerWorkspace,
+        getWorkspaceFiles,
+        getWorkspaceFileContent,
+        getWorkspaceFolderFiles,
+        getWorkspaceFolderFileContent,
+        updateWorkspaceBranchFiles,
+        updateWorkspaceFolderFiles,
+        type WorkspaceFile
+    } from '$lib/api-backend';
+    import WorkspaceBrowser from '$lib/components/admin/WorkspaceBrowser.svelte';
+    import { streamGeminiStructuredOutput, type GeminiStructuredConfig } from '$lib/gemini';
     import type { Step } from '$lib/api';
     import { fade } from 'svelte/transition';
     import { t } from 'svelte-i18n';
 
-    let { codelabId, steps }: { codelabId: string; steps: Step[] } = $props();
+    let { codelabId, steps, geminiApiKey = "" }: { codelabId: string; steps: Step[]; geminiApiKey?: string } = $props();
 
     let workspaceExists = $state(false);
     let workspaceInfo = $state<{ path: string; structure_type: string } | null>(null);
@@ -13,12 +28,24 @@
     let creating = $state(false);
     let error = $state('');
     let success = $state('');
+    let aiStatus = $state('');
+    let aiError = $state('');
+    let aiGenerating = $state(false);
+    let aiCurrentStep = $state<number | null>(null);
+    let aiCurrentPhase = $state<'start' | 'end' | null>(null);
+    let aiStreamingText = $state('');
+    let aiStepLogs = $state<{ step: number; phase: 'start' | 'end'; updated: number; deleted: number }[]>([]);
 
     // Workspace creation options
     let structureType = $state<'branch' | 'folder'>('branch');
     let uploadedFiles = $state<{ name: string; content: string }[]>([]);
-    let fileInput: HTMLInputElement;
+    let fileInput = $state<HTMLInputElement | null>(null);
     let initialized = $state(false);
+
+    type WorkspaceUpdate = {
+        files: WorkspaceFile[];
+        deleted_files: string[];
+    };
 
     $effect(() => {
         if (!initialized) {
@@ -119,6 +146,301 @@
             error = $t('workspace.errors.download_failed', { error: (e as Error).message });
         }
     }
+
+    function parseStructuredJson<T>(raw: string): T | null {
+        const trimmed = raw.trim();
+        if (!trimmed) return null;
+        const firstBrace = trimmed.indexOf("{");
+        const lastBrace = trimmed.lastIndexOf("}");
+        if (firstBrace === -1 || lastBrace === -1) return null;
+        const jsonText = trimmed.substring(firstBrace, lastBrace + 1);
+        try {
+            return JSON.parse(jsonText) as T;
+        } catch {
+            return null;
+        }
+    }
+
+    function mapToWorkspaceFiles(files: Map<string, string>): WorkspaceFile[] {
+        return Array.from(files.entries()).map(([path, content]) => ({ path, content }));
+    }
+
+    async function loadBranchFiles(branch: string): Promise<Map<string, string>> {
+        const fileList = await getWorkspaceFiles(codelabId, branch);
+        const fileMap = new Map<string, string>();
+        for (const file of fileList) {
+            const content = await getWorkspaceFileContent(codelabId, branch, file);
+            fileMap.set(file, content);
+        }
+        return fileMap;
+    }
+
+    async function loadFolderFiles(folder: string): Promise<Map<string, string>> {
+        const fileList = await getWorkspaceFolderFiles(codelabId, folder);
+        const fileMap = new Map<string, string>();
+        for (const file of fileList) {
+            const content = await getWorkspaceFolderFileContent(codelabId, folder, file);
+            fileMap.set(file, content);
+        }
+        return fileMap;
+    }
+
+    async function applyBranchSnapshot(branch: string, files: Map<string, string>, commitMessage: string) {
+        const existing = await getWorkspaceFiles(codelabId, branch);
+        const deleteFiles = existing.filter((path) => !files.has(path));
+        await updateWorkspaceBranchFiles(
+            codelabId,
+            branch,
+            mapToWorkspaceFiles(files),
+            deleteFiles,
+            commitMessage
+        );
+    }
+
+    async function applyFolderSnapshot(folder: string, files: Map<string, string>) {
+        const existing = await getWorkspaceFolderFiles(codelabId, folder);
+        const deleteFiles = existing.filter((path) => !files.has(path));
+        await updateWorkspaceFolderFiles(codelabId, folder, mapToWorkspaceFiles(files), deleteFiles);
+    }
+
+    async function generateStepUpdate(step: Step, currentFiles: Map<string, string>): Promise<WorkspaceUpdate> {
+        const schema = {
+            type: "object",
+            properties: {
+                files: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            path: { type: "string" },
+                            content: { type: "string" }
+                        },
+                        required: ["path", "content"]
+                    }
+                },
+                deleted_files: {
+                    type: "array",
+                    items: { type: "string" }
+                }
+            },
+            required: ["files", "deleted_files"]
+        };
+
+        const systemPrompt =
+            "You are a senior software engineer. Update the codebase to match the end state of a tutorial step. " +
+            "Return JSON only and follow the schema strictly. Include full file contents for changed/new files only. " +
+            "If a file should be deleted, list its path in deleted_files. Do not include explanations.";
+
+        const filesPayload = JSON.stringify(
+            Array.from(currentFiles.entries()).map(([path, content]) => ({ path, content })),
+            null,
+            2
+        );
+
+        const prompt =
+            `Step Title: ${step.title}\n\n` +
+            `Step Instructions (Markdown):\n${step.content_markdown}\n\n` +
+            `Current Files (JSON):\n${filesPayload}\n\n` +
+            `Return the minimal set of file updates needed to complete this step.`;
+
+        const config: GeminiStructuredConfig = {
+            apiKey: geminiApiKey,
+            model: "gemini-3-flash-preview"
+        };
+
+        let responseText = "";
+        const stream = streamGeminiStructuredOutput(prompt, systemPrompt, schema, config);
+        for await (const chunk of stream) {
+            if (chunk.content) {
+                responseText += chunk.content;
+                aiStreamingText = responseText;
+            }
+        }
+
+        const parsed = parseStructuredJson<WorkspaceUpdate>(responseText);
+        if (!parsed) {
+            throw new Error($t("ai_generator.error_parse"));
+        }
+        return {
+            files: parsed.files ?? [],
+            deleted_files: parsed.deleted_files ?? []
+        };
+    }
+
+    async function generateStepStartUpdate(step: Step, currentFiles: Map<string, string>): Promise<WorkspaceUpdate> {
+        const schema = {
+            type: "object",
+            properties: {
+                files: {
+                    type: "array",
+                    items: {
+                        type: "object",
+                        properties: {
+                            path: { type: "string" },
+                            content: { type: "string" }
+                        },
+                        required: ["path", "content"]
+                    }
+                },
+                deleted_files: {
+                    type: "array",
+                    items: { type: "string" }
+                }
+            },
+            required: ["files", "deleted_files"]
+        };
+
+        const systemPrompt =
+            "You are a senior software engineer. Create the START state for this tutorial step. " +
+            "This should be the code BEFORE applying the step instructions. " +
+            "Use the provided base files as a reference, but remove or simplify anything that would be introduced during the step. " +
+            "Return JSON only and follow the schema strictly. Include full file contents for changed/new files only. " +
+            "If a file should be deleted, list its path in deleted_files. Do not include explanations.";
+
+        const filesPayload = JSON.stringify(
+            Array.from(currentFiles.entries()).map(([path, content]) => ({ path, content })),
+            null,
+            2
+        );
+
+        const prompt =
+            `Step Title: ${step.title}\n\n` +
+            `Step Instructions (Markdown):\n${step.content_markdown}\n\n` +
+            `Base Files (JSON):\n${filesPayload}\n\n` +
+            `Return the minimal set of file updates needed to create the START state for this step.`;
+
+        const config: GeminiStructuredConfig = {
+            apiKey: geminiApiKey,
+            model: "gemini-3-flash-preview"
+        };
+
+        let responseText = "";
+        const stream = streamGeminiStructuredOutput(prompt, systemPrompt, schema, config);
+        for await (const chunk of stream) {
+            if (chunk.content) {
+                responseText += chunk.content;
+                aiStreamingText = responseText;
+            }
+        }
+
+        const parsed = parseStructuredJson<WorkspaceUpdate>(responseText);
+        if (!parsed) {
+            throw new Error($t("ai_generator.error_parse"));
+        }
+        return {
+            files: parsed.files ?? [],
+            deleted_files: parsed.deleted_files ?? []
+        };
+    }
+
+    async function handleGenerateWorkspaceWithAi() {
+        if (!geminiApiKey) {
+            aiError = $t("ai_generator.api_key_required");
+            return;
+        }
+        if (!workspaceExists || !workspaceInfo) {
+            aiError = $t("workspace.errors.not_found");
+            return;
+        }
+        if (!steps.length) {
+            aiError = $t("workspace.errors.steps_required");
+            return;
+        }
+
+        aiGenerating = true;
+        aiError = "";
+        aiStatus = $t("workspace.ai_running");
+        aiCurrentStep = null;
+        aiCurrentPhase = null;
+        aiStreamingText = "";
+        aiStepLogs = [];
+
+        try {
+            const structure = workspaceInfo.structure_type;
+            const initialKey = `step-1-start`;
+            let currentFiles = structure === "branch"
+                ? await loadBranchFiles(initialKey)
+                : await loadFolderFiles(initialKey);
+
+            for (let i = 0; i < steps.length; i++) {
+                const stepNumber = i + 1;
+                const startKey = `step-${stepNumber}-start`;
+                const endKey = `step-${stepNumber}-end`;
+                aiCurrentStep = stepNumber;
+                aiStreamingText = "";
+
+                if (stepNumber === 1) {
+                    aiCurrentPhase = "start";
+                    aiStatus = $t("workspace.ai_progress_start", {
+                        values: { current: stepNumber, total: steps.length }
+                    });
+                    const startUpdate = await generateStepStartUpdate(steps[i], currentFiles);
+                    for (const file of startUpdate.files) {
+                        currentFiles.set(file.path, file.content);
+                    }
+                    for (const file of startUpdate.deleted_files) {
+                        currentFiles.delete(file);
+                    }
+                    if (structure === "branch") {
+                        await applyBranchSnapshot(startKey, currentFiles, `AI step ${stepNumber} start`);
+                    } else {
+                        await applyFolderSnapshot(startKey, currentFiles);
+                    }
+                    aiStepLogs = [
+                        ...aiStepLogs,
+                        {
+                            step: stepNumber,
+                            phase: "start",
+                            updated: startUpdate.files.length,
+                            deleted: startUpdate.deleted_files.length
+                        }
+                    ];
+                } else {
+                    if (structure === "branch") {
+                        await applyBranchSnapshot(startKey, currentFiles, `AI step ${stepNumber} start`);
+                    } else {
+                        await applyFolderSnapshot(startKey, currentFiles);
+                    }
+                }
+
+                aiCurrentPhase = "end";
+                aiStatus = $t("workspace.ai_progress_end", {
+                    values: { current: stepNumber, total: steps.length }
+                });
+
+                const update = await generateStepUpdate(steps[i], currentFiles);
+                for (const file of update.files) {
+                    currentFiles.set(file.path, file.content);
+                }
+                for (const file of update.deleted_files) {
+                    currentFiles.delete(file);
+                }
+
+                if (structure === "branch") {
+                    await applyBranchSnapshot(endKey, currentFiles, `AI step ${stepNumber} end`);
+                } else {
+                    await applyFolderSnapshot(endKey, currentFiles);
+                }
+
+                aiStepLogs = [
+                    ...aiStepLogs,
+                    {
+                        step: stepNumber,
+                        phase: "end",
+                        updated: update.files.length,
+                        deleted: update.deleted_files.length
+                    }
+                ];
+            }
+
+            aiStatus = $t("workspace.ai_done");
+        } catch (e) {
+            aiStatus = '';
+            aiError = (e as Error).message;
+        } finally {
+            aiGenerating = false;
+        }
+    }
 </script>
 
 <div
@@ -138,7 +460,7 @@
     </div>
 
     <div class="p-6 sm:p-8 flex-1 overflow-y-auto">
-        <div class="max-w-3xl space-y-6">
+        <div class="max-w-6xl space-y-6">
             {#if error}
                 <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
                     <AlertCircle class="text-red-600 dark:text-red-400 shrink-0 mt-0.5" size={20} />
@@ -153,158 +475,259 @@
                 </div>
             {/if}
 
+            {#if aiError}
+                <div class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
+                    <AlertCircle class="text-red-600 dark:text-red-400 shrink-0 mt-0.5" size={20} />
+                    <p class="text-red-800 dark:text-red-200 text-sm">{aiError}</p>
+                </div>
+            {/if}
+
+            {#if aiStatus}
+                <div class="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg flex items-start gap-3">
+                    <Sparkles class="text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" size={20} />
+                    <p class="text-blue-800 dark:text-blue-200 text-sm">{aiStatus}</p>
+                </div>
+            {/if}
+
+            {#if aiGenerating || aiStepLogs.length > 0}
+                <div class="bg-[#F8F9FA] dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border rounded-xl p-6 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-sm font-bold text-[#202124] dark:text-dark-text">
+                            {$t('workspace.ai_response_title')}
+                        </h4>
+                        {#if aiCurrentStep !== null}
+                            <span class="text-xs text-[#5F6368] dark:text-dark-text-muted">
+                                {$t('workspace.ai_response_step', {
+                                    values: {
+                                        step: aiCurrentStep,
+                                        phase: aiCurrentPhase
+                                            ? $t(`workspace.ai_phase_${aiCurrentPhase}`)
+                                            : ''
+                                    }
+                                })}
+                            </span>
+                        {/if}
+                    </div>
+                    <pre class="bg-[#0D1117] text-[#E8EAED] rounded-lg p-4 text-xs overflow-auto max-h-56">
+{aiStreamingText || $t('workspace.ai_response_waiting')}
+                    </pre>
+                    {#if aiStepLogs.length > 0}
+                        <div class="text-xs text-[#5F6368] dark:text-dark-text-muted space-y-1">
+                            {#each aiStepLogs as log}
+                                <div>
+                                    {$t('workspace.ai_step_summary', {
+                                        values: {
+                                            step: log.step,
+                                            phase: $t(`workspace.ai_phase_${log.phase}`),
+                                            updated: log.updated,
+                                            deleted: log.deleted
+                                        }
+                                    })}
+                                </div>
+                            {/each}
+                        </div>
+                    {/if}
+                </div>
+            {/if}
+
             {#if loading}
                 <div class="flex items-center justify-center py-12">
                     <Loader2 class="animate-spin text-[#4285F4]" size={32} />
                 </div>
-            {:else if workspaceExists && workspaceInfo}
-                <!-- Existing Workspace -->
-                <div class="bg-[#F8F9FA] dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border rounded-xl p-6">
-                    <div class="flex items-start justify-between mb-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-[#202124] dark:text-dark-text mb-3">
-                                {$t('workspace.active_title')}
-                            </h3>
-                            <div class="space-y-2 text-sm">
-                                <p class="text-[#5F6368] dark:text-dark-text-muted">
-                                    <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.structure')}:</span>
-                                    <span class="capitalize ml-2">{workspaceInfo.structure_type === 'branch' ? $t('workspace.labels.branch') : $t('workspace.labels.folder')}</span>
-                                </p>
-                                <p class="text-[#5F6368] dark:text-dark-text-muted">
-                                    <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.path')}:</span>
-                                    <code class="ml-2 bg-white dark:bg-dark-bg px-2 py-0.5 rounded text-xs font-mono">{workspaceInfo.path}</code>
-                                </p>
-                                <p class="text-[#5F6368] dark:text-dark-text-muted">
-                                    <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.steps')}:</span>
-                                    <span class="ml-2">{$t('workspace.steps_summary', {
-                                        count: steps.length,
-                                        unit: workspaceInfo.structure_type === 'branch' ? $t('workspace.labels.branches') : $t('workspace.labels.folders'),
-                                        total: steps.length * 2
-                                    })}</span>
-                                </p>
-                            </div>
-                        </div>
-                        <CheckCircle2 class="text-[#34A853]" size={24} />
-                    </div>
-
-                    <div class="pt-4 border-t border-[#E8EAED] dark:border-dark-border">
-                        <button
-                            onclick={handleDownload}
-                            class="flex items-center gap-2 px-4 py-2 bg-[#4285F4] text-white rounded-lg hover:bg-[#1A73E8] transition-colors text-sm font-medium shadow-sm"
-                        >
-                            <Download size={16} />
-                            {$t('workspace.download')}
-                        </button>
-                    </div>
-                </div>
             {:else}
-                <!-- Create New Workspace -->
-                <div class="space-y-6">
-                    <!-- Structure Type Selection -->
-                    <div class="bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-xl border border-[#E8EAED] dark:border-dark-border">
-                        <label class="block text-sm font-bold text-[#202124] dark:text-dark-text mb-3">
-                            {$t('workspace.structure_title')}
-                        </label>
-                        <div class="flex gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    bind:group={structureType}
-                                    value="branch"
-                                    class="w-4 h-4 text-[#4285F4]"
-                                />
-                                <span class="text-sm text-[#5F6368] dark:text-dark-text-muted">
-                                    {$t('workspace.structure_options.branch')}
-                                </span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    bind:group={structureType}
-                                    value="folder"
-                                    class="w-4 h-4 text-[#4285F4]"
-                                />
-                                <span class="text-sm text-[#5F6368] dark:text-dark-text-muted">
-                                    {$t('workspace.structure_options.folder')}
-                                </span>
-                            </label>
+                {#if workspaceExists && workspaceInfo}
+                    <!-- Existing Workspace -->
+                    <div class="bg-[#F8F9FA] dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border rounded-xl p-6">
+                        <div class="flex items-start justify-between mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-[#202124] dark:text-dark-text mb-3">
+                                    {$t('workspace.active_title')}
+                                </h3>
+                                <div class="space-y-2 text-sm">
+                                    <p class="text-[#5F6368] dark:text-dark-text-muted">
+                                        <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.structure')}:</span>
+                                        <span class="capitalize ml-2">{workspaceInfo.structure_type === 'branch' ? $t('workspace.labels.branch') : $t('workspace.labels.folder')}</span>
+                                    </p>
+                                    <p class="text-[#5F6368] dark:text-dark-text-muted">
+                                        <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.path')}:</span>
+                                        <code class="ml-2 bg-white dark:bg-dark-bg px-2 py-0.5 rounded text-xs font-mono">{workspaceInfo.path}</code>
+                                    </p>
+                                    <p class="text-[#5F6368] dark:text-dark-text-muted">
+                                        <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.steps')}:</span>
+                                        <span class="ml-2">{$t('workspace.steps_summary', {
+                                            values: {
+                                                count: steps.length,
+                                                unit: workspaceInfo.structure_type === 'branch' ? $t('workspace.labels.branches') : $t('workspace.labels.folders'),
+                                                total: steps.length * 2
+                                            }
+                                        })}</span>
+                                    </p>
+                                </div>
+                            </div>
+                            <CheckCircle2 class="text-[#34A853]" size={24} />
+                        </div>
+
+                        <div class="pt-4 border-t border-[#E8EAED] dark:border-dark-border">
+                            <button
+                                onclick={handleDownload}
+                                class="flex items-center gap-2 px-4 py-2 bg-[#4285F4] text-white rounded-lg hover:bg-[#1A73E8] transition-colors text-sm font-medium shadow-sm"
+                            >
+                                <Download size={16} />
+                                {$t('workspace.download')}
+                            </button>
                         </div>
                     </div>
 
-                    <!-- File Upload -->
-                    <div class="bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-xl border border-[#E8EAED] dark:border-dark-border">
-                        <label class="block text-sm font-bold text-[#202124] dark:text-dark-text mb-3">
-                            {$t('workspace.base_files')}
-                        </label>
-                        <p class="text-xs text-[#5F6368] dark:text-dark-text-muted mb-4">
-                            {$t('workspace.base_files_desc')}
-                        </p>
-
-                        <input
-                            bind:this={fileInput}
-                            type="file"
-                            multiple
-                            onchange={handleFileUpload}
-                            class="hidden"
-                        />
-
+                    <div class="bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-6 flex flex-col gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-[#34A853]/10 rounded-lg text-[#34A853]">
+                                <Sparkles size={20} />
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-[#202124] dark:text-dark-text">
+                                    {$t('workspace.ai_title')}
+                                </h3>
+                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                                    {$t('workspace.ai_desc')}
+                                </p>
+                            </div>
+                        </div>
                         <button
-                            onclick={() => fileInput?.click()}
-                            class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-lg hover:bg-[#F8F9FA] dark:hover:bg-dark-hover transition-colors text-sm font-medium text-[#5F6368] dark:text-dark-text"
+                            onclick={handleGenerateWorkspaceWithAi}
+                            disabled={aiGenerating}
+                            class="flex items-center gap-2 px-4 py-2 bg-[#34A853] text-white rounded-lg hover:bg-[#1E8E3E] transition-colors text-sm font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed w-fit"
                         >
-                            <FileUp size={16} />
-                            {$t('workspace.upload_files')}
+                            {#if aiGenerating}
+                                <Loader2 class="animate-spin" size={16} />
+                                {$t('workspace.ai_running')}
+                            {:else}
+                                <Sparkles size={16} />
+                                {$t('workspace.ai_button')}
+                            {/if}
                         </button>
-
-                        {#if uploadedFiles.length > 0}
-                            <div class="mt-4 space-y-2">
-                                {#each uploadedFiles as file, i}
-                                    <div class="flex items-center justify-between p-3 bg-white dark:bg-dark-surface rounded-lg border border-[#E8EAED] dark:border-dark-border">
-                                        <span class="text-sm font-mono text-[#202124] dark:text-dark-text">
-                                            {file.name}
-                                        </span>
-                                        <button
-                                            onclick={() => removeFile(i)}
-                                            class="text-[#EA4335] hover:text-[#D93025] text-xs font-medium"
-                                        >
-                                            {$t('workspace.remove_file')}
-                                        </button>
-                                    </div>
-                                {/each}
-                            </div>
-                        {/if}
                     </div>
-
-                    <!-- Info Box -->
-                    <div class="p-4 bg-[#E8F0FE] dark:bg-[#4285F4]/10 border border-[#4285F4]/20 rounded-lg">
-                        <div class="flex items-start gap-3">
-                            <FolderGit2 class="text-[#4285F4] shrink-0 mt-0.5" size={20} />
-                            <div class="text-sm text-[#1967D2] dark:text-[#8AB4F8]">
-                                <p class="font-medium mb-2">{$t('workspace.info_title')}</p>
-                                <ul class="list-disc list-inside space-y-1 text-xs">
-                                    <li>{$t('workspace.info_step_create', { unit: structureType === 'branch' ? $t('workspace.labels.branches') : $t('workspace.labels.folders') })} <code class="bg-white/50 px-1 rounded">step-N-start</code>, <code class="bg-white/50 px-1 rounded">step-N-end</code></li>
-                                    <li>{$t('workspace.info_copy_base', { unit: structureType === 'branch' ? $t('workspace.labels.branch') : $t('workspace.labels.folder') })}</li>
-                                    <li>{$t('workspace.info_modify_later')}</li>
-                                </ul>
+                {:else}
+                    <!-- Create New Workspace -->
+                    <div class="space-y-6">
+                        <!-- Structure Type Selection -->
+                        <div class="bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-xl border border-[#E8EAED] dark:border-dark-border">
+                            <div class="block text-sm font-bold text-[#202124] dark:text-dark-text mb-3">
+                                {$t('workspace.structure_title')}
+                            </div>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        bind:group={structureType}
+                                        value="branch"
+                                        class="w-4 h-4 text-[#4285F4]"
+                                    />
+                                    <span class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                                        {$t('workspace.structure_options.branch')}
+                                    </span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                        type="radio"
+                                        bind:group={structureType}
+                                        value="folder"
+                                        class="w-4 h-4 text-[#4285F4]"
+                                    />
+                                    <span class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                                        {$t('workspace.structure_options.folder')}
+                                    </span>
+                                </label>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Create Button -->
-                    <button
-                        onclick={createWorkspace}
-                        disabled={creating || uploadedFiles.length === 0 || steps.length === 0}
-                        class="flex items-center gap-2 px-6 py-3 bg-[#4285F4] text-white rounded-lg hover:bg-[#1A73E8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
-                    >
-                        {#if creating}
-                            <Loader2 class="animate-spin" size={16} />
-                            {$t('workspace.creating_button')}
-                        {:else}
-                            <FolderGit2 size={16} />
-                            {$t('workspace.create_button')}
-                        {/if}
-                    </button>
-                </div>
+                        <!-- File Upload -->
+                        <div class="bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-xl border border-[#E8EAED] dark:border-dark-border">
+                            <div class="block text-sm font-bold text-[#202124] dark:text-dark-text mb-3">
+                                {$t('workspace.base_files')}
+                            </div>
+                            <p class="text-xs text-[#5F6368] dark:text-dark-text-muted mb-4">
+                                {$t('workspace.base_files_desc')}
+                            </p>
+
+                            <input
+                                bind:this={fileInput}
+                                type="file"
+                                multiple
+                                onchange={handleFileUpload}
+                                class="hidden"
+                            />
+
+                            <button
+                                onclick={() => fileInput?.click()}
+                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-lg hover:bg-[#F8F9FA] dark:hover:bg-dark-hover transition-colors text-sm font-medium text-[#5F6368] dark:text-dark-text"
+                            >
+                                <FileUp size={16} />
+                                {$t('workspace.upload_files')}
+                            </button>
+
+                            {#if uploadedFiles.length > 0}
+                                <div class="mt-4 space-y-2">
+                                    {#each uploadedFiles as file, i}
+                                        <div class="flex items-center justify-between p-3 bg-white dark:bg-dark-surface rounded-lg border border-[#E8EAED] dark:border-dark-border">
+                                            <span class="text-sm font-mono text-[#202124] dark:text-dark-text">
+                                                {file.name}
+                                            </span>
+                                            <button
+                                                onclick={() => removeFile(i)}
+                                                class="text-[#EA4335] hover:text-[#D93025] text-xs font-medium"
+                                            >
+                                                {$t('workspace.remove_file')}
+                                            </button>
+                                        </div>
+                                    {/each}
+                                </div>
+                            {/if}
+                        </div>
+
+                        <!-- Info Box -->
+                        <div class="p-4 bg-[#E8F0FE] dark:bg-[#4285F4]/10 border border-[#4285F4]/20 rounded-lg">
+                            <div class="flex items-start gap-3">
+                                <FolderGit2 class="text-[#4285F4] shrink-0 mt-0.5" size={20} />
+                                <div class="text-sm text-[#1967D2] dark:text-[#8AB4F8]">
+                                    <p class="font-medium mb-2">{$t('workspace.info_title')}</p>
+                                    <ul class="list-disc list-inside space-y-1 text-xs">
+                                        <li>{$t('workspace.info_step_create', { unit: structureType === 'branch' ? $t('workspace.labels.branches') : $t('workspace.labels.folders') })} <code class="bg-white/50 px-1 rounded">step-N-start</code>, <code class="bg-white/50 px-1 rounded">step-N-end</code></li>
+                                        <li>{$t('workspace.info_copy_base', { unit: structureType === 'branch' ? $t('workspace.labels.branch') : $t('workspace.labels.folder') })}</li>
+                                        <li>{$t('workspace.info_modify_later')}</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Create Button -->
+                        <button
+                            onclick={createWorkspace}
+                            disabled={creating || uploadedFiles.length === 0 || steps.length === 0}
+                            class="flex items-center gap-2 px-6 py-3 bg-[#4285F4] text-white rounded-lg hover:bg-[#1A73E8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
+                        >
+                            {#if creating}
+                                <Loader2 class="animate-spin" size={16} />
+                                {$t('workspace.creating_button')}
+                            {:else}
+                                <FolderGit2 size={16} />
+                                {$t('workspace.create_button')}
+                            {/if}
+                        </button>
+                    </div>
+                {/if}
+
+                {#if workspaceExists && workspaceInfo}
+                    <WorkspaceBrowser codelabId={codelabId} embedded />
+                {:else}
+                    <div class="bg-[#F8F9FA] dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border rounded-xl p-6">
+                        <h3 class="text-lg font-bold text-[#202124] dark:text-dark-text mb-2">
+                            {$t('workspace.browser_title')}
+                        </h3>
+                        <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                            {$t('workspace.browser_empty')}
+                        </p>
+                    </div>
+                {/if}
             {/if}
         </div>
     </div>
