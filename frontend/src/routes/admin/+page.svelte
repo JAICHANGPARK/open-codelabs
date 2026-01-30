@@ -260,6 +260,14 @@
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-2 sm:gap-4 w-full lg:w-auto">
+                <a
+                    href="/admin/audit-logs"
+                    class="p-2.5 hover:bg-white dark:hover:bg-dark-surface rounded-full text-[#5F6368] dark:text-dark-text-muted transition-all border border-transparent hover:border-[#E8EAED] dark:hover:border-dark-border"
+                    title="Audit Logs"
+                    aria-label="Audit Logs"
+                >
+                    <FileText size={20} />
+                </a>
                 <button
                     onclick={() => (showSettingsModal = true)}
                     class="p-2.5 hover:bg-white dark:hover:bg-dark-surface rounded-full text-[#5F6368] dark:text-dark-text-muted transition-all border border-transparent hover:border-[#E8EAED] dark:hover:border-dark-border"
