@@ -64,6 +64,7 @@
     import GuideMode from "$lib/components/admin/GuideMode.svelte";
     import SubmissionsMode from "$lib/components/admin/SubmissionsMode.svelte";
     import RaffleMode from "$lib/components/admin/RaffleMode.svelte";
+    import CertificateMode from "$lib/components/admin/CertificateMode.svelte";
     import WorkspaceBrowser from "$lib/components/admin/WorkspaceBrowser.svelte";
     import WorkspaceMode from "$lib/components/admin/WorkspaceMode.svelte";
 
@@ -77,7 +78,7 @@
 
     // Initialize mode from URL or default to 'edit'
     let initialMode = page.url.searchParams.get("mode");
-    let mode = $state<"edit" | "preview" | "guide" | "live" | "feedback" | "materials" | "quiz" | "submissions" | "settings" | "workspace" | "raffle">(
+    let mode = $state<"edit" | "preview" | "guide" | "live" | "feedback" | "materials" | "quiz" | "submissions" | "settings" | "workspace" | "raffle" | "certificate">(
         initialMode === "preview" ||
             initialMode === "guide" ||
             initialMode === "live" ||
@@ -87,7 +88,8 @@
             initialMode === "submissions" ||
             initialMode === "settings" ||
             initialMode === "workspace" ||
-            initialMode === "raffle"
+            initialMode === "raffle" ||
+            initialMode === "certificate"
             ? (initialMode as any)
             : "edit",
     );
@@ -2056,7 +2058,7 @@
             class="max-w-screen-2xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2 items-start relative"
         >
             <!-- Sidebar Navigation -->
-            {#if mode !== "live" && mode !== "feedback" && mode !== "materials" && mode !== "quiz" && mode !== "settings" && mode !== "guide" && mode !== "submissions" && mode !== "raffle"}
+            {#if mode !== "live" && mode !== "feedback" && mode !== "materials" && mode !== "quiz" && mode !== "settings" && mode !== "guide" && mode !== "submissions" && mode !== "workspace" && mode !== "raffle"}
                 <AdminSidebar
                     bind:steps
                     bind:activeStepIndex
@@ -2157,6 +2159,8 @@
                                     {attendees}
                                     onRefresh={refreshLiveData}
                                 />
+                            {:else if mode === "certificate"}
+                                <CertificateMode {attendees} />
                             {/if}
 
                             {#if mode === "guide" && codelab}
