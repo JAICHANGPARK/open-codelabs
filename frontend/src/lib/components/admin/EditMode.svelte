@@ -43,6 +43,7 @@
         handleKeydown,
         handlePaste,
         handleMouseUp,
+        handleContextMenu,
         improveWithAi,
         syncEditorScroll,
         syncPreviewScroll
@@ -67,6 +68,7 @@
         handleKeydown: (e: KeyboardEvent) => void;
         handlePaste: (e: ClipboardEvent) => void;
         handleMouseUp: (e: MouseEvent) => void;
+        handleContextMenu: (e: MouseEvent) => void;
         improveWithAi: (instruction?: string) => void;
         syncEditorScroll: () => void;
         syncPreviewScroll: () => void;
@@ -336,25 +338,31 @@
 />
 
 <div class="flex-1 flex flex-col min-h-[60vh] relative">
-    <div class="flex-1 grid {isSplitView ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'} gap-6 relative">
+        <div class="flex-1 grid {isSplitView ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'} gap-6 relative">
         <div class="flex flex-col gap-2">
             <div class="flex items-center justify-between px-1">
                 <span class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider">
                     {$t("editor.markdown_editor")}
                 </span>
             </div>
-            <textarea
-                bind:this={editorEl}
-                onscroll={syncEditorScroll}
-                bind:value={step.content_markdown}
-                onkeydown={handleKeydown}
-                onpaste={handlePaste}
-                readonly={aiLoading}
-                class="flex-1 w-full p-6 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl font-mono text-sm sm:text-base leading-relaxed resize-none outline-none focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 transition-all text-[#3C4043] dark:text-dark-text"
-                style={aiLoading ? "cursor: wait;" : ""}
-                placeholder={$t("editor.start_writing")}
-                onmouseup={handleMouseUp}
-            ></textarea>
+            <div
+                class="relative flex-1 rounded-2xl"
+                class:ai-loading-frame={aiLoading}
+            >
+                <textarea
+                    bind:this={editorEl}
+                    onscroll={syncEditorScroll}
+                    bind:value={step.content_markdown}
+                    onkeydown={handleKeydown}
+                    onpaste={handlePaste}
+                    readonly={aiLoading}
+                    class="h-full w-full p-6 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl font-mono text-sm sm:text-base leading-relaxed resize-none outline-none focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 transition-all text-[#3C4043] dark:text-dark-text"
+                    style={aiLoading ? "cursor: wait;" : ""}
+                    placeholder={$t("editor.start_writing")}
+                    onmouseup={handleMouseUp}
+                    oncontextmenu={handleContextMenu}
+                ></textarea>
+            </div>
         </div>
 
         {#if isSplitView}
@@ -499,3 +507,34 @@
         </div>
     </div>
 {/if}
+
+<style>
+    .ai-loading-frame::before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        padding: 2px;
+        background: conic-gradient(
+            from 0deg,
+            #4285f4,
+            #34a853,
+            #fbbc05,
+            #ea4335,
+            #4285f4
+        );
+        -webkit-mask: linear-gradient(#000 0 0) content-box,
+            linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        animation: ai-loading-spin 1.4s linear infinite;
+        pointer-events: none;
+        z-index: 1;
+    }
+
+    @keyframes ai-loading-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
