@@ -177,13 +177,29 @@ pub async fn request_help(
     info: RequestInfo,
     Json(payload): Json<HelpRequestPayload>,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
-    let attendee = session.require_attendee()?;
-    if attendee.codelab_id.as_deref() != Some(id.as_str()) {
-        return Err(forbidden());
+    // Check if user is admin first, and provide helpful message
+    if session.require_admin().is_ok() {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "Admins cannot request help. Please register as an attendee first by visiting the entry page.".to_string()
+        ));
     }
+
+    let attendee = session.require_attendee().map_err(|_| {
+        (StatusCode::UNAUTHORIZED, "You must be registered as an attendee to request help".to_string())
+    })?;
+
+    if attendee.codelab_id.as_deref() != Some(id.as_str()) {
+        return Err((
+            StatusCode::FORBIDDEN,
+            "You are not registered for this codelab".to_string()
+        ));
+    }
+
     if payload.step_number < 1 {
         return Err(bad_request("invalid step_number"));
     }
+
     let attendee_id = attendee.sub;
 
     let help_id = uuid::Uuid::new_v4().to_string();
