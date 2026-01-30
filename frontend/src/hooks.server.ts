@@ -10,11 +10,22 @@ export const handle: Handle = async ({ event, resolve }) => {
 		'ws:',
 		'wss:'
 	]);
+	const imgSrc = new Set(["'self'", 'data:', 'blob:']);
 	const envApiUrl = process.env.VITE_API_URL;
 	if (envApiUrl) {
 		try {
 			const origin = new URL(envApiUrl).origin;
 			connectSrc.add(origin);
+		} catch {
+			// ignore invalid env values
+		}
+	}
+	const envSupabaseUrl = process.env.VITE_SUPABASE_URL;
+	if (envSupabaseUrl) {
+		try {
+			const origin = new URL(envSupabaseUrl).origin;
+			connectSrc.add(origin);
+			imgSrc.add(origin);
 		} catch {
 			// ignore invalid env values
 		}
@@ -38,7 +49,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		"base-uri 'self'",
 		"frame-ancestors 'none'",
 		"object-src 'none'",
-		"img-src 'self' data: blob:",
+		`img-src ${Array.from(imgSrc).join(' ')}`,
 		"script-src 'self' 'unsafe-inline'",
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 		"font-src 'self' https://fonts.gstatic.com",
