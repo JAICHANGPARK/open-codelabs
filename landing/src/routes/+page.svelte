@@ -14,6 +14,12 @@
 		MessageSquare,
 		Award,
 		CheckCircle2,
+		ClipboardCheck,
+		FileText,
+		FolderTree,
+		GitBranch,
+		LifeBuoy,
+		QrCode,
 		Sparkles,
 		Sun,
 		Moon,
@@ -45,6 +51,7 @@
 		nav: {
 			features: lang === "ko" ? "주요 기능" : "Features",
 			roles: lang === "ko" ? "사용자별 기능" : "Roles",
+			liveOps: lang === "ko" ? "라이브 운영" : "Live Ops",
 			quickstart: lang === "ko" ? "빠른 시작" : "Quickstart",
 			getStarted: lang === "ko" ? "시작하기" : "Get Started",
 		},
@@ -251,6 +258,91 @@
 				},
 			],
 		},
+		liveOps: {
+			eyebrow: lang === "ko" ? "라이브 운영 키트" : "Live Ops Toolkit",
+			title:
+				lang === "ko"
+					? "세션 현장에서 바로 쓰는 운영 도구"
+					: "Run the room with real-time tools",
+			desc:
+				lang === "ko"
+					? "채팅, 도움 요청, 퀴즈·피드백, 자료 배포, QR 초대를 한 화면에서 운영합니다."
+					: "Chat, help queues, quizzes, materials, and QR invites in one view.",
+			items: [
+				{
+					icon: MessageSquare,
+					title: lang === "ko" ? "실시간 채팅 & 1:1 DM" : "Live chat & 1:1 DM",
+					description:
+						lang === "ko"
+							? "공개 채팅과 개인 메시지로 질문을 즉시 해결합니다."
+							: "Answer questions instantly with public chat and direct messages.",
+					badges:
+						lang === "ko"
+							? ["공개 채팅", "1:1 DM"]
+							: ["Public chat", "Direct messages"],
+				},
+				{
+					icon: LifeBuoy,
+					title:
+						lang === "ko"
+							? "도움 요청 큐 & 제출물"
+							: "Help queue & submissions",
+					description:
+						lang === "ko"
+							? "막힌 참가자 요청을 큐로 모아 제출물까지 한 번에 확인합니다."
+							: "Collect stuck participants and review submissions in one place.",
+					badges:
+						lang === "ko"
+							? ["도움 요청", "제출물 패널"]
+							: ["Help queue", "Submission panel"],
+				},
+				{
+					icon: ClipboardCheck,
+					title:
+						lang === "ko"
+							? "퀴즈·피드백·수료증"
+							: "Quizzes, feedback, certificates",
+					description:
+						lang === "ko"
+							? "퀴즈/피드백 완료를 수료 조건으로 설정할 수 있습니다."
+							: "Gate completion on quizzes and feedback, then auto-issue certificates.",
+					badges:
+						lang === "ko"
+							? ["퀴즈", "피드백", "수료증"]
+							: ["Quiz", "Feedback", "Certificate"],
+				},
+				{
+					icon: FileText,
+					title:
+						lang === "ko"
+							? "준비 가이드 & 자료 배포"
+							: "Prep guides & materials",
+					description:
+						lang === "ko"
+							? "세션 전 준비 안내와 링크/파일을 한 곳에서 배포합니다."
+							: "Share prework guidance plus links and files in one hub.",
+					badges:
+						lang === "ko"
+							? ["가이드", "링크/파일"]
+							: ["Guides", "Links/files"],
+				},
+				{
+					icon: QrCode,
+					title:
+						lang === "ko"
+							? "QR 초대 & 공개 공유"
+							: "QR invites & public links",
+					description:
+						lang === "ko"
+							? "ngrok/bore/cloudflared로 공개하고 QR로 빠르게 초대합니다."
+							: "Expose with ngrok, bore, or cloudflared and invite via QR.",
+					badges:
+						lang === "ko"
+							? ["QR 코드", "터널링"]
+							: ["QR code", "Tunneling"],
+				},
+			],
+		},
 		aiModes: {
 			eyebrow: lang === "ko" ? "AI 생성 모드" : "AI Generation Modes",
 			title:
@@ -324,6 +416,110 @@
 								: "Apply fixes and finalize the output",
 					},
 				],
+			},
+		},
+		proReady: {
+			eyebrow: lang === "ko" ? "프로답게" : "Pro-Grade",
+			title:
+				lang === "ko"
+					? "사전 준비까지 AI로 완성"
+					: "Prep like a pro with AI",
+			desc:
+				lang === "ko"
+					? "세션 전에 필요한 환경, 플러그인, 자료를 AI가 정리하고 공유 가능한 준비 가이드로 묶어줍니다."
+					: "Let AI compile environment setup, plugins, and materials into a polished prep guide.",
+			flow: {
+				title:
+					lang === "ko"
+						? "사전 준비 AI 워크플로"
+						: "AI preflight workflow",
+				desc:
+					lang === "ko"
+						? "플랜부터 가이드 생성, 검토, 배포까지 한 번에 진행합니다."
+						: "Go from plan to guide, review, and share in one flow.",
+				steps: [
+					{
+						icon: Sparkles,
+						title: lang === "ko" ? "플랜" : "Plan",
+						desc:
+							lang === "ko"
+								? "목표, 난이도, 환경 요구사항을 정리"
+								: "Define goals, level, and environment needs",
+					},
+					{
+						icon: FileText,
+						title: lang === "ko" ? "가이드 초안" : "Draft guide",
+						desc:
+							lang === "ko"
+								? "설치/설정/IDE 안내를 자동 생성"
+								: "Generate install, config, and IDE setup",
+					},
+					{
+						icon: ClipboardCheck,
+						title: lang === "ko" ? "검토·보완" : "Review & refine",
+						desc:
+							lang === "ko"
+								? "누락과 충돌 포인트를 점검"
+								: "Patch gaps and remove friction",
+					},
+					{
+						icon: Rocket,
+						title: lang === "ko" ? "배포" : "Share",
+						desc:
+							lang === "ko"
+								? "링크와 파일을 준비 자료로 공유"
+								: "Distribute links and files to attendees",
+					},
+				],
+				badges:
+					lang === "ko"
+						? ["준비 가이드", "환경 체크", "공지 템플릿"]
+						: ["Prep guide", "Environment checks", "Share-ready"],
+			},
+			workspace: {
+				eyebrow: lang === "ko" ? "AI 워크스페이스" : "AI workspace",
+				title:
+					lang === "ko"
+						? "워크스페이스까지 한 번에"
+						: "Workspace built alongside the codelab",
+				desc:
+					lang === "ko"
+						? "AI 생성 흐름에서 업로드한 파일을 기준으로 Code Server 워크스페이스 구조를 자동 구성합니다."
+						: "During AI generation, build a Code Server workspace from your uploaded files.",
+				branch: {
+					title: lang === "ko" ? "브랜치 방식" : "Branch mode",
+					desc:
+						lang === "ko"
+							? "단계별 start/end 브랜치로 상태 전환을 명확하게."
+							: "Start/end branches per step for clean diffs.",
+					nodes: [
+						"main",
+						"step-1/start",
+						"step-1/end",
+						"step-2/start",
+						"step-2/end",
+					],
+				},
+				folder: {
+					title: lang === "ko" ? "폴더 방식" : "Folder mode",
+					desc:
+						lang === "ko"
+							? "디렉토리 트리로 시작/완료 버전을 직관적으로."
+							: "Structured folders for start/end snapshots.",
+					tree: [
+						{ depth: 0, label: "workspace/" },
+						{ depth: 1, label: "step-1/" },
+						{ depth: 2, label: "start/" },
+						{ depth: 2, label: "end/" },
+						{ depth: 1, label: "step-2/" },
+						{ depth: 2, label: "start/" },
+						{ depth: 2, label: "end/" },
+					],
+				},
+				badges:
+					lang === "ko"
+						? ["Code Server", "브랜치/폴더", "Step start/end"]
+						: ["Code Server", "Branch/Folder", "Step start/end"],
 			},
 		},
 		deployment: {
@@ -411,6 +607,11 @@
 						href="#roles"
 						class="hover:text-blue-500 transition-colors"
 						>{content.nav.roles}</a
+					>
+					<a
+						href="#live-ops"
+						class="hover:text-blue-500 transition-colors"
+						>{content.nav.liveOps}</a
 					>
 					<a
 						href="#quickstart"
@@ -715,6 +916,76 @@
 	</section>
 
 	<section
+		id="live-ops"
+		class="py-24 transition-colors duration-300 relative overflow-hidden {isDark
+			? 'bg-neutral-950'
+			: 'bg-white'}"
+	>
+		<div
+			class="pointer-events-none absolute -top-24 right-0 h-72 w-72 translate-x-1/3 rounded-full blur-[120px] opacity-50 {isDark
+				? 'bg-blue-500/20'
+				: 'bg-blue-200/70'}"
+		></div>
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+			<div class="text-center mb-14 reveal">
+				<p
+					class="text-blue-500 font-bold uppercase tracking-[0.2em] text-xs mb-3"
+				>
+					{content.liveOps.eyebrow}
+				</p>
+				<h2 class="text-3xl sm:text-4xl font-black mb-4 tracking-tight">
+					{content.liveOps.title}
+				</h2>
+				<p
+					class="{isDark
+						? 'text-neutral-400'
+						: 'text-neutral-600'} max-w-2xl mx-auto"
+				>
+					{content.liveOps.desc}
+				</p>
+			</div>
+
+			<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+				{#each content.liveOps.items as item, i}
+					<div
+						class="p-7 rounded-3xl border transition-all reveal {isDark
+							? 'bg-neutral-900/60 border-neutral-800 hover:border-blue-500/40'
+							: 'bg-neutral-50 border-neutral-200 hover:border-blue-300 hover:bg-white shadow-sm hover:shadow-xl'}"
+						style={`transition-delay:${i * 90}ms`}
+					>
+						<div
+							class="w-12 h-12 rounded-2xl flex items-center justify-center mb-5 {isDark
+								? 'bg-blue-500/10 text-blue-400'
+								: 'bg-blue-50 text-blue-600'}"
+						>
+							<item.icon class="w-6 h-6" />
+						</div>
+						<h3 class="text-xl font-bold mb-3">{item.title}</h3>
+						<p
+							class="text-sm leading-relaxed {isDark
+								? 'text-neutral-400'
+								: 'text-neutral-600'}"
+						>
+							{item.description}
+						</p>
+						<div class="mt-4 flex flex-wrap gap-2">
+							{#each item.badges as badge}
+								<span
+									class="px-3 py-1 rounded-full border text-[11px] font-bold uppercase tracking-wide {isDark
+										? 'bg-neutral-950 border-neutral-800 text-neutral-400'
+										: 'bg-white border-neutral-200 text-neutral-600'}"
+								>
+									{badge}
+								</span>
+							{/each}
+						</div>
+					</div>
+				{/each}
+			</div>
+		</div>
+	</section>
+
+	<section
 		id="ai-modes"
 		class="py-24 transition-colors duration-300 relative overflow-hidden {isDark
 			? 'bg-neutral-950'
@@ -829,6 +1100,265 @@
 								</div>
 							</div>
 						{/each}
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section
+		id="pro-ready"
+		class="py-24 transition-colors duration-300 relative overflow-hidden {isDark
+			? 'bg-neutral-900'
+			: 'bg-neutral-50'}"
+	>
+		<div
+			class="pointer-events-none absolute -top-24 left-0 h-72 w-72 -translate-x-1/3 rounded-full blur-[120px] opacity-60 {isDark
+				? 'bg-blue-500/20'
+				: 'bg-blue-200/70'}"
+		></div>
+		<div
+			class="pointer-events-none absolute bottom-0 right-0 h-72 w-72 translate-x-1/3 rounded-full blur-[140px] opacity-50 {isDark
+				? 'bg-emerald-500/10'
+				: 'bg-emerald-200/60'}"
+		></div>
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+			<div class="grid lg:grid-cols-[1.05fr_0.95fr] gap-12 items-start">
+				<div class="space-y-8 reveal">
+					<p
+						class="text-blue-500 font-bold uppercase tracking-[0.2em] text-xs"
+					>
+						{content.proReady.eyebrow}
+					</p>
+					<h2 class="text-3xl sm:text-4xl font-black tracking-tight">
+						{content.proReady.title}
+					</h2>
+					<p
+						class="leading-relaxed {isDark
+							? 'text-neutral-400'
+							: 'text-neutral-600'}"
+					>
+						{content.proReady.desc}
+					</p>
+
+					<div
+						class="prep-card rounded-[2.5rem] border p-8 transition-colors {isDark
+							? 'bg-neutral-950/70 border-neutral-800'
+							: 'bg-white border-neutral-200 shadow-sm'}"
+					>
+						<div class="flex items-start gap-4">
+							<div
+								class="w-12 h-12 rounded-2xl flex items-center justify-center {isDark
+									? 'bg-blue-500/10 text-blue-300'
+									: 'bg-blue-50 text-blue-600'}"
+							>
+								<Sparkles class="w-6 h-6" />
+							</div>
+							<div class="space-y-2">
+								<p
+									class="text-sm font-bold uppercase tracking-[0.2em] text-blue-500"
+								>
+									{content.proReady.flow.title}
+								</p>
+								<p
+									class="text-sm leading-relaxed {isDark
+										? 'text-neutral-400'
+										: 'text-neutral-600'}"
+								>
+									{content.proReady.flow.desc}
+								</p>
+							</div>
+						</div>
+
+						<div class="prep-flow mt-6 space-y-4">
+							<div class="prep-rail"></div>
+							{#each content.proReady.flow.steps as step, i}
+								<div
+									class="prep-step"
+									style={`--delay:${i * 0.35}s`}
+								>
+									<span class="prep-dot"></span>
+									<div
+										class="prep-step-icon rounded-2xl flex items-center justify-center {isDark
+											? 'bg-neutral-900 text-blue-300'
+											: 'bg-blue-50 text-blue-600'}"
+									>
+										<step.icon class="w-4 h-4" />
+									</div>
+									<div class="space-y-1">
+										<p class="text-sm font-bold">
+											{step.title}
+										</p>
+										<p
+											class="text-xs leading-relaxed {isDark
+												? 'text-neutral-400'
+												: 'text-neutral-600'}"
+										>
+											{step.desc}
+										</p>
+									</div>
+								</div>
+							{/each}
+						</div>
+
+						<div class="mt-6 flex flex-wrap gap-2">
+							{#each content.proReady.flow.badges as badge}
+								<span
+									class="px-3 py-1 rounded-full border text-[11px] font-bold uppercase tracking-wide {isDark
+										? 'bg-neutral-950 border-neutral-800 text-neutral-400'
+										: 'bg-neutral-50 border-neutral-200 text-neutral-600'}"
+								>
+									{badge}
+								</span>
+							{/each}
+						</div>
+					</div>
+				</div>
+
+				<div class="space-y-6 reveal" style="transition-delay: 200ms;">
+					<div
+						class="workspace-card rounded-[2.5rem] border p-8 relative overflow-hidden {isDark
+							? 'bg-neutral-950/70 border-neutral-800'
+							: 'bg-white border-neutral-200 shadow-sm'}"
+					>
+						<div
+							class="pointer-events-none absolute -right-20 top-10 h-48 w-48 rounded-full blur-[80px] opacity-60 {isDark
+								? 'bg-blue-500/20'
+								: 'bg-blue-200/70'}"
+						></div>
+						<div class="relative z-10">
+							<p
+								class="text-blue-500 font-bold uppercase tracking-[0.2em] text-xs"
+							>
+								{content.proReady.workspace.eyebrow}
+							</p>
+							<div class="mt-4 flex items-start justify-between gap-4">
+								<div>
+									<h3 class="text-2xl font-black mb-3">
+										{content.proReady.workspace.title}
+									</h3>
+									<p
+										class="text-sm leading-relaxed {isDark
+											? 'text-neutral-400'
+											: 'text-neutral-600'}"
+									>
+										{content.proReady.workspace.desc}
+									</p>
+								</div>
+								<div
+									class="w-12 h-12 rounded-2xl flex items-center justify-center {isDark
+										? 'bg-blue-500/10 text-blue-300'
+										: 'bg-blue-50 text-blue-600'}"
+								>
+									<Sparkles class="w-5 h-5" />
+								</div>
+							</div>
+
+							<div class="grid sm:grid-cols-2 gap-4 mt-6">
+								<div
+									class="workspace-panel rounded-3xl border p-5 transition-colors {isDark
+										? 'bg-neutral-900/60 border-neutral-800'
+										: 'bg-neutral-50 border-neutral-200'}"
+								>
+									<div class="flex items-center gap-3 mb-3">
+										<div
+											class="w-9 h-9 rounded-2xl flex items-center justify-center {isDark
+												? 'bg-blue-500/10 text-blue-300'
+												: 'bg-blue-50 text-blue-600'}"
+										>
+											<GitBranch class="w-4 h-4" />
+										</div>
+										<div class="space-y-0.5">
+											<p
+												class="text-xs font-bold uppercase tracking-[0.2em] text-blue-500"
+											>
+												{content.proReady.workspace.branch.title}
+											</p>
+										</div>
+									</div>
+									<p
+										class="text-sm leading-relaxed {isDark
+											? 'text-neutral-400'
+											: 'text-neutral-600'}"
+									>
+										{content.proReady.workspace.branch.desc}
+									</p>
+									<div class="branch-rail mt-4">
+										{#each content.proReady.workspace.branch.nodes as node, i}
+											<div
+												class="branch-node"
+												style={`--delay:${i * 0.3}s`}
+											>
+												<span
+													class="branch-pill font-mono border {isDark
+														? 'bg-neutral-950/80 border-neutral-800 text-neutral-300'
+														: 'bg-white border-neutral-200 text-neutral-700'}"
+												>
+													{node}
+												</span>
+											</div>
+										{/each}
+									</div>
+								</div>
+
+								<div
+									class="workspace-panel rounded-3xl border p-5 transition-colors {isDark
+										? 'bg-neutral-900/60 border-neutral-800'
+										: 'bg-neutral-50 border-neutral-200'}"
+								>
+									<div class="flex items-center gap-3 mb-3">
+										<div
+											class="w-9 h-9 rounded-2xl flex items-center justify-center {isDark
+												? 'bg-blue-500/10 text-blue-300'
+												: 'bg-blue-50 text-blue-600'}"
+										>
+											<FolderTree class="w-4 h-4" />
+										</div>
+										<div class="space-y-0.5">
+											<p
+												class="text-xs font-bold uppercase tracking-[0.2em] text-blue-500"
+											>
+												{content.proReady.workspace.folder.title}
+											</p>
+										</div>
+									</div>
+									<p
+										class="text-sm leading-relaxed {isDark
+											? 'text-neutral-400'
+											: 'text-neutral-600'}"
+									>
+										{content.proReady.workspace.folder.desc}
+									</p>
+									<div
+										class="folder-tree mt-4 border rounded-2xl p-4 font-mono text-xs {isDark
+											? 'bg-neutral-950/80 border-neutral-800 text-neutral-300'
+											: 'bg-white border-neutral-200 text-neutral-700'}"
+									>
+										{#each content.proReady.workspace.folder.tree as row}
+											<div
+												class="tree-row"
+												style={`--depth:${row.depth}`}
+											>
+												<span class="tree-dot"></span>
+												<span>{row.label}</span>
+											</div>
+										{/each}
+									</div>
+								</div>
+							</div>
+
+							<div class="mt-6 flex flex-wrap gap-2">
+								{#each content.proReady.workspace.badges as badge}
+									<span
+										class="px-3 py-1 rounded-full border text-[11px] font-bold uppercase tracking-wide {isDark
+											? 'bg-neutral-950 border-neutral-800 text-neutral-400'
+											: 'bg-neutral-50 border-neutral-200 text-neutral-600'}"
+									>
+										{badge}
+									</span>
+								{/each}
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -1255,6 +1785,190 @@
 		animation-delay: var(--delay);
 	}
 
+	.prep-flow {
+		position: relative;
+		padding-left: 36px;
+	}
+
+	.prep-rail {
+		position: absolute;
+		left: 16px;
+		top: 12px;
+		bottom: 12px;
+		width: 2px;
+		background: linear-gradient(
+			180deg,
+			rgba(59, 130, 246, 0.15),
+			rgba(16, 185, 129, 0.5),
+			rgba(59, 130, 246, 0.2)
+		);
+		border-radius: 9999px;
+		opacity: 0.9;
+	}
+
+	.prep-rail::after {
+		content: "";
+		position: absolute;
+		left: -1px;
+		width: 4px;
+		height: 30%;
+		border-radius: 9999px;
+		background: linear-gradient(
+			180deg,
+			transparent,
+			rgba(56, 189, 248, 0.9),
+			transparent
+		);
+		animation: prep-flow 3.6s ease-in-out infinite;
+	}
+
+	.prep-step {
+		position: relative;
+		display: grid;
+		grid-template-columns: auto 1fr;
+		gap: 12px;
+		align-items: start;
+		padding-left: 12px;
+	}
+
+	.prep-step-icon {
+		width: 34px;
+		height: 34px;
+		flex-shrink: 0;
+	}
+
+	.prep-dot {
+		position: absolute;
+		left: 8px;
+		top: 14px;
+		width: 10px;
+		height: 10px;
+		border-radius: 9999px;
+		background: #38bdf8;
+		box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.12);
+		animation: prep-pulse 2.8s ease-in-out infinite;
+		animation-delay: var(--delay);
+	}
+
+	.branch-rail {
+		position: relative;
+		padding-left: 18px;
+		margin-top: 12px;
+	}
+
+	.branch-rail::before {
+		content: "";
+		position: absolute;
+		left: 6px;
+		top: 4px;
+		bottom: 4px;
+		width: 2px;
+		border-radius: 9999px;
+		background: linear-gradient(
+			180deg,
+			rgba(59, 130, 246, 0.1),
+			rgba(59, 130, 246, 0.6),
+			rgba(59, 130, 246, 0.1)
+		);
+	}
+
+	.branch-rail::after {
+		content: "";
+		position: absolute;
+		left: 5px;
+		width: 4px;
+		height: 34%;
+		border-radius: 9999px;
+		background: linear-gradient(
+			180deg,
+			transparent,
+			rgba(56, 189, 248, 0.9),
+			transparent
+		);
+		animation: branch-flow 3.4s ease-in-out infinite;
+	}
+
+	.branch-node {
+		position: relative;
+		padding-left: 14px;
+		margin-bottom: 10px;
+	}
+
+	.branch-node::before {
+		content: "";
+		position: absolute;
+		left: -2px;
+		top: 10px;
+		width: 10px;
+		height: 10px;
+		border-radius: 9999px;
+		background: #60a5fa;
+		box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.1);
+		animation: branch-pulse 2.6s ease-in-out infinite;
+		animation-delay: var(--delay);
+	}
+
+	.branch-pill {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		padding: 4px 8px;
+		border-radius: 9999px;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+			"Liberation Mono", "Courier New", monospace;
+	}
+
+	.folder-tree {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.folder-tree::after {
+		content: "";
+		position: absolute;
+		inset: -40% 0;
+		background: linear-gradient(
+			120deg,
+			transparent,
+			rgba(59, 130, 246, 0.15),
+			transparent
+		);
+		opacity: 0.6;
+		animation: tree-scan 4.6s ease-in-out infinite;
+		pointer-events: none;
+	}
+
+	.tree-row {
+		position: relative;
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding-left: calc(var(--depth) * 14px + 8px);
+		margin-bottom: 6px;
+	}
+
+	.tree-row::before {
+		content: "";
+		position: absolute;
+		left: calc(var(--depth) * 14px);
+		top: 50%;
+		width: 8px;
+		height: 1px;
+		background: rgba(148, 163, 184, 0.6);
+	}
+
+	.tree-dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 9999px;
+		background: #34d399;
+		box-shadow: 0 0 0 4px rgba(52, 211, 153, 0.15);
+		flex-shrink: 0;
+	}
+
 	@keyframes workflow-sheen {
 		0% {
 			transform: translate3d(-6%, -4%, 0) scale(1);
@@ -1299,10 +2013,90 @@
 		}
 	}
 
+	@keyframes prep-flow {
+		0% {
+			transform: translateY(-40%);
+			opacity: 0;
+		}
+		25% {
+			opacity: 1;
+		}
+		75% {
+			opacity: 1;
+		}
+		100% {
+			transform: translateY(140%);
+			opacity: 0;
+		}
+	}
+
+	@keyframes prep-pulse {
+		0%,
+		100% {
+			transform: scale(1);
+			box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.12);
+		}
+		50% {
+			transform: scale(1.15);
+			box-shadow: 0 0 0 12px rgba(56, 189, 248, 0.08);
+		}
+	}
+
+	@keyframes branch-flow {
+		0% {
+			transform: translateY(-35%);
+			opacity: 0;
+		}
+		25% {
+			opacity: 1;
+		}
+		75% {
+			opacity: 1;
+		}
+		100% {
+			transform: translateY(140%);
+			opacity: 0;
+		}
+	}
+
+	@keyframes branch-pulse {
+		0%,
+		100% {
+			transform: scale(1);
+			box-shadow: 0 0 0 6px rgba(59, 130, 246, 0.1);
+		}
+		50% {
+			transform: scale(1.15);
+			box-shadow: 0 0 0 12px rgba(59, 130, 246, 0.08);
+		}
+	}
+
+	@keyframes tree-scan {
+		0% {
+			transform: translate3d(-25%, -10%, 0);
+			opacity: 0;
+		}
+		35% {
+			opacity: 0.6;
+		}
+		70% {
+			opacity: 0.4;
+		}
+		100% {
+			transform: translate3d(25%, 10%, 0);
+			opacity: 0;
+		}
+	}
+
 	@media (prefers-reduced-motion: reduce) {
 		.workflow-sheen,
 		.workflow-rail::after,
-		.workflow-dot {
+		.workflow-dot,
+		.prep-rail::after,
+		.prep-dot,
+		.branch-rail::after,
+		.branch-node::before,
+		.folder-tree::after {
 			animation: none;
 		}
 	}
