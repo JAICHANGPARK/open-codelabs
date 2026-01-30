@@ -49,40 +49,61 @@ pub async fn register_attendee(
     }
 
     // Check for duplicate name in the same codelab
-    let existing =
-        sqlx::query(&state.q("SELECT id FROM attendees WHERE codelab_id = ? AND name = ?"))
-            .bind(&id)
-            .bind(&payload.name)
-            .fetch_optional(&state.pool)
-            .await
-            .map_err(internal_error)?;
-
-    if existing.is_some() {
-        return Err((StatusCode::CONFLICT, "Nickname already taken".to_string()));
-    }
-
-    let attendee_id = uuid::Uuid::new_v4().to_string();
-    let encrypted_code = encrypt_with_password(&payload.code, &state.admin_pw)
-        .map_err(|err| internal_error(err))?;
-
-    sqlx::query(&state.q(
-        "INSERT INTO attendees (id, codelab_id, name, code, email, current_step) VALUES (?, ?, ?, ?, ?, 1)",
+    let existing = sqlx::query_as::<_, Attendee>(&state.q(
+        "SELECT * FROM attendees WHERE codelab_id = ? AND name = ?",
     ))
-    .bind(&attendee_id)
     .bind(&id)
     .bind(&payload.name)
-    .bind(&encrypted_code)
-    .bind(&payload.email)
-    .execute(&state.pool)
+    .fetch_optional(&state.pool)
     .await
     .map_err(internal_error)?;
 
-    let attendee = sqlx::query_as::<_, Attendee>(&state.q("SELECT * FROM attendees WHERE id = ?"))
+    let mut is_rejoin = false;
+    let attendee = if let Some(mut existing_attendee) = existing {
+        let code_matches = decrypt_with_password(&existing_attendee.code, &state.admin_pw)
+            .map(|stored| stored == payload.code)
+            .unwrap_or(false);
+        if !code_matches {
+            return Err((StatusCode::CONFLICT, "Nickname already taken".to_string()));
+        }
+
+        if payload.email.is_some() && existing_attendee.email.is_none() {
+            sqlx::query(&state.q("UPDATE attendees SET email = ? WHERE id = ?"))
+                .bind(&payload.email)
+                .bind(&existing_attendee.id)
+                .execute(&state.pool)
+                .await
+                .map_err(internal_error)?;
+            existing_attendee.email = payload.email.clone();
+        }
+
+        is_rejoin = true;
+        existing_attendee
+    } else {
+        let attendee_id = uuid::Uuid::new_v4().to_string();
+        let encrypted_code = encrypt_with_password(&payload.code, &state.admin_pw)
+            .map_err(|err| internal_error(err))?;
+
+        sqlx::query(&state.q(
+            "INSERT INTO attendees (id, codelab_id, name, code, email, current_step) VALUES (?, ?, ?, ?, ?, 1)",
+        ))
         .bind(&attendee_id)
-        .fetch_one(&state.pool)
+        .bind(&id)
+        .bind(&payload.name)
+        .bind(&encrypted_code)
+        .bind(&payload.email)
+        .execute(&state.pool)
         .await
         .map_err(internal_error)?;
 
+        sqlx::query_as::<_, Attendee>(&state.q("SELECT * FROM attendees WHERE id = ?"))
+            .bind(&attendee_id)
+            .fetch_one(&state.pool)
+            .await
+            .map_err(internal_error)?
+    };
+
+    let attendee_id = attendee.id.clone();
     let now = now_epoch_seconds();
     let claims = SessionClaims {
         sub: attendee_id.clone(),
@@ -110,7 +131,11 @@ pub async fn register_attendee(
     record_audit(
         &state,
         AuditEntry {
-            action: "attendee_register".to_string(),
+            action: if is_rejoin {
+                "attendee_rejoin".to_string()
+            } else {
+                "attendee_register".to_string()
+            },
             actor_type: "attendee".to_string(),
             actor_id: Some(attendee_id.clone()),
             target_id: None,
