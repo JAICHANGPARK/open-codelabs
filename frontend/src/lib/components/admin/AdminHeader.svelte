@@ -19,6 +19,7 @@
         Info,
         FileUp,
         Trophy,
+        FolderGit2,
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
     import type { Codelab } from "$lib/api";
@@ -306,6 +307,16 @@
                 >
                     <Trophy size={14} />
                     <span>{$t("editor.raffle_tab")}</span>
+                </button>
+                <button
+                    onclick={() => (mode = "workspace")}
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    'workspace'
+                        ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
+                        : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
+                >
+                    <FolderGit2 size={14} />
+                    <span>Workspace</span>
                 </button>
                 <button
                     onclick={() => (mode = "settings")}
