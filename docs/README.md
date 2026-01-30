@@ -64,6 +64,7 @@ docs/
 │   ├── docker.md              # Docker 배포
 │   ├── local-development.md   # 로컬 개발
 │   ├── public-deployment.md   # 공개 배포
+│   ├── supabase.md            # Supabase
 │   └── environment.md         # 환경 변수
 ├── specification/              # 프로젝트 명세
 │   ├── overview.md            # 개요
