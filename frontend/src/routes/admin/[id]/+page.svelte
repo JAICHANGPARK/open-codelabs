@@ -1653,7 +1653,7 @@
         }
     }
 
-    let showWorkspaceBrowser = false;
+    let showWorkspaceBrowser = $state(false);
 
     async function handleDownloadWorkspace() {
         try {
