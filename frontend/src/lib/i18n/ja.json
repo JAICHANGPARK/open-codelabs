@@ -96,6 +96,12 @@
         "no_messages_desc": "ファシリテーターからのメッセージはまだありません。",
         "dm_select_prompt": "参加者を選択してDMを送信してください。",
         "feedback_tab": "フィードバック",
+        "tab_groups": {
+            "authoring": "作成",
+            "operations": "運営",
+            "assessment": "評価",
+            "admin": "管理"
+        },
         "delete_step": "ステップを削除",
         "copy_url": "URLをコピー",
         "placeholder_step_title": "無題のステップ",
@@ -205,6 +211,7 @@
         "save_changes": "変更を保存",
         "stuck_on_step": "ステップ {step} で止まっています",
         "split_view": "分割表示",
+        "workspace_tab": "ワークスペース",
         "quiz_tab": "クイズ",
         "quiz_settings": "クイズ設定",
         "quiz_enabled": "クイズを有効にする",
@@ -229,6 +236,61 @@
         "no_materials": "追加された教材はありません。",
         "delete_material_confirm": "この教材を削除してもよろしいですか？",
         "upload_file": "ファイルをアップロード"
+    },
+    "workspace": {
+        "title": "ワークスペース設定",
+        "subtitle": "ハンズオン用のワークスペースファイルを作成・管理します",
+        "active_title": "ワークスペース有効",
+        "labels": {
+            "structure": "構成",
+            "path": "パス",
+            "steps": "ステップ",
+            "branch": "ブランチ",
+            "folder": "フォルダ",
+            "branches": "ブランチ",
+            "folders": "フォルダ"
+        },
+        "steps_summary": "{count}ステップ × 2（{unit}）= 合計{total}",
+        "download": "ワークスペースをダウンロード",
+        "structure_title": "ワークスペース構成",
+        "structure_options": {
+            "branch": "ブランチ方式（Git ブランチ）",
+            "folder": "フォルダ方式（ディレクトリ）"
+        },
+        "base_files": "ベースファイル",
+        "base_files_desc": "すべてのステップのブランチ/フォルダにコピーされる初期ファイルをアップロードします",
+        "upload_files": "ファイルをアップロード",
+        "remove_file": "削除",
+        "info_title": "ワークスペースを作成すると何が起こりますか？",
+        "info_step_create": "各ステップごとに {unit} が2つ作成されます:",
+        "info_copy_base": "アップロードしたベースファイルが各 {unit} にコピーされます",
+        "info_modify_later": "後からダウンロードして特定ステップのファイルを編集し、再アップロードできます",
+        "create_button": "ワークスペースを作成",
+        "creating_button": "ワークスペース作成中...",
+        "browser_title": "ワークスペースブラウザ",
+        "browser_files_title": "ファイル",
+        "loading": "読み込み中...",
+        "loading_file": "ファイルを読み込み中...",
+        "no_files": "ファイルがありません",
+        "select_file": "内容を表示するファイルを選択してください",
+        "errors": {
+            "upload_required": "ワークスペース用のファイルを少なくとも1つアップロードしてください",
+            "steps_required": "ワークスペースを作成する前にコードラボのステップを追加してください",
+            "create_failed": "ワークスペースの作成に失敗しました: {error}",
+            "download_failed": "ダウンロードに失敗しました: {error}",
+            "load_workspace_failed": "ワークスペースの読み込みに失敗しました: {error}",
+            "load_files_failed": "ファイル一覧の読み込みに失敗しました: {error}",
+            "load_file_content_failed": "ファイル内容の読み込みに失敗しました: {error}",
+            "firebase_unavailable": "Firebase モードでは Code Server ワークスペースを利用できません",
+            "not_found": "ワークスペースが見つかりません。コードラボ作成時に「Code Server Workspace」を有効化し、ワークスペースファイルをアップロードしてください。"
+        },
+        "success": {
+            "created": "ワークスペースを作成しました！"
+        },
+        "actions": {
+            "browse": "ワークスペースファイルを閲覧",
+            "download": "ワークスペースをダウンロード"
+        }
     },
     "attendee": {
         "join_title": "コードラボに参加",
