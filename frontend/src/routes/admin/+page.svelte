@@ -5,7 +5,7 @@
         listCodelabs,
         getMyCodelabs,
         onAuthChange,
-        isFirebaseMode,
+        isServerlessMode,
         createCodelab,
         importCodelab,
         deleteCodelab,
@@ -90,14 +90,14 @@
     onMount(async () => {
         onAuthChange((u) => {
             user = u;
-            if (isFirebaseMode() && u) {
+            if (isServerlessMode() && u) {
                 loadMyCodelabs();
                 if (u.displayName) newCodelab.author = u.displayName;
             }
         });
 
         try {
-            if (isFirebaseMode()) {
+            if (isServerlessMode()) {
                 // If in firebase mode, listCodelabs might return everything (if admin)
                 // but we might prefer showing only 'My Codelabs' by default.
                 // For now, let's load all if we can, but also provide 'My Codelabs'.
@@ -126,7 +126,7 @@
         try {
             const mine = await getMyCodelabs();
             // If we want to strictly show only 'My' codelabs in Firebase mode
-            if (isFirebaseMode()) {
+            if (isServerlessMode()) {
                 codelabs = mine;
             }
         } catch (e) {
