@@ -20,6 +20,7 @@
         FileUp,
         Trophy,
         FolderGit2,
+        Award,
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
     import type { Codelab } from "$lib/api";
@@ -216,11 +217,11 @@
             class="flex items-center gap-1 overflow-x-auto no-scrollbar pb-1 -mx-3 px-3 sm:mx-0 sm:px-0"
         >
             <div
-                class="flex bg-[#F1F3F4] dark:bg-white/5 p-1 rounded-full border border-[#E8EAED] dark:border-dark-border shrink-0"
+                class="flex flex-nowrap bg-[#F1F3F4] dark:bg-white/5 p-1 rounded-full border border-[#E8EAED] dark:border-dark-border shrink-0"
             >
                 <button
                     onclick={() => (mode = "edit")}
-                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'edit'
                         ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
                         : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
@@ -230,7 +231,7 @@
                 </button>
                 <button
                     onclick={() => (mode = "preview")}
-                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'preview'
                         ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
                         : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
@@ -240,7 +241,7 @@
                 </button>
                 <button
                     onclick={() => (mode = "guide")}
-                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'guide'
                         ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
                         : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
@@ -250,7 +251,7 @@
                 </button>
                 <button
                     onclick={() => (mode = "materials")}
-                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'materials'
                         ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
                         : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
@@ -260,7 +261,7 @@
                 </button>
                 <button
                     onclick={() => (mode = "quiz")}
-                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'quiz'
                         ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
                         : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
@@ -270,7 +271,7 @@
                 </button>
                 <button
                     onclick={() => (mode = "live")}
-                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'live'
                         ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
                         : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
@@ -280,7 +281,7 @@
                 </button>
                 <button
                     onclick={() => (mode = "feedback")}
-                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'feedback'
                         ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
                         : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
@@ -290,7 +291,7 @@
                 </button>
                 <button
                     onclick={() => (mode = "submissions")}
-                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'submissions'
                         ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
                         : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
@@ -300,7 +301,7 @@
                 </button>
                 <button
                     onclick={() => (mode = "raffle")}
-                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'raffle'
                         ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
                         : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
@@ -309,8 +310,18 @@
                     <span>{$t("editor.raffle_tab")}</span>
                 </button>
                 <button
+                    onclick={() => (mode = "certificate")}
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
+                    'certificate'
+                        ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
+                        : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
+                >
+                    <Award size={14} />
+                    <span>{$t("editor.certificate_tab")}</span>
+                </button>
+                <button
                     onclick={() => (mode = "workspace")}
-                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'workspace'
                         ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
                         : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
@@ -320,7 +331,7 @@
                 </button>
                 <button
                     onclick={() => (mode = "settings")}
-                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all {mode ===
+                    class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
                     'settings'
                         ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
                         : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
