@@ -50,7 +50,7 @@ docker compose down
 ```
 
 !!! note
-    Depending on your environment, you may need to use `docker-compose` instead of `docker compose`.
+    Depending on your environment, you may need to use `docker compose` instead of `docker compose`.
 
 ## Use GitHub Container Registry images
 
@@ -261,7 +261,7 @@ volumes:
 
 ```bash
 # Backup the SQLite database
-docker-compose exec backend sqlite3 /app/data/sqlite.db ".backup /app/data/backup.db"
+docker compose exec backend sqlite3 /app/data/sqlite.db ".backup /app/data/backup.db"
 
 # Copy to host
 docker cp <container_id>:/app/data/backup.db ./backup.db
@@ -279,8 +279,8 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 mkdir -p $BACKUP_DIR
 
 # Database backup
-docker-compose exec -T backend sqlite3 /app/data/sqlite.db ".backup /app/data/backup_$TIMESTAMP.db"
-docker cp $(docker-compose ps -q backend):/app/data/backup_$TIMESTAMP.db $BACKUP_DIR/
+docker compose exec -T backend sqlite3 /app/data/sqlite.db ".backup /app/data/backup_$TIMESTAMP.db"
+docker cp $(docker compose ps -q backend):/app/data/backup_$TIMESTAMP.db $BACKUP_DIR/
 
 echo "Backup created: $BACKUP_DIR/backup_$TIMESTAMP.db"
 
@@ -467,57 +467,57 @@ services:
 
 ```bash
 # Build only
-docker-compose build
+docker compose build
 
 # Build without cache
-docker-compose build --no-cache
+docker compose build --no-cache
 
 # Run in the background
-docker-compose up -d
+docker compose up -d
 
 # Run a single service
-docker-compose up backend
+docker compose up backend
 
 # Scaling (multiple instances)
-docker-compose up --scale backend=3
+docker compose up --scale backend=3
 
 # Stop
-docker-compose stop
+docker compose stop
 
 # Restart
-docker-compose restart
+docker compose restart
 
 # Full cleanup (including volumes)
-docker-compose down -v
+docker compose down -v
 ```
 
 ### Logs and monitoring
 
 ```bash
 # All logs
-docker-compose logs
+docker compose logs
 
 # Follow logs
-docker-compose logs -f
+docker compose logs -f
 
 # Specific service logs
-docker-compose logs -f backend
+docker compose logs -f backend
 
 # Last 100 lines
-docker-compose logs --tail=100
+docker compose logs --tail=100
 
 # Include timestamps
-docker-compose logs -t
+docker compose logs -t
 ```
 
 ### Debugging
 
 ```bash
 # Enter a container
-docker-compose exec backend sh
+docker compose exec backend sh
 
 # Run a command
-docker-compose exec backend ls /app/data
+docker compose exec backend ls /app/data
 
 # Copy files (container -> host)
 docker cp <container_id>:/app/data/sqlite.db ./
@@ -530,7 +530,7 @@ docker cp ./config.toml <container_id>:/app/
 
 ```bash
 # Remove stopped containers
-docker-compose rm
+docker compose rm
 
 # Remove unused images
 docker image prune
@@ -548,7 +548,7 @@ Recent updates modified migrations for PostgreSQL/MySQL support. Existing SQLite
 1. **Reset the database (recommended)**: if you do not need the existing data, delete the SQLite file and restart.
    ```bash
    rm backend/data/sqlite.db
-   docker-compose up --build
+   docker compose up --build
    ```
 2. **Switch to PostgreSQL/MySQL**: new databases avoid this problem. See [Environment Variables](environment.md) and set `DATABASE_URL`.
 
@@ -556,10 +556,10 @@ Recent updates modified migrations for PostgreSQL/MySQL support. Existing SQLite
 
 ```bash
 # Check logs
-docker-compose logs backend
+docker compose logs backend
 
 # Run manually to see errors
-docker-compose run backend sh
+docker compose run backend sh
 ```
 
 ### Port conflicts
@@ -587,9 +587,9 @@ docker system prune -a --volumes
 
 ```bash
 # Recreate network
-docker-compose down
+docker compose down
 docker network prune
-docker-compose up
+docker compose up
 ```
 
 ## Next steps

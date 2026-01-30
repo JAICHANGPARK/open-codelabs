@@ -80,7 +80,7 @@ GCP의 가상 머신(VM)에 직접 Docker Compose를 사용하여 배포하는 �
 2.  **Docker & Docker Compose 설치**
 3.  **저장소 클론 및 `docker-compose.yml` 실행**
     ```bash
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
 
 ## 💡 어떤 방식을 선택해야 하나요?

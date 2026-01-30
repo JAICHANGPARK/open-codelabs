@@ -80,7 +80,7 @@ Deploy with Docker Compose on a GCP VM.
 2. Install Docker and Docker Compose
 3. Clone the repo and run `docker-compose.yml`
     ```bash
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
 
 ## Which option should you choose?

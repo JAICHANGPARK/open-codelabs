@@ -24,7 +24,7 @@ This guide is a manual for **facilitators (instructors/organizers)** who use Ope
 ### Start in Local Environment
 ```bash
 # Start with Docker Compose
-docker-compose up --build
+docker compose up --build
 ```
 
 - **Frontend**: http://localhost:5173

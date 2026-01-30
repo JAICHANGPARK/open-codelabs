@@ -23,10 +23,22 @@ cd open-codelabs
 ### 2. Docker Compose로 실행
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 첫 실행 시 이미지를 빌드하므로 몇 분 정도 걸릴 수 있습니다.
+
+### 2-1. 사전 빌드 이미지로 실행 (더 빠르게 시작하기)
+
+로컬 빌드 과정을 건너뛰고 싶다면 퍼블리시된 이미지를 사용할 수 있습니다.
+
+```bash
+# 환경 변수 설정 (기본적으로 ghcr.io/jaichangpark/ 이미지를 사용합니다)
+cp .env.sample .env
+
+# 사전 빌드 이미지용 컴포즈 파일 실행
+docker compose -f docker-compose.images.yml up
+```
 
 ### 3. 브라우저에서 접속
 
@@ -152,13 +164,13 @@ Frontend는 `http://localhost:5173`에서 실행됩니다.
 
 ```bash
 # 기존 컨테이너 정리
-docker-compose down
+docker compose down
 
 # 볼륨 포함 완전 정리
-docker-compose down -v
+docker compose down -v
 
 # 다시 시작
-docker-compose up --build
+docker compose up --build
 ```
 
 ### 포트가 이미 사용 중이에요
@@ -182,7 +194,7 @@ services:
 rm -rf backend/data/sqlite.db
 
 # 다시 시작
-docker-compose restart backend
+docker compose restart backend
 ```
 
 더 많은 문제 해결 방법은 [FAQ](../faq.md)를 참조하세요.

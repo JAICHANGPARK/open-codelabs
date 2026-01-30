@@ -17,7 +17,7 @@ AI 생성기로 코드랩을 생성할 때, code-server 워크스페이스를 �
 ## 설정
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 `.env` 파일에서 설정:

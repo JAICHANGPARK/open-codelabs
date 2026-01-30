@@ -538,7 +538,7 @@ ADMIN_PW=your_real_secure_password
 # 환경 변수로 주입
 export ADMIN_ID="your_real_admin_id"
 export ADMIN_PW="your_real_secure_password"
-docker-compose up
+docker compose up
 ```
 
 ## 환경 변수 검증
@@ -681,7 +681,7 @@ jobs:
           echo "DATABASE_URL=sqlite:/app/data/sqlite.db?mode=rwc" > backend/.env
           echo "ADMIN_ID=$ADMIN_ID" >> backend/.env
           echo "ADMIN_PW=$ADMIN_PW" >> backend/.env
-          docker-compose up -d
+          docker compose up -d
 ```
 
 Repository Settings → Secrets에서 설정

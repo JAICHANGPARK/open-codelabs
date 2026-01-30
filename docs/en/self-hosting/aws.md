@@ -52,7 +52,7 @@ Deploy with Docker Compose on a virtual machine. This can be the cheapest option
     ```bash
     git clone https://github.com/JAICHANGPARK/open-codelabs.git
     cd open-codelabs
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
 
 ---

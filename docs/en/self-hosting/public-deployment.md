@@ -152,7 +152,7 @@ PORT="${PORT:-5173}"
 # Check for podman
 if command -v podman-compose &> /dev/null; then
     CONTAINER_ENGINE="podman"
-elif command -v docker-compose &> /dev/null; then
+elif command -v docker compose &> /dev/null; then
     CONTAINER_ENGINE="docker"
 else
     echo "No container engine found!"
@@ -175,7 +175,7 @@ echo "Starting Open-Codelabs Hands-on System using $CONTAINER_ENGINE..."
 if [ "$CONTAINER_ENGINE" == "podman" ]; then
     podman-compose up -d
 else
-    docker-compose up -d
+    docker compose up -d
 fi
 
 echo "Containers are up!"
@@ -235,7 +235,7 @@ PORT=3000 ./run-public.sh --ngrok
 
 ```bash
 # Test full stack with Docker
-docker-compose up
+docker compose up
 
 # Check in browser
 open http://localhost:5173
@@ -287,10 +287,10 @@ open http://localhost:5173
 ```bash
 # Feedback collection (automatic)
 # Backup data
-docker cp $(docker-compose ps -q backend):/app/data/sqlite.db ./backup_$(date +%Y%m%d).db
+docker cp $(docker compose ps -q backend):/app/data/sqlite.db ./backup_$(date +%Y%m%d).db
 
 # Stop the system
-docker-compose down
+docker compose down
 ```
 
 ## Security considerations
@@ -406,7 +406,7 @@ While ngrok is running, check [http://localhost:4040](http://localhost:4040):
 docker stats
 
 # Logs
-docker-compose logs -f --tail=100
+docker compose logs -f --tail=100
 ```
 
 ## Troubleshooting

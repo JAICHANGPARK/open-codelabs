@@ -28,6 +28,18 @@ docker compose up --build
 
 The first run may take a few minutes while images build.
 
+### 2-1. Run with Prebuilt Images (Faster Start)
+
+To skip the local build process, you can use the published images from GitHub Container Registry.
+
+```bash
+# Setup environment variables (Defaults to ghcr.io/jaichangpark/ images)
+cp .env.sample .env
+
+# Run using the prebuilt image compose file
+docker compose -f docker-compose.images.yml up
+```
+
 ### 3. Open in your browser
 
 Once the build is done:

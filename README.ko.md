@@ -53,12 +53,18 @@ podman-compose up --build
 또는 Podman의 Docker 호환 레이어를 사용하세요.
 
 ### 🧱 사전 빌드 이미지 사용 (GHCR)
-로컬 빌드 없이 실행하려면 퍼블리시된 이미지를 사용할 수 있습니다:
+로컬 빌드 없이 실행하려면 퍼블리시된 이미지를 사용할 수 있습니다. 기본적으로 `ghcr.io/jaichangpark/`에서 이미지를 가져옵니다.
 
 ```bash
+# 1. 환경 변수 설정
+# (참고: IMAGE_NAMESPACE=jaichangpark 값이 .env에 포함되어야 합니다)
 cp .env.sample .env
+
+# 2. 사전 빌드 이미지로 실행
 docker compose -f docker-compose.images.yml up
 ```
+
+더 자세한 옵션은 [환경 변수 (.env)](#3-환경-변수-env) 섹션을 참고하세요.
 
 ---
 
@@ -119,7 +125,7 @@ open-codelabs/
 > - **Windows**: `C:/open-codelabs` (슬래시 `/` 사용 권장)
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 - **Frontend**: [http://localhost:5173](http://localhost:5173)
@@ -153,7 +159,7 @@ Docker Compose는 리포지토리 루트의 `.env`를 읽습니다. `.env.sample
 
 **이미지 (docker-compose.images.yml)**
 - `IMAGE_REGISTRY`: 사전 빌드 이미지 레지스트리 (기본값 `ghcr.io`).
-- `IMAGE_NAMESPACE`: 이미지 네임스페이스 또는 조직명 (기본값 `open-codelabs`).
+- `IMAGE_NAMESPACE`: 이미지 네임스페이스 또는 조직명 (기본값 `jaichangpark`).
 - `IMAGE_TAG`: 가져올 이미지 태그 (기본값 `latest`).
 
 **Backend**

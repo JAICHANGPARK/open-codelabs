@@ -78,9 +78,9 @@ kill -9 <PID>
 
 ```bash
 # Docker
-docker-compose down
+docker compose down
 # docker-compose.yml에서 ADMIN_PW 변경
-docker-compose up
+docker compose up
 
 # 로컬
 # backend/.env에서 ADMIN_PW 변경
@@ -192,7 +192,7 @@ ngrok 무료 플랜:
 docker stats
 
 # 로그 크기 확인
-docker-compose logs backend | wc -l
+docker compose logs backend | wc -l
 ```
 
 최적화:
@@ -273,10 +273,10 @@ ws.onclose = (event) => {
 
 ```bash
 # Docker
-docker-compose exec backend ls -la /app/static/assets/images
+docker compose exec backend ls -la /app/static/assets/images
 
 # 권한 문제시
-docker-compose exec backend chmod 755 /app/static/assets
+docker compose exec backend chmod 755 /app/static/assets
 ```
 
 ### Q: Frontend에서 API 호출이 실패합니다
@@ -286,7 +286,7 @@ docker-compose exec backend chmod 755 /app/static/assets
 Backend 로그 확인:
 
 ```bash
-docker-compose logs backend | grep CORS
+docker compose logs backend | grep CORS
 ```
 
 `main.rs`에서 CORS 설정 확인:

@@ -37,7 +37,7 @@ The frontend is built with SvelteKit 5 and Bun.
 ### 3. Docker (Recommended for production/staging)
 You can run the entire system using Docker Compose.
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 ---

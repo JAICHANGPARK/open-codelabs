@@ -78,9 +78,9 @@ kill -9 <PID>
 
 ```bash
 # Docker
-docker-compose down
+docker compose down
 # Change ADMIN_PW in docker-compose.yml
-docker-compose up
+docker compose up
 
 # Local
 # Change ADMIN_PW in backend/.env
@@ -192,7 +192,7 @@ For more users:
 docker stats
 
 # Check log size
-docker-compose logs backend | wc -l
+docker compose logs backend | wc -l
 ```
 
 Optimization:
@@ -273,10 +273,10 @@ ws.onclose = (event) => {
 
 ```bash
 # Docker
-docker-compose exec backend ls -la /app/static/assets/images
+docker compose exec backend ls -la /app/static/assets/images
 
 # If there is a permission issue
-docker-compose exec backend chmod 755 /app/static/assets
+docker compose exec backend chmod 755 /app/static/assets
 ```
 
 ### Q: API call fails in Frontend.
@@ -286,7 +286,7 @@ docker-compose exec backend chmod 755 /app/static/assets
 Check Backend logs:
 
 ```bash
-docker-compose logs backend | grep CORS
+docker compose logs backend | grep CORS
 ```
 
 Verify CORS settings in `main.rs`:

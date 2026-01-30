@@ -110,7 +110,7 @@ open-codelabs/
 > - **Windows**：`C:/open-codelabs`（建议使用 `/`）
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 - **前端**：[http://localhost:5173](http://localhost:5173)
 - **后端 API**：[http://localhost:8080](http://localhost:8080)

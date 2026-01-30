@@ -52,7 +52,7 @@ Google Cloud Run과 유사하게, 소스 코드나 Docker 이미지를 직접 �
     ```bash
     git clone https://github.com/JAICHANGPARK/open-codelabs.git
     cd open-codelabs
-    docker-compose up -d --build
+    docker compose up -d --build
     ```
 
 ---

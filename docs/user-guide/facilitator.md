@@ -24,7 +24,7 @@
 ### 로컬 환경에서 시작
 ```bash
 # Docker Compose로 시작
-docker-compose up --build
+docker compose up --build
 ```
 
 - **Frontend**: http://localhost:5173

@@ -49,12 +49,18 @@ podman-compose up --build
 Or use the Podman Docker compatibility layer.
 
 ### 🧱 Use Prebuilt Images (GHCR)
-If you want to skip local builds, use the published images:
+If you want to skip local builds, use the published images. By default, these are pulled from `ghcr.io/jaichangpark/`.
 
 ```bash
+# 1. Environment variables setup
+# (Note: Set IMAGE_NAMESPACE=jaichangpark if pulling from our registry)
 cp .env.sample .env
+
+# 2. Run with prebuilt images
 docker compose -f docker-compose.images.yml up
 ```
+
+For more registry options, see [Environment Variables](#3-environment-variables-env).
 
 ---
 
@@ -110,7 +116,7 @@ The simplest way to get the full system up and running.
 > - **Windows**: `C:/open-codelabs` (Use forward slashes `/`)
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 - **Frontend**: [http://localhost:5173](http://localhost:5173)
 - **Backend API**: [http://localhost:8080](http://localhost:8080)
@@ -141,7 +147,7 @@ Docker Compose reads `.env` at the repo root. Copy `.env.sample` to `.env` and a
 
 **Images (docker-compose.images.yml)**
 - `IMAGE_REGISTRY`: Container registry for prebuilt images (default `ghcr.io`).
-- `IMAGE_NAMESPACE`: Image namespace or org (default `open-codelabs`).
+- `IMAGE_NAMESPACE`: Image namespace or org (default `jaichangpark`).
 - `IMAGE_TAG`: Image tag to pull (default `latest`).
 
 **Backend**

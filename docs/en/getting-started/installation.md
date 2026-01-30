@@ -49,9 +49,8 @@ Docker is the simplest and recommended approach.
 
     WSL2 is recommended.
 
-!!! note
     Docker Desktop includes Docker Compose. On Linux, you may need `docker-compose-plugin`.
-    Depending on your environment, you might need to use `docker-compose` instead of `docker compose`.
+    Use the `docker compose` command for modern installations (V1's `docker-compose` is deprecated).
 
 ### 2. Clone the project
 

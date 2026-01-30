@@ -536,7 +536,7 @@ ADMIN_PW=your_real_secure_password
 # Inject via env
 export ADMIN_ID="your_real_admin_id"
 export ADMIN_PW="your_real_secure_password"
-docker-compose up
+docker compose up
 ```
 
 ## Environment validation
@@ -679,7 +679,7 @@ jobs:
           echo "DATABASE_URL=sqlite:/app/data/sqlite.db?mode=rwc" > backend/.env
           echo "ADMIN_ID=$ADMIN_ID" >> backend/.env
           echo "ADMIN_PW=$ADMIN_PW" >> backend/.env
-          docker-compose up -d
+          docker compose up -d
 ```
 
 Set these in Repository Settings -> Secrets.

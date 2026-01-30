@@ -110,7 +110,7 @@ open-codelabs/
 > - **Windows**: `C:/open-codelabs` (スラッシュ `/` を使用)
 
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 - **フロントエンド**: [http://localhost:5173](http://localhost:5173)
 - **バックエンド API**: [http://localhost:8080](http://localhost:8080)

@@ -37,7 +37,7 @@ Docker는 가장 간단하고 권장되는 설치 방법입니다.
     curl -fsSL https://get.docker.com -o get-docker.sh
     sudo sh get-docker.sh
 
-    # Docker Compose 설치
+    # Docker Compose 설치 (v2 기준 docker-compose-plugin 권장)
     sudo apt-get install docker-compose-plugin
     ```
 
@@ -49,9 +49,8 @@ Docker는 가장 간단하고 권장되는 설치 방법입니다.
 
     WSL2를 사용하는 것을 권장합니다.
 
-!!! note
     Docker Desktop에는 Docker Compose가 기본 포함됩니다. Linux는 `docker-compose-plugin` 설치가 필요할 수 있습니다.
-    환경에 따라 `docker compose` 대신 `docker-compose`를 사용해야 할 수 있습니다.
+    이제는 `docker compose` 명령어를 사용합니다. (이전의 `docker-compose`는 V1 방식입니다)
 
 ### 2. 프로젝트 클론
 

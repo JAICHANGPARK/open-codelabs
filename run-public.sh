@@ -14,7 +14,7 @@ if command -v podman compose &> /dev/null; then
 elif command -v docker compose &> /dev/null; then
     CONTAINER_ENGINE="docker"
 else
-    echo "❌ No container engine (docker-compose or podman-compose) found!"
+    echo "❌ No container engine (docker compose or podman compose) found!"
     exit 1
 fi
 

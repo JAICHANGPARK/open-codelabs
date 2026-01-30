@@ -50,7 +50,7 @@ docker compose down
 ```
 
 !!! note
-    환경에 따라 `docker compose` 대신 `docker-compose`를 사용할 수 있습니다.
+    환경에 따라 `docker compose` 대신 `docker compose`를 사용할 수 있습니다.
 
 ## GitHub Container Registry 이미지 사용
 
@@ -261,7 +261,7 @@ volumes:
 
 ```bash
 # SQLite 데이터베이스 백업
-docker-compose exec backend sqlite3 /app/data/sqlite.db ".backup /app/data/backup.db"
+docker compose exec backend sqlite3 /app/data/sqlite.db ".backup /app/data/backup.db"
 
 # 호스트로 복사
 docker cp <container_id>:/app/data/backup.db ./backup.db
@@ -279,8 +279,8 @@ TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 mkdir -p $BACKUP_DIR
 
 # 데이터베이스 백업
-docker-compose exec -T backend sqlite3 /app/data/sqlite.db ".backup /app/data/backup_$TIMESTAMP.db"
-docker cp $(docker-compose ps -q backend):/app/data/backup_$TIMESTAMP.db $BACKUP_DIR/
+docker compose exec -T backend sqlite3 /app/data/sqlite.db ".backup /app/data/backup_$TIMESTAMP.db"
+docker cp $(docker compose ps -q backend):/app/data/backup_$TIMESTAMP.db $BACKUP_DIR/
 
 echo "Backup created: $BACKUP_DIR/backup_$TIMESTAMP.db"
 
@@ -467,57 +467,57 @@ services:
 
 ```bash
 # 빌드만
-docker-compose build
+docker compose build
 
 # 캐시 없이 빌드
-docker-compose build --no-cache
+docker compose build --no-cache
 
 # 백그라운드 실행
-docker-compose up -d
+docker compose up -d
 
 # 특정 서비스만 실행
-docker-compose up backend
+docker compose up backend
 
 # 스케일링 (여러 인스턴스)
-docker-compose up --scale backend=3
+docker compose up --scale backend=3
 
 # 중지
-docker-compose stop
+docker compose stop
 
 # 재시작
-docker-compose restart
+docker compose restart
 
 # 완전 삭제 (볼륨 포함)
-docker-compose down -v
+docker compose down -v
 ```
 
 ### 로그 및 모니터링
 
 ```bash
 # 모든 로그
-docker-compose logs
+docker compose logs
 
 # 실시간 로그
-docker-compose logs -f
+docker compose logs -f
 
 # 특정 서비스 로그
-docker-compose logs -f backend
+docker compose logs -f backend
 
 # 최근 100줄만
-docker-compose logs --tail=100
+docker compose logs --tail=100
 
 # 타임스탬프 포함
-docker-compose logs -t
+docker compose logs -t
 ```
 
 ### 디버깅
 
 ```bash
 # 컨테이너 접속
-docker-compose exec backend sh
+docker compose exec backend sh
 
 # 명령 실행
-docker-compose exec backend ls /app/data
+docker compose exec backend ls /app/data
 
 # 파일 복사 (컨테이너 → 호스트)
 docker cp <container_id>:/app/data/sqlite.db ./
@@ -530,7 +530,7 @@ docker cp ./config.toml <container_id>:/app/
 
 ```bash
 # 중지된 컨테이너 제거
-docker-compose rm
+docker compose rm
 
 # 사용하지 않는 이미지 제거
 docker image prune
@@ -548,7 +548,7 @@ docker system prune -a
 1. **데이터베이스 초기화 (권장)**: 기존 데이터를 보존할 필요가 없다면 SQLite 파일을 삭제하고 다시 시작합니다.
    ```bash
    rm backend/data/sqlite.db
-   docker-compose up --build
+   docker compose up --build
    ```
 2. **PostgreSQL/MySQL로 전환**: 새로운 데이터베이스를 사용하는 경우 이 문제가 발생하지 않습니다. [환경 변수 가이드](environment.md)를 참조하여 `DATABASE_URL`을 설정하세요.
 
@@ -556,10 +556,10 @@ docker system prune -a
 
 ```bash
 # 로그 확인
-docker-compose logs backend
+docker compose logs backend
 
 # 수동으로 실행하여 에러 확인
-docker-compose run backend sh
+docker compose run backend sh
 ```
 
 ### 포트 충돌
@@ -587,9 +587,9 @@ docker system prune -a --volumes
 
 ```bash
 # 네트워크 재생성
-docker-compose down
+docker compose down
 docker network prune
-docker-compose up
+docker compose up
 ```
 
 ## 다음 단계
