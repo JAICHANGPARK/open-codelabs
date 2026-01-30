@@ -131,7 +131,7 @@ export async function logout(): Promise<void> {
     if (!res.ok) throw new Error('Logout failed');
 }
 
-export async function getSession(): Promise<{ role: string; sub: string; exp: number } | null> {
+export async function getSession(): Promise<{ role: string; sub: string; exp: number; codelab_id?: string | null } | null> {
     const res = await apiFetch(`/session`);
     if (res.status === 401) return null;
     if (!res.ok) throw new Error('Failed to fetch session');
@@ -498,6 +498,25 @@ export async function getWorkspaceFileContent(codelabId: string, branch: string,
     return res.text();
 }
 
+export async function updateWorkspaceBranchFiles(
+    codelabId: string,
+    branch: string,
+    files: WorkspaceFile[],
+    deleteFiles: string[] = [],
+    commitMessage?: string
+): Promise<void> {
+    const res = await apiFetch(`/codeserver/${codelabId}/branches/${encodeURIComponent(branch)}/files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            files,
+            delete_files: deleteFiles.length ? deleteFiles : undefined,
+            commit_message: commitMessage
+        })
+    });
+    if (!res.ok) throw new Error('Failed to update workspace branch files');
+}
+
 export async function getWorkspaceFolders(codelabId: string): Promise<string[]> {
     const res = await apiFetch(`/codeserver/${codelabId}/folders`);
     if (!res.ok) throw new Error('Failed to get folders');
@@ -514,6 +533,23 @@ export async function getWorkspaceFolderFileContent(codelabId: string, folder: s
     const res = await apiFetch(`/codeserver/${codelabId}/folders/${encodeURIComponent(folder)}/file?file=${encodeURIComponent(file)}`);
     if (!res.ok) throw new Error('Failed to get folder file content');
     return res.text();
+}
+
+export async function updateWorkspaceFolderFiles(
+    codelabId: string,
+    folder: string,
+    files: WorkspaceFile[],
+    deleteFiles: string[] = []
+): Promise<void> {
+    const res = await apiFetch(`/codeserver/${codelabId}/folders/${encodeURIComponent(folder)}/files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            files,
+            delete_files: deleteFiles.length ? deleteFiles : undefined
+        })
+    });
+    if (!res.ok) throw new Error('Failed to update workspace folder files');
 }
 
 export async function deleteCodeServer(codelabId: string): Promise<void> {

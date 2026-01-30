@@ -213,7 +213,7 @@ export function onAuthChange(callback: (user: User | null) => void) {
     return onAuthStateChanged(auth, callback);
 }
 
-export async function getSession(): Promise<{ role: string; sub: string } | null> {
+export async function getSession(): Promise<{ role: string; sub: string; codelab_id?: string | null } | null> {
     if (typeof localStorage === 'undefined') return null;
     const token = localStorage.getItem('adminToken');
     if (!token) return null;

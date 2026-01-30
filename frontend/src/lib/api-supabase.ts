@@ -336,7 +336,7 @@ export function onAuthChange(callback: (user: any | null) => void) {
     return () => data.subscription.unsubscribe();
 }
 
-export async function getSession(): Promise<{ role: string; sub: string } | null> {
+export async function getSession(): Promise<{ role: string; sub: string; codelab_id?: string | null } | null> {
     const token = getAdminToken();
     if (token) return { role: "admin", sub: "supabase-admin" };
 
