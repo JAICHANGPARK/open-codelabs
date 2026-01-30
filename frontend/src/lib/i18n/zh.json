@@ -95,6 +95,12 @@
         "no_messages_desc": "协调员尚未发送消息。",
         "dm_select_prompt": "请选择一位参与者以发送私信。",
         "feedback_tab": "反馈",
+        "tab_groups": {
+            "authoring": "编写",
+            "operations": "运营",
+            "assessment": "评估",
+            "admin": "管理"
+        },
         "delete_step": "删除步骤",
         "copy_url": "复制 URL",
         "placeholder_step_title": "未命名步骤",
@@ -165,6 +171,7 @@
         "save_changes": "保存更改",
         "stuck_on_step": "卡在第 {step} 步",
         "split_view": "分栏视图",
+        "workspace_tab": "工作区",
         "guide_tab": "准备指南",
         "guide_description": "为参与者编写在开始前需要准备的工具和环境说明。",
         "markdown_editor": "Markdown 编辑器",
@@ -200,6 +207,61 @@
         "guide_pro_result_review": "评审结果",
         "guide_pro_result_revise": "修订结果",
         "guide_pro_result_empty": "暂无结果。"
+    },
+    "workspace": {
+        "title": "工作区设置",
+        "subtitle": "创建并管理用于动手练习的工作区文件",
+        "active_title": "工作区已启用",
+        "labels": {
+            "structure": "结构",
+            "path": "路径",
+            "steps": "步骤",
+            "branch": "分支",
+            "folder": "文件夹",
+            "branches": "分支",
+            "folders": "文件夹"
+        },
+        "steps_summary": "{count} 个步骤 × 2（{unit}）= 共 {total} 个",
+        "download": "下载工作区",
+        "structure_title": "工作区结构",
+        "structure_options": {
+            "branch": "分支方式（Git 分支）",
+            "folder": "文件夹方式（目录）"
+        },
+        "base_files": "基础文件",
+        "base_files_desc": "上传将复制到所有步骤分支/文件夹的初始文件",
+        "upload_files": "上传文件",
+        "remove_file": "移除",
+        "info_title": "创建工作区会发生什么？",
+        "info_step_create": "每个步骤都会创建 2 个 {unit}:",
+        "info_copy_base": "所有上传的基础文件都会复制到每个 {unit}",
+        "info_modify_later": "之后可以下载、修改并重新上传特定步骤的文件",
+        "create_button": "创建工作区",
+        "creating_button": "正在创建工作区...",
+        "browser_title": "工作区浏览器",
+        "browser_files_title": "文件",
+        "loading": "加载中...",
+        "loading_file": "正在加载文件...",
+        "no_files": "未找到文件",
+        "select_file": "选择一个文件以查看内容",
+        "errors": {
+            "upload_required": "请至少上传一个工作区文件",
+            "steps_required": "创建工作区前请先添加代码实验步骤",
+            "create_failed": "创建工作区失败：{error}",
+            "download_failed": "下载失败：{error}",
+            "load_workspace_failed": "加载工作区失败：{error}",
+            "load_files_failed": "加载文件列表失败：{error}",
+            "load_file_content_failed": "加载文件内容失败：{error}",
+            "firebase_unavailable": "Firebase 模式不支持 Code Server 工作区",
+            "not_found": "未找到工作区。请确保在创建代码实验时启用“Code Server Workspace”，并上传工作区文件。"
+        },
+        "success": {
+            "created": "工作区创建成功！"
+        },
+        "actions": {
+            "browse": "浏览工作区文件",
+            "download": "下载工作区"
+        }
     },
     "attendee": {
         "join_title": "加入代码实验室",
