@@ -416,13 +416,18 @@ export interface WorkspaceFile {
     content: string;
 }
 
-export async function createCodeServer(codelabId: string, workspaceFiles?: WorkspaceFile[]): Promise<CodeServerInfo> {
+export async function createCodeServer(
+    codelabId: string,
+    workspaceFiles?: WorkspaceFile[],
+    structureType?: 'branch' | 'folder'
+): Promise<CodeServerInfo> {
     const res = await apiFetch(`/codeserver`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             codelab_id: codelabId,
-            workspace_files: workspaceFiles
+            workspace_files: workspaceFiles,
+            ...(structureType ? { structure_type: structureType } : {})
         })
     });
     if (!res.ok) throw new Error('Failed to create code server');
