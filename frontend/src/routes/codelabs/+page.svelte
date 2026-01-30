@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { fade, fly } from "svelte/transition";
-    import { listCodelabs, getJoinedCodelabs, onAuthChange, type Codelab, isFirebaseMode } from "$lib/api";
+    import { listCodelabs, getJoinedCodelabs, onAuthChange, type Codelab, isServerlessMode } from "$lib/api";
     import {
         BookOpen,
         User,
@@ -22,7 +22,7 @@
     onMount(async () => {
         onAuthChange((u) => {
             user = u;
-            if (isFirebaseMode() && u) {
+            if (isServerlessMode() && u) {
                 loadJoinedCodelabs();
             }
         });
@@ -107,7 +107,7 @@
                 <p class="text-[#5F6368] font-medium">{$t("common.loading")}</p>
             </div>
         {:else}
-            {#if isFirebaseMode() && user && joinedCodelabs.length > 0}
+            {#if isServerlessMode() && user && joinedCodelabs.length > 0}
                 <section class="mb-16">
                     <div class="flex items-center gap-2 mb-8">
                         <Star class="text-[#FBBC04] fill-[#FBBC04]" size={24} />
