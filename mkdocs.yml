@@ -41,8 +41,62 @@ theme:
     - toc.follow
 
 plugins:
+  - i18n:
+      default_language: ko
+      docs_structure: folder
+      fallback_to_default: true
+      languages:
+        ko:
+          name: 한국어
+          build: true
+        en:
+          name: English
+          build: true
+      nav_translations:
+        en:
+          홈: Home
+          시작하기: Getting Started
+          빠른 시작: Quickstart
+          설치 가이드: Installation
+          첫 번째 Codelab 만들기: Create Your First Codelab
+          사용 가이드: User Guide
+          퍼실리테이터 가이드: Facilitator Guide
+          참석자 가이드: Attendee Guide
+          Self-Hosting: Self-Hosting
+          Docker로 배포하기: Deploy with Docker
+          GCP (Google Cloud): GCP (Google Cloud)
+          AWS (Amazon Web Services): AWS (Amazon Web Services)
+          파이어베이스 (Firebase): Firebase
+          Supabase: Supabase
+          로컬 개발 환경: Local Development
+          공개 배포 (ngrok/bore/cloudflare): Public Deployment (ngrok/bore/cloudflare)
+          환경 변수 설정: Environment Variables
+          보안 가이드: Security Guide
+          프로젝트 명세: Specifications
+          개요: Overview
+          기능 명세: Feature Specs
+          데이터베이스 스키마: Database Schema
+          API 레퍼런스: API Reference
+          아키텍처: Architecture
+          시스템 아키텍처: System Architecture
+          백엔드 구조: Backend Architecture
+          프론트엔드 구조: Frontend Architecture
+          실시간 통신 (WebSocket): Realtime Communication (WebSocket)
+          코드 가이드: Code Guide
+          백엔드 코드 예제: Backend Examples
+          프론트엔드 코드 예제: Frontend Examples
+          데이터 모델: Data Models
+          API 사용 예제: API Usage Examples
+          기여하기: Contributing
+          기여 가이드: Contribution Guide
+          개발 워크플로우: Development Workflow
+          코드 스타일: Code Style
+          FAQ: FAQ
+          라이선스: License
   - search:
-      lang: ko
+      lang:
+        - en
+        - ko
   - git-revision-date-localized:
       enable_creation_date: true
 
