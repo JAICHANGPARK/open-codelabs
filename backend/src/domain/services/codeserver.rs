@@ -27,6 +27,24 @@ impl CodeServerManager {
         Err(anyhow!("{}: {}", context, detail))
     }
 
+    async fn run_command_output(mut cmd: Command, context: &str) -> Result<String> {
+        let output = cmd.output().await?;
+        if !output.status.success() {
+            let stderr = String::from_utf8_lossy(&output.stderr);
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let detail = if !stderr.trim().is_empty() {
+                stderr.trim()
+            } else if !stdout.trim().is_empty() {
+                stdout.trim()
+            } else {
+                "unknown error"
+            };
+            return Err(anyhow!("{}: {}", context, detail));
+        }
+
+        Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+    }
+
     pub fn new() -> Result<Self> {
         let workspace_base = PathBuf::from("/app/workspaces");
         Ok(Self { workspace_base })
@@ -55,6 +73,23 @@ impl CodeServerManager {
 
         // Write file content
         fs::write(&full_path, content).await?;
+
+        Ok(())
+    }
+
+    /// Remove a file or directory from the workspace
+    pub async fn remove_path(&self, codelab_id: &str, file_path: &str) -> Result<()> {
+        let full_path = self.workspace_base.join(codelab_id).join(file_path);
+        let metadata = match fs::metadata(&full_path).await {
+            Ok(metadata) => metadata,
+            Err(_) => return Ok(()),
+        };
+
+        if metadata.is_dir() {
+            fs::remove_dir_all(&full_path).await?;
+        } else {
+            fs::remove_file(&full_path).await?;
+        }
 
         Ok(())
     }
@@ -100,6 +135,62 @@ impl CodeServerManager {
         .await?;
 
         Ok(())
+    }
+
+    pub async fn current_branch(&self, codelab_id: &str) -> Result<String> {
+        let workspace_path = self.workspace_base.join(codelab_id);
+        Self::run_command_output(
+            {
+                let mut cmd = Command::new("git");
+                cmd.arg("rev-parse")
+                    .arg("--abbrev-ref")
+                    .arg("HEAD")
+                    .current_dir(&workspace_path);
+                cmd
+            },
+            "Failed to get current git branch",
+        )
+        .await
+    }
+
+    pub async fn checkout_branch(&self, codelab_id: &str, branch: &str) -> Result<()> {
+        let workspace_path = self.workspace_base.join(codelab_id);
+        Self::run_command(
+            {
+                let mut cmd = Command::new("git");
+                cmd.arg("checkout").arg(branch).current_dir(&workspace_path);
+                cmd
+            },
+            "Failed to checkout git branch",
+        )
+        .await
+    }
+
+    pub async fn commit_changes(&self, codelab_id: &str, message: &str) -> Result<()> {
+        let workspace_path = self.workspace_base.join(codelab_id);
+        Self::run_command(
+            {
+                let mut cmd = Command::new("git");
+                cmd.arg("add").arg(".").current_dir(&workspace_path);
+                cmd
+            },
+            "Failed to stage workspace changes",
+        )
+        .await?;
+
+        Self::run_command(
+            {
+                let mut cmd = Command::new("git");
+                cmd.arg("commit")
+                    .arg("-m")
+                    .arg(message)
+                    .arg("--allow-empty")
+                    .current_dir(&workspace_path);
+                cmd
+            },
+            "Failed to commit workspace changes",
+        )
+        .await
     }
 
     /// Create a git branch for a step
