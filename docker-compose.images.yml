@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-open-codelabs}/open-codelabs-backend:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-jaichangpark}/open-codelabs-backend:${IMAGE_TAG:-latest}
     ports:
       - "8080:8080"
     environment:
@@ -13,7 +13,7 @@ services:
       - ${DATA_VOLUME_PATH}/workspaces:/app/workspaces
 
   frontend:
-    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-open-codelabs}/open-codelabs-frontend:${IMAGE_TAG:-latest}
+    image: ${IMAGE_REGISTRY:-ghcr.io}/${IMAGE_NAMESPACE:-jaichangpark}/open-codelabs-frontend:${IMAGE_TAG:-latest}
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     environment:
