@@ -22,6 +22,7 @@
         FolderGit2,
         Award,
     } from "lucide-svelte";
+    import * as NavigationMenu from "$lib/components/ui/navigation-menu/index.js";
     import { t } from "svelte-i18n";
     import type { Codelab } from "$lib/api";
 
@@ -50,6 +51,107 @@
         handleDownloadWorkspace?: () => void;
         handleBrowseWorkspace?: () => void;
     }>();
+
+    const tabGroups = [
+        {
+            labelKey: "editor.tab_groups.authoring",
+            items: [
+                {
+                    id: "edit",
+                    labelKey: "editor.edit",
+                    descriptionKey: "editor.tab_descriptions.edit",
+                    icon: Edit3,
+                },
+                {
+                    id: "preview",
+                    labelKey: "editor.preview",
+                    descriptionKey: "editor.tab_descriptions.preview",
+                    icon: Eye,
+                },
+                {
+                    id: "guide",
+                    labelKey: "editor.guide_tab",
+                    descriptionKey: "editor.tab_descriptions.guide",
+                    icon: Info,
+                },
+                {
+                    id: "materials",
+                    labelKey: "editor.materials_tab",
+                    descriptionKey: "editor.tab_descriptions.materials",
+                    icon: Paperclip,
+                },
+            ],
+        },
+        {
+            labelKey: "editor.tab_groups.operations",
+            items: [
+                {
+                    id: "live",
+                    labelKey: "editor.live_tab",
+                    descriptionKey: "editor.tab_descriptions.live",
+                    icon: Users,
+                },
+                {
+                    id: "feedback",
+                    labelKey: "editor.feedback_tab",
+                    descriptionKey: "editor.tab_descriptions.feedback",
+                    icon: MessageSquare,
+                },
+                {
+                    id: "raffle",
+                    labelKey: "editor.raffle_tab",
+                    descriptionKey: "editor.tab_descriptions.raffle",
+                    icon: Trophy,
+                },
+            ],
+        },
+        {
+            labelKey: "editor.tab_groups.assessment",
+            items: [
+                {
+                    id: "quiz",
+                    labelKey: "editor.quiz_tab",
+                    descriptionKey: "editor.tab_descriptions.quiz",
+                    icon: Sparkles,
+                },
+                {
+                    id: "submissions",
+                    labelKey: "submission.title",
+                    descriptionKey: "editor.tab_descriptions.submissions",
+                    icon: FileUp,
+                },
+                {
+                    id: "certificate",
+                    labelKey: "editor.certificate_tab",
+                    descriptionKey: "editor.tab_descriptions.certificate",
+                    icon: Award,
+                },
+            ],
+        },
+        {
+            labelKey: "editor.tab_groups.admin",
+            items: [
+                {
+                    id: "workspace",
+                    labelKey: "editor.workspace_tab",
+                    descriptionKey: "editor.tab_descriptions.workspace",
+                    icon: FolderGit2,
+                },
+                {
+                    id: "settings",
+                    labelKey: "editor.settings_tab",
+                    descriptionKey: "editor.tab_descriptions.settings",
+                    icon: Settings,
+                },
+                {
+                    id: "ai",
+                    label: "AI",
+                    descriptionKey: "editor.tab_descriptions.ai",
+                    icon: Sparkles,
+                },
+            ],
+        },
+    ];
 </script>
 
 <header
@@ -212,187 +314,62 @@
             </div>
         </div>
 
-        <!-- Mode Switcher - Grouped -->
-        <div
-            class="flex items-center gap-3 overflow-x-auto no-scrollbar pb-1 -mx-3 px-3 sm:mx-0 sm:px-0"
+        <!-- Mode Switcher - Navigation Menu -->
+        <NavigationMenu.Root
+            viewport={false}
+            class="w-full !max-w-full justify-start"
         >
-            <div class="flex items-center gap-2 shrink-0">
-                <span
-                    class="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-[#5F6368] dark:text-dark-text-muted"
-                >
-                    {$t("editor.tab_groups.authoring")}
-                </span>
-                <div
-                    class="flex flex-nowrap bg-[#F1F3F4] dark:bg-white/5 p-1 rounded-full border border-[#E8EAED] dark:border-dark-border shrink-0"
-                >
-                    <button
-                        onclick={() => (mode = "edit")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'edit'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <Edit3 size={14} />
-                        <span>{$t("editor.edit")}</span>
-                    </button>
-                    <button
-                        onclick={() => (mode = "preview")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'preview'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <Eye size={14} />
-                        <span>{$t("editor.preview")}</span>
-                    </button>
-                    <button
-                        onclick={() => (mode = "guide")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'guide'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <Info size={14} />
-                        <span>{$t("editor.guide_tab")}</span>
-                    </button>
-                    <button
-                        onclick={() => (mode = "materials")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'materials'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <Paperclip size={14} />
-                        <span>{$t("editor.materials_tab")}</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2 shrink-0">
-                <span
-                    class="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-[#5F6368] dark:text-dark-text-muted"
-                >
-                    {$t("editor.tab_groups.operations")}
-                </span>
-                <div
-                    class="flex flex-nowrap bg-[#F1F3F4] dark:bg-white/5 p-1 rounded-full border border-[#E8EAED] dark:border-dark-border shrink-0"
-                >
-                    <button
-                        onclick={() => (mode = "live")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'live'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <Users size={14} />
-                        <span>{$t("editor.live_tab")}</span>
-                    </button>
-                    <button
-                        onclick={() => (mode = "feedback")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'feedback'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <MessageSquare size={14} />
-                        <span>{$t("editor.feedback_tab")}</span>
-                    </button>
-                    <button
-                        onclick={() => (mode = "raffle")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'raffle'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <Trophy size={14} />
-                        <span>{$t("editor.raffle_tab")}</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2 shrink-0">
-                <span
-                    class="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-[#5F6368] dark:text-dark-text-muted"
-                >
-                    {$t("editor.tab_groups.assessment")}
-                </span>
-                <div
-                    class="flex flex-nowrap bg-[#F1F3F4] dark:bg-white/5 p-1 rounded-full border border-[#E8EAED] dark:border-dark-border shrink-0"
-                >
-                    <button
-                        onclick={() => (mode = "quiz")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'quiz'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <Sparkles size={14} />
-                        <span>{$t("editor.quiz_tab")}</span>
-                    </button>
-                    <button
-                        onclick={() => (mode = "submissions")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'submissions'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <FileUp size={14} />
-                        <span>{$t("submission.title")}</span>
-                    </button>
-                    <button
-                        onclick={() => (mode = "certificate")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'certificate'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <Award size={14} />
-                        <span>{$t("editor.certificate_tab")}</span>
-                    </button>
-                </div>
-            </div>
-
-            <div class="flex items-center gap-2 shrink-0">
-                <span
-                    class="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-[#5F6368] dark:text-dark-text-muted"
-                >
-                    {$t("editor.tab_groups.admin")}
-                </span>
-                <div
-                    class="flex flex-nowrap bg-[#F1F3F4] dark:bg-white/5 p-1 rounded-full border border-[#E8EAED] dark:border-dark-border shrink-0"
-                >
-                    <button
-                        onclick={() => (mode = "workspace")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'workspace'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <FolderGit2 size={14} />
-                        <span>{$t("editor.workspace_tab")}</span>
-                    </button>
-                    <button
-                        onclick={() => (mode = "settings")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'settings'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <Settings size={14} />
-                        <span>{$t("editor.settings_tab")}</span>
-                    </button>
-                    <button
-                        onclick={() => (mode = "ai")}
-                        class="px-3 sm:px-4 py-1 rounded-full flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all whitespace-nowrap {mode ===
-                        'ai'
-                            ? 'bg-white dark:bg-dark-surface shadow-sm text-[#4285F4]'
-                            : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text'}"
-                    >
-                        <Sparkles size={14} />
-                        <span>AI</span>
-                    </button>
-                </div>
-            </div>
-        </div>
+            <NavigationMenu.List
+                class="flex flex-1 flex-wrap items-center justify-start gap-2 pb-1"
+            >
+                {#each tabGroups as group}
+                    <NavigationMenu.Item>
+                        <NavigationMenu.Trigger
+                            class="!h-7 sm:!h-8 !px-3 sm:!px-4 !rounded-full text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider border border-[#E8EAED] dark:border-dark-border bg-[#F1F3F4] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text data-[state=open]:bg-white data-[state=open]:text-[#4285F4] data-[state=open]:shadow-sm dark:data-[state=open]:bg-dark-surface {group.items.some((item) => item.id === mode)
+                                ? '!bg-white dark:!bg-dark-surface text-[#4285F4] shadow-sm'
+                                : ''}"
+                        >
+                            {$t(group.labelKey)}
+                        </NavigationMenu.Trigger>
+                        <NavigationMenu.Content
+                            class="z-50 rounded-2xl border border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface shadow-xl p-2 w-[min(520px,calc(100vw-32px))] md:w-[520px]"
+                        >
+                            <div class="grid gap-2 sm:grid-cols-2">
+                                {#each group.items as item}
+                                    <NavigationMenu.Link
+                                        href="#"
+                                        onclick={(event) => {
+                                            event.preventDefault();
+                                            mode = item.id;
+                                        }}
+                                        aria-current={mode === item.id ? "page" : undefined}
+                                        class="flex flex-row items-start gap-2 rounded-lg px-3 py-2 text-[11px] sm:text-sm font-semibold transition-colors {mode ===
+                                        item.id
+                                            ? 'bg-[#E8F0FE] dark:bg-[#4285F4]/10 text-[#4285F4]'
+                                            : 'text-[#5F6368] dark:text-dark-text-muted hover:bg-[#F8F9FA] dark:hover:bg-white/5 hover:text-[#202124] dark:hover:text-dark-text'}"
+                                    >
+                                        <svelte:component
+                                            this={item.icon}
+                                            size={14}
+                                            class="mt-0.5"
+                                        />
+                                        <span class="flex-1">
+                                            <span class="block">
+                                                {item.labelKey
+                                                    ? $t(item.labelKey)
+                                                    : item.label}
+                                            </span>
+                                            <span class="block text-[10px] font-normal text-[#9AA0A6] dark:text-dark-text-muted">
+                                                {$t(item.descriptionKey)}
+                                            </span>
+                                        </span>
+                                    </NavigationMenu.Link>
+                                {/each}
+                            </div>
+                        </NavigationMenu.Content>
+                    </NavigationMenu.Item>
+                {/each}
+            </NavigationMenu.List>
+        </NavigationMenu.Root>
     </div>
 </header>
