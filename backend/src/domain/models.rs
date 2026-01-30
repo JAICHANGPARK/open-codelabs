@@ -95,6 +95,7 @@ pub struct CreateStep {
 pub struct RegistrationPayload {
     pub name: String,
     pub code: String,
+    pub email: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -103,6 +104,7 @@ pub struct Attendee {
     pub codelab_id: String,
     pub name: String,
     pub code: String,
+    pub email: Option<String>,
     pub current_step: i32,
     #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
     pub is_completed: i32,
@@ -115,6 +117,7 @@ pub struct AttendeePublic {
     pub id: String,
     pub codelab_id: String,
     pub name: String,
+    pub email: Option<String>,
     pub current_step: i32,
     #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
     pub is_completed: i32,
@@ -128,6 +131,7 @@ impl From<Attendee> for AttendeePublic {
             id: attendee.id,
             codelab_id: attendee.codelab_id,
             name: attendee.name,
+            email: attendee.email,
             current_step: attendee.current_step,
             is_completed: attendee.is_completed,
             completed_at: attendee.completed_at,
