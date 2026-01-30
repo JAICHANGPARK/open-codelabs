@@ -216,11 +216,11 @@ export async function importCodelab(file: File): Promise<Codelab> {
     return res.json();
 }
 
-export async function registerAttendee(codelabId: string, name: string, code: string): Promise<Attendee> {
+export async function registerAttendee(codelabId: string, name: string, code: string, email?: string): Promise<Attendee> {
     const res = await apiFetch(`/codelabs/${codelabId}/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, code }),
+        body: JSON.stringify({ name, code, email }),
     });
     if (res.status === 409) throw new Error('DUPLICATE_NAME');
     if (!res.ok) throw new Error('Registration failed');
