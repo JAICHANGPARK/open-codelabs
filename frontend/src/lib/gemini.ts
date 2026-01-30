@@ -29,7 +29,9 @@ export interface GenerationResult {
 
 const envApiUrl = import.meta.env.VITE_API_URL;
 let BASE_URL = envApiUrl || 'http://localhost:8080';
-const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true';
+const USE_SUPABASE = import.meta.env.VITE_USE_SUPABASE === 'true';
+const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true' && !USE_SUPABASE;
+const USE_SERVERLESS = USE_FIREBASE || USE_SUPABASE;
 
 if (browser && (envApiUrl === 'http://backend:8080' || !envApiUrl || envApiUrl.includes('localhost'))) {
     const hostname = window.location.hostname;
@@ -72,9 +74,9 @@ export async function* streamGeminiResponseRobust(
         if (!config.apiKey) throw new Error("API Key is required for backend mode");
     };
 
-    if (USE_FIREBASE) {
-        if (!config.apiKey) throw new Error("API Key is required for Firebase mode");
-        // Direct call for Firebase mode
+    if (USE_SERVERLESS) {
+        if (!config.apiKey) throw new Error("API Key is required for serverless mode");
+        // Direct call for serverless mode
         const model = config.model || "gemini-3-flash-preview";
         // alt=sse is required to use parseGoogleStream logic
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
@@ -190,8 +192,8 @@ export async function* streamGeminiStructuredOutput(
         })
     };
 
-    if (USE_FIREBASE) {
-        if (!config.apiKey) throw new Error("API Key is required for Firebase mode");
+    if (USE_SERVERLESS) {
+        if (!config.apiKey) throw new Error("API Key is required for serverless mode");
         const model = config.model || "gemini-3-flash-preview";
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
 
