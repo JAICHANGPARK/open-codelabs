@@ -46,6 +46,13 @@ pub struct CreateFolderRequest {
     pub files: Vec<WorkspaceFile>,
 }
 
+#[derive(Deserialize)]
+pub struct UpdateWorkspaceFilesRequest {
+    pub files: Vec<WorkspaceFile>,
+    pub delete_files: Option<Vec<String>>,
+    pub commit_message: Option<String>,
+}
+
 #[derive(sqlx::FromRow)]
 struct WorkspaceRow {
     url: String,
@@ -525,4 +532,149 @@ pub async fn read_folder_file(
         .map_err(internal_error)?;
 
     Ok(content)
+}
+
+/// Update files in a branch (for branch-based structure)
+pub async fn update_branch_files(
+    Path((codelab_id, branch)): Path<(String, String)>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+    info: RequestInfo,
+    Json(payload): Json<UpdateWorkspaceFilesRequest>,
+) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+    let admin = session.require_admin()?;
+
+    // Verify workspace exists
+    let _workspace = sqlx::query(&state.q(
+        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
+    ))
+        .bind(&codelab_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| bad_request("Workspace not found"))?;
+
+    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let current_branch = manager
+        .current_branch(&codelab_id)
+        .await
+        .map_err(internal_error)?;
+
+    manager
+        .checkout_branch(&codelab_id, &branch)
+        .await
+        .map_err(internal_error)?;
+
+    for file in &payload.files {
+        manager
+            .write_file(&codelab_id, &file.path, &file.content)
+            .await
+            .map_err(internal_error)?;
+    }
+
+    if let Some(deletes) = &payload.delete_files {
+        for file in deletes {
+            manager
+                .remove_path(&codelab_id, file)
+                .await
+                .map_err(internal_error)?;
+        }
+    }
+
+    let commit_message = payload
+        .commit_message
+        .as_deref()
+        .unwrap_or("Update workspace files");
+    manager
+        .commit_changes(&codelab_id, commit_message)
+        .await
+        .map_err(internal_error)?;
+
+    manager
+        .checkout_branch(&codelab_id, &current_branch)
+        .await
+        .map_err(internal_error)?;
+
+    record_audit(
+        &state,
+        AuditEntry {
+            action: "workspace_branch_update".to_string(),
+            actor_type: "admin".to_string(),
+            actor_id: Some(admin.sub),
+            target_id: Some(codelab_id.clone()),
+            codelab_id: Some(codelab_id),
+            ip: Some(info.ip),
+            user_agent: info.user_agent,
+            metadata: Some(serde_json::json!({
+                "branch": branch,
+                "files_updated": payload.files.len(),
+                "files_deleted": payload.delete_files.as_ref().map(|v| v.len()).unwrap_or(0)
+            })),
+        },
+    )
+    .await;
+
+    Ok(Json(serde_json::json!({ "success": true })))
+}
+
+/// Update files in a folder (for folder-based structure)
+pub async fn update_folder_files(
+    Path((codelab_id, folder)): Path<(String, String)>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+    info: RequestInfo,
+    Json(payload): Json<UpdateWorkspaceFilesRequest>,
+) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
+    let admin = session.require_admin()?;
+
+    // Verify workspace exists
+    let _workspace = sqlx::query(&state.q(
+        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
+    ))
+        .bind(&codelab_id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(internal_error)?
+        .ok_or_else(|| bad_request("Workspace not found"))?;
+
+    let manager = CodeServerManager::new().map_err(internal_error)?;
+
+    for file in &payload.files {
+        let path = format!("{}/{}", folder, file.path);
+        manager
+            .write_file(&codelab_id, &path, &file.content)
+            .await
+            .map_err(internal_error)?;
+    }
+
+    if let Some(deletes) = &payload.delete_files {
+        for file in deletes {
+            let path = format!("{}/{}", folder, file);
+            manager
+                .remove_path(&codelab_id, &path)
+                .await
+                .map_err(internal_error)?;
+        }
+    }
+
+    record_audit(
+        &state,
+        AuditEntry {
+            action: "workspace_folder_update".to_string(),
+            actor_type: "admin".to_string(),
+            actor_id: Some(admin.sub),
+            target_id: Some(codelab_id.clone()),
+            codelab_id: Some(codelab_id),
+            ip: Some(info.ip),
+            user_agent: info.user_agent,
+            metadata: Some(serde_json::json!({
+                "folder": folder,
+                "files_updated": payload.files.len(),
+                "files_deleted": payload.delete_files.as_ref().map(|v| v.len()).unwrap_or(0)
+            })),
+        },
+    )
+    .await;
+
+    Ok(Json(serde_json::json!({ "success": true })))
 }
