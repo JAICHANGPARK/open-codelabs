@@ -762,5 +762,5 @@ async fn main() -> anyhow::Result<()> {
 ## 다음 단계
 
 - [Docker 배포](docker.md) - Docker로 프로덕션 배포
-- [보안 가이드](../specification/overview.md) - 보안 베스트 프랙티스
+- [보안 가이드](security.md) - 운영 보안 체크리스트
 - [FAQ](../faq.md) - 자주 묻는 질문

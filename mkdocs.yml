@@ -87,6 +87,7 @@ nav:
       - 로컬 개발 환경: self-hosting/local-development.md
       - 공개 배포 (ngrok/bore/cloudflare): self-hosting/public-deployment.md
       - 환경 변수 설정: self-hosting/environment.md
+      - 보안 가이드: self-hosting/security.md
   - 프로젝트 명세:
       - 개요: specification/overview.md
       - 기능 명세: specification/features.md
