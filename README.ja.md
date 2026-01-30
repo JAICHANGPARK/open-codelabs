@@ -9,7 +9,7 @@
 
 **Open Codelabs** は、Google Codelab スタイルのハンズオンセッションを簡単に運営・管理できるように設計されたオープンソースプラットフォームです。最新の技術スタックで構築されており、ファシリテーター（管理者）と参加者の両方のロールをサポートしています。コンテンツは Markdown で直接管理するか、AI を使用して自動生成することができます。
 
-[English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md)
+[English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [中文](README.zh.md)
 
 ---
 
@@ -17,6 +17,7 @@
 
 - **ファシリテーターと参加者の分離**: 管理者はコードラボを作成・管理し、参加者は洗練された UI を通じてステップに従うことができます。
 - **AI コードラボ生成器**: Google Gemini AI を使用して、ソースコードや参照ドキュメントからプロフェッショナルなコードラボを自動生成します。
+- **Code Server ワークスペース（任意）**: コードラボごとの code-server ワークスペースを作成し、ステップごとのスナップショット（ブランチ/フォルダモード）とダウンロードを提供します。
 - **クイズ・フィードバック・修了証**: クイズやフィードバック提出を修了条件に設定し、検証 URL 付きの修了証を自動発行します。
 - **準備ガイド & 資料管理**: 事前準備ガイドを手書きまたは AI 生成し、リンク/ファイルを一括配布できます。
 - **ライブワークショップツール**: ライブチャット/DM、ヘルプリクエストキュー、提出物パネル、修了証保持者だけを対象にするルーレット抽選を提供します。
@@ -46,6 +47,14 @@ Podman を使用している場合は、`podman-compose` を使用できます�
 podman-compose up --build
 ```
 または Podman の Docker 互換レイヤーを使用してください。
+
+### 🧱 事前ビルドイメージを使用 (GHCR)
+ローカルビルドを省略したい場合は、公開済みイメージを利用できます：
+
+```bash
+cp .env.sample .env
+docker compose -f docker-compose.images.yml up
+```
 
 ---
 
@@ -79,6 +88,7 @@ open-codelabs/
 │   ├── src/          # コンポーネント、ルート、ライブラリ
 │   └── static/       # 静的アセット
 ├── docs/             # ドキュメント (MkDocs)
+├── docker-compose.images.yml # 事前ビルドイメージ用 compose
 ├── docker-compose.yml # システムオーケストレーション
 └── run-public.sh     # 公開デプロイスクリプト (ngrok/bore/cloudflare)
 ```
@@ -127,6 +137,11 @@ bun run dev
 Docker Compose はリポジトリルートの `.env` を読み込みます。`.env.sample` をコピーして `.env` を作成し、必要な値を変更してください。
 (ローカル開発は `backend/.env.sample` と `frontend/.env.sample` を最小の開始点として使えます。)
 
+**イメージ (docker-compose.images.yml)**
+- `IMAGE_REGISTRY`: 事前ビルドイメージのレジストリ（既定 `ghcr.io`）。
+- `IMAGE_NAMESPACE`: イメージのネームスペース/組織名（既定 `open-codelabs`）。
+- `IMAGE_TAG`: 取得するイメージタグ（既定 `latest`）。
+
 **Backend**
 - `DATABASE_URL`: SQLx 接続文字列 (sqlite/postgres/mysql)。例: `sqlite:/app/data/sqlite.db?mode=rwc`。
 - `ADMIN_ID`: 管理者ログイン ID。
@@ -154,11 +169,22 @@ Docker Compose はリポジトリルートの `.env` を読み込みます。`.e
 **Frontend**
 - `VITE_API_URL`: バックエンド API の基底 URL (例: `http://localhost:8080`、Docker では `http://backend:8080`)。
 - `VITE_ADMIN_ENCRYPTION_PASSWORD`: ブラウザで Gemini API キーを暗号化するパスワード。バックエンド `ADMIN_PW` と一致する必要あり。
+- `VITE_USE_SUPABASE`: `true` に設定すると Supabase モード（サーバーレス、Rust バックエンドなし）を有効化します。
+- `VITE_SUPABASE_URL`: Supabase プロジェクト URL。
+- `VITE_SUPABASE_ANON_KEY`: Supabase の anon キー。
+- `VITE_SUPABASE_STORAGE_BUCKET`: Supabase Storage のバケット名（既定 `open-codelabs`）。
+- `VITE_ADMIN_ID`: Firebase/Supabase モードの管理者ログイン ID。
+- `VITE_ADMIN_PW`: Firebase/Supabase モードの管理者ログインパスワード。
 - `FRONTEND_PORT`: フロントサーバーのポート。
 - `FRONTEND_HOST`: フロントサーバーのバインドホスト(例: `0.0.0.0`)。
 
-### 4. Firebase デプロイ (サーバーレスモード)
-ローカルの Rust サーバーなしで運営したい場合は、Firebase を使用できます。詳細は [DEPLOY_FIREBASE.md](docs/deploy/DEPLOY_FIREBASE.md) を参照してください。
+### 4. クラウドデプロイ (AWS / GCP / Firebase)
+サーバーレス環境やクラウドで運用する場合は、以下を参照してください。
+
+- **AWS**: コンテナ or VM 配置。 [AWS デプロイガイド](docs/self-hosting/aws.md) を参照。
+- **GCP (Cloud Run)**: コンテナ配置。 [GCP デプロイガイド](docs/self-hosting/gcp.md) を参照。
+- **Firebase**: 迅速なサーバーレス設定。 [Firebase デプロイガイド](docs/self-hosting/firebase.md) を参照。
+- **Supabase**: サーバーレス Postgres + Storage 構成。 [Supabase ガイド](docs/self-hosting/supabase.md) を参照。
 
 ---
 
@@ -196,6 +222,9 @@ chmod +x run-public.sh
 ## 📚 ドキュメント
 完全なドキュメントは GitHub Pages で確認できます：
 **[📖 Open Codelabs ドキュメントを見る](https://JAICHANGPARK.github.io/open-codelabs/)**
+
+追加ガイド:
+- [Code Server ワークスペース設定](docs/CODE_SERVER_SETUP.md)
 
 ---
 
