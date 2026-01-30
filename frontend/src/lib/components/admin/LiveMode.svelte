@@ -13,6 +13,7 @@
     let {
         attendees,
         helpRequests,
+        totalSteps = 0,
         chatTab = $bindable(),
         dmTarget = $bindable(),
         dmMessage = $bindable(),
@@ -24,6 +25,7 @@
     } = $props<{
         attendees: Attendee[];
         helpRequests: HelpRequest[];
+        totalSteps: number;
         chatTab: "public" | "direct";
         dmTarget: Attendee | null;
         dmMessage: string;
@@ -91,6 +93,9 @@
                                 </p>
                                 <p class="text-[10px] text-[#9AA0A6] dark:text-dark-text-muted">
                                     {$t("submission_panel.attendee_code")}: {attendee.code}
+                                </p>
+                                <p class="text-[10px] text-[#5F6368] dark:text-dark-text-muted">
+                                    {$t("live.step_progress", { values: { current: attendee.current_step || 0, total: totalSteps } })}
                                 </p>
                             </div>
                         </div>
