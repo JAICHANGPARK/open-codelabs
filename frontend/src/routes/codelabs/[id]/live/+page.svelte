@@ -172,21 +172,21 @@
     }
 </script>
 
-<div class="min-h-screen bg-[#F8F9FA] flex flex-col font-sans text-[#3C4043]">
+<div class="min-h-screen bg-[#F8F9FA] dark:bg-dark-bg flex flex-col font-sans text-[#3C4043] dark:text-dark-text">
     <!-- Header -->
     <header
-        class="bg-white border-b border-[#E8EAED] py-4 px-8 sticky top-0 z-30 shadow-sm"
+        class="bg-white dark:bg-dark-surface border-b border-[#E8EAED] dark:border-dark-border py-4 px-8 sticky top-0 z-30 shadow-sm"
     >
         <div class="max-w-screen-2xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <a href="/codelabs" class="text-[#5F6368] hover:text-[#202124]" aria-label={$t("common.title")}>
+                <a href="/codelabs" class="text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text" aria-label={$t("common.title")}>
                     <Home size={24} />
                 </a>
-                <h1 class="text-xl font-bold text-[#202124]">
+                <h1 class="text-xl font-bold text-[#202124] dark:text-dark-text">
                     {codelab?.title} - {$t("live.status_title")}
                 </h1>
             </div>
-            <div class="flex items-center gap-2 text-sm text-[#5F6368]">
+            <div class="flex items-center gap-2 text-sm text-[#5F6368] dark:text-dark-text-muted">
                 <Users size={18} />
                 <span class="font-bold">{$t("live.participants", { values: { count: attendees.length } })}</span>
             </div>
@@ -198,11 +198,11 @@
     >
         <!-- Progress Board -->
         <div
-            class="lg:col-span-2 bg-white rounded-2xl border border-[#E8EAED] shadow-sm overflow-hidden min-h-[500px]"
+            class="lg:col-span-2 bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden min-h-[500px]"
         >
-            <div class="p-6 border-b border-[#F1F3F4] bg-[#F8F9FA]/50">
+            <div class="p-6 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/50 dark:bg-dark-bg/50">
                 <h2
-                    class="font-bold text-lg text-[#202124] flex items-center gap-2"
+                    class="font-bold text-lg text-[#202124] dark:text-dark-text flex items-center gap-2"
                 >
                     <Clock size={20} class="text-[#4285F4]" />
                     {$t("live.realtime_progress")}
@@ -213,18 +213,18 @@
                     {#each attendees as att}
                         <div>
                             <div class="flex justify-between text-sm mb-2">
-                                <span class="font-bold text-[#3C4043]"
+                                <span class="font-bold text-[#3C4043] dark:text-dark-text"
                                     >{att.name}
                                     {att.id === attendee?.id
                                         ? $t("live.you")
                                         : ""}</span
                                 >
-                                <span class="text-[#5F6368]"
+                                <span class="text-[#5F6368] dark:text-dark-text-muted"
                                     >{$t("live.step_progress", { values: { current: att.current_step || 0, total: steps.length } })}</span
                                 >
                             </div>
                             <div
-                                class="h-2 bg-[#F1F3F4] rounded-full overflow-hidden"
+                                class="h-2 bg-[#F1F3F4] dark:bg-dark-border rounded-full overflow-hidden"
                             >
                                 <div
                                     class="h-full bg-[#34A853] transition-all duration-500 rounded-full"
@@ -243,11 +243,11 @@
 
         <!-- Chat -->
         <div
-            class="bg-white rounded-2xl border border-[#E8EAED] shadow-sm overflow-hidden h-[600px] flex flex-col"
+            class="bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden h-[600px] flex flex-col"
         >
-            <div class="p-4 border-b border-[#F1F3F4] bg-[#F8F9FA]/50">
+            <div class="p-4 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/50 dark:bg-dark-bg/50">
                 <h2
-                    class="font-bold text-lg text-[#202124] flex items-center gap-2"
+                    class="font-bold text-lg text-[#202124] dark:text-dark-text flex items-center gap-2"
                 >
                     <MessageSquare size={20} class="text-[#4285F4]" />
                     {$t("live.live_chat")}
@@ -256,7 +256,7 @@
 
             <div
                 id="chat-feed"
-                class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F8F9FA]/30"
+                class="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F8F9FA]/30 dark:bg-dark-bg/40"
                 aria-live="polite"
             >
                 {#each messages as msg}
@@ -266,14 +266,14 @@
                             : 'items-start'}"
                     >
                         <span
-                            class="text-[10px] text-[#5F6368] font-bold mb-1 ml-1 mr-1 uppercase tracking-tight"
+                            class="text-[10px] text-[#5F6368] dark:text-dark-text-muted font-bold mb-1 ml-1 mr-1 uppercase tracking-tight"
                         >
                             {msg.sender}
                         </span>
                         <div
                             class="max-w-[90%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm {msg.self
                                 ? 'bg-[#4285F4] text-white rounded-tr-none'
-                                : 'bg-white text-[#3C4043] rounded-tl-none border border-[#E8EAED]'}"
+                                : 'bg-white dark:bg-dark-bg text-[#3C4043] dark:text-dark-text rounded-tl-none border border-[#E8EAED] dark:border-dark-border'}"
                         >
                             {msg.text}
                         </div>
@@ -281,7 +281,7 @@
                 {/each}
             </div>
 
-            <div class="p-4 border-t border-[#E8EAED] bg-white">
+            <div class="p-4 border-t border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface">
                 <form
                     onsubmit={(e) => {
                         e.preventDefault();
@@ -294,11 +294,11 @@
                         bind:value={chatMessage}
                         placeholder={$t("live.say_hello")}
                         aria-label={$t("live.say_hello")}
-                        class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] border border-[#DADCE0] rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm"
+                        class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm dark:text-dark-text placeholder-[#9AA0A6] dark:placeholder-dark-text-muted/60"
                     />
                     <button
                         type="submit"
-                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#4285F4] hover:text-white rounded-lg transition-all"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#4285F4] hover:bg-[#4285F4] hover:text-white dark:hover:bg-[#4285F4]/20 dark:hover:text-[#8AB4F8] rounded-lg transition-all"
                         aria-label={$t("editor.send_dm")}
                     >
                         <Send size={18} />
