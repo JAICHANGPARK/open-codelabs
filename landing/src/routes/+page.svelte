@@ -670,91 +670,98 @@
 						>Open Codelabs</span
 					>
 				</div>
-				<div
-					class="hidden md:flex items-center gap-6 text-sm font-medium {isDark
-						? 'text-neutral-400'
-						: 'text-neutral-600'}"
-				>
-					<a
-						href="#features"
-						class="hover:text-blue-500 transition-colors"
-						>{content.nav.features}</a
-					>
-					<a
-						href="#roles"
-						class="hover:text-blue-500 transition-colors"
-						>{content.nav.roles}</a
-					>
-					<a
-						href="#live-ops"
-						class="hover:text-blue-500 transition-colors"
-						>{content.nav.liveOps}</a
-					>
-					<a
-						href="#ai-modes"
-						class="hover:text-blue-500 transition-colors"
-						>{content.nav.aiModes}</a
-					>
-					<a
-						href="#quickstart"
-						class="hover:text-blue-500 transition-colors"
-						>{content.nav.quickstart}</a
-					>
-					<a
-						href="https://github.com/jaichangpark/open-codelabs"
-						class="flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide transition-all hover:scale-105 {isDark
-							? 'border-neutral-800 text-neutral-400 hover:text-white'
-							: 'border-neutral-200 text-neutral-600 hover:text-blue-600'}"
-						aria-label="GitHub stars"
-					>
-						<img
-							src="https://img.shields.io/github/stars/jaichangpark/open-codelabs?style=flat&label=Stars&logo=github&color=0ea5e9&labelColor=111827"
-							alt="GitHub stars"
-							class="h-4 w-auto"
-						/>
-					</a>
-					<button
-						onclick={toggleLang}
-						class="flex items-center gap-1 px-3 py-1 rounded-full border transition-colors {isDark
-							? 'border-neutral-800 hover:bg-neutral-900'
-							: 'border-neutral-200 hover:bg-neutral-50'}"
-						aria-label={lang === "ko"
-							? "Switch to English"
-							: "한국어로 전환"}
-					>
-						<Globe class="w-4 h-4" />
-						{lang === "ko" ? "English" : "한국어"}
-					</button>
-					<button
-						onclick={toggleTheme}
-						class="p-2 rounded-full border transition-colors {isDark
-							? 'border-neutral-800 hover:bg-neutral-900 text-yellow-400'
-							: 'border-neutral-200 hover:bg-neutral-50 text-blue-600'}"
-						aria-label={isDark
-							? lang === "ko"
-								? "라이트 모드로 전환"
-								: "Switch to light mode"
-							: lang === "ko"
-								? "다크 모드로 전환"
-								: "Switch to dark mode"}
-						aria-pressed={isDark}
-					>
-						{#if isDark}
-							<Sun class="w-4 h-4" />
-						{:else}
-							<Moon class="w-4 h-4" />
-						{/if}
-					</button>
-					<a
-						href="https://jaichangpark.github.io/open-codelabs/"
-						class="px-5 py-2 rounded-full transition-all hover:scale-105 active:scale-95 {isDark
-							? 'bg-white text-neutral-950 hover:bg-neutral-200'
-							: 'bg-neutral-900 text-white hover:bg-neutral-800'}"
-					>
-						{content.nav.getStarted}
-					</a>
-				</div>
-			</div>
+								<div class="flex items-center gap-4">
+									<div
+										class="hidden md:flex items-center gap-6 text-sm font-medium {isDark
+											? 'text-neutral-400'
+											: 'text-neutral-600'}"
+									>
+										<a
+											href="#features"
+											class="hover:text-blue-500 transition-colors"
+											>{content.nav.features}</a
+										>
+										<a
+											href="#roles"
+											class="hover:text-blue-500 transition-colors"
+											>{content.nav.roles}</a
+										>
+										<a
+											href="#live-ops"
+											class="hover:text-blue-500 transition-colors"
+											>{content.nav.liveOps}</a
+										>
+										<a
+											href="#ai-modes"
+											class="hover:text-blue-500 transition-colors"
+											>{content.nav.aiModes}</a
+										>
+										<a
+											href="#quickstart"
+											class="hover:text-blue-500 transition-colors"
+											>{content.nav.quickstart}</a
+										>
+										<a
+											href="https://github.com/jaichangpark/open-codelabs"
+											class="flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide transition-all hover:scale-105 {isDark
+												? 'border-neutral-800 text-neutral-400 hover:text-white'
+												: 'border-neutral-200 text-neutral-600 hover:text-blue-600'}"
+											aria-label="GitHub stars"
+										>
+											<img
+												src="https://img.shields.io/github/stars/jaichangpark/open-codelabs?style=flat&label=Stars&logo=github&color=0ea5e9&labelColor=111827"
+												alt="GitHub stars"
+												class="h-4 w-auto"
+											/>
+										</a>
+									</div>
+				
+									<div class="flex items-center gap-2">
+										<button
+											onclick={toggleLang}
+											class="flex items-center gap-1 px-3 py-1 rounded-full border transition-colors {isDark
+												? 'border-neutral-800 hover:bg-neutral-900'
+												: 'border-neutral-200 hover:bg-neutral-50'}"
+											aria-label={lang === "ko"
+												? "Switch to English"
+												: "한국어로 전환"}
+										>
+											<Globe class="w-4 h-4" />
+											<span class="hidden sm:inline"
+												>{lang === "ko" ? "English" : "한국어"}</span
+											>
+										</button>
+										<button
+											onclick={toggleTheme}
+											class="p-2 rounded-full border transition-colors {isDark
+												? 'border-neutral-800 hover:bg-neutral-900 text-yellow-400'
+												: 'border-neutral-200 hover:bg-neutral-50 text-blue-600'}"
+											aria-label={isDark
+												? lang === "ko"
+													? "라이트 모드로 전환"
+													: "Switch to light mode"
+												: lang === "ko"
+													? "다크 모드로 전환"
+													: "Switch to dark mode"}
+											aria-pressed={isDark}
+										>
+											{#if isDark}
+												<Sun class="w-4 h-4" />
+											{:else}
+												<Moon class="w-4 h-4" />
+											{/if}
+										</button>
+									</div>
+				
+									<a
+										href="https://jaichangpark.github.io/open-codelabs/"
+										class="hidden md:flex px-5 py-2 rounded-full transition-all hover:scale-105 active:scale-95 {isDark
+											? 'bg-white text-neutral-950 hover:bg-neutral-200'
+											: 'bg-neutral-900 text-white hover:bg-neutral-800'}"
+									>
+										{content.nav.getStarted}
+									</a>
+								</div>			</div>
 		</div>
 	</nav>
 
