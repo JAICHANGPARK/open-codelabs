@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { FileUp, FolderGit2, Download, AlertCircle, CheckCircle2, Loader2, Sparkles } from 'lucide-svelte';
+    import { FileUp, FolderGit2, Download, AlertCircle, CheckCircle2, Loader2, Sparkles, Copy, GitCompare } from 'lucide-svelte';
     import {
         getCodeServerInfo,
         createCodeServer,
@@ -203,7 +203,13 @@
         await updateWorkspaceFolderFiles(codelabId, folder, mapToWorkspaceFiles(files), deleteFiles);
     }
 
-    async function generateStepUpdate(step: Step, currentFiles: Map<string, string>): Promise<WorkspaceUpdate> {
+    async function generateStepUpdate(
+        step: Step,
+        currentFiles: Map<string, string>,
+        previousStepsSummary: string,
+        stepIndex: number,
+        totalSteps: number
+    ): Promise<WorkspaceUpdate> {
         const schema = {
             type: "object",
             properties: {
@@ -227,7 +233,9 @@
         };
 
         const systemPrompt =
-            "You are a senior software engineer. Update the codebase to match the end state of a tutorial step. " +
+            "You are a senior software engineer creating a step-by-step coding tutorial. " +
+            "Update the codebase to match the END state of this tutorial step. " +
+            "The START state is already prepared - you only need to apply the changes described in the step instructions. " +
             "Return JSON only and follow the schema strictly. Include full file contents for changed/new files only. " +
             "If a file should be deleted, list its path in deleted_files. Do not include explanations.";
 
@@ -238,10 +246,17 @@
         );
 
         const prompt =
+            `=== Tutorial Context ===\n` +
+            `This is Step ${stepIndex + 1} of ${totalSteps}.\n` +
+            `${previousStepsSummary}\n\n` +
+            `=== Current Step ===\n` +
             `Step Title: ${step.title}\n\n` +
             `Step Instructions (Markdown):\n${step.content_markdown}\n\n` +
-            `Current Files (JSON):\n${filesPayload}\n\n` +
-            `Return the minimal set of file updates needed to complete this step.`;
+            `=== Current Files (START state) ===\n${filesPayload}\n\n` +
+            `=== Task ===\n` +
+            `Apply the step instructions to transform the START state into the END state. ` +
+            `Return only the files that need to be modified, added, or deleted. ` +
+            `The next step will use this END state as its starting point.`;
 
         const config: GeminiStructuredConfig = {
             apiKey: geminiApiKey,
@@ -267,70 +282,19 @@
         };
     }
 
-    async function generateStepStartUpdate(step: Step, currentFiles: Map<string, string>): Promise<WorkspaceUpdate> {
-        const schema = {
-            type: "object",
-            properties: {
-                files: {
-                    type: "array",
-                    items: {
-                        type: "object",
-                        properties: {
-                            path: { type: "string" },
-                            content: { type: "string" }
-                        },
-                        required: ["path", "content"]
-                    }
-                },
-                deleted_files: {
-                    type: "array",
-                    items: { type: "string" }
-                }
-            },
-            required: ["files", "deleted_files"]
-        };
-
-        const systemPrompt =
-            "You are a senior software engineer. Create the START state for this tutorial step. " +
-            "This should be the code BEFORE applying the step instructions. " +
-            "Use the provided base files as a reference, but remove or simplify anything that would be introduced during the step. " +
-            "Return JSON only and follow the schema strictly. Include full file contents for changed/new files only. " +
-            "If a file should be deleted, list its path in deleted_files. Do not include explanations.";
-
-        const filesPayload = JSON.stringify(
-            Array.from(currentFiles.entries()).map(([path, content]) => ({ path, content })),
-            null,
-            2
-        );
-
-        const prompt =
-            `Step Title: ${step.title}\n\n` +
-            `Step Instructions (Markdown):\n${step.content_markdown}\n\n` +
-            `Base Files (JSON):\n${filesPayload}\n\n` +
-            `Return the minimal set of file updates needed to create the START state for this step.`;
-
-        const config: GeminiStructuredConfig = {
-            apiKey: geminiApiKey,
-            model: "gemini-3-flash-preview"
-        };
-
-        let responseText = "";
-        const stream = streamGeminiStructuredOutput(prompt, systemPrompt, schema, config);
-        for await (const chunk of stream) {
-            if (chunk.content) {
-                responseText += chunk.content;
-                aiStreamingText = responseText;
-            }
+    // Build context summary from previous steps for better AI understanding
+    function buildStepsContext(processedSteps: { step: Step; files: Map<string, string> }[]): string {
+        if (processedSteps.length === 0) {
+            return "This is the first step of the tutorial.";
         }
 
-        const parsed = parseStructuredJson<WorkspaceUpdate>(responseText);
-        if (!parsed) {
-            throw new Error($t("ai_generator.error_parse"));
-        }
-        return {
-            files: parsed.files ?? [],
-            deleted_files: parsed.deleted_files ?? []
-        };
+        const summaries = processedSteps.map((ps, idx) => {
+            const fileList = Array.from(ps.files.keys()).slice(0, 5).join(", ");
+            const moreFiles = ps.files.size > 5 ? ` and ${ps.files.size - 5} more files` : "";
+            return `Step ${idx + 1}: "${ps.step.title}" - Modified files: ${fileList}${moreFiles}`;
+        });
+
+        return "Previous steps completed:\n" + summaries.join("\n");
     }
 
     async function handleGenerateWorkspaceWithAi() {
@@ -362,6 +326,9 @@
                 ? await loadBranchFiles(initialKey)
                 : await loadFolderFiles(initialKey);
 
+            // Track processed steps for context building
+            const processedSteps: { step: Step; files: Map<string, string> }[] = [];
+
             for (let i = 0; i < steps.length; i++) {
                 const stepNumber = i + 1;
                 const startKey = `step-${stepNumber}-start`;
@@ -369,46 +336,63 @@
                 aiCurrentStep = stepNumber;
                 aiStreamingText = "";
 
-                if (stepNumber === 1) {
+                // Step 1 Start: Keep the uploaded base files as-is (no AI needed)
+                // Step N Start (N>1): Copy from Step N-1 End (no AI needed)
+                if (stepNumber > 1) {
+                    // Copy previous end state to current start state
                     aiCurrentPhase = "start";
-                    aiStatus = $t("workspace.ai_progress_start", {
+                    aiStatus = $t("workspace.ai_progress_copy", {
                         values: { current: stepNumber, total: steps.length }
                     });
-                    const startUpdate = await generateStepStartUpdate(steps[i], currentFiles);
-                    for (const file of startUpdate.files) {
-                        currentFiles.set(file.path, file.content);
-                    }
-                    for (const file of startUpdate.deleted_files) {
-                        currentFiles.delete(file);
-                    }
+
                     if (structure === "branch") {
-                        await applyBranchSnapshot(startKey, currentFiles, `AI step ${stepNumber} start`);
+                        await applyBranchSnapshot(startKey, currentFiles, `Step ${stepNumber} start (copied from step ${stepNumber - 1} end)`);
                     } else {
                         await applyFolderSnapshot(startKey, currentFiles);
                     }
+
                     aiStepLogs = [
                         ...aiStepLogs,
                         {
                             step: stepNumber,
                             phase: "start",
-                            updated: startUpdate.files.length,
-                            deleted: startUpdate.deleted_files.length
+                            updated: 0,
+                            deleted: 0
                         }
                     ];
                 } else {
+                    // Step 1: Use uploaded base files directly
+                    aiCurrentPhase = "start";
+                    aiStatus = $t("workspace.ai_progress_base", {
+                        values: { current: stepNumber, total: steps.length }
+                    });
+
                     if (structure === "branch") {
-                        await applyBranchSnapshot(startKey, currentFiles, `AI step ${stepNumber} start`);
+                        await applyBranchSnapshot(startKey, currentFiles, `Step ${stepNumber} start (base files)`);
                     } else {
                         await applyFolderSnapshot(startKey, currentFiles);
                     }
+
+                    aiStepLogs = [
+                        ...aiStepLogs,
+                        {
+                            step: stepNumber,
+                            phase: "start",
+                            updated: 0,
+                            deleted: 0
+                        }
+                    ];
                 }
 
+                // Generate END state with AI (only AI call per step)
                 aiCurrentPhase = "end";
                 aiStatus = $t("workspace.ai_progress_end", {
                     values: { current: stepNumber, total: steps.length }
                 });
 
-                const update = await generateStepUpdate(steps[i], currentFiles);
+                const contextSummary = buildStepsContext(processedSteps);
+                const update = await generateStepUpdate(steps[i], currentFiles, contextSummary, i, steps.length);
+
                 for (const file of update.files) {
                     currentFiles.set(file.path, file.content);
                 }
@@ -417,10 +401,16 @@
                 }
 
                 if (structure === "branch") {
-                    await applyBranchSnapshot(endKey, currentFiles, `AI step ${stepNumber} end`);
+                    await applyBranchSnapshot(endKey, currentFiles, `Step ${stepNumber} end (AI generated)`);
                 } else {
                     await applyFolderSnapshot(endKey, currentFiles);
                 }
+
+                // Store for context in next steps
+                processedSteps.push({
+                    step: steps[i],
+                    files: new Map(currentFiles)
+                });
 
                 aiStepLogs = [
                     ...aiStepLogs,
@@ -439,6 +429,46 @@
             aiError = (e as Error).message;
         } finally {
             aiGenerating = false;
+        }
+    }
+
+    // Copy step end to next step start manually
+    async function copyStepEndToNextStart(sourceStep: number) {
+        if (!workspaceExists || !workspaceInfo) {
+            error = $t("workspace.errors.not_found");
+            return;
+        }
+
+        const targetStep = sourceStep + 1;
+        if (targetStep > steps.length) {
+            error = $t("workspace.errors.no_next_step");
+            return;
+        }
+
+        try {
+            success = '';
+            error = '';
+            const structure = workspaceInfo.structure_type;
+            const sourceKey = `step-${sourceStep}-end`;
+            const targetKey = `step-${targetStep}-start`;
+
+            // Load files from source
+            const files = structure === "branch"
+                ? await loadBranchFiles(sourceKey)
+                : await loadFolderFiles(sourceKey);
+
+            // Save to target
+            if (structure === "branch") {
+                await applyBranchSnapshot(targetKey, files, `Step ${targetStep} start (copied from step ${sourceStep} end)`);
+            } else {
+                await applyFolderSnapshot(targetKey, files);
+            }
+
+            success = $t("workspace.success.copied", {
+                values: { source: sourceStep, target: targetStep }
+            });
+        } catch (e) {
+            error = $t("workspace.errors.copy_failed", { error: (e as Error).message });
         }
     }
 </script>
@@ -605,6 +635,36 @@
                                 {$t('workspace.ai_button')}
                             {/if}
                         </button>
+                    </div>
+
+                    <!-- Step Copy Management -->
+                    <div class="bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-6 flex flex-col gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="p-2 bg-[#4285F4]/10 rounded-lg text-[#4285F4]">
+                                <GitCompare size={20} />
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-[#202124] dark:text-dark-text">
+                                    {$t('workspace.copy_title')}
+                                </h3>
+                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                                    {$t('workspace.copy_desc')}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-wrap gap-2 mt-2">
+                            {#each steps.slice(0, -1) as step, i}
+                                <button
+                                    onclick={() => copyStepEndToNextStart(i + 1)}
+                                    disabled={aiGenerating}
+                                    class="flex items-center gap-2 px-3 py-1.5 bg-[#F8F9FA] dark:bg-white/5 border border-[#DADCE0] dark:border-dark-border rounded-lg hover:bg-[#E8EAED] dark:hover:bg-white/10 transition-colors text-xs font-medium text-[#5F6368] dark:text-dark-text disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    <Copy size={12} />
+                                    {$t('workspace.copy_button', { values: { source: i + 1, target: i + 2 } })}
+                                </button>
+                            {/each}
+                        </div>
                     </div>
                 {:else}
                     <!-- Create New Workspace -->

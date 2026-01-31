@@ -176,11 +176,20 @@
         if (!source) return '';
         try {
             const normalized = languageHint.trim().toLowerCase();
-            return normalized && hljs.getLanguage(normalized)
-                ? hljs.highlight(source, { language: normalized }).value
-                : hljs.highlightAuto(source).value;
+            if (normalized) {
+                // Try to highlight with specified language
+                const result = hljs.highlight(source, { language: normalized, ignoreIllegals: true });
+                return result.value;
+            }
+            // Auto-detect language if no hint provided
+            return hljs.highlightAuto(source).value;
         } catch {
-            return escapeHtml(source);
+            // Fallback to auto-highlight or plain text
+            try {
+                return hljs.highlightAuto(source).value;
+            } catch {
+                return escapeHtml(source);
+            }
         }
     }
 
@@ -549,7 +558,7 @@
     }
 
     .notebook-code {
-        background: #f8f8f8;
+        background: #0d1117;
     }
 
     .notebook .markdown-body {

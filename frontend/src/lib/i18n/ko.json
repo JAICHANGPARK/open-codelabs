@@ -192,6 +192,7 @@
         "live_tab": "라이브",
         "raffle_tab": "추첨",
         "guide_tab": "사전 준비 가이드",
+        "ai_tab": "AI",
         "guide_description": "참가자들이 세션을 시작하기 전에 준비해야 할 환경 및 도구 안내를 작성하세요.",
         "markdown_editor": "마크다운 에디터",
         "live_preview": "라이브 미리보기",
@@ -330,18 +331,23 @@
             "load_files_failed": "파일 목록 로드 실패: {error}",
             "load_file_content_failed": "파일 내용 로드 실패: {error}",
             "firebase_unavailable": "Firebase 모드에서는 Code Server 워크스페이스를 사용할 수 없습니다",
-            "not_found": "워크스페이스를 찾을 수 없습니다. 코드랩 생성 시 'Code Server Workspace'를 활성화하고 워크스페이스 파일을 업로드했는지 확인하세요."
+            "not_found": "워크스페이스를 찾을 수 없습니다. 코드랩 생성 시 'Code Server Workspace'를 활성화하고 워크스페이스 파일을 업로드했는지 확인하세요.",
+            "no_next_step": "다음 단계가 없습니다. 마지막 단계입니다.",
+            "copy_failed": "코드 복사 실패: {error}"
         },
         "success": {
-            "created": "워크스페이스가 생성되었습니다!"
+            "created": "워크스페이스가 생성되었습니다!",
+            "copied": "{source}단계 완료 코드를 {target}단계 시작 코드로 복사했습니다"
         },
         "ai_title": "AI 단계 워크스페이스",
-        "ai_desc": "Gemini로 단계별 start/end 코드를 생성합니다.",
+        "ai_desc": "Gemini로 단계별 완료 코드를 생성합니다. 시작 코드는 자동으로 복사됩니다.",
         "ai_button": "단계 코드 생성",
         "ai_running": "단계 코드 생성 중...",
         "ai_progress": "{current}/{total} 단계 생성 중...",
         "ai_progress_start": "{current}/{total} 단계 중 {current}단계 시작 생성 중...",
         "ai_progress_end": "{current}/{total} 단계 중 {current}단계 완료 생성 중...",
+        "ai_progress_copy": "{current}/{total} 단계 중 {current}단계 시작 복사 중...",
+        "ai_progress_base": "{current}/{total} 단계 중 {current}단계 기본 파일 설정 중...",
         "ai_done": "AI 생성이 완료되었습니다.",
         "ai_response_title": "AI 응답 (원문)",
         "ai_response_step": "{step}단계 {phase}",
@@ -349,6 +355,11 @@
         "ai_step_summary": "{step}단계 {phase}: 수정 {updated}개, 삭제 {deleted}개",
         "ai_phase_start": "시작",
         "ai_phase_end": "완료",
+        "copy_title": "단계 코드 복사",
+        "copy_desc": "이전 단계의 완료 코드를 다음 단계 시작 코드로 복사합니다.",
+        "copy_button": "{source}단계 완료 → {target}단계 시작 복사",
+        "copy_success": "{source}단계 완료 코드가 {target}단계 시작 코드로 복사되었습니다.",
+        "copy_phase": "복사",
         "actions": {
             "browse": "워크스페이스 파일 탐색",
             "download": "워크스페이스 다운로드"

@@ -184,6 +184,7 @@
         "live_tab": "ライブ",
         "raffle_tab": "抽選",
         "guide_tab": "事前準備ガイド",
+        "ai_tab": "AI",
         "guide_description": "参加者がセッションを開始する前に準備すべき環境やツールの案内を作成してください。",
         "markdown_editor": "Markdownエディタ",
         "live_preview": "ライブプレビュー",
@@ -304,18 +305,23 @@
             "load_files_failed": "ファイル一覧の読み込みに失敗しました: {error}",
             "load_file_content_failed": "ファイル内容の読み込みに失敗しました: {error}",
             "firebase_unavailable": "Firebase モードでは Code Server ワークスペースを利用できません",
-            "not_found": "ワークスペースが見つかりません。コードラボ作成時に「Code Server Workspace」を有効化し、ワークスペースファイルをアップロードしてください。"
+            "not_found": "ワークスペースが見つかりません。コードラボ作成時に「Code Server Workspace」を有効化し、ワークスペースファイルをアップロードしてください。",
+            "no_next_step": "次のステップがありません。これは最後のステップです。",
+            "copy_failed": "コードのコピーに失敗しました: {error}"
         },
         "success": {
-            "created": "ワークスペースを作成しました！"
+            "created": "ワークスペースを作成しました！",
+            "copied": "ステップ{source}の完了コードをステップ{target}の開始コードにコピーしました"
         },
         "ai_title": "AI ステップワークスペース",
-        "ai_desc": "Gemini でステップごとの start/end コードを生成します。",
+        "ai_desc": "Geminiでステップごとの完了コードを生成します。開始コードは前のステップから自動的にコピーされます。",
         "ai_button": "ステップコードを生成",
         "ai_running": "ステップコードを生成中...",
         "ai_progress": "ステップ {current}/{total} を生成中...",
         "ai_progress_start": "ステップ {current} の開始を生成中（{current}/{total}）...",
         "ai_progress_end": "ステップ {current} の完了を生成中（{current}/{total}）...",
+        "ai_progress_copy": "ステップ {current} の開始をコピー中（{current}/{total}）...",
+        "ai_progress_base": "ステップ {current} の基本ファイルを設定中（{current}/{total}）...",
         "ai_done": "AI 生成が完了しました。",
         "ai_response_title": "AI 応答（生）",
         "ai_response_step": "ステップ {step} {phase}",
@@ -323,6 +329,11 @@
         "ai_step_summary": "ステップ {step} {phase}: 更新 {updated}、削除 {deleted}",
         "ai_phase_start": "開始",
         "ai_phase_end": "完了",
+        "copy_title": "ステップコードのコピー",
+        "copy_desc": "前のステップの完了コードを次のステップの開始コードにコピーします。",
+        "copy_button": "ステップ{source}完了 → ステップ{target}開始をコピー",
+        "copy_success": "ステップ{source}の完了コードをステップ{target}の開始コードにコピーしました。",
+        "copy_phase": "コピー",
         "actions": {
             "browse": "ワークスペースファイルを閲覧",
             "download": "ワークスペースをダウンロード"

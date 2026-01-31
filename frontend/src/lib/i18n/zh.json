@@ -188,6 +188,7 @@
         "split_view": "分栏视图",
         "workspace_tab": "工作区",
         "guide_tab": "准备指南",
+        "ai_tab": "AI",
         "guide_description": "为参与者编写在开始前需要准备的工具和环境说明。",
         "markdown_editor": "Markdown 编辑器",
         "live_preview": "实时预览",
@@ -275,18 +276,23 @@
             "load_files_failed": "加载文件列表失败：{error}",
             "load_file_content_failed": "加载文件内容失败：{error}",
             "firebase_unavailable": "Firebase 模式不支持 Code Server 工作区",
-            "not_found": "未找到工作区。请确保在创建代码实验时启用“Code Server Workspace”，并上传工作区文件。"
+            "not_found": "未找到工作区。请确保在创建代码实验时启用'Code Server Workspace'，并上传工作区文件。",
+            "no_next_step": "没有下一步。这是最后一步。",
+            "copy_failed": "复制代码失败：{error}"
         },
         "success": {
-            "created": "工作区创建成功！"
+            "created": "工作区创建成功！",
+            "copied": "已将第 {source} 步完成代码复制到第 {target} 步开始代码"
         },
         "ai_title": "AI 步骤工作区",
-        "ai_desc": "使用 Gemini 生成每个步骤的 start/end 代码。",
+        "ai_desc": "使用 Gemini 生成每个步骤的完成代码。开始代码会自动从上一步复制。",
         "ai_button": "生成步骤代码",
         "ai_running": "正在生成步骤代码...",
         "ai_progress": "正在生成第 {current}/{total} 步...",
         "ai_progress_start": "正在生成第 {current} 步开始（{current}/{total}）...",
         "ai_progress_end": "正在生成第 {current} 步完成（{current}/{total}）...",
+        "ai_progress_copy": "正在复制第 {current} 步开始（{current}/{total}）...",
+        "ai_progress_base": "正在设置第 {current} 步基础文件（{current}/{total}）...",
         "ai_done": "AI 生成完成。",
         "ai_response_title": "AI 响应（原文）",
         "ai_response_step": "第 {step} 步 {phase}",
@@ -294,6 +300,11 @@
         "ai_step_summary": "第 {step} 步 {phase}：更新 {updated} 个，删除 {deleted} 个",
         "ai_phase_start": "开始",
         "ai_phase_end": "完成",
+        "copy_title": "复制步骤代码",
+        "copy_desc": "将上一步的完成代码复制到下一步的开始代码。",
+        "copy_button": "复制第 {source} 步完成 → 第 {target} 步开始",
+        "copy_success": "已将第 {source} 步完成代码复制到第 {target} 步开始代码。",
+        "copy_phase": "复制",
         "actions": {
             "browse": "浏览工作区文件",
             "download": "下载工作区"

@@ -192,6 +192,7 @@
         "live_tab": "Live",
         "raffle_tab": "Raffle",
         "guide_tab": "Preparation Guide",
+        "ai_tab": "AI",
         "guide_description": "Create a guide for attendees on what to prepare before starting the session (e.g., tools, software, environment).",
         "markdown_editor": "Markdown Editor",
         "live_preview": "Live Preview",
@@ -322,26 +323,31 @@
       "invalid": "Invalid notebook file."
     },
     "errors": {
-            "upload_required": "Please upload at least one file for the workspace",
-            "steps_required": "Please add steps to the codelab before creating a workspace",
-            "create_failed": "Failed to create workspace: {error}",
-            "download_failed": "Download failed: {error}",
-            "load_workspace_failed": "Failed to load workspace: {error}",
-            "load_files_failed": "Failed to load files: {error}",
-            "load_file_content_failed": "Failed to load file content: {error}",
-            "firebase_unavailable": "Code Server workspace is not available in Firebase mode",
-            "not_found": "Workspace not found. Make sure to enable 'Code Server Workspace' when creating the codelab and upload workspace files."
-        },
+      "upload_required": "Please upload at least one file for the workspace",
+      "steps_required": "Please add steps to the codelab before creating a workspace",
+      "create_failed": "Failed to create workspace: {error}",
+      "download_failed": "Download failed: {error}",
+      "load_workspace_failed": "Failed to load workspace: {error}",
+      "load_files_failed": "Failed to load files: {error}",
+      "load_file_content_failed": "Failed to load file content: {error}",
+      "firebase_unavailable": "Code Server workspace is not available in Firebase mode",
+      "not_found": "Workspace not found. Make sure to enable 'Code Server Workspace' when creating the codelab and upload workspace files.",
+      "no_next_step": "No next step. This is the last step.",
+      "copy_failed": "Failed to copy code: {error}"
+    },
     "success": {
-      "created": "Workspace created successfully!"
+      "created": "Workspace created successfully!",
+      "copied": "Copied step {source} end code to step {target} start code"
     },
     "ai_title": "AI Step Workspace",
-    "ai_desc": "Generate step-by-step start/end code with Gemini.",
+    "ai_desc": "Generate step-by-step end code with Gemini. Start code is automatically copied from previous step.",
     "ai_button": "Generate Step Code",
     "ai_running": "Generating step code...",
     "ai_progress": "Generating steps {current}/{total}...",
     "ai_progress_start": "Generating step {current} start ({current}/{total})...",
     "ai_progress_end": "Generating step {current} end ({current}/{total})...",
+    "ai_progress_copy": "Copying step {current} start ({current}/{total})...",
+    "ai_progress_base": "Setting up step {current} base files ({current}/{total})...",
     "ai_done": "AI generation completed.",
     "ai_response_title": "AI Response (Raw)",
     "ai_response_step": "Step {step} {phase}",
@@ -349,12 +355,17 @@
     "ai_step_summary": "Step {step} {phase}: {updated} updated, {deleted} deleted",
     "ai_phase_start": "start",
     "ai_phase_end": "end",
+    "copy_title": "Copy Step Code",
+    "copy_desc": "Copy the end code from the previous step to the next step's start code.",
+    "copy_button": "Copy Step {source} End → Step {target} Start",
+    "copy_success": "Copied step {source} end code to step {target} start code.",
+    "copy_phase": "copy",
     "actions": {
       "browse": "Browse Workspace Files",
       "download": "Download Workspace"
     }
-    },
-    "attendee": {
+  },
+  "attendee": {
         "join_title": "Join Codelab",
         "join_desc": "Enter your details to participate",
         "nickname": "Your Name / Nickname",

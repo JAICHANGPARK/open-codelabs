@@ -145,7 +145,7 @@
                 },
                 {
                     id: "ai",
-                    label: "AI",
+                    labelKey: "editor.ai_tab",
                     descriptionKey: "editor.tab_descriptions.ai",
                     icon: Sparkles,
                 },
