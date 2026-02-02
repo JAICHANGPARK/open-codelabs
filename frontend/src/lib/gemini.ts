@@ -27,6 +27,11 @@ export interface GenerationResult {
     usage?: TokenUsage;
 }
 
+export interface GeminiResponseChunk {
+    text?: string;
+    groundingMetadata?: any;
+}
+
 const envApiUrl = import.meta.env.VITE_API_URL;
 let BASE_URL = envApiUrl || 'http://localhost:8080';
 const USE_SUPABASE = import.meta.env.VITE_USE_SUPABASE === 'true';
@@ -58,7 +63,7 @@ function getCsrfToken(): string | null {
     return getCookie("__Host-oc_csrf") || getCookie("oc_csrf");
 }
 
-function withCsrf(headers?: HeadersInit): Headers {
+export function withCsrf(headers?: HeadersInit): Headers {
     const merged = new Headers(headers || {});
     const token = getCsrfToken();
     if (token) merged.set("X-CSRF-Token", token);
@@ -68,8 +73,8 @@ function withCsrf(headers?: HeadersInit): Headers {
 export async function* streamGeminiResponseRobust(
     prompt: string,
     context: string,
-    config: GeminiConfig
-): AsyncGenerator<string, void, unknown> {
+    config: GeminiStructuredConfig
+): AsyncGenerator<GeminiResponseChunk, void, unknown> {
     const apiKeyRequired = () => {
         if (!config.apiKey) throw new Error("API Key is required for backend mode");
     };
@@ -81,9 +86,13 @@ export async function* streamGeminiResponseRobust(
         // alt=sse is required to use parseGoogleStream logic
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
 
-        const payload = {
+        const payload: any = {
             contents: [{ role: "user", parts: [{ text: `Context:\n${context}\n\nQuestion:\n${prompt}` }] }]
         };
+
+        if (config.tools && config.tools.length > 0) {
+            payload.tools = config.tools;
+        }
 
         const response = await fetch(url, {
             method: "POST",
@@ -116,7 +125,8 @@ export async function* streamGeminiResponseRobust(
             body: JSON.stringify({
                 prompt: `Context:\n${context}\n\nQuestion:\n${prompt}`,
                 api_key: apiKey || undefined, // Send encrypted if we have it
-                model: config.model || "gemini-3-flash-preview"
+                model: config.model || "gemini-3-flash-preview",
+                tools: config.tools
             }),
         });
 
@@ -125,7 +135,70 @@ export async function* streamGeminiResponseRobust(
     }
 }
 
-async function* parseGoogleStream(response: Response): AsyncGenerator<string, TokenUsage | undefined, unknown> {
+export async function* streamGeminiChat(
+    messages: Array<{ role: "user" | "model" | "assistant", content: string }>,
+    systemPrompt: string,
+    config: GeminiStructuredConfig
+): AsyncGenerator<GeminiResponseChunk, void, unknown> {
+    const apiKeyRequired = () => {
+        if (!config.apiKey) throw new Error("API Key is required");
+    };
+
+    // Normalize roles for Gemini (assistant -> model)
+    const contents = messages.map(m => ({
+        role: m.role === "assistant" ? "model" : m.role,
+        parts: [{ text: m.content }]
+    }));
+
+    if (USE_SERVERLESS) {
+        apiKeyRequired();
+        const model = config.model || "gemini-3-flash-preview";
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
+
+        const payload: any = {
+            system_instruction: { parts: [{ text: systemPrompt }] },
+            contents
+        };
+
+        if (config.tools && config.tools.length > 0) {
+            payload.tools = config.tools;
+        }
+
+        const response = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) throw new Error(`API Error: ${response.status}`);
+        yield* parseGoogleStream(response);
+    } else {
+        apiKeyRequired();
+        let apiKey = config.apiKey;
+        if (browser) {
+            const adminPw = getEncryptionPassword({ interactive: false });
+            if (adminPw) apiKey = encryptForBackend(apiKey, adminPw);
+        }
+
+        const response = await fetch(AI_PROXY_URL, {
+            method: "POST",
+            headers: withCsrf({ "Content-Type": "application/json" }),
+            credentials: "include",
+            body: JSON.stringify({
+                system_instruction: systemPrompt,
+                contents,
+                api_key: apiKey || undefined,
+                model: config.model || "gemini-3-flash-preview",
+                tools: config.tools
+            }),
+        });
+
+        if (!response.ok) throw new Error(`Backend AI Error: ${response.status}`);
+        yield* parseGoogleStream(response);
+    }
+}
+
+async function* parseGoogleStream(response: Response): AsyncGenerator<GeminiResponseChunk, TokenUsage | undefined, unknown> {
     const reader = response.body!.getReader();
     const decoder = new TextDecoder();
     let buffer = "";
@@ -161,7 +234,11 @@ async function* parseGoogleStream(response: Response): AsyncGenerator<string, To
                 // Handle different response formats (backend proxy might return direct part or full candidate)
                 const candidate = data.candidates?.[0];
                 if (candidate?.content?.parts?.[0]?.text) {
-                    yield candidate.content.parts[0].text;
+                    yield { text: candidate.content.parts[0].text };
+                }
+
+                if (candidate?.groundingMetadata) {
+                    yield { groundingMetadata: candidate.groundingMetadata };
                 }
             } catch (e) {
                 // ignore

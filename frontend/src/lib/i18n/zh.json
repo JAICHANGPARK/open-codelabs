@@ -13,6 +13,7 @@
         "import": "导入",
         "export": "导出",
         "loading": "加载中...",
+        "send": "发送",
         "actions": "操作",
         "author": "作者",
         "date": "日期",
@@ -562,5 +563,22 @@
         "waiting_submissions": "正在等待参与者上传练习结果。",
         "file_size": "文件大小",
         "submitted_at": "提交时间"
+    },
+    "admin": {
+        "consultant": {
+            "title": "动手设计顾问",
+            "subtitle": "您的成功课程 AI 合作伙伴",
+            "button": "设计顾问",
+            "how_can_i_help": "今天有什么可以帮您的？",
+            "help_desc": "询问有关代码实验室结构、选择主题或技术实现细节的问题。",
+            "placeholder": "咨询有关您的代码实验室的设计建议...",
+            "api_key_desc": "请在仪表板设置中配置您的 Gemini API 密钥以使用顾问。",
+            "sources": "信息来源",
+            "history": "对话历史",
+            "new_chat": "开始新对话",
+            "no_history": "暂无对话记录。",
+            "role_consultant": "顾问",
+            "role_you": "您"
+        }
     }
 }

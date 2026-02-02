@@ -297,6 +297,42 @@ pub struct SaveAiConversationPayload {
     pub model: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct AiThread {
+    pub id: String,
+    pub title: String,
+    pub user_id: String,
+    pub user_type: String,
+    pub codelab_id: Option<String>,
+    pub created_at: Option<String>,
+    pub updated_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
+pub struct AiMessage {
+    pub id: String,
+    pub thread_id: String,
+    pub role: String,
+    pub content: String,
+    pub grounding_metadata: Option<String>,
+    pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateAiThreadPayload {
+    pub title: String,
+    #[serde(default)]
+    pub codelab_id: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddAiMessagePayload {
+    pub role: String,
+    pub content: String,
+    #[serde(default)]
+    pub grounding_metadata: Option<serde_json::Value>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

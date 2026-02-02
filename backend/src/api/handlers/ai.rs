@@ -1,10 +1,13 @@
-use crate::domain::models::{AiConversation, SaveAiConversationPayload};
+use crate::domain::models::{
+    AddAiMessagePayload, AiConversation, AiMessage, AiThread, CreateAiThreadPayload,
+    SaveAiConversationPayload,
+};
 use crate::infrastructure::audit::{record_audit, AuditEntry};
+use crate::infrastructure::database::AppState;
 use crate::middleware::auth::AuthSession;
+use crate::middleware::request_info::RequestInfo;
 use crate::utils::crypto::decrypt_with_password;
 use crate::utils::error::{bad_request, forbidden, internal_error};
-use crate::middleware::request_info::RequestInfo;
-use crate::infrastructure::database::AppState;
 use crate::utils::validation::validate_prompt;
 use axum::{
     body::Body,
@@ -19,7 +22,8 @@ use std::time::Duration;
 
 #[derive(Deserialize)]
 pub struct AiRequest {
-    pub prompt: String,
+    pub prompt: Option<String>,
+    pub contents: Option<serde_json::Value>,
     pub system_instruction: Option<String>,
     pub api_key: Option<String>,
     pub model: Option<String>,
@@ -46,10 +50,12 @@ pub async fn proxy_gemini_stream(
             }
         }
         // Get attendee name from database
-        let attendee_name = match sqlx::query_scalar::<_, String>(&state.q("SELECT name FROM attendees WHERE id = ?"))
-            .bind(&attendee.sub)
-            .fetch_one(&state.pool)
-            .await
+        let attendee_name = match sqlx::query_scalar::<_, String>(
+            &state.q("SELECT name FROM attendees WHERE id = ?"),
+        )
+        .bind(&attendee.sub)
+        .fetch_one(&state.pool)
+        .await
         {
             Ok(name) => name,
             Err(_) => "Unknown".to_string(),
@@ -59,8 +65,15 @@ pub async fn proxy_gemini_stream(
         return (StatusCode::UNAUTHORIZED, "Unauthorized".to_string()).into_response();
     };
 
-    if let Err(err) = validate_prompt(&payload.prompt) {
-        return err.into_response();
+    // Validate: either prompt or contents must be provided
+    if payload.prompt.is_none() && payload.contents.is_none() {
+        return bad_request("Either prompt or contents must be provided").into_response();
+    }
+
+    if let Some(prompt) = &payload.prompt {
+        if let Err(err) = validate_prompt(prompt) {
+            return err.into_response();
+        }
     }
     // 1. Check for admin-provided key in memory (stored via settings)
     // 2. Fallback to request payload (for legacy/custom)
@@ -110,28 +123,32 @@ pub async fn proxy_gemini_stream(
         Err(e) => return internal_error(e).into_response(),
     };
 
-    let contents = serde_json::json!([
-        {
-            "role": "user",
-            "parts": [{ "text": payload.prompt }]
-        }
-    ]);
+    let final_contents = if let Some(contents) = payload.contents.clone() {
+        contents
+    } else {
+        serde_json::json!([
+            {
+                "role": "user",
+                "parts": [{ "text": payload.prompt.as_deref().unwrap_or_default() }]
+            }
+        ])
+    };
 
     let mut body = serde_json::json!({
-        "contents": contents,
+        "contents": final_contents,
     });
 
-    if let Some(sys) = payload.system_instruction {
+    if let Some(sys) = payload.system_instruction.clone() {
         body["system_instruction"] = serde_json::json!({
             "parts": [{ "text": sys }]
         });
     }
 
-    if let Some(config) = payload.generation_config {
+    if let Some(config) = payload.generation_config.clone() {
         body["generationConfig"] = config;
     }
 
-    if let Some(tools) = payload.tools {
+    if let Some(tools) = payload.tools.clone() {
         body["tools"] = tools;
     }
 
@@ -147,7 +164,8 @@ pub async fn proxy_gemini_stream(
 
     // Record audit log with user information and codelab context
     let metadata = serde_json::json!({
-        "prompt_length": payload.prompt.len(),
+        "prompt_length": payload.prompt.as_deref().map(|p| p.len()).unwrap_or(0),
+        "has_contents": payload.contents.is_some(),
         "model": model,
         "step_number": payload.step_number,
     });
@@ -190,11 +208,12 @@ pub async fn save_ai_conversation(
             return Err(forbidden());
         }
         // Get attendee name
-        let attendee_name = sqlx::query_scalar::<_, String>(&state.q("SELECT name FROM attendees WHERE id = ?"))
-            .bind(&attendee.sub)
-            .fetch_one(&state.pool)
-            .await
-            .map_err(internal_error)?;
+        let attendee_name =
+            sqlx::query_scalar::<_, String>(&state.q("SELECT name FROM attendees WHERE id = ?"))
+                .bind(&attendee.sub)
+                .fetch_one(&state.pool)
+                .await
+                .map_err(internal_error)?;
         (attendee.sub, "attendee".to_string(), attendee_name)
     } else {
         return Err((StatusCode::UNAUTHORIZED, "Unauthorized".to_string()));
@@ -229,15 +248,151 @@ pub async fn get_ai_conversations(
     // Only admin can view all AI conversations
     session.require_admin()?;
 
-    let conversations = sqlx::query_as::<_, AiConversation>(&state.q(
-        "SELECT * FROM ai_conversations WHERE codelab_id = ? ORDER BY created_at DESC",
-    ))
+    let conversations = sqlx::query_as::<_, AiConversation>(
+        &state.q("SELECT id, codelab_id, user_id, user_type, user_name, step_number, question, answer, model, CAST(created_at AS TEXT) as created_at FROM ai_conversations WHERE codelab_id = ? ORDER BY created_at DESC"),
+    )
     .bind(&codelab_id)
     .fetch_all(&state.pool)
     .await
     .map_err(internal_error)?;
 
     Ok(Json(conversations))
+}
+
+pub async fn create_ai_thread(
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+    Json(payload): Json<CreateAiThreadPayload>,
+) -> Result<Json<AiThread>, (StatusCode, String)> {
+    let admin = session.require_admin()?;
+    let thread_id = uuid::Uuid::new_v4().to_string();
+
+    let thread = sqlx::query_as::<_, AiThread>(&state.q(
+        "INSERT INTO ai_threads (id, title, user_id, user_type, codelab_id) VALUES (?, ?, ?, ?, ?) RETURNING id, title, user_id, user_type, codelab_id, CAST(created_at AS TEXT) as created_at, CAST(updated_at AS TEXT) as updated_at"
+    ))
+    .bind(&thread_id)
+    .bind(&payload.title)
+    .bind(&admin.sub)
+    .bind("admin")
+    .bind(&payload.codelab_id)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(thread))
+}
+
+pub async fn get_ai_threads(
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+) -> Result<Json<Vec<AiThread>>, (StatusCode, String)> {
+    let admin = session.require_admin()?;
+
+    let threads = sqlx::query_as::<_, AiThread>(&state.q(
+        "SELECT id, title, user_id, user_type, codelab_id, CAST(created_at AS TEXT) as created_at, CAST(updated_at AS TEXT) as updated_at FROM ai_threads WHERE user_id = ? AND user_type = 'admin' ORDER BY updated_at DESC"
+    ))
+    .bind(&admin.sub)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(threads))
+}
+
+pub async fn delete_ai_thread(
+    Path(thread_id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+) -> Result<StatusCode, (StatusCode, String)> {
+    let admin = session.require_admin()?;
+
+    sqlx::query(&state.q("DELETE FROM ai_threads WHERE id = ? AND user_id = ?"))
+        .bind(&thread_id)
+        .bind(&admin.sub)
+        .execute(&state.pool)
+        .await
+        .map_err(internal_error)?;
+
+    Ok(StatusCode::NO_CONTENT)
+}
+
+pub async fn add_ai_message(
+    Path(thread_id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+    Json(payload): Json<AddAiMessagePayload>,
+) -> Result<Json<AiMessage>, (StatusCode, String)> {
+    let admin = session.require_admin()?;
+
+    // Verify thread belongs to user
+    let thread_exists = sqlx::query_scalar::<_, i32>(
+        &state.q("SELECT COUNT(*) FROM ai_threads WHERE id = ? AND user_id = ?"),
+    )
+    .bind(&thread_id)
+    .bind(&admin.sub)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(internal_error)?;
+
+    if thread_exists == 0 {
+        return Err(forbidden());
+    }
+
+    let message_id = uuid::Uuid::new_v4().to_string();
+    let grounding_metadata = payload.grounding_metadata.map(|m| m.to_string());
+
+    let message = sqlx::query_as::<_, AiMessage>(&state.q(
+        "INSERT INTO ai_messages (id, thread_id, role, content, grounding_metadata) VALUES (?, ?, ?, ?, ?) RETURNING id, thread_id, role, content, grounding_metadata, CAST(created_at AS TEXT) as created_at"
+    ))
+    .bind(&message_id)
+    .bind(&thread_id)
+    .bind(&payload.role)
+    .bind(&payload.content)
+    .bind(&grounding_metadata)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(internal_error)?;
+
+    // Update thread updated_at
+    sqlx::query(&state.q("UPDATE ai_threads SET updated_at = CURRENT_TIMESTAMP WHERE id = ?"))
+        .bind(&thread_id)
+        .execute(&state.pool)
+        .await
+        .map_err(internal_error)?;
+
+    Ok(Json(message))
+}
+
+pub async fn get_ai_messages(
+    Path(thread_id): Path<String>,
+    State(state): State<Arc<AppState>>,
+    session: AuthSession,
+) -> Result<Json<Vec<AiMessage>>, (StatusCode, String)> {
+    let admin = session.require_admin()?;
+
+    // Verify thread belongs to user
+    let thread_exists = sqlx::query_scalar::<_, i32>(
+        &state.q("SELECT COUNT(*) FROM ai_threads WHERE id = ? AND user_id = ?"),
+    )
+    .bind(&thread_id)
+    .bind(&admin.sub)
+    .fetch_one(&state.pool)
+    .await
+    .map_err(internal_error)?;
+
+    if thread_exists == 0 {
+        return Err(forbidden());
+    }
+
+    let messages = sqlx::query_as::<_, AiMessage>(
+        &state.q("SELECT id, thread_id, role, content, grounding_metadata, CAST(created_at AS TEXT) as created_at FROM ai_messages WHERE thread_id = ? ORDER BY created_at ASC"),
+    )
+    .bind(&thread_id)
+    .fetch_all(&state.pool)
+    .await
+    .map_err(internal_error)?;
+
+    Ok(Json(messages))
 }
 
 fn is_valid_model(model: &str) -> bool {

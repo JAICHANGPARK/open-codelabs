@@ -14,6 +14,7 @@
         "export": "내보내기",
         "copy": "복사",
         "loading": "로딩 중...",
+        "send": "전송",
         "actions": "작업",
         "author": "작성자",
         "date": "날짜",
@@ -233,11 +234,11 @@
         "guide_empty_preview": "작성된 가이드가 없습니다. AI로 생성하거나 직접 입력해보세요.",
         "export_codelab": "코드랩 내보내기",
         "save_changes": "변경사항 저장",
-  "stuck_on_step": "단계 {step}에서 멈춤",
-  "split_view": "분할 뷰",
-  "certificate_tab": "수료증",
-  "workspace_tab": "워크스페이스",
-  "quiz_tab": "퀴즈",
+        "stuck_on_step": "단계 {step}에서 멈춤",
+        "split_view": "분할 뷰",
+        "certificate_tab": "수료증",
+        "workspace_tab": "워크스페이스",
+        "quiz_tab": "퀴즈",
         "quiz_settings": "퀴즈 설정",
         "quiz_enabled": "퀴즈 활성화",
         "quiz_question": "질문",
@@ -614,6 +615,23 @@
         "improvement_instruction": "어떻게 개선할까요?",
         "improvement_placeholder": "예: 더 친근하게, 요약하기, 코드 주석 추가...",
         "ai_improve_submit": "개선하기"
+    },
+    "admin": {
+        "consultant": {
+            "title": "핸즈온 설계 컨설턴트",
+            "subtitle": "성공적인 세션 준비를 위한 AI 파트너",
+            "button": "설계 컨설턴트",
+            "how_can_i_help": "무엇을 도와드릴까요?",
+            "help_desc": "코드랩의 전체 구조, 학습 목표 설정, 특정 기술 스택의 실습 구성 등에 대해 물어보세요.",
+            "placeholder": "코드랩 설계에 대한 고민을 입력하세요...",
+            "api_key_desc": "컨설턴트 기능을 사용하려면 대시보드 설정에서 Gemini API 키를 입력해야 합니다.",
+            "sources": "인용 및 참고 자료",
+            "history": "대화 기록",
+            "new_chat": "새 대화 시작",
+            "no_history": "아직 대화 기록이 없습니다.",
+            "role_consultant": "컨설턴트",
+            "role_you": "나"
+        }
     },
     "raffle": {
         "tab_label": "퍼실리테이터 추첨",

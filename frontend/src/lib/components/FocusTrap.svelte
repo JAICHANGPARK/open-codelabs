@@ -26,6 +26,6 @@
     }
 </script>
 
-<div bind:this={container} on:keydown={handleKeydown}>
+<div bind:this={container} onkeydown={handleKeydown}>
     <slot />
 </div>

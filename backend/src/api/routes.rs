@@ -1,19 +1,22 @@
 use crate::api::handlers::{
     admin::{get_session, login, logout, update_settings},
-    ai::{get_ai_conversations, proxy_gemini_stream, save_ai_conversation},
+    ai::{
+        add_ai_message, create_ai_thread, delete_ai_thread, get_ai_conversations, get_ai_messages,
+        get_ai_threads, proxy_gemini_stream, save_ai_conversation,
+    },
     attendees::{
         complete_codelab, get_attendees, get_certificate, get_help_requests, register_attendee,
         request_help, resolve_help_request,
     },
     audit::get_audit_logs,
-    codeserver::{
-        create_branch, create_codeserver, create_folder, delete_codeserver, download_workspace,
-        get_codeserver_info, list_branches, list_files, list_folder_files, list_folders,
-        read_file, read_folder_file, update_branch_files, update_folder_files,
-    },
     codelabs::{
         copy_codelab, create_codelab, delete_codelab, export_codelab, get_chat_history,
         get_codelab, import_codelab, list_codelabs, update_codelab_info, update_codelab_steps,
+    },
+    codeserver::{
+        create_branch, create_codeserver, create_folder, delete_codeserver, download_workspace,
+        get_codeserver_info, list_branches, list_files, list_folder_files, list_folders, read_file,
+        read_folder_file, update_branch_files, update_folder_files,
     },
     feedback::{get_feedback, submit_feedback},
     materials::{add_material, delete_material, get_materials, upload_material_file},
@@ -99,7 +102,20 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/api/upload/material", post(upload_material_file))
         .route("/api/ai/stream", post(proxy_gemini_stream))
         .route("/api/ai/conversations", post(save_ai_conversation))
-        .route("/api/codelabs/{id}/ai/conversations", get(get_ai_conversations))
+        .route(
+            "/api/ai/threads",
+            get(get_ai_threads).post(create_ai_thread),
+        )
+        .route(
+            "/api/ai/threads/{thread_id}",
+            get(get_ai_messages)
+                .post(add_ai_message)
+                .delete(delete_ai_thread),
+        )
+        .route(
+            "/api/codelabs/{id}/ai/conversations",
+            get(get_ai_conversations),
+        )
         .route("/api/ws/{id}", get(ws_handler))
         .route("/api/codeserver", post(create_codeserver))
         .route(
@@ -117,13 +133,19 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             "/api/codeserver/{codelab_id}/branches/{branch}/files",
             get(list_files).post(update_branch_files),
         )
-        .route("/api/codeserver/{codelab_id}/branches/{branch}/file", get(read_file))
+        .route(
+            "/api/codeserver/{codelab_id}/branches/{branch}/file",
+            get(read_file),
+        )
         .route("/api/codeserver/{codelab_id}/folders", get(list_folders))
         .route(
             "/api/codeserver/{codelab_id}/folders/{folder}/files",
             get(list_folder_files).post(update_folder_files),
         )
-        .route("/api/codeserver/{codelab_id}/folders/{folder}/file", get(read_folder_file))
+        .route(
+            "/api/codeserver/{codelab_id}/folders/{folder}/file",
+            get(read_folder_file),
+        )
         .nest_service("/assets", ServeDir::new("static/assets"))
         .fallback_service(ServeDir::new("static"))
         .layer(middleware::from_fn_with_state(

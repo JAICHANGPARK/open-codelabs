@@ -14,6 +14,7 @@
         "export": "エクスポート",
         "copy": "コピー",
         "loading": "読み込み中...",
+        "send": "送信",
         "actions": "アクション",
         "author": "著者",
         "date": "日付",
@@ -573,6 +574,23 @@
         "improvement_instruction": "どのように改善しますか？",
         "improvement_placeholder": "例：より親しみやすく、要約する、コードコメントを追加...",
         "ai_improve_submit": "改善する"
+    },
+    "admin": {
+        "consultant": {
+            "title": "ハンズオン設計コンサルタント",
+            "subtitle": "セッションの成功を支援するAIパートナー",
+            "button": "設計コンサルタント",
+            "how_can_i_help": "どのようにお手伝いしましょうか？",
+            "help_desc": "コードラボの構成、目標設定、技術スタックの実装などについて相談してください。",
+            "placeholder": "コードラボの設計について相談する...",
+            "api_key_desc": "コンサルタント機能を使用するには、設定でGemini APIキーを入力してください。",
+            "sources": "参照ソース",
+            "history": "履歴",
+            "new_chat": "新しいチャット",
+            "no_history": "チャット履歴がありません。",
+            "role_consultant": "コンサルタント",
+            "role_you": "自分"
+        }
     },
     "raffle": {
         "tab_label": "ファシリテーター抽選",

@@ -35,12 +35,18 @@
     import { t, locale } from "svelte-i18n";
     import { encrypt, decrypt } from "$lib/crypto";
     import AiCodelabGenerator from "$lib/components/admin/AiCodelabGenerator.svelte";
+    import FacilitatorConsultant from "$lib/components/admin/FacilitatorConsultant.svelte";
     import { copyCodelab as apiCopyCodelab, saveAdminSettings } from "$lib/api";
 
     let codelabs: Codelab[] = $state([]);
     let loading = $state(true);
     let showCreateModal = $state(false);
-    let newCodelab = $state({ title: "", description: "", author: "", is_public: true });
+    let newCodelab = $state({
+        title: "",
+        description: "",
+        author: "",
+        is_public: true,
+    });
     let copyTarget: string | null = $state(null);
 
     async function handleCopy(id: string) {
@@ -64,13 +70,15 @@
             return dateB - dateA; // Newest first
         });
 
-        sorted.forEach(c => {
-            const date = c.created_at ? new Date(c.created_at).toLocaleDateString($locale || 'en', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            }) : $t('dashboard.unknown_date');
-            
+        sorted.forEach((c) => {
+            const date = c.created_at
+                ? new Date(c.created_at).toLocaleDateString($locale || "en", {
+                      year: "numeric",
+                      month: "long",
+                      day: "numeric",
+                  })
+                : $t("dashboard.unknown_date");
+
             if (!groups[date]) {
                 groups[date] = [];
             }
@@ -85,6 +93,7 @@
     let showAiGenerator = $state(false);
     let geminiApiKey = $state("");
     let apiKeySaved = $state(false);
+    let showConsultant = $state(false);
 
     let user = $state<any>(null);
 
@@ -140,7 +149,7 @@
         try {
             // 1. Save to server (for proxy use)
             await saveAdminSettings({ gemini_api_key: geminiApiKey.trim() });
-            
+
             // 2. Save locally
             if (geminiApiKey.trim()) {
                 const encrypted = encrypt(geminiApiKey.trim());
@@ -154,8 +163,10 @@
             alert($t("dashboard.settings.save_success"));
         } catch (e: any) {
             console.error(e);
-            if (e.message === 'ENCRYPTION_PASSWORD_MISSING') {
-                const pw = prompt($t("login.password") + " required for encryption:");
+            if (e.message === "ENCRYPTION_PASSWORD_MISSING") {
+                const pw = prompt(
+                    $t("login.password") + " required for encryption:",
+                );
                 if (pw) {
                     sessionStorage.setItem("adminPassword", pw);
                     saveSettings();
@@ -175,7 +186,12 @@
             const created = await createCodelab(newCodelab);
             codelabs = [created, ...codelabs];
             showCreateModal = false;
-            newCodelab = { title: "", description: "", author: "", is_public: true };
+            newCodelab = {
+                title: "",
+                description: "",
+                author: "",
+                is_public: true,
+            };
         } catch (e) {
             console.error(e);
         }
@@ -200,8 +216,7 @@
     }
 
     async function handleDelete(id: string) {
-        if (!confirm($t("dashboard.confirm_delete")))
-            return;
+        if (!confirm($t("dashboard.confirm_delete"))) return;
         try {
             await deleteCodelab(id);
             codelabs = codelabs.filter((c) => c.id !== id);
@@ -240,7 +255,9 @@
     }
 </script>
 
-<div class="min-h-screen bg-[#F8F9FA] dark:bg-dark-bg transition-colors duration-200">
+<div
+    class="min-h-screen bg-[#F8F9FA] dark:bg-dark-bg transition-colors duration-200"
+>
     <div class="max-w-6xl mx-auto p-4 sm:p-8 lg:p-12">
         <header
             class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 sm:mb-12"
@@ -252,15 +269,21 @@
                     >
                         <LayoutDashboard size={24} />
                     </div>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-dark-text truncate">
+                    <h1
+                        class="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-dark-text truncate"
+                    >
                         {$t("dashboard.title")}
                     </h1>
                 </div>
-                <p class="text-[#5F6368] dark:text-dark-text-muted text-base sm:text-lg">
+                <p
+                    class="text-[#5F6368] dark:text-dark-text-muted text-base sm:text-lg"
+                >
                     {$t("dashboard.subtitle")}
                 </p>
             </div>
-            <div class="flex flex-wrap items-center gap-2 sm:gap-4 w-full lg:w-auto">
+            <div
+                class="flex flex-wrap items-center gap-2 sm:gap-4 w-full lg:w-auto"
+            >
                 <a
                     href="/admin/audit-logs"
                     class="p-2.5 hover:bg-white dark:hover:bg-dark-surface rounded-full text-[#5F6368] dark:text-dark-text-muted transition-all border border-transparent hover:border-[#E8EAED] dark:hover:border-dark-border"
@@ -280,7 +303,9 @@
                         class={apiKeySaved ? "text-[#34A853]" : ""}
                     />
                 </button>
-                <div class="h-6 w-px bg-[#E8EAED] dark:bg-dark-border hidden sm:block"></div>
+                <div
+                    class="h-6 w-px bg-[#E8EAED] dark:bg-dark-border hidden sm:block"
+                ></div>
 
                 <div class="hidden lg:flex items-center gap-1">
                     <a
@@ -303,7 +328,9 @@
                     >
                         <FileText size={20} />
                     </a>
-                    <div class="h-6 w-px bg-[#E8EAED] dark:bg-dark-border mx-1"></div>
+                    <div
+                        class="h-6 w-px bg-[#E8EAED] dark:bg-dark-border mx-1"
+                    ></div>
                 </div>
 
                 <input
@@ -321,11 +348,22 @@
                     <span class="hidden xs:inline">{$t("common.import")}</span>
                 </button>
                 <button
+                    onclick={() => (showConsultant = true)}
+                    class="bg-white dark:bg-dark-surface hover:bg-[#F8F9FA] dark:hover:bg-white/5 text-[#5F6368] dark:text-dark-text-muted px-3 sm:px-4 py-2 sm:py-2.5 rounded-full flex items-center gap-2 transition-all border border-[#DADCE0] dark:border-dark-border font-bold text-xs sm:text-sm"
+                >
+                    <User size={18} />
+                    <span class="hidden xs:inline"
+                        >{$t("admin.consultant.button") || "Consultant"}</span
+                    >
+                </button>
+                <button
                     onclick={() => (showAiGenerator = true)}
                     class="bg-white dark:bg-dark-surface hover:bg-[#F8F9FA] dark:hover:bg-white/5 text-[#4285F4] px-3 sm:px-4 py-2 sm:py-2.5 rounded-full flex items-center gap-2 transition-all border border-[#DADCE0] dark:border-dark-border font-bold text-xs sm:text-sm"
                 >
                     <Sparkles size={18} />
-                    <span class="hidden xs:inline">{$t("dashboard.create_with_ai")}</span>
+                    <span class="hidden xs:inline"
+                        >{$t("dashboard.create_with_ai")}</span
+                    >
                 </button>
                 <button
                     onclick={() => (showCreateModal = true)}
@@ -351,12 +389,19 @@
                 <div
                     class="bg-[#F8F9FA] dark:bg-white/5 w-16 sm:w-20 h-16 sm:h-20 rounded-full flex items-center justify-center mx-auto mb-6"
                 >
-                    <BookOpen size={32} class="text-[#BDC1C6] dark:text-dark-text-muted" />
+                    <BookOpen
+                        size={32}
+                        class="text-[#BDC1C6] dark:text-dark-text-muted"
+                    />
                 </div>
-                <h3 class="text-xl font-bold text-[#202124] dark:text-dark-text">
+                <h3
+                    class="text-xl font-bold text-[#202124] dark:text-dark-text"
+                >
                     {$t("dashboard.no_codelabs")}
                 </h3>
-                <p class="text-[#5F6368] dark:text-dark-text-muted mt-2 text-base sm:text-lg">
+                <p
+                    class="text-[#5F6368] dark:text-dark-text-muted mt-2 text-base sm:text-lg"
+                >
                     {$t("dashboard.get_started")}
                 </p>
                 <button
@@ -372,17 +417,31 @@
                 {#each groupedCodelabs as [date, list]}
                     <section>
                         <div class="flex items-center gap-2 mb-6">
-                            <div class="h-8 w-1 bg-[#4285F4] rounded-full"></div>
-                            <h2 class="text-xl font-bold text-[#3C4043] dark:text-dark-text">
+                            <div
+                                class="h-8 w-1 bg-[#4285F4] rounded-full"
+                            ></div>
+                            <h2
+                                class="text-xl font-bold text-[#3C4043] dark:text-dark-text"
+                            >
                                 {date}
                             </h2>
-                            <span class="bg-[#F1F3F4] dark:bg-white/10 text-[#5F6368] dark:text-dark-text-muted px-2 py-0.5 rounded-md text-xs font-bold">
+                            <span
+                                class="bg-[#F1F3F4] dark:bg-white/10 text-[#5F6368] dark:text-dark-text-muted px-2 py-0.5 rounded-md text-xs font-bold"
+                            >
                                 {list.length}
                             </span>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+                        <div
+                            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8"
+                        >
                             {#each list as codelab, i}
-                                <div in:fly={{ y: 20, delay: i * 50, duration: 500 }}>
+                                <div
+                                    in:fly={{
+                                        y: 20,
+                                        delay: i * 50,
+                                        duration: 500,
+                                    }}
+                                >
                                     <a
                                         href="/admin/{codelab.id}"
                                         class="group block bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl p-6 sm:p-8 hover:shadow-xl transition-all duration-300 hover:border-[#4285F4] dark:hover:border-[#4285F4] relative overflow-hidden h-full flex flex-col"
@@ -395,7 +454,9 @@
                                             >
                                                 <span>{codelab.title}</span>
                                                 {#if !codelab.is_public}
-                                                    <span class="bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-dark-text-muted text-[10px] px-2 py-0.5 rounded-full border dark:border-dark-border flex items-center gap-1 font-bold shrink-0">
+                                                    <span
+                                                        class="bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-dark-text-muted text-[10px] px-2 py-0.5 rounded-full border dark:border-dark-border flex items-center gap-1 font-bold shrink-0"
+                                                    >
                                                         <X size={10} />
                                                         {$t("common.private")}
                                                     </span>
@@ -413,8 +474,12 @@
                                                     codelab.id
                                                         ? 'bg-[#E6F4EA] dark:bg-[#34A853]/20 text-[#1E8E3E] dark:text-[#34A853]'
                                                         : 'bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 hover:text-[#4285F4]'}"
-                                                    title={$t("dashboard.share_link")}
-                                                    aria-label={$t("dashboard.share_link")}
+                                                    title={$t(
+                                                        "dashboard.share_link",
+                                                    )}
+                                                    aria-label={$t(
+                                                        "dashboard.share_link",
+                                                    )}
                                                 >
                                                     {#if copyTarget === codelab.id}
                                                         <Check size={18} />
@@ -428,19 +493,28 @@
                                                         handleCopy(codelab.id);
                                                     }}
                                                     class="p-2 bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
-                                                    title={$t("common.copy") || "Copy"}
-                                                    aria-label={$t("common.copy") || "Copy"}
+                                                    title={$t("common.copy") ||
+                                                        "Copy"}
+                                                    aria-label={$t(
+                                                        "common.copy",
+                                                    ) || "Copy"}
                                                 >
                                                     <Copy size={18} />
                                                 </button>
                                                 <button
                                                     onclick={(e) => {
                                                         e.preventDefault();
-                                                        handleDelete(codelab.id);
+                                                        handleDelete(
+                                                            codelab.id,
+                                                        );
                                                     }}
                                                     class="p-2 bg-[#F8F9FA] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:text-[#EA4335] hover:bg-[#FEECEB] dark:hover:bg-[#EA4335]/10 rounded-full transition-all"
-                                                    title={$t("common.delete") || "Delete"}
-                                                    aria-label={$t("common.delete") || "Delete"}
+                                                    title={$t(
+                                                        "common.delete",
+                                                    ) || "Delete"}
+                                                    aria-label={$t(
+                                                        "common.delete",
+                                                    ) || "Delete"}
                                                 >
                                                     <Trash2 size={18} />
                                                 </button>
@@ -463,7 +537,9 @@
                                                 >
                                                     <User size={14} />
                                                 </div>
-                                                <span class="truncate">{codelab.author}</span>
+                                                <span class="truncate"
+                                                    >{codelab.author}</span
+                                                >
                                             </div>
                                             <div
                                                 class="flex items-center gap-1.5 text-[#9AA0A6] dark:text-dark-text-muted text-[10px] sm:text-xs font-medium uppercase tracking-wider shrink-0"
@@ -471,8 +547,15 @@
                                                 <Clock size={14} />
                                                 <span class="hidden xs:inline">
                                                     {new Date(
-                                                        codelab.created_at || "",
-                                                    ).toLocaleTimeString($locale || "en", { hour: '2-digit', minute: '2-digit' })}
+                                                        codelab.created_at ||
+                                                            "",
+                                                    ).toLocaleTimeString(
+                                                        $locale || "en",
+                                                        {
+                                                            hour: "2-digit",
+                                                            minute: "2-digit",
+                                                        },
+                                                    )}
                                                 </span>
                                             </div>
                                         </div>
@@ -500,10 +583,15 @@
             in:fly={{ y: 40, duration: 400 }}
         >
             <div class="bg-[#4285F4] p-6 sm:p-8 text-white">
-                <h2 id="create-modal-title" class="text-xl sm:text-2xl font-bold mb-2">
+                <h2
+                    id="create-modal-title"
+                    class="text-xl sm:text-2xl font-bold mb-2"
+                >
                     {$t("dashboard.create_new_title")}
                 </h2>
-                <p class="opacity-80 text-sm sm:text-base">{$t("dashboard.design_experience")}</p>
+                <p class="opacity-80 text-sm sm:text-base">
+                    {$t("dashboard.design_experience")}
+                </p>
             </div>
 
             <div class="p-6 sm:p-8 space-y-6">
@@ -548,17 +636,29 @@
                         class="w-full bg-[#F8F9FA] dark:bg-dark-bg border-2 border-[#F1F3F4] dark:border-dark-border rounded-xl px-4 py-3 focus:border-[#4285F4] dark:focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] text-[#202124] dark:text-dark-text"
                     />
                 </div>
-                <div class="flex items-center justify-between p-4 bg-[#F8F9FA] dark:bg-dark-bg rounded-xl border-2 border-[#F1F3F4] dark:border-dark-border">
-                    <span class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted">{$t("common.visibility")}</span>
+                <div
+                    class="flex items-center justify-between p-4 bg-[#F8F9FA] dark:bg-dark-bg rounded-xl border-2 border-[#F1F3F4] dark:border-dark-border"
+                >
+                    <span
+                        class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted"
+                        >{$t("common.visibility")}</span
+                    >
                     <button
-                        onclick={() => newCodelab.is_public = !newCodelab.is_public}
-                        class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2 {newCodelab.is_public ? 'bg-[#34A853]' : 'bg-gray-200 dark:bg-dark-border'}"
+                        onclick={() =>
+                            (newCodelab.is_public = !newCodelab.is_public)}
+                        class="relative inline-flex h-7 w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2 {newCodelab.is_public
+                            ? 'bg-[#34A853]'
+                            : 'bg-gray-200 dark:bg-dark-border'}"
                         role="switch"
                         aria-checked={newCodelab.is_public}
-                        title={newCodelab.is_public ? $t("common.public") : $t("common.private")}
+                        title={newCodelab.is_public
+                            ? $t("common.public")
+                            : $t("common.private")}
                     >
                         <span
-                            class="pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 {newCodelab.is_public ? 'translate-x-6' : 'translate-x-1'}"
+                            class="pointer-events-none flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-sm ring-0 transition-transform duration-200 {newCodelab.is_public
+                                ? 'translate-x-6'
+                                : 'translate-x-1'}"
                         >
                             {#if newCodelab.is_public}
                                 <Eye size={12} class="text-[#34A853]" />
@@ -603,12 +703,16 @@
             <div
                 class="px-6 py-4 border-b border-[#F1F3F4] dark:border-dark-border flex items-center justify-between bg-[#F8F9FA] dark:bg-white/5"
             >
-                <h3 id="settings-modal-title" class="font-bold text-[#202124] dark:text-dark-text">{$t("dashboard.settings.title")}</h3>
+                <h3
+                    id="settings-modal-title"
+                    class="font-bold text-[#202124] dark:text-dark-text"
+                >
+                    {$t("dashboard.settings.title")}
+                </h3>
                 <button
                     onclick={() => (showSettingsModal = false)}
                     class="text-[#5F6368] dark:text-dark-text-muted hover:bg-[#E8EAED] dark:hover:bg-white/10 p-1 rounded-full transition-colors"
-                    aria-label="Close settings"
-                    ><X size={18} /></button
+                    aria-label="Close settings"><X size={18} /></button
                 >
             </div>
             <div class="p-6 space-y-4">
@@ -622,7 +726,9 @@
                         id="api-key"
                         type="password"
                         bind:value={geminiApiKey}
-                        placeholder={$t("dashboard.settings.api_key_placeholder")}
+                        placeholder={$t(
+                            "dashboard.settings.api_key_placeholder",
+                        )}
                         class="w-full bg-[#F8F9FA] dark:bg-dark-bg border-2 border-[#F1F3F4] dark:border-dark-border rounded-lg px-4 py-2.5 focus:border-[#4285F4] dark:focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] text-sm font-mono text-[#202124] dark:text-dark-text"
                     />
                     <p class="text-xs text-[#9AA0A6] mt-2">
@@ -663,4 +769,8 @@
             showAiGenerator = false;
         }}
     />
+{/if}
+
+{#if showConsultant}
+    <FacilitatorConsultant onClose={() => (showConsultant = false)} />
 {/if}

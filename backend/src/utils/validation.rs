@@ -1,11 +1,11 @@
 use axum::http::StatusCode;
 use url::Url;
 
-use crate::utils::error::bad_request;
 use crate::domain::models::{
     CreateCodelab, CreateFeedback, CreateMaterial, CreateQuiz, CreateStep, RegistrationPayload,
     UpdateStepsPayload,
 };
+use crate::utils::error::bad_request;
 
 pub fn validate_codelab(payload: &CreateCodelab) -> Result<(), (StatusCode, String)> {
     validate_text(&payload.title, "title", 1, 200)?;
@@ -157,6 +157,7 @@ mod tests {
         let payload = RegistrationPayload {
             name: "Alice".to_string(),
             code: "bad code!".to_string(),
+            email: None,
         };
         assert!(validate_registration(&payload).is_err());
     }
