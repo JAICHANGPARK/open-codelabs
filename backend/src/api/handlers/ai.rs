@@ -222,7 +222,7 @@ pub async fn save_ai_conversation(
     let conversation_id = uuid::Uuid::new_v4().to_string();
 
     sqlx::query(&state.q(
-        "INSERT INTO ai_conversations (id, codelab_id, user_id, user_type, user_name, step_number, question, answer, model) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        "INSERT INTO ai_conversations (id, codelab_id, user_id, user_type, user_name, step_number, question, answer, model, usage_metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
     ))
     .bind(&conversation_id)
     .bind(&payload.codelab_id)
@@ -233,6 +233,7 @@ pub async fn save_ai_conversation(
     .bind(&payload.question)
     .bind(&payload.answer)
     .bind(&payload.model)
+    .bind(payload.usage_metadata.map(|m| m.to_string()))
     .execute(&state.pool)
     .await
     .map_err(internal_error)?;
@@ -249,7 +250,7 @@ pub async fn get_ai_conversations(
     session.require_admin()?;
 
     let conversations = sqlx::query_as::<_, AiConversation>(
-        &state.q("SELECT id, codelab_id, user_id, user_type, user_name, step_number, question, answer, model, CAST(created_at AS TEXT) as created_at FROM ai_conversations WHERE codelab_id = ? ORDER BY created_at DESC"),
+        &state.q("SELECT id, codelab_id, user_id, user_type, user_name, step_number, question, answer, model, usage_metadata, CAST(created_at AS TEXT) as created_at FROM ai_conversations WHERE codelab_id = ? ORDER BY created_at DESC"),
     )
     .bind(&codelab_id)
     .fetch_all(&state.pool)
@@ -340,15 +341,17 @@ pub async fn add_ai_message(
 
     let message_id = uuid::Uuid::new_v4().to_string();
     let grounding_metadata = payload.grounding_metadata.map(|m| m.to_string());
+    let usage_metadata = payload.usage_metadata.map(|m| m.to_string());
 
     let message = sqlx::query_as::<_, AiMessage>(&state.q(
-        "INSERT INTO ai_messages (id, thread_id, role, content, grounding_metadata) VALUES (?, ?, ?, ?, ?) RETURNING id, thread_id, role, content, grounding_metadata, CAST(created_at AS TEXT) as created_at"
+        "INSERT INTO ai_messages (id, thread_id, role, content, grounding_metadata, usage_metadata) VALUES (?, ?, ?, ?, ?, ?) RETURNING id, thread_id, role, content, grounding_metadata, usage_metadata, CAST(created_at AS TEXT) as created_at"
     ))
     .bind(&message_id)
     .bind(&thread_id)
     .bind(&payload.role)
     .bind(&payload.content)
     .bind(&grounding_metadata)
+    .bind(&usage_metadata)
     .fetch_one(&state.pool)
     .await
     .map_err(internal_error)?;
@@ -385,7 +388,7 @@ pub async fn get_ai_messages(
     }
 
     let messages = sqlx::query_as::<_, AiMessage>(
-        &state.q("SELECT id, thread_id, role, content, grounding_metadata, CAST(created_at AS TEXT) as created_at FROM ai_messages WHERE thread_id = ? ORDER BY created_at ASC"),
+        &state.q("SELECT id, thread_id, role, content, grounding_metadata, usage_metadata, CAST(created_at AS TEXT) as created_at FROM ai_messages WHERE thread_id = ? ORDER BY created_at ASC"),
     )
     .bind(&thread_id)
     .fetch_all(&state.pool)

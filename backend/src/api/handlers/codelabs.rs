@@ -1,9 +1,9 @@
-use crate::infrastructure::audit::{record_audit, AuditEntry};
-use crate::middleware::auth::AuthSession;
-use crate::utils::error::{bad_request, forbidden, internal_error, unauthorized};
 use crate::domain::models::{ChatMessageRow, Codelab, CreateCodelab, Step, UpdateStepsPayload};
-use crate::middleware::request_info::RequestInfo;
+use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::infrastructure::database::AppState;
+use crate::middleware::auth::AuthSession;
+use crate::middleware::request_info::RequestInfo;
+use crate::utils::error::{bad_request, forbidden, internal_error, unauthorized};
 use crate::utils::validation::{validate_codelab, validate_steps};
 use axum::{
     extract::{Path, State},
@@ -644,4 +644,24 @@ fn sanitize_filename(value: &str) -> String {
     } else {
         out
     }
+}
+
+pub async fn get_reference_codelabs() -> Result<impl IntoResponse, (StatusCode, String)> {
+    // Commented out as requested. Now using direct raw import in frontend.
+    /*
+    let path = std::path::Path::new("../docs/codelabs.csv");
+    if !path.exists() {
+        // Fallback for different working directories
+        let alt_path = std::path::Path::new("docs/codelabs.csv");
+        if !alt_path.exists() {
+            return Err((StatusCode::NOT_FOUND, "Reference codelabs file not found".to_string()));
+        }
+        let content = std::fs::read_to_string(alt_path).map_err(|e| internal_error(e))?;
+        return Ok(content);
+    }
+
+    let content = std::fs::read_to_string(path).map_err(|e| internal_error(e))?;
+    Ok(content)
+    */
+    Ok("Reference API is temporarily disabled. Data is embedded in frontend.".to_string())
 }

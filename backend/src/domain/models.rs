@@ -285,6 +285,7 @@ pub struct AiConversation {
     pub question: String,
     pub answer: String,
     pub model: Option<String>,
+    pub usage_metadata: Option<String>,
     pub created_at: Option<String>,
 }
 
@@ -295,6 +296,8 @@ pub struct SaveAiConversationPayload {
     pub question: String,
     pub answer: String,
     pub model: Option<String>,
+    #[serde(default)]
+    pub usage_metadata: Option<serde_json::Value>,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -315,6 +318,7 @@ pub struct AiMessage {
     pub role: String,
     pub content: String,
     pub grounding_metadata: Option<String>,
+    pub usage_metadata: Option<String>,
     pub created_at: Option<String>,
 }
 
@@ -331,6 +335,8 @@ pub struct AddAiMessagePayload {
     pub content: String,
     #[serde(default)]
     pub grounding_metadata: Option<serde_json::Value>,
+    #[serde(default)]
+    pub usage_metadata: Option<serde_json::Value>,
 }
 
 #[cfg(test)]

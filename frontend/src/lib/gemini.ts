@@ -30,6 +30,7 @@ export interface GenerationResult {
 export interface GeminiResponseChunk {
     text?: string;
     groundingMetadata?: any;
+    usageMetadata?: TokenUsage;
 }
 
 const envApiUrl = import.meta.env.VITE_API_URL;
@@ -139,7 +140,7 @@ export async function* streamGeminiChat(
     messages: Array<{ role: "user" | "model" | "assistant", content: string }>,
     systemPrompt: string,
     config: GeminiStructuredConfig
-): AsyncGenerator<GeminiResponseChunk, void, unknown> {
+): AsyncGenerator<GeminiResponseChunk, TokenUsage | undefined, unknown> {
     const apiKeyRequired = () => {
         if (!config.apiKey) throw new Error("API Key is required");
     };
@@ -239,6 +240,10 @@ async function* parseGoogleStream(response: Response): AsyncGenerator<GeminiResp
 
                 if (candidate?.groundingMetadata) {
                     yield { groundingMetadata: candidate.groundingMetadata };
+                }
+
+                if (data.usageMetadata) {
+                    yield { usageMetadata: lastUsage };
                 }
             } catch (e) {
                 // ignore

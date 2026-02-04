@@ -1,3 +1,4 @@
+use crate::api::handlers::codelabs::get_reference_codelabs;
 use crate::api::handlers::{
     admin::{get_session, login, logout, update_settings},
     ai::{
@@ -44,6 +45,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .route("/api/session", get(get_session))
         .route("/api/admin/settings", post(update_settings))
         .route("/api/admin/audit-logs", get(get_audit_logs))
+        .route("/api/codelabs/reference", get(get_reference_codelabs))
         .route("/api/codelabs", get(list_codelabs).post(create_codelab))
         .route(
             "/api/codelabs/{id}",

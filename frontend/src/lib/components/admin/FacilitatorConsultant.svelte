@@ -28,6 +28,7 @@
     import { t, locale } from "svelte-i18n";
     import { encrypt, decrypt } from "$lib/crypto";
     import FocusTrap from "$lib/components/FocusTrap.svelte";
+    import referenceCodelabs from "$lib/data/codelabs.csv?raw";
 
     let { onClose } = $props<{
         onClose: () => void;
@@ -37,6 +38,11 @@
         role: "user" | "assistant";
         content: string;
         groundingMetadata?: any;
+        usageMetadata?: {
+            promptTokenCount: number;
+            candidatesTokenCount: number;
+            totalTokenCount: number;
+        };
     };
     type Thread = {
         id: string;
@@ -58,18 +64,62 @@
     let scrollContainer = $state<HTMLDivElement | null>(null);
     let dialogRef: HTMLDivElement | null = null;
 
-    const SYSTEM_PROMPT = `You are a world-class Technical Content Consultant and Developer Advocate. 
+    const BASE_SYSTEM_PROMPT = `You are a very strong reasoner and planner. Use these critical instructions to structure your plans, thoughts, and responses.
+
+    Before taking any action (either tool calls *or* responses to the user), you must proactively, methodically, and independently plan and reason about:
+
+    1) Logical dependencies and constraints: Analyze the intended action against the following factors. Resolve conflicts in order of importance:
+        1.1) Policy-based rules, mandatory prerequisites, and constraints.
+        1.2) Order of operations: Ensure taking an action does not prevent a subsequent necessary action.
+        1.3) Other prerequisites (information and/or actions needed).
+        1.4) Explicit user constraints or preferences.
+
+    2) Risk assessment: What are the consequences of taking the action? Will the new state cause any future issues?
+        2.1) For exploratory tasks (like searches), missing *optional* parameters is a LOW risk.
+
+    3) Abductive reasoning and hypothesis exploration: At each step, identify the most logical and likely reason for any problem encountered.
+        3.1) Look beyond immediate or obvious causes.
+        3.2) Hypotheses may require additional research.
+        3.3) Prioritize hypotheses based on likelihood.
+
+    4) Outcome evaluation and adaptability: Does the previous observation require any changes to your plan?
+        4.1) If your initial hypotheses are disproven, actively generate new ones.
+
+    5) Information availability: Incorporate all applicable and alternative sources of information.
+
+    6) Precision and Grounding: Ensure your reasoning is extremely precise and relevant to each exact ongoing situation.
+
+    7) Completeness: Ensure that all requirements, constraints, options, and preferences are exhaustively incorporated into your plan.
+
+    8) Persistence and patience: Do not give up unless all the reasoning above is exhausted.
+
+    9) Inhibit your response: only take an action after all the above reasoning is completed. Once you've taken an action, you cannot take it back.
+
+    ---
+    
+    You are also a world-class Technical Content Consultant and Developer Advocate. 
     Your mission is to help facilitators design high-quality, professional "Hands-on Codelabs". 
     You provide expert advice on:
     1. Defining clear learning objectives.
     2. Structuring steps from zero to hero.
     3. Technical accuracy and environment setup.
     4. Engaging narrative and "The Why before the How".
-    5. Modern best practices for specific technologies.
+    5. Modern best practices for specific technologies. 
 
     When you provide information that you found via Google Search, make sure to mention that you are citing external sources.
     Keep your advice actionable, professional, and encouraging.
     Respond in the user's language (default to English if unsure).`;
+
+    const SYSTEM_PROMPT = $derived.by(() => {
+        if (!referenceCodelabs) return BASE_SYSTEM_PROMPT;
+        return `${BASE_SYSTEM_PROMPT}
+
+    You have access to a reference list of existing Codelabs. If the user asks for suggestions, similar topics, or what's already available, please refer to this list:
+    
+    \`\`\`csv
+    ${referenceCodelabs}
+    \`\`\``;
+    });
 
     onMount(async () => {
         const storedKey = localStorage.getItem("gemini_api_key");
@@ -82,6 +132,7 @@
         }
 
         await fetchThreads();
+        // await fetchReferenceCodelabs(); // Now using direct raw import
 
         // Auto-focus input
         setTimeout(() => inputRef?.focus(), 100);
@@ -98,6 +149,19 @@
         }
     }
 
+    /* Now using direct raw import from $lib/data/codelabs.csv?raw
+    async function fetchReferenceCodelabs() {
+        try {
+            const res = await fetch("/api/codelabs/reference");
+            if (res.ok) {
+                referenceCodelabs = await res.text();
+            }
+        } catch (e) {
+            console.error("Failed to fetch reference codelabs", e);
+        }
+    }
+    */
+
     async function loadThread(threadId: string) {
         loading = true;
         currentThreadId = threadId;
@@ -111,6 +175,9 @@
                     content: m.content,
                     groundingMetadata: m.grounding_metadata
                         ? JSON.parse(m.grounding_metadata)
+                        : null,
+                    usageMetadata: m.usage_metadata
+                        ? JSON.parse(m.usage_metadata)
                         : null,
                 }));
             }
@@ -232,7 +299,13 @@
                     messages[messages.length - 1].groundingMetadata =
                         finalMetadata;
                 }
+                if (chunk.usageMetadata) {
+                    messages[messages.length - 1].usageMetadata =
+                        chunk.usageMetadata;
+                }
             }
+
+            const finalUsage = messages[messages.length - 1].usageMetadata;
 
             // Save assistant message to DB
             if (currentThreadId) {
@@ -243,6 +316,7 @@
                         role: "model",
                         content: finalContent,
                         grounding_metadata: finalMetadata,
+                        usage_metadata: finalUsage,
                     }),
                 });
             }
@@ -589,6 +663,36 @@
                                                 </div>
                                             </div>
                                         {/if}
+                                    {/if}
+
+                                    {#if msg.role === "assistant" && msg.usageMetadata}
+                                        <div
+                                            class="mt-3 pt-3 border-t border-[#E8EAED] dark:border-dark-border/50 flex items-center justify-between text-[10px] text-[#5F6368] dark:text-dark-text-muted"
+                                        >
+                                            <div
+                                                class="flex items-center gap-2"
+                                            >
+                                                <Sparkles
+                                                    size={12}
+                                                    class="text-[#4285F4]"
+                                                />
+                                                <span>Tokens:</span>
+                                            </div>
+                                            <div class="flex gap-3 font-medium">
+                                                <span
+                                                    >Input: {msg.usageMetadata
+                                                        .promptTokenCount}</span
+                                                >
+                                                <span
+                                                    >Output: {msg.usageMetadata
+                                                        .candidatesTokenCount}</span
+                                                >
+                                                <span class="text-[#4285F4]"
+                                                    >Total: {msg.usageMetadata
+                                                        .totalTokenCount}</span
+                                                >
+                                            </div>
+                                        </div>
                                     {/if}
                                 </div>
                             </div>
