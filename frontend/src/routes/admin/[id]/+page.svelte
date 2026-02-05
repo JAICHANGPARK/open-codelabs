@@ -416,7 +416,9 @@
             });
 
             for await (const chunk of stream) {
-                fullImprovedContent += chunk;
+                if (chunk.text) {
+                    fullImprovedContent += chunk.text;
+                }
                 // We don't update the text visually during streaming for "tada" effect
             }
 
@@ -548,7 +550,9 @@
 
             let responseText = "";
             for await (const chunk of stream) {
-                responseText += chunk;
+                if (chunk.text) {
+                    responseText += chunk.text;
+                }
             }
 
             // Extract JSON from response (sometimes Gemini adds markdown code blocks)
@@ -964,8 +968,10 @@
             let responseText = "";
             codelab.guide_markdown = "";
             for await (const chunk of stream) {
-                responseText += chunk;
-                codelab.guide_markdown = responseText;
+                if (chunk.text) {
+                    responseText += chunk.text;
+                    codelab.guide_markdown = responseText;
+                }
             }
             await saveGuideMarkdown();
         } catch (e) {
