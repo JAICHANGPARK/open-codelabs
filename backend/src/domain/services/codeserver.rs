@@ -45,8 +45,14 @@ impl CodeServerManager {
         Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
     }
 
-    pub fn new() -> Result<Self> {
-        let workspace_base = PathBuf::from("/app/workspaces");
+    pub fn new(workspace_base: PathBuf) -> Self {
+        Self { workspace_base }
+    }
+
+    pub fn from_env() -> Result<Self> {
+        let workspace_base = PathBuf::from(
+            std::env::var("WORKSPACE_BASE").unwrap_or_else(|_| "/app/workspaces".to_string()),
+        );
         Ok(Self { workspace_base })
     }
 
@@ -58,12 +64,7 @@ impl CodeServerManager {
     }
 
     /// Write a file to the workspace
-    pub async fn write_file(
-        &self,
-        codelab_id: &str,
-        file_path: &str,
-        content: &str,
-    ) -> Result<()> {
+    pub async fn write_file(&self, codelab_id: &str, file_path: &str, content: &str) -> Result<()> {
         let full_path = self.workspace_base.join(codelab_id).join(file_path);
 
         // Create parent directory
@@ -249,7 +250,7 @@ impl CodeServerManager {
         &self,
         codelab_id: &str,
         step_number: i32,
-        folder_type: &str, // "start" or "end"
+        folder_type: &str,          // "start" or "end"
         files: &[(String, String)], // (path, content)
     ) -> Result<()> {
         let workspace_path = self.workspace_base.join(codelab_id);
@@ -433,7 +434,12 @@ impl CodeServerManager {
     }
 
     /// Read file content from a specific branch
-    pub async fn read_file(&self, codelab_id: &str, branch: &str, file_path: &str) -> Result<String> {
+    pub async fn read_file(
+        &self,
+        codelab_id: &str,
+        branch: &str,
+        file_path: &str,
+    ) -> Result<String> {
         let workspace_path = self.workspace_base.join(codelab_id);
 
         let output = Command::new("git")
@@ -451,5 +457,64 @@ impl CodeServerManager {
         }
 
         Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    }
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[tokio::test]
+    async fn test_workspace_operations() -> Result<()> {
+        let dir = tempdir()?;
+        let manager = CodeServerManager::new(dir.path().to_path_buf());
+        let codelab_id = "test-codelab";
+
+        // Test create_workspace
+        let ws_path = manager.create_workspace(codelab_id).await?;
+        assert!(ws_path.exists());
+
+        // Test write_file
+        manager.write_file(codelab_id, "hello.txt", "world").await?;
+        let content = fs::read_to_string(ws_path.join("hello.txt")).await?;
+        assert_eq!(content, "world");
+
+        // Test list_folders
+        manager
+            .create_step_folder(codelab_id, 1, "start", &[])
+            .await?;
+        let folders = manager.list_folders(codelab_id).await?;
+        assert!(folders.contains(&"step-1-start".to_string()));
+
+        // Test remove_path
+        manager.remove_path(codelab_id, "hello.txt").await?;
+        assert!(!ws_path.join("hello.txt").exists());
+
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_git_operations() -> Result<()> {
+        let dir = tempdir()?;
+        let manager = CodeServerManager::new(dir.path().to_path_buf());
+        let codelab_id = "git-test";
+        manager.create_workspace(codelab_id).await?;
+
+        // Test init_git_repo
+        manager.init_git_repo(codelab_id).await?;
+        let ws_path = dir.path().join(codelab_id);
+        assert!(ws_path.join(".git").exists());
+
+        // Test commit_changes
+        manager
+            .write_file(codelab_id, "README.md", "# Test")
+            .await?;
+        manager.commit_changes(codelab_id, "initial commit").await?;
+
+        // Test current_branch (usually 'master' or 'main' depending on git version, but we just want to know it doesn't fail)
+        let branch = manager.current_branch(codelab_id).await?;
+        assert!(!branch.is_empty());
+
+        Ok(())
     }
 }
