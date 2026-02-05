@@ -634,15 +634,16 @@ fn sanitize_filename(value: &str) -> String {
         if ch.is_ascii_alphanumeric() {
             out.push(ch);
         } else if ch == '-' || ch == '_' || ch.is_whitespace() {
-            if !out.ends_with('_') {
+            if !out.is_empty() && !out.ends_with('_') {
                 out.push('_');
             }
         }
     }
-    if out.is_empty() {
+    let res = out.trim_end_matches('_');
+    if res.is_empty() {
         "step".to_string()
     } else {
-        out
+        res.to_string()
     }
 }
 
@@ -664,4 +665,92 @@ pub async fn get_reference_codelabs() -> Result<impl IntoResponse, (StatusCode, 
     Ok(content)
     */
     Ok("Reference API is temporarily disabled. Data is embedded in frontend.".to_string())
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::middleware::auth::SessionClaims;
+
+    #[test]
+    fn test_sanitize_filename() {
+        assert_eq!(sanitize_filename("Hello World"), "Hello_World");
+        assert_eq!(sanitize_filename("test-file_123"), "test_file_123");
+        assert_eq!(sanitize_filename("!!!"), "step");
+        assert_eq!(sanitize_filename("   "), "step");
+        assert_eq!(sanitize_filename("My Codelab!"), "My_Codelab");
+    }
+
+    #[test]
+    fn test_can_access_codelab_public() {
+        let codelab = Codelab {
+            id: "123".to_string(),
+            is_public: 1,
+            ..Default::default()
+        };
+        let session = AuthSession { claims: None };
+        assert!(can_access_codelab(&codelab, &session));
+    }
+
+    #[test]
+    fn test_can_access_codelab_private_admin() {
+        let codelab = Codelab {
+            id: "123".to_string(),
+            is_public: 0,
+            ..Default::default()
+        };
+        let session = AuthSession {
+            claims: Some(SessionClaims {
+                sub: "admin".to_string(),
+                role: "admin".to_string(),
+                codelab_id: None,
+                iss: "test".to_string(),
+                aud: "test".to_string(),
+                iat: 0,
+                exp: 0,
+            }),
+        };
+        assert!(can_access_codelab(&codelab, &session));
+    }
+
+    #[test]
+    fn test_can_access_codelab_private_attendee_match() {
+        let codelab = Codelab {
+            id: "123".to_string(),
+            is_public: 0,
+            ..Default::default()
+        };
+        let session = AuthSession {
+            claims: Some(SessionClaims {
+                sub: "user".to_string(),
+                role: "attendee".to_string(),
+                codelab_id: Some("123".to_string()),
+                iss: "test".to_string(),
+                aud: "test".to_string(),
+                iat: 0,
+                exp: 0,
+            }),
+        };
+        assert!(can_access_codelab(&codelab, &session));
+    }
+
+    #[test]
+    fn test_can_access_codelab_private_attendee_mismatch() {
+        let codelab = Codelab {
+            id: "123".to_string(),
+            is_public: 0,
+            ..Default::default()
+        };
+        let session = AuthSession {
+            claims: Some(SessionClaims {
+                sub: "user".to_string(),
+                role: "attendee".to_string(),
+                codelab_id: Some("456".to_string()),
+                iss: "test".to_string(),
+                aud: "test".to_string(),
+                iat: 0,
+                exp: 0,
+            }),
+        };
+        assert!(!can_access_codelab(&codelab, &session));
+    }
 }
