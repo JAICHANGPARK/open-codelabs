@@ -1,9 +1,9 @@
-use crate::infrastructure::audit::{record_audit, AuditEntry};
-use crate::middleware::auth::AuthSession;
 use crate::domain::services::codeserver::CodeServerManager;
-use crate::utils::error::{bad_request, internal_error};
-use crate::middleware::request_info::RequestInfo;
+use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::infrastructure::database::AppState;
+use crate::middleware::auth::AuthSession;
+use crate::middleware::request_info::RequestInfo;
+use crate::utils::error::{bad_request, internal_error};
 use axum::{
     body::Body,
     extract::{Path, State},
@@ -76,7 +76,7 @@ pub async fn create_codeserver(
         .map_err(internal_error)?
         .ok_or_else(|| bad_request("Codelab not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
 
     // Create workspace directory
     manager
@@ -107,15 +107,17 @@ pub async fn create_codeserver(
     let workspace_path = format!("/app/workspaces/{}", payload.codelab_id);
 
     // Store workspace info in database
-    sqlx::query(&state.q(
-        "INSERT INTO codeserver_workspaces (codelab_id, url, structure_type) VALUES (?, ?, ?)"
-    ))
-        .bind(&payload.codelab_id)
-        .bind(&workspace_path)
-        .bind(structure_type)
-        .execute(&state.pool)
-        .await
-        .map_err(internal_error)?;
+    sqlx::query(
+        &state.q(
+            "INSERT INTO codeserver_workspaces (codelab_id, url, structure_type) VALUES (?, ?, ?)",
+        ),
+    )
+    .bind(&payload.codelab_id)
+    .bind(&workspace_path)
+    .bind(structure_type)
+    .execute(&state.pool)
+    .await
+    .map_err(internal_error)?;
 
     record_audit(
         &state,
@@ -149,16 +151,15 @@ pub async fn create_branch(
     let admin = session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Code server workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Code server workspace not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
     manager
         .create_step_branch(&codelab_id, payload.step_number, &payload.branch_type)
         .await
@@ -195,16 +196,15 @@ pub async fn download_workspace(
     let admin = session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Code server workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Code server workspace not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
     let archive = manager
         .archive_workspace(&codelab_id)
         .await
@@ -229,7 +229,10 @@ pub async fn download_workspace(
         .header(header::CONTENT_TYPE, "application/gzip")
         .header(
             header::CONTENT_DISPOSITION,
-            format!("attachment; filename=\"codelab-{}-workspace.tar.gz\"", codelab_id),
+            format!(
+                "attachment; filename=\"codelab-{}-workspace.tar.gz\"",
+                codelab_id
+            ),
         )
         .body(Body::from(archive))
         .unwrap())
@@ -243,14 +246,14 @@ pub async fn get_codeserver_info(
 ) -> Result<Json<CodeServerInfo>, (StatusCode, String)> {
     session.require_admin()?;
 
-    let workspace = sqlx::query_as::<_, WorkspaceRow>(&state.q(
-        "SELECT url, structure_type FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Workspace not found"))?;
+    let workspace = sqlx::query_as::<_, WorkspaceRow>(
+        &state.q("SELECT url, structure_type FROM codeserver_workspaces WHERE codelab_id = ?"),
+    )
+    .bind(&codelab_id)
+    .fetch_optional(&state.pool)
+    .await
+    .map_err(internal_error)?
+    .ok_or_else(|| bad_request("Workspace not found"))?;
 
     Ok(Json(CodeServerInfo {
         path: workspace.url,
@@ -267,26 +270,23 @@ pub async fn delete_codeserver(
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
     let admin = session.require_admin()?;
 
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Code server workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Code server workspace not found"))?;
 
     // Remove workspace directory
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
     manager
         .remove_workspace(&codelab_id)
         .await
         .map_err(internal_error)?;
 
     // Remove from database
-    sqlx::query(&state.q(
-        "DELETE FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
+    sqlx::query(&state.q("DELETE FROM codeserver_workspaces WHERE codelab_id = ?"))
         .bind(&codelab_id)
         .execute(&state.pool)
         .await
@@ -321,16 +321,15 @@ pub async fn create_folder(
     let admin = session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Workspace not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
 
     // Convert files to tuples
     let files: Vec<(String, String)> = payload
@@ -340,7 +339,12 @@ pub async fn create_folder(
         .collect();
 
     manager
-        .create_step_folder(&codelab_id, payload.step_number, &payload.folder_type, &files)
+        .create_step_folder(
+            &codelab_id,
+            payload.step_number,
+            &payload.folder_type,
+            &files,
+        )
         .await
         .map_err(internal_error)?;
 
@@ -374,16 +378,15 @@ pub async fn list_branches(
     session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Workspace not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
     let branches = manager
         .list_branches(&codelab_id)
         .await
@@ -401,16 +404,15 @@ pub async fn list_files(
     session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Workspace not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
     let files = manager
         .list_files(&codelab_id, &branch)
         .await
@@ -434,16 +436,15 @@ pub async fn read_file(
     session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Workspace not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
     let content = manager
         .read_file(&codelab_id, &branch, &query.file)
         .await
@@ -461,16 +462,15 @@ pub async fn list_folders(
     session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Workspace not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
     let folders = manager
         .list_folders(&codelab_id)
         .await
@@ -488,16 +488,15 @@ pub async fn list_folder_files(
     session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Workspace not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
     let files = manager
         .list_folder_files(&codelab_id, &folder)
         .await
@@ -516,16 +515,15 @@ pub async fn read_folder_file(
     session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Workspace not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
     let content = manager
         .read_folder_file(&codelab_id, &folder, &query.file)
         .await
@@ -545,16 +543,15 @@ pub async fn update_branch_files(
     let admin = session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Workspace not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
     let current_branch = manager
         .current_branch(&codelab_id)
         .await
@@ -628,16 +625,15 @@ pub async fn update_folder_files(
     let admin = session.require_admin()?;
 
     // Verify workspace exists
-    let _workspace = sqlx::query(&state.q(
-        "SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"
-    ))
-        .bind(&codelab_id)
-        .fetch_optional(&state.pool)
-        .await
-        .map_err(internal_error)?
-        .ok_or_else(|| bad_request("Workspace not found"))?;
+    let _workspace =
+        sqlx::query(&state.q("SELECT url FROM codeserver_workspaces WHERE codelab_id = ?"))
+            .bind(&codelab_id)
+            .fetch_optional(&state.pool)
+            .await
+            .map_err(internal_error)?
+            .ok_or_else(|| bad_request("Workspace not found"))?;
 
-    let manager = CodeServerManager::new().map_err(internal_error)?;
+    let manager = CodeServerManager::from_env().map_err(internal_error)?;
 
     for file in &payload.files {
         let path = format!("{}/{}", folder, file.path);
