@@ -229,6 +229,18 @@ export const importCodelab = USE_SERVERLESS
     ? async (_file: File) => { throw new Error('Import is not supported in serverless mode yet.'); }
     : backend.importCodelab;
 
+export const exportBackup = USE_SERVERLESS
+    ? async () => { alert('Backup export is not supported in serverless mode yet.'); }
+    : backend.exportBackup;
+
+export const restoreBackup = USE_SERVERLESS
+    ? async (_file: File) => { throw new Error('Backup restore is not supported in serverless mode yet.'); }
+    : backend.restoreBackup;
+
+export const inspectBackup = USE_SERVERLESS
+    ? async (_file: File) => { throw new Error('Backup inspect is not supported in serverless mode yet.'); }
+    : backend.inspectBackup;
+
 // Code Server API (Backend only)
 export const createCodeServer = USE_SERVERLESS
     ? async (_codelabId: string, _workspaceFiles?: backend.WorkspaceFile[], _structureType?: 'branch' | 'folder') => { throw new Error('Not supported in serverless mode'); }

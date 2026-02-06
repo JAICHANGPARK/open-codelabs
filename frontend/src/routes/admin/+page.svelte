@@ -37,7 +37,13 @@
     import { encrypt, decrypt } from "$lib/crypto";
     import AiCodelabGenerator from "$lib/components/admin/AiCodelabGenerator.svelte";
     import FacilitatorConsultant from "$lib/components/admin/FacilitatorConsultant.svelte";
-    import { copyCodelab as apiCopyCodelab, saveAdminSettings } from "$lib/api";
+    import {
+        copyCodelab as apiCopyCodelab,
+        exportBackup,
+        inspectBackup,
+        restoreBackup,
+        saveAdminSettings,
+    } from "$lib/api";
 
     let codelabs: Codelab[] = $state([]);
     let loading = $state(true);
@@ -95,6 +101,7 @@
     let geminiApiKey = $state("");
     let apiKeySaved = $state(false);
     let showConsultant = $state(false);
+    let backupFileInput: HTMLInputElement;
 
     let user = $state<any>(null);
 
@@ -211,6 +218,53 @@
                 alert(`${$t("common.error")}: ${e.message || e}`);
             } finally {
                 loading = false;
+                target.value = "";
+            }
+        }
+    }
+
+    async function handleBackupExport() {
+        try {
+            await exportBackup();
+        } catch (e: any) {
+            alert(`${$t("common.error")}: ${e.message || e}`);
+        }
+    }
+
+    async function handleBackupRestore(event: Event) {
+        const target = event.target as HTMLInputElement;
+        if (target.files && target.files.length > 0) {
+            try {
+                const summary = await inspectBackup(target.files[0]);
+                const summaryText = $t("dashboard.backup.restore_summary", {
+                    codelabs: summary.codelabs,
+                    steps: summary.steps,
+                    attendees: summary.attendees,
+                    help_requests: summary.help_requests,
+                    chat_messages: summary.chat_messages,
+                    feedback: summary.feedback,
+                    materials: summary.materials,
+                    quizzes: summary.quizzes,
+                    quiz_submissions: summary.quiz_submissions,
+                    submissions: summary.submissions,
+                    ai_conversations: summary.ai_conversations,
+                    ai_threads: summary.ai_threads,
+                    ai_messages: summary.ai_messages,
+                    audit_logs: summary.audit_logs,
+                    codeserver_workspaces: summary.codeserver_workspaces,
+                    uploads_files: summary.uploads_files,
+                    workspaces_files: summary.workspaces_files,
+                });
+                const confirmed = confirm(
+                    `${$t("dashboard.backup.restore_warning")}\n\n${summaryText}`,
+                );
+                if (!confirmed) return;
+                await restoreBackup(target.files[0]);
+                alert($t("dashboard.backup.restore_success"));
+                window.location.reload();
+            } catch (e: any) {
+                alert(`${$t("common.error")}: ${e.message || e}`);
+            } finally {
                 target.value = "";
             }
         }
@@ -735,6 +789,39 @@
                     <p class="text-xs text-[#9AA0A6] mt-2">
                         {$t("dashboard.settings.api_key_desc")}
                     </p>
+                </div>
+                <div class="pt-4 border-t border-[#F1F3F4] dark:border-dark-border">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-bold text-[#202124] dark:text-dark-text">
+                            {$t("dashboard.backup.title")}
+                        </h4>
+                    </div>
+                    <p class="text-xs text-[#9AA0A6] mb-3">
+                        {$t("dashboard.backup.note")}
+                    </p>
+                    <div class="flex flex-wrap gap-2">
+                        <button
+                            onclick={handleBackupExport}
+                            class="px-4 py-2 text-[#5F6368] dark:text-dark-text-muted font-bold hover:bg-[#E8EAED] dark:hover:bg-white/10 rounded-lg text-sm transition-all border border-[#DADCE0] dark:border-dark-border flex items-center gap-2"
+                        >
+                            <Download size={16} />
+                            {$t("dashboard.backup.export_button")}
+                        </button>
+                        <button
+                            onclick={() => backupFileInput?.click()}
+                            class="px-4 py-2 text-[#5F6368] dark:text-dark-text-muted font-bold hover:bg-[#E8EAED] dark:hover:bg-white/10 rounded-lg text-sm transition-all border border-[#DADCE0] dark:border-dark-border flex items-center gap-2"
+                        >
+                            <FileUp size={16} />
+                            {$t("dashboard.backup.restore_button")}
+                        </button>
+                        <input
+                            type="file"
+                            accept=".zip"
+                            bind:this={backupFileInput}
+                            onchange={handleBackupRestore}
+                            class="hidden"
+                        />
+                    </div>
                 </div>
             </div>
             <div

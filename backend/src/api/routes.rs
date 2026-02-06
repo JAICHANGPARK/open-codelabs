@@ -1,6 +1,7 @@
 use crate::api::handlers::codelabs::get_reference_codelabs;
 use crate::api::handlers::{
     admin::{get_session, login, logout, update_settings},
+    backup::{export_backup, inspect_backup, restore_backup},
     ai::{
         add_ai_message, create_ai_thread, delete_ai_thread, get_ai_conversations, get_ai_messages,
         get_ai_threads, proxy_gemini_stream, save_ai_conversation,
@@ -32,6 +33,7 @@ use crate::middleware::{
 };
 use axum::middleware;
 use axum::{
+    extract::DefaultBodyLimit,
     routing::{delete, get, post, put},
     Router,
 };
@@ -49,6 +51,9 @@ fn admin_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/api/admin/settings", post(update_settings))
         .route("/api/admin/audit-logs", get(get_audit_logs))
+        .route("/api/admin/backup/export", get(export_backup))
+        .route("/api/admin/backup/inspect", post(inspect_backup))
+        .route("/api/admin/backup/restore", post(restore_backup))
 }
 
 fn codelab_routes() -> Router<Arc<AppState>> {
@@ -183,6 +188,7 @@ pub fn create_router(state: Arc<AppState>) -> Router {
         .merge(codeserver_routes())
         .nest_service("/assets", ServeDir::new("static/assets"))
         .fallback_service(ServeDir::new("static"))
+        .layer(DefaultBodyLimit::max(200 * 1024 * 1024))
         .layer(middleware::from_fn_with_state(
             state.clone(),
             rate_limit_middleware,

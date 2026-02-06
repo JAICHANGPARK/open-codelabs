@@ -61,6 +61,15 @@
         "create_with_ai": "AIで生成",
         "share_link": "参加者用リンクをコピー",
         "unknown_date": "不明な日付",
+        "backup": {
+            "title": "バックアップと復元",
+            "note": "Gemini API キーはバックアップに含まれません。",
+            "export_button": "全体バックアップ",
+            "restore_button": "全体復元",
+            "restore_warning": "復元を実行すると現在のすべてのデータが削除され、バックアップ内容に置き換えられます。続行しますか？",
+            "restore_summary": "バックアップ内容: コードラボ {codelabs} 件、ステップ {steps} 件、参加者 {attendees} 件、ヘルプリクエスト {help_requests} 件、チャット {chat_messages} 件、フィードバック {feedback} 件、資料 {materials} 件、クイズ {quizzes} 件、クイズ提出 {quiz_submissions} 件、提出物 {submissions} 件、AI 会話 {ai_conversations} 件、AI スレッド {ai_threads} 件、AI メッセージ {ai_messages} 件、監査ログ {audit_logs} 件、ワークスペース {codeserver_workspaces} 件、アップロードファイル {uploads_files} 件、ワークスペースファイル {workspaces_files} 件。",
+            "restore_success": "復元が完了しました。再読み込みします..."
+        },
         "settings": {
             "title": "設定",
             "gemini_api_key": "Gemini API キー",

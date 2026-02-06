@@ -60,6 +60,15 @@
         "create_with_ai": "使用 AI 创建",
         "share_link": "复制参与者链接",
         "unknown_date": "未知日期",
+        "backup": {
+            "title": "备份与恢复",
+            "note": "Gemini API 密钥不会包含在备份中。",
+            "export_button": "完整备份",
+            "restore_button": "完整恢复",
+            "restore_warning": "恢复将删除当前所有数据并替换为备份内容。是否继续？",
+            "restore_summary": "备份内容：代码实验室 {codelabs} 个、步骤 {steps} 个、参与者 {attendees} 个、求助请求 {help_requests} 个、聊天 {chat_messages} 条、反馈 {feedback} 条、资料 {materials} 个、测验 {quizzes} 个、测验提交 {quiz_submissions} 个、提交 {submissions} 个、AI 对话 {ai_conversations} 个、AI 线程 {ai_threads} 个、AI 消息 {ai_messages} 条、审计日志 {audit_logs} 条、工作区 {codeserver_workspaces} 个、上传文件 {uploads_files} 个、工作区文件 {workspaces_files} 个。",
+            "restore_success": "恢复完成。正在重新加载..."
+        },
         "settings": {
             "title": "设置",
             "gemini_api_key": "Gemini API 密钥",

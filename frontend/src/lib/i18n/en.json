@@ -69,6 +69,15 @@
         "create_with_ai": "Create with AI",
         "share_link": "Copy Participant Link",
         "unknown_date": "Unknown Date",
+        "backup": {
+            "title": "Backup & Restore",
+            "note": "Gemini API keys are not included in backups.",
+            "export_button": "Full Backup",
+            "restore_button": "Full Restore",
+            "restore_warning": "This will delete all existing data and replace it with the backup. Continue?",
+            "restore_summary": "Backup contents: {codelabs} codelabs, {steps} steps, {attendees} attendees, {help_requests} help requests, {chat_messages} chat messages, {feedback} feedback, {materials} materials, {quizzes} quizzes, {quiz_submissions} quiz submissions, {submissions} submissions, {ai_conversations} AI conversations, {ai_threads} AI threads, {ai_messages} AI messages, {audit_logs} audit logs, {codeserver_workspaces} workspaces, {uploads_files} upload files, {workspaces_files} workspace files.",
+            "restore_success": "Restore completed. Reloading..."
+        },
         "settings": {
             "title": "Settings",
             "gemini_api_key": "Gemini API Key",

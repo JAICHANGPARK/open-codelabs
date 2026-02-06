@@ -216,6 +216,66 @@ export async function importCodelab(file: File): Promise<Codelab> {
     return res.json();
 }
 
+export async function exportBackup(): Promise<void> {
+    const res = await apiFetch(`/admin/backup/export`);
+    if (!res.ok) throw new Error('Backup export failed');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `backup_full.zip`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+export async function restoreBackup(file: File): Promise<void> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await apiFetch(`/admin/backup/restore`, {
+        method: 'POST',
+        body: formData,
+    });
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text ? `Backup restore failed: ${text}` : 'Backup restore failed');
+    }
+}
+
+export async function inspectBackup(file: File): Promise<{
+    version: number;
+    created_at: string;
+    codelabs: number;
+    steps: number;
+    attendees: number;
+    help_requests: number;
+    chat_messages: number;
+    feedback: number;
+    materials: number;
+    quizzes: number;
+    quiz_submissions: number;
+    submissions: number;
+    audit_logs: number;
+    codeserver_workspaces: number;
+    ai_conversations: number;
+    ai_threads: number;
+    ai_messages: number;
+    uploads_files: number;
+    workspaces_files: number;
+}> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await apiFetch(`/admin/backup/inspect`, {
+        method: 'POST',
+        body: formData,
+    });
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text ? `Backup inspect failed: ${text}` : 'Backup inspect failed');
+    }
+    return res.json();
+}
+
 export async function registerAttendee(codelabId: string, name: string, code: string, email?: string): Promise<Attendee> {
     const res = await apiFetch(`/codelabs/${codelabId}/register`, {
         method: 'POST',
