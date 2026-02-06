@@ -665,5 +665,29 @@
         "waiting_submissions": "Waiting for attendees to upload their results.",
         "file_size": "File Size",
         "submitted_at": "Submitted At"
+    },
+    "audit": {
+        "title": "Audit Logs",
+        "back_to_admin": "Back to Admin",
+        "filter_action": "Action",
+        "filter_codelab_id": "Codelab ID",
+        "placeholder_action": "e.g. codelab_create",
+        "placeholder_codelab": "Filter by codelab",
+        "apply_filters": "Apply Filters",
+        "loading": "Loading audit logs...",
+        "no_logs": "No audit logs found",
+        "col_time": "Time",
+        "col_action": "Action",
+        "col_actor": "Actor",
+        "col_target": "Target",
+        "col_ip": "IP",
+        "col_details": "Details",
+        "col_target_codelab": "Codelab",
+        "col_target_id": "Target",
+        "view_details": "View",
+        "pagination_info": "Showing {start} to {end} (limit: {limit})",
+        "prev": "Previous",
+        "next": "Next",
+        "error_load": "Failed to load audit logs: {error}"
     }
 }

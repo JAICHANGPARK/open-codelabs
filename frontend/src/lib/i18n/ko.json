@@ -665,5 +665,29 @@
         "waiting_submissions": "참석자들이 실습 결과물을 업로드하기를 기다리고 있습니다.",
         "file_size": "파일 용량",
         "submitted_at": "제출 일시"
+    },
+    "audit": {
+        "title": "감사 로그",
+        "back_to_admin": "관리자 페이지로 돌아가기",
+        "filter_action": "작업",
+        "filter_codelab_id": "코드랩 ID",
+        "placeholder_action": "예: codelab_create",
+        "placeholder_codelab": "코드랩으로 필터링",
+        "apply_filters": "필터 적용",
+        "loading": "감사 로그를 불러오는 중...",
+        "no_logs": "검색된 감사 로그가 없습니다",
+        "col_time": "시간",
+        "col_action": "작업",
+        "col_actor": "수행자",
+        "col_target": "대상",
+        "col_ip": "IP",
+        "col_details": "상세",
+        "col_target_codelab": "코드랩",
+        "col_target_id": "대상",
+        "view_details": "보기",
+        "pagination_info": "{start} - {end} 표시 중 (제한: {limit})",
+        "prev": "이전",
+        "next": "다음",
+        "error_load": "감사 로그를 불러오지 못했습니다: {error}"
     }
 }

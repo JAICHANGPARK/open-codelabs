@@ -624,5 +624,29 @@
         "waiting_submissions": "参加者が実習結果をアップロードするのを待っています。",
         "file_size": "ファイルサイズ",
         "submitted_at": "提出日時"
+    },
+    "audit": {
+        "title": "監査ログ",
+        "back_to_admin": "管理画面に戻る",
+        "filter_action": "アクション",
+        "filter_codelab_id": "コードラボID",
+        "placeholder_action": "例: codelab_create",
+        "placeholder_codelab": "コードラボでフィルター",
+        "apply_filters": "フィルターを適用",
+        "loading": "監査ログを読み込み中...",
+        "no_logs": "監査ログが見つかりません",
+        "col_time": "時刻",
+        "col_action": "アクション",
+        "col_actor": "実行者",
+        "col_target": "対象",
+        "col_ip": "IP",
+        "col_details": "詳細",
+        "col_target_codelab": "コードラボ",
+        "col_target_id": "対象",
+        "view_details": "表示",
+        "pagination_info": "{start} から {end} を表示中 (制限: {limit})",
+        "prev": "前へ",
+        "next": "次へ",
+        "error_load": "監査ログの読み込みに失敗しました: {error}"
     }
 }

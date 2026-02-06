@@ -580,5 +580,29 @@
             "role_consultant": "顾问",
             "role_you": "您"
         }
+    },
+    "audit": {
+        "title": "审计日志",
+        "back_to_admin": "返回管理中心",
+        "filter_action": "操作",
+        "filter_codelab_id": "课程 ID",
+        "placeholder_action": "例如：codelab_create",
+        "placeholder_codelab": "按课程过滤",
+        "apply_filters": "应用过滤",
+        "loading": "正在加载审计日志...",
+        "no_logs": "未找到审计日志",
+        "col_time": "时间",
+        "col_action": "操作",
+        "col_actor": "执行者",
+        "col_target": "目标",
+        "col_ip": "IP",
+        "col_details": "详情",
+        "col_target_codelab": "代码实验室",
+        "col_target_id": "目标",
+        "view_details": "查看",
+        "pagination_info": "正在显示 {start} 到 {end} (限制: {limit})",
+        "prev": "上一页",
+        "next": "下一页",
+        "error_load": "无法加载审计日志: {error}"
     }
 }
