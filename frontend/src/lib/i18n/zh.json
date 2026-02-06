@@ -159,6 +159,8 @@
             "quote": "引用",
             "code_language": "代码语言",
             "code_block": "代码块",
+            "improve_with_gemini": "用 Gemini 改进",
+            "improve_with_gemini_hint": "也可拖选文本进行改进",
             "table": "表格",
             "image": "图片"
         },

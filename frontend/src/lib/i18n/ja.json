@@ -160,6 +160,8 @@
             "quote": "引用",
             "code_language": "コード言語",
             "code_block": "コードブロック",
+            "improve_with_gemini": "Geminiで改善",
+            "improve_with_gemini_hint": "テキストをドラッグしても可能",
             "table": "表",
             "image": "画像"
         },

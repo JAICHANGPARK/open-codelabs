@@ -149,7 +149,7 @@
         (!codelab?.require_feedback || feedbackSubmitted)
     );
 
-    function handleCertificateClick(e: MouseEvent) {
+    async function handleCertificateClick(e: MouseEvent) {
         if (!canGetCertificate) {
             e.preventDefault();
             let missing = [];
@@ -157,7 +157,19 @@
             if (codelab?.require_feedback && !feedbackSubmitted) missing.push($t("certificate.feedback_required"));
             
             alert(`${$t("certificate.not_earned")}\n\n${$t("certificate.requirements_guide")}\n- ${missing.join("\n- ")}`);
+            return;
         }
+
+        e.preventDefault();
+        if (!attendee) return;
+
+        try {
+            await completeCodelab(id);
+        } catch (e) {
+            console.error("Complete codelab error", e);
+        }
+
+        window.open(`/certificate/${attendee.id}`, "_blank", "noopener,noreferrer");
     }
 
     $effect(() => {

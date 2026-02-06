@@ -168,6 +168,8 @@
             "quote": "Quote",
             "code_language": "Code Language",
             "code_block": "Code Block",
+            "improve_with_gemini": "Improve with Gemini",
+            "improve_with_gemini_hint": "You can also select text to improve",
             "table": "Table",
             "image": "Image"
         },

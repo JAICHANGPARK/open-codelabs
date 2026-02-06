@@ -393,18 +393,25 @@
             alert($t("ai_generator.api_key_required"));
             return;
         }
-        if (!selectedText || !selectionRange) return;
+        const currentMarkdown = steps[activeStepIndex].content_markdown;
+        let targetText = selectedText;
+        let targetRange = selectionRange;
+
+        if (!targetText || !targetRange) {
+            targetText = currentMarkdown;
+            targetRange = { start: 0, end: currentMarkdown.length };
+        }
 
         aiLoading = true;
         showAiMenu = false; // Hide menu
 
-        const originalMarkdown = steps[activeStepIndex].content_markdown;
-        const { start, end } = selectionRange;
+        const originalMarkdown = currentMarkdown;
+        const { start, end } = targetRange;
 
         const instruction = instructionOverride || aiInstruction;
-        let prompt = `Improve the following technical writing/markdown content. Make it clearer, correct grammar, and better formatted. Maintain the original meaning. Only return the improved content, no explanations.\n\nContent:\n${selectedText}`;
+        let prompt = `Improve the following technical writing/markdown content. Make it clearer, correct grammar, and better formatted. Maintain the original meaning. Only return the improved content, no explanations.\n\nContent:\n${targetText}`;
         if (instruction.trim()) {
-            prompt = `Improve the following technical writing/markdown content based on this instruction: "${instruction}".\nMake it clearer, correct grammar, and better formatted. Maintain the original meaning where possible. Only return the improved content, no explanations.\n\nContent:\n${selectedText}`;
+            prompt = `Improve the following technical writing/markdown content based on this instruction: "${instruction}".\nMake it clearer, correct grammar, and better formatted. Maintain the original meaning where possible. Only return the improved content, no explanations.\n\nContent:\n${targetText}`;
         }
         const systemPrompt = "You are a helpful technical editor.";
 
@@ -535,16 +542,18 @@
         isQuizGenerating = true;
         
         try {
+            const targetLanguage = resolveTargetLanguage();
             const context = steps.map(s => `Step ${s.step_number}: ${s.title}\n${s.content_markdown}`).join("\n\n");
             const prompt = `Based on the following codelab content, generate ${numQuizToGenerate} multiple-choice questions. 
             Each question must have exactly 5 options. 
+            Write ALL quiz questions and options in ${targetLanguage}.
             Return ONLY a valid JSON array of objects with this structure:
             [{"question": "string", "options": ["string", "string", "string", "string", "string"], "correct_answer": number (0-4)}]
             
             Codelab Content:
             ${context}`;
 
-            const stream = streamGeminiResponseRobust(prompt, "You are a helpful education assistant that generates quizzes.", {
+            const stream = streamGeminiResponseRobust(prompt, `You are a helpful education assistant that generates quizzes. You MUST write everything in ${targetLanguage}.`, {
                 apiKey: geminiApiKey
             });
 

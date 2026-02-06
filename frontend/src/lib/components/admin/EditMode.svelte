@@ -18,6 +18,7 @@
         BookOpen,
         Terminal,
         Sparkles,
+        Info,
         Loader2,
         Send
     } from "lucide-svelte";
@@ -265,6 +266,27 @@
                 </button>
             </div>
             <div class="ml-auto flex items-center gap-2">
+                <div class="flex items-center gap-1">
+                    <button
+                        onclick={() => improveWithAi()}
+                        disabled={aiLoading || !geminiApiKey}
+                        class="flex items-center gap-2 px-3 py-2 rounded-full transition-colors border border-[#D2E3FC] dark:border-[#4285F4]/30 {aiLoading || !geminiApiKey ? 'text-[#9AA0A6] dark:text-dark-text-muted cursor-not-allowed' : 'text-[#4285F4] bg-white dark:bg-dark-surface hover:bg-[#E8F0FE] dark:hover:bg-white/10'}"
+                        title={$t("editor.toolbar.improve_with_gemini")}
+                        aria-label={$t("editor.toolbar.improve_with_gemini")}
+                    >
+                        <Sparkles size={16} />
+                        <span class="hidden sm:inline text-xs font-bold">
+                            {$t("editor.toolbar.improve_with_gemini")}
+                        </span>
+                    </button>
+                    <span
+                        class="text-[#9AA0A6] dark:text-dark-text-muted"
+                        title={$t("editor.toolbar.improve_with_gemini_hint")}
+                        aria-label={$t("editor.toolbar.improve_with_gemini_hint")}
+                    >
+                        <Info size={14} />
+                    </span>
+                </div>
                 <button
                     onclick={() => (isSplitView = !isSplitView)}
                     class="flex items-center gap-2 px-3 py-2 rounded-full transition-colors border border-[#E8EAED] dark:border-dark-border {isSplitView ? 'text-[#4285F4] bg-white dark:bg-white/10 shadow-sm' : 'text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-white dark:hover:bg-white/10'}"
@@ -415,7 +437,7 @@
     <div
         class="fixed z-50 ai-menu-container ai-menu-enter"
         style="top: {menuPos.y}px; left: {menuPos.x}px;"
-        on:keydown|stopPropagation
+        onkeydown={(e) => e.stopPropagation()}
     >
         <div class="bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-[#D2E3FC] dark:border-[#4285F4]/30 p-4 w-80 flex flex-col gap-3">
             <div class="flex items-center justify-between">
@@ -441,8 +463,8 @@
                     bind:this={aiInstructionEl}
                     placeholder={$t("gemini.improvement_placeholder")}
                     class="w-full h-20 p-2 text-xs bg-[#F8F9FA] dark:bg-white/5 border border-[#DADCE0] dark:border-dark-border rounded-lg outline-none focus:border-[#4285F4] dark:focus:border-[#4285F4] resize-none"
-                    on:keydown|stopPropagation
                     onkeydown={(e) => {
+                        e.stopPropagation();
                         if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                             e.preventDefault();
                             improveWithAi(aiInstruction);

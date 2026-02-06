@@ -168,6 +168,8 @@
             "quote": "인용",
             "code_language": "코드 언어",
             "code_block": "코드 블록",
+            "improve_with_gemini": "Gemini로 개선하기",
+            "improve_with_gemini_hint": "텍스트를 드래그해서도 가능",
             "table": "표",
             "image": "이미지"
         },
