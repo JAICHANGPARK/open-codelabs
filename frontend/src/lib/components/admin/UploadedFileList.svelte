@@ -9,7 +9,7 @@
 
 {#if files.length > 0}
     <div
-        class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border shadow-sm"
+        class="flex flex-wrap gap-2 max-h-48 min-h-[72px] overflow-y-auto p-2 bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border shadow-sm"
     >
         {#each files as file, i}
             <div

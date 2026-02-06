@@ -5,6 +5,9 @@ const THEME_PRESETS = [
     { id: "mint", labelKey: "theme.presets.mint" },
     { id: "ocean", labelKey: "theme.presets.ocean" },
     { id: "sunset", labelKey: "theme.presets.sunset" },
+    { id: "forest", labelKey: "theme.presets.forest" },
+    { id: "berry", labelKey: "theme.presets.berry" },
+    { id: "slate", labelKey: "theme.presets.slate" },
 ] as const;
 
 type ThemePresetId = (typeof THEME_PRESETS)[number]["id"];

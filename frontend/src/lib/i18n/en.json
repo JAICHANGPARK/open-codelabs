@@ -62,7 +62,10 @@
             "default": "Default",
             "mint": "Mint",
             "ocean": "Ocean",
-            "sunset": "Sunset"
+            "sunset": "Sunset",
+            "forest": "Forest",
+            "berry": "Berry",
+            "slate": "Slate"
         }
     },
     "dashboard": {

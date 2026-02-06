@@ -62,7 +62,10 @@
             "default": "기본",
             "mint": "민트",
             "ocean": "오션",
-            "sunset": "선셋"
+            "sunset": "선셋",
+            "forest": "포레스트",
+            "berry": "베리",
+            "slate": "슬레이트"
         }
     },
     "dashboard": {

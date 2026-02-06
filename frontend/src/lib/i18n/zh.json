@@ -53,7 +53,10 @@
             "default": "默认",
             "mint": "薄荷",
             "ocean": "海洋",
-            "sunset": "落日"
+            "sunset": "落日",
+            "forest": "森林",
+            "berry": "莓红",
+            "slate": "石板蓝"
         }
     },
     "dashboard": {

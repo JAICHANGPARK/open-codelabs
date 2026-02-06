@@ -54,7 +54,10 @@
             "default": "デフォルト",
             "mint": "ミント",
             "ocean": "オーシャン",
-            "sunset": "サンセット"
+            "sunset": "サンセット",
+            "forest": "フォレスト",
+            "berry": "ベリー",
+            "slate": "スレート"
         }
     },
     "dashboard": {
