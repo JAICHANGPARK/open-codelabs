@@ -103,24 +103,24 @@
 
 <div class="mt-10">
     <section
-        class="rounded-3xl border border-[#E8EAED] dark:border-dark-border bg-[#F8F9FA] dark:bg-dark-surface shadow-sm overflow-hidden"
+        class="rounded-3xl border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-surface shadow-sm overflow-hidden"
     >
         <header
-            class="flex items-center justify-between gap-4 px-6 py-4 border-b border-[#E8EAED] dark:border-dark-border"
+            class="flex items-center justify-between gap-4 px-6 py-4 border-b border-border dark:border-dark-border"
         >
             <div class="flex items-center gap-3">
                 <div
-                    class="w-10 h-10 rounded-2xl bg-[#4285F4]/10 text-[#4285F4] flex items-center justify-center"
+                    class="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center"
                 >
                     <Code size={18} />
                 </div>
                 <div>
                     <p
-                        class="text-[11px] font-bold uppercase tracking-widest text-[#5F6368] dark:text-dark-text-muted"
+                        class="text-[11px] font-bold uppercase tracking-widest text-muted-foreground dark:text-dark-text-muted"
                     >
                         {$t("playground.title")}
                     </p>
-                    <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
+                    <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
                         {$t("playground.subtitle")}
                     </p>
                 </div>
@@ -128,7 +128,7 @@
             <button
                 type="button"
                 onclick={() => (isOpen = !isOpen)}
-                class="p-2 rounded-full hover:bg-white/80 dark:hover:bg-white/10 transition-colors text-[#5F6368] dark:text-dark-text-muted"
+                class="p-2 rounded-full hover:bg-white/80 dark:hover:bg-white/10 transition-colors text-muted-foreground dark:text-dark-text-muted"
                 aria-label={isOpen ? $t("playground.toggle_close") : $t("playground.toggle_open")}
             >
                 {#if isOpen}
@@ -147,8 +147,8 @@
                             type="button"
                             onclick={() => (activeLanguage = lang)}
                             class="px-4 py-2 rounded-full text-xs font-bold transition-all border {activeLanguage === lang
-                                ? 'bg-[#4285F4] border-[#4285F4] text-white shadow-sm'
-                                : 'bg-white dark:bg-dark-bg border-[#E8EAED] dark:border-dark-border text-[#5F6368] dark:text-dark-text-muted hover:border-[#4285F4] hover:text-[#4285F4]'}"
+                                ? 'bg-primary border-primary text-primary-foreground shadow-sm'
+                                : 'bg-white dark:bg-dark-bg border-border dark:border-dark-border text-muted-foreground dark:text-dark-text-muted hover:border-primary hover:text-primary'}"
                         >
                             {PLAYGROUND_CONFIG[lang].label}
                         </button>
@@ -157,13 +157,13 @@
 
                 {#if activeBlock}
                     <div
-                        class="rounded-2xl border border-[#E8EAED] dark:border-dark-border overflow-hidden bg-white dark:bg-dark-bg"
+                        class="rounded-2xl border border-border dark:border-dark-border overflow-hidden bg-white dark:bg-dark-bg"
                     >
                         <div
-                            class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-[#F1F3F4] dark:bg-dark-surface border-b border-[#E8EAED] dark:border-dark-border"
+                            class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-accent/60 dark:bg-dark-surface border-b border-border dark:border-dark-border"
                         >
                             <span
-                                class="text-[11px] font-bold uppercase tracking-widest text-[#5F6368] dark:text-dark-text-muted"
+                                class="text-[11px] font-bold uppercase tracking-widest text-muted-foreground dark:text-dark-text-muted"
                             >
                                 {$t("playground.code_label")}
                             </span>
@@ -173,8 +173,8 @@
                                     onclick={handleCopyCode}
                                     disabled={!activeBlock.code}
                                     class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition-all {activeBlock.code
-                                        ? 'bg-white dark:bg-dark-bg border-[#DADCE0] dark:border-dark-border text-[#3C4043] dark:text-dark-text hover:border-[#4285F4] hover:text-[#4285F4]'
-                                        : 'bg-white/60 border-[#E8EAED] text-[#9AA0A6] cursor-not-allowed'}"
+                                        ? 'bg-white dark:bg-dark-bg border-border dark:border-dark-border text-foreground dark:text-dark-text hover:border-primary hover:text-primary'
+                                        : 'bg-white/60 border-border text-muted-foreground cursor-not-allowed'}"
                                 >
                                     {#if copied}
                                         <Check size={14} />
@@ -187,7 +187,7 @@
                                     href={PLAYGROUND_CONFIG[activeLanguage].openUrl}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border bg-white dark:bg-dark-bg border-[#DADCE0] dark:border-dark-border text-[#3C4043] dark:text-dark-text hover:border-[#4285F4] hover:text-[#4285F4] transition-all"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border bg-white dark:bg-dark-bg border-border dark:border-dark-border text-foreground dark:text-dark-text hover:border-primary hover:text-primary transition-all"
                                 >
                                     <ExternalLink size={14} />
                                     <span>{$t("common.open_new_tab")}</span>
@@ -199,11 +199,11 @@
                                 readonly
                                 value={activeBlock.code}
                                 rows={8}
-                                class="w-full resize-y bg-white dark:bg-dark-bg text-xs font-mono text-[#202124] dark:text-dark-text p-4 outline-none"
+                                class="w-full resize-y bg-white dark:bg-dark-bg text-xs font-mono text-foreground dark:text-dark-text p-4 outline-none"
                             ></textarea>
                         {:else}
                             <div
-                                class="p-4 text-xs text-[#5F6368] dark:text-dark-text-muted"
+                                class="p-4 text-xs text-muted-foreground dark:text-dark-text-muted"
                             >
                                 {$t("playground.no_code")}
                             </div>
@@ -211,7 +211,7 @@
                     </div>
 
                     <div
-                        class="rounded-2xl border border-[#E8EAED] dark:border-dark-border overflow-hidden bg-white dark:bg-dark-bg"
+                        class="rounded-2xl border border-border dark:border-dark-border overflow-hidden bg-white dark:bg-dark-bg"
                     >
                         {#if PLAYGROUND_CONFIG[activeLanguage].embeddable}
                             <iframe
@@ -224,7 +224,7 @@
                                 sandbox="allow-scripts allow-same-origin allow-forms"
                             ></iframe>
                         {:else}
-                            <div class="p-6 text-sm text-[#5F6368] dark:text-dark-text-muted space-y-2">
+                            <div class="p-6 text-sm text-muted-foreground dark:text-dark-text-muted space-y-2">
                                 <p>{$t("playground.embed_unavailable")}</p>
                             </div>
                         {/if}

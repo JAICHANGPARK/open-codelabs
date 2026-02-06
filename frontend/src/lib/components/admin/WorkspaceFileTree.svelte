@@ -103,18 +103,18 @@
         border: none;
         background: transparent;
         cursor: pointer;
-        color: #3c4043;
+        color: var(--color-foreground);
         font-size: 0.88rem;
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     }
 
     .tree-row:hover {
-        background: #f1f3f4;
+        background: var(--color-accent);
     }
 
     .file-row.selected {
-        background: #e8f0fe;
-        color: #1a73e8;
+        background: var(--color-accent);
+        color: var(--color-primary);
         font-weight: 600;
     }
 
@@ -122,17 +122,17 @@
         display: inline-flex;
         width: 16px;
         justify-content: center;
-        color: #5f6368;
+        color: var(--color-muted-foreground);
     }
 
     .icon {
         display: inline-flex;
-        color: #5f6368;
+        color: var(--color-muted-foreground);
     }
 
     .tree-children {
         padding-left: 1rem;
-        border-left: 1px dashed #e0e0e0;
+        border-left: 1px dashed var(--color-border);
         margin-left: 0.4rem;
         margin-top: 0.2rem;
     }

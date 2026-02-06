@@ -41,6 +41,22 @@
         "open_new_tab": "新しいタブで開く",
         "confirm_delete": "本当に削除しますか？この操作は元に戻せません。"
     },
+    "theme": {
+        "menu_label": "テーマ",
+        "mode_label": "モード",
+        "preset_label": "プリセット",
+        "modes": {
+            "system": "システム",
+            "light": "ライト",
+            "dark": "ダーク"
+        },
+        "presets": {
+            "default": "デフォルト",
+            "mint": "ミント",
+            "ocean": "オーシャン",
+            "sunset": "サンセット"
+        }
+    },
     "dashboard": {
         "title": "ファシリテーターダッシュボード",
         "subtitle": "コードラボを管理し、参加者の進捗を追跡します",
@@ -479,6 +495,9 @@
     "ai_generator": {
         "title": "Gemini AIで作成",
         "subtitle": "ソースコードを即座にインタラクティブなコードラボに変換します",
+        "output_placeholder_title": "出力プレビュー",
+        "output_placeholder_desc": "AIの応答と下書きがここに表示されます。",
+        "output_panel_notice": "結果は右側のパネルに表示されます。こちらで設定を続けてください。",
         "mode_label": "生成モード",
         "mode_basic": "一般",
         "mode_advanced": "プロ",

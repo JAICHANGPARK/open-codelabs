@@ -6,8 +6,7 @@
     import { locale, waitLocale, t } from "svelte-i18n";
     import "$lib/i18n";
     import "../app.css";
-    import { Languages, LogOut, Sun, Moon, Github, FileText as FileIcon, Accessibility } from "lucide-svelte";
-    import { ModeWatcher, toggleMode } from "mode-watcher";
+    import { Languages, LogOut, Sun, Moon, Github, FileText as FileIcon, Accessibility, Palette } from "lucide-svelte";
     import { themeState } from "$lib/theme.svelte";
     import { logout, onAuthChange, isFirebaseMode, isSupabaseMode, isServerlessMode, getSession } from "$lib/api";
 
@@ -154,6 +153,13 @@
     ];
 
     let langMenuOpen = $state(false);
+    let themeMenuOpen = $state(false);
+
+    const availableThemeModes = [
+        { id: "system", labelKey: "theme.modes.system" },
+        { id: "light", labelKey: "theme.modes.light" },
+        { id: "dark", labelKey: "theme.modes.dark" },
+    ] as const;
 
     function changeLanguage(code: string) {
         try {
@@ -163,6 +169,16 @@
         } catch (e) {
             console.error("Language change failed", e);
         }
+    }
+
+    function selectThemeMode(mode: "system" | "light" | "dark") {
+        themeState.setMode(mode);
+        themeMenuOpen = false;
+    }
+
+    function selectThemePreset(presetId: "default" | "mint" | "ocean" | "sunset") {
+        themeState.setPreset(presetId);
+        themeMenuOpen = false;
     }
 </script>
 
@@ -179,8 +195,6 @@
     />
 </svelte:head>
 
-<ModeWatcher modeStorageKey="theme" />
-
 {#if i18nLoaded}
     {@render children()}
 
@@ -194,7 +208,7 @@
 <!--                href="https://github.com/JAICHANGPARK/open-codelabs"-->
 <!--                target="_blank"-->
 <!--                rel="noopener noreferrer"-->
-<!--                class="w-10 h-10 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"-->
+<!--                class="w-10 h-10 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary dark:hover:text-primary transition-all"-->
 <!--                title={$t("common.github_repo")}-->
 <!--                aria-label={$t("common.github_repo")}-->
 <!--            >-->
@@ -204,7 +218,7 @@
 <!--                href="https://jaichangpark.github.io/open-codelabs/"-->
 <!--                target="_blank"-->
 <!--                rel="noopener noreferrer"-->
-<!--                class="w-10 h-10 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all"-->
+<!--                class="w-10 h-10 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary dark:hover:text-primary transition-all"-->
 <!--                title={$t("common.documentation")}-->
 <!--                aria-label={$t("common.documentation")}-->
 <!--            >-->
@@ -215,7 +229,7 @@
         <div class="relative">
             <button
                 onclick={() => langMenuOpen = !langMenuOpen}
-                class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4285F4] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
+                class="w-12 h-12 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
                 title={$t("common.change_language")}
                 aria-label={$t("common.change_language")}
                 aria-haspopup="true"
@@ -225,17 +239,62 @@
             </button>
             {#if langMenuOpen}
                 <div
-                    class="absolute bottom-full right-0 mb-3 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl shadow-2xl overflow-hidden min-w-[120px]"
+                    class="absolute bottom-full right-0 mb-3 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-2xl overflow-hidden min-w-[120px]"
                 >
                     {#each availableLocales as loc}
                         <button
                             onclick={() => changeLanguage(loc.code)}
-                            class="w-full text-left px-4 py-3 text-sm font-bold hover:bg-[#F8F9FA] dark:hover:bg-white/5 transition-colors {loc.code ===
+                            class="w-full text-left px-4 py-3 text-sm font-bold hover:bg-accent/60 dark:hover:bg-accent/40 transition-colors {loc.code ===
                             $locale
-                                ? 'text-[#4285F4] bg-[#E8F0FE] dark:bg-[#4285F4]/10'
-                                : 'text-[#5F6368] dark:text-dark-text-muted'}"
+                                ? 'text-primary bg-accent'
+                                : 'text-muted-foreground dark:text-dark-text-muted'}"
                         >
                             {loc.name}
+                        </button>
+                    {/each}
+                </div>
+            {/if}
+        </div>
+
+        <div class="relative">
+            <button
+                onclick={() => themeMenuOpen = !themeMenuOpen}
+                class="w-12 h-12 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
+                title={$t("theme.menu_label")}
+                aria-label={$t("theme.menu_label")}
+                aria-haspopup="true"
+                aria-expanded={themeMenuOpen}
+            >
+                <Palette size={20} />
+            </button>
+            {#if themeMenuOpen}
+                <div
+                    class="absolute bottom-full right-0 mb-3 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-2xl overflow-hidden min-w-[180px]"
+                >
+                    <div class="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/70 dark:bg-accent/40 border-b border-border dark:border-dark-border">
+                        {$t("theme.mode_label")}
+                    </div>
+                    {#each availableThemeModes as mode}
+                        <button
+                            onclick={() => selectThemeMode(mode.id)}
+                            class="w-full text-left px-4 py-2 text-sm font-bold hover:bg-accent/60 dark:hover:bg-accent/40 transition-colors {themeState.modeId === mode.id
+                                ? 'text-primary bg-accent'
+                                : 'text-muted-foreground dark:text-dark-text-muted'}"
+                        >
+                            {$t(mode.labelKey)}
+                        </button>
+                    {/each}
+                    <div class="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/70 dark:bg-accent/40 border-b border-t border-border dark:border-dark-border">
+                        {$t("theme.preset_label")}
+                    </div>
+                    {#each themeState.presets as preset}
+                        <button
+                            onclick={() => selectThemePreset(preset.id)}
+                            class="w-full text-left px-4 py-2 text-sm font-bold hover:bg-accent/60 dark:hover:bg-accent/40 transition-colors {themeState.presetId === preset.id
+                                ? 'text-primary bg-accent'
+                                : 'text-muted-foreground dark:text-dark-text-muted'}"
+                        >
+                            {$t(preset.labelKey)}
                         </button>
                     {/each}
                 </div>
@@ -245,19 +304,19 @@
         <!-- Colorblind Mode Toggle -->
         <button
             onclick={() => themeState.toggleColorblind()}
-            class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4285F4] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg {themeState.isColorblind ? 'ring-2 ring-[#4285F4] border-transparent' : ''}"
+            class="w-12 h-12 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg {themeState.isColorblind ? 'ring-2 ring-ring border-transparent' : ''}"
             title={$t("common.toggle_colorblind")}
             aria-label={$t("common.toggle_colorblind")}
             aria-pressed={themeState.isColorblind}
         >
             <span class="sr-only">{$t("common.toggle_colorblind")}</span>
-            <Accessibility size={20} class={themeState.isColorblind ? "text-[#4285F4]" : ""} />
+            <Accessibility size={20} class={themeState.isColorblind ? "text-primary" : ""} />
         </button>
 
         <!-- Theme Toggle -->
         <button
-            onclick={() => toggleMode()}
-            class="relative w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] dark:hover:text-[#4285F4] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4285F4] focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
+            onclick={() => themeState.toggleMode()}
+            class="relative w-12 h-12 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
             title={$t("common.toggle_theme")}
             aria-label={$t("common.toggle_theme")}
         >
@@ -275,7 +334,7 @@
         {#if page.url.pathname.startsWith("/admin")}
             <button
                 onclick={handleLogout}
-                class="w-12 h-12 bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-[#5F6368] dark:text-red-400 hover:text-red-500 hover:border-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
+                class="w-12 h-12 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-red-400 hover:text-red-500 hover:border-red-500 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
                 title={$t("common.logout")}
                 aria-label={$t("common.logout")}
             >
@@ -284,9 +343,9 @@
         {/if}
     </div>
 {:else}
-    <div class="min-h-screen flex items-center justify-center bg-[#F8F9FA] dark:bg-dark-bg">
+    <div class="min-h-screen flex items-center justify-center bg-background dark:bg-dark-bg">
         <div
-            class="animate-spin rounded-full h-12 w-12 border-4 border-[#E8EAED] dark:border-dark-border border-t-[#4285F4] dark:border-t-[#4285F4]"
+            class="animate-spin rounded-full h-12 w-12 border-4 border-border dark:border-dark-border border-t-primary dark:border-t-primary"
         ></div>
     </div>
 {/if}

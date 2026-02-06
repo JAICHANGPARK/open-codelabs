@@ -96,20 +96,20 @@
     ></div>
 
     <div
-        class="relative bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border overflow-hidden shadow-xl lg:shadow-sm w-4/5 max-w-sm h-[90vh] lg:h-auto m-4 lg:m-0 flex flex-col"
+        class="relative bg-white dark:bg-dark-surface rounded-2xl border border-border dark:border-dark-border overflow-hidden shadow-xl lg:shadow-sm w-4/5 max-w-sm h-[90vh] lg:h-auto m-4 lg:m-0 flex flex-col"
     >
         <div
-            class="p-5 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA] dark:bg-white/5 flex justify-between items-center"
+            class="p-5 border-b border-border dark:border-dark-border bg-muted dark:bg-white/5 flex justify-between items-center"
         >
             <span
-                class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-widest"
+                class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-widest"
                 >{$t("editor.step_navigation")}</span
             >
             <div class="flex items-center gap-2">
                 <button
                     type="button"
                     onclick={addStep}
-                    class="text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 p-1.5 rounded-full transition-colors"
+                    class="text-primary hover:bg-accent/70 dark:hover:bg-primary/10 p-1.5 rounded-full transition-colors"
                     title={$t("editor.add_step")}
                     aria-label={$t("editor.add_step")}
                 >
@@ -118,7 +118,7 @@
                 <button 
                     type="button"
                     onclick={() => (isSidebarOpen = false)}
-                    class="lg:hidden p-1.5 hover:bg-[#E8EAED] dark:hover:bg-white/5 rounded-full transition-colors"
+                    class="lg:hidden p-1.5 hover:bg-accent/70 dark:hover:bg-white/5 rounded-full transition-colors"
                     aria-label={$t("common.close")}
                 >
                     <X size={18} />
@@ -130,7 +130,7 @@
                 <div
                     role="listitem"
                     class="group relative {dragOverIndex === i
-                        ? 'border-t-4 border-[#4285F4]'
+                        ? 'border-t-4 border-primary'
                         : ''}"
                     draggable="true"
                     ondragstart={(e) => handleDragStart(e, i)}
@@ -144,9 +144,9 @@
                             activeStepIndex = i;
                             isSidebarOpen = false;
                         }}
-                        class="w-full text-left px-5 py-4 hover:bg-[#F8F9FA] dark:hover:bg-white/5 transition-all flex items-start gap-4 border-l-4 cursor-pointer {activeStepIndex ===
+                        class="w-full text-left px-5 py-4 hover:bg-muted dark:hover:bg-white/5 transition-all flex items-start gap-4 border-l-4 cursor-pointer {activeStepIndex ===
                         i
-                            ? 'border-[#4285F4] bg-[#E8F0FE]/30 dark:bg-[#4285F4]/10'
+                            ? 'border-primary bg-accent/30 dark:bg-primary/10'
                             : 'border-transparent'} {draggedStepIndex ===
                         i
                             ? 'opacity-50'
@@ -155,22 +155,22 @@
                         <span
                             class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 {activeStepIndex ===
                             i
-                                ? 'bg-[#4285F4] text-white'
-                                : 'bg-[#F1F3F4] dark:bg-white/10 text-[#5F6368] dark:text-dark-text-muted'}"
+                                ? 'bg-primary text-white'
+                                : 'bg-accent/60 dark:bg-white/10 text-muted-foreground dark:text-dark-text-muted'}"
                             >{i + 1}</span
                         >
                         <span
                             class="text-sm font-bold {activeStepIndex ===
                             i
-                                ? 'text-[#1967D2] dark:text-[#4285F4]'
-                                : 'text-[#5F6368] dark:text-dark-text-muted'} line-clamp-1 pt-0.5 pr-6"
+                                ? 'text-primary dark:text-primary'
+                                : 'text-muted-foreground dark:text-dark-text-muted'} line-clamp-1 pt-0.5 pr-6"
                             >{step.title}</span
                         >
                     </button>
                     <button
                         type="button"
                         onclick={() => removeStep(i)}
-                        class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-[#BDC1C6] hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg lg:opacity-0 lg:group-hover:opacity-100 transition-all"
+                        class="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-muted-foreground/60 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg lg:opacity-0 lg:group-hover:opacity-100 transition-all"
                         title={$t("editor.delete_step")}
                         aria-label={$t("editor.delete_step")}
                     >
@@ -181,33 +181,33 @@
         </div>
 
         <div
-            class="p-6 border-t border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/50 dark:bg-white/5 flex flex-col items-center"
+            class="p-6 border-t border-border dark:border-dark-border bg-muted/50 dark:bg-white/5 flex flex-col items-center"
         >
             <div
-                class="bg-white p-3 rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm mb-4"
+                class="bg-white p-3 rounded-2xl border border-border dark:border-dark-border shadow-sm mb-4"
             >
                 <QRCode value={attendeeUrl} size={140} />
             </div>
             <p
-                class="text-[11px] text-[#5F6368] dark:text-dark-text-muted text-center uppercase tracking-widest font-bold mb-3"
+                class="text-[11px] text-muted-foreground dark:text-dark-text-muted text-center uppercase tracking-widest font-bold mb-3"
             >
                 {$t("editor.attendee_access")}
             </p>
 
             <div
-                class="w-full flex items-center gap-2 p-2 bg-white dark:bg-dark-bg border border-[#E8EAED] dark:border-dark-border rounded-xl shadow-sm overflow-hidden"
+                class="w-full flex items-center gap-2 p-2 bg-white dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl shadow-sm overflow-hidden"
             >
                 <input
                     type="text"
                     readonly
                     value={attendeeUrl}
                     aria-label={$t("editor.attendee_access")}
-                    class="flex-1 bg-transparent border-none text-[10px] text-[#5F6368] dark:text-dark-text-muted px-2 outline-none"
+                    class="flex-1 bg-transparent border-none text-[10px] text-muted-foreground dark:text-dark-text-muted px-2 outline-none"
                 />
                 <button
                     type="button"
                     onclick={handleCopyUrl}
-                    class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/10 rounded-lg transition-colors text-[#4285F4]"
+                    class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-lg transition-colors text-primary"
                     title={$t("editor.copy_url")}
                     aria-label={$t("editor.copy_url")}
                 >

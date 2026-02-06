@@ -155,14 +155,14 @@
 </script>
 
 <header
-    class="bg-white dark:bg-dark-surface border-b border-[#E8EAED] dark:border-dark-border py-2 sm:py-4 px-3 sm:px-8 sticky top-0 z-40 shadow-sm"
+    class="bg-white dark:bg-dark-surface border-b border-border dark:border-dark-border py-2 sm:py-4 px-3 sm:px-8 sticky top-0 z-40 shadow-sm"
 >
     <div class="max-w-screen-2xl mx-auto flex flex-col gap-3">
         <div class="flex justify-between items-center gap-2 sm:gap-3">
             <div class="flex items-center gap-1 sm:gap-6 flex-1 min-w-0">
                 <a
                     href="/admin"
-                    class="text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text hover:bg-[#F1F3F4] dark:hover:bg-white/5 p-1.5 sm:p-2 rounded-full transition-all shrink-0"
+                    class="text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text hover:bg-accent/60 dark:hover:bg-white/5 p-1.5 sm:p-2 rounded-full transition-all shrink-0"
                     aria-label={$t("editor.back")}
                 >
                     <ChevronLeft size={24} />
@@ -170,17 +170,17 @@
                 <div class="min-w-0 flex-1">
                     {#if loading}
                         <div
-                            class="h-5 sm:h-6 w-32 md:w-48 bg-[#F1F3F4] dark:bg-white/5 animate-pulse rounded"
+                            class="h-5 sm:h-6 w-32 md:w-48 bg-accent/70 dark:bg-white/5 animate-pulse rounded"
                         ></div>
                     {:else}
                         <h1
-                            class="text-xs sm:text-lg md:text-xl font-bold text-[#202124] dark:text-dark-text flex items-center gap-1 sm:gap-2 truncate"
+                            class="text-xs sm:text-lg md:text-xl font-bold text-foreground dark:text-dark-text flex items-center gap-1 sm:gap-2 truncate"
                         >
                             <span class="truncate">{codelab?.title}</span>
                             <a
                                 href="/codelabs/{id}"
                                 target="_blank"
-                                class="text-[#4285F4] hover:text-[#1A73E8] shrink-0"
+                                class="text-primary hover:text-primary/90 shrink-0"
                                 title={$t("editor.view_live")}
                                 rel="noopener noreferrer"
                                 aria-label={$t("editor.view_live")}
@@ -189,7 +189,7 @@
                             </a>
                         </h1>
                         <p
-                            class="text-[9px] sm:text-xs text-[#5F6368] dark:text-dark-text-muted font-medium mt-0.5 hidden xs:block"
+                            class="text-[9px] sm:text-xs text-muted-foreground dark:text-dark-text-muted font-medium mt-0.5 hidden xs:block"
                         >
                             ID: {id.split("-")[0]}... &bull; {$t(
                                 "editor.facilitator_mode",
@@ -204,7 +204,7 @@
                         href="https://github.com/JAICHANGPARK/open-codelabs"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
+                        class="p-2 text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-full transition-all"
                         title={$t("common.github_repo")}
                         aria-label={$t("common.github_repo")}
                     >
@@ -214,21 +214,21 @@
                         href="https://jaichangpark.github.io/open-codelabs/"
                         target="_blank"
                         rel="noopener noreferrer"
-                        class="p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
+                        class="p-2 text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-full transition-all"
                         title={$t("common.documentation")}
                         aria-label={$t("common.documentation")}
                     >
                         <FileText size={20} />
                     </a>
                     <div
-                        class="w-px h-6 bg-[#E8EAED] dark:bg-dark-border mx-1"
+                        class="w-px h-6 bg-border dark:bg-dark-border mx-1"
                     ></div>
                 </div>
                 <button
                     type="button"
                     onclick={toggleVisibility}
-                    class="relative inline-flex h-6 w-10 sm:h-7 sm:w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-[#4285F4] focus:ring-offset-2 {codelab?.is_public
-                        ? 'bg-[#34A853]'
+                    class="relative inline-flex h-6 w-10 sm:h-7 sm:w-12 shrink-0 cursor-pointer items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 {codelab?.is_public
+                        ? 'bg-emerald-500'
                         : 'bg-gray-200 dark:bg-dark-border'}"
                     role="switch"
                     aria-checked={codelab?.is_public != 0}
@@ -245,20 +245,20 @@
                         {#if codelab?.is_public}
                             <Eye
                                 size={10}
-                                class="text-[#34A853] sm:w-3 sm:h-3"
+                                class="text-emerald-600 sm:w-3 sm:h-3"
                             />
                         {:else}
-                            <X size={10} class="text-[#EA4335] sm:w-3 sm:h-3" />
+                            <X size={10} class="text-red-500 sm:w-3 sm:h-3" />
                         {/if}
                     </span>
                 </button>
                 <div
-                    class="h-6 w-px bg-[#E8EAED] dark:bg-dark-border hidden sm:block"
+                    class="h-6 w-px bg-border dark:bg-dark-border hidden sm:block"
                 ></div>
                 <button
                     type="button"
                     onclick={handleExport}
-                    class="p-1.5 sm:p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
+                    class="p-1.5 sm:p-2 text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-full transition-all"
                     title={$t("editor.export_codelab")}
                     aria-label={$t("editor.export_codelab")}
                 >
@@ -269,7 +269,7 @@
                     <button
                         type="button"
                         onclick={handleBrowseWorkspace}
-                        class="p-1.5 sm:p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
+                        class="p-1.5 sm:p-2 text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-full transition-all"
                         title={$t("workspace.actions.browse")}
                         aria-label={$t("workspace.actions.browse")}
                     >
@@ -281,7 +281,7 @@
                     <button
                         type="button"
                         onclick={handleDownloadWorkspace}
-                        class="p-1.5 sm:p-2 text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/10 rounded-full transition-all"
+                        class="p-1.5 sm:p-2 text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-full transition-all"
                         title={$t("workspace.actions.download")}
                         aria-label={$t("workspace.actions.download")}
                     >
@@ -295,8 +295,8 @@
                         (mode !== "edit" &&
                             mode !== "quiz" &&
                             mode !== "settings")}
-                    class="bg-[#4285F4] hover:bg-[#1A73E8] disabled:opacity-50 text-white p-1.5 sm:px-6 sm:py-2.5 rounded-full flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all shadow-md active:scale-95 {saveSuccess
-                        ? 'bg-[#1E8E3E]'
+                    class="bg-primary hover:bg-primary/90 disabled:opacity-50 text-primary-foreground p-1.5 sm:px-6 sm:py-2.5 rounded-full flex items-center gap-1 sm:gap-2 text-[10px] sm:text-sm font-bold transition-all shadow-md active:scale-95 {saveSuccess
+                        ? 'bg-emerald-600'
                         : ''}"
                 >
                     {#if isSaving}
@@ -325,14 +325,14 @@
                 {#each tabGroups as group}
                     <NavigationMenu.Item>
                         <NavigationMenu.Trigger
-                            class="!h-7 sm:!h-8 !px-3 sm:!px-4 !rounded-full text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider border border-[#E8EAED] dark:border-dark-border bg-[#F1F3F4] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text data-[state=open]:bg-white data-[state=open]:text-[#4285F4] data-[state=open]:shadow-sm dark:data-[state=open]:bg-dark-surface {group.items.some((item) => item.id === mode)
-                                ? '!bg-white dark:!bg-dark-surface text-[#4285F4] shadow-sm'
+                            class="!h-7 sm:!h-8 !px-3 sm:!px-4 !rounded-full text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider border border-border dark:border-dark-border bg-accent/60 dark:bg-white/5 text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text data-[state=open]:bg-white data-[state=open]:text-primary data-[state=open]:shadow-sm dark:data-[state=open]:bg-dark-surface {group.items.some((item) => item.id === mode)
+                                ? '!bg-white dark:!bg-dark-surface text-primary shadow-sm'
                                 : ''}"
                         >
                             {$t(group.labelKey)}
                         </NavigationMenu.Trigger>
                         <NavigationMenu.Content
-                            class="z-50 rounded-2xl border border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface shadow-xl p-2 w-[min(520px,calc(100vw-32px))] md:w-[520px]"
+                            class="z-50 rounded-2xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface shadow-xl p-2 w-[min(520px,calc(100vw-32px))] md:w-[520px]"
                         >
                             <div class="grid gap-2 sm:grid-cols-2">
                                 {#each group.items as item}
@@ -345,8 +345,8 @@
                                         aria-current={mode === item.id ? "page" : undefined}
                                         class="flex flex-row items-start gap-2 rounded-lg px-3 py-2 text-[11px] sm:text-sm font-semibold transition-colors {mode ===
                                         item.id
-                                            ? 'bg-[#E8F0FE] dark:bg-[#4285F4]/10 text-[#4285F4]'
-                                            : 'text-[#5F6368] dark:text-dark-text-muted hover:bg-[#F8F9FA] dark:hover:bg-white/5 hover:text-[#202124] dark:hover:text-dark-text'}"
+                                            ? 'bg-accent/70 dark:bg-primary/10 text-primary'
+                                            : 'text-muted-foreground dark:text-dark-text-muted hover:bg-accent/60 dark:hover:bg-white/5 hover:text-foreground dark:hover:text-dark-text'}"
                                     >
                                         <svelte:component
                                             this={item.icon}
@@ -359,7 +359,7 @@
                                                     ? $t(item.labelKey)
                                                     : item.label}
                                             </span>
-                                            <span class="block text-[10px] font-normal text-[#9AA0A6] dark:text-dark-text-muted">
+                                            <span class="block text-[10px] font-normal text-muted-foreground dark:text-dark-text-muted">
                                                 {$t(item.descriptionKey)}
                                             </span>
                                         </span>

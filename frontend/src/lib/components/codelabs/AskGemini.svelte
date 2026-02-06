@@ -129,7 +129,7 @@
     <FocusTrap>
         <div
             bind:this={dialogRef}
-            class="bg-white dark:bg-dark-surface shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden border-l border-[#E8EAED] dark:border-dark-border relative"
+            class="bg-white dark:bg-dark-surface shadow-2xl w-full max-w-lg h-full flex flex-col overflow-hidden border-l border-border dark:border-dark-border relative"
             transition:fly={{ x: 500, duration: 300 }}
             role="dialog"
             aria-modal="true"
@@ -137,14 +137,14 @@
         >
             <!-- Header -->
             <div
-                class="flex items-center justify-between p-4 border-b border-[#E8EAED] dark:border-dark-border bg-[#F8F9FA] dark:bg-dark-surface"
+                class="flex items-center justify-between p-4 border-b border-border dark:border-dark-border bg-accent/60 dark:bg-dark-surface"
             >
-                <div class="flex items-center gap-2 text-[#4285F4]">
+                <div class="flex items-center gap-2 text-primary">
                     <span class="sr-only">{$t("gemini.ask_gemini")}</span>
                     <Sparkles size={20} aria-hidden="true" />
                     <h2
                         id="gemini-title"
-                        class="font-bold text-[#202124] dark:text-dark-text"
+                        class="font-bold text-foreground dark:text-dark-text"
                     >
                         {$t("gemini.ask_gemini")}
                     </h2>
@@ -153,14 +153,14 @@
                     {#if hasKey}
                         <button
                             onclick={clearKey}
-                            class="text-xs text-[#5F6368] dark:text-dark-text-muted hover:text-[#EA4335] font-medium underline px-2"
+                            class="text-xs text-muted-foreground dark:text-dark-text-muted hover:text-red-500 font-medium underline px-2"
                         >
                             {$t("gemini.change_key")}
                         </button>
                     {/if}
                     <button
                         onclick={onClose}
-                        class="p-1 hover:bg-[#E8EAED] dark:hover:bg-white/10 rounded-full text-[#5F6368] dark:text-dark-text-muted"
+                        class="p-1 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full text-muted-foreground dark:text-dark-text-muted"
                         aria-label={$t("common.close")}
                     >
                         <X size={20} />
@@ -178,19 +178,19 @@
                         class="flex flex-col items-center justify-center h-full text-center space-y-6"
                     >
                         <div
-                            class="w-16 h-16 bg-[#E8F0FE] dark:bg-[#4285F4]/10 rounded-full flex items-center justify-center text-[#4285F4]"
-                            aria-hidden="true"
-                        >
+                        class="w-16 h-16 bg-accent/70 dark:bg-primary/10 rounded-full flex items-center justify-center text-primary"
+                        aria-hidden="true"
+                    >
                             <Key size={32} />
                         </div>
                         <div>
                             <h3
-                                class="font-bold text-lg text-[#202124] dark:text-dark-text"
+                                class="font-bold text-lg text-foreground dark:text-dark-text"
                             >
                                 {$t("gemini.enter_api_key")}
                             </h3>
                             <p
-                                class="text-[#5F6368] dark:text-dark-text-muted text-sm mt-1"
+                                class="text-muted-foreground dark:text-dark-text-muted text-sm mt-1"
                             >
                                 {$t("gemini.api_key_required_desc")}
                             </p>
@@ -198,7 +198,7 @@
                                 href="https://aistudio.google.com/app/apikey"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="text-[#4285F4] text-sm hover:underline mt-1 block"
+                                class="text-primary text-sm hover:underline mt-1 block"
                                 >{$t("gemini.get_api_key")}</a
                             >
                         </div>
@@ -216,12 +216,12 @@
                                 aria-label={$t(
                                     "dashboard.settings.gemini_api_key",
                                 )}
-                                class="flex-1 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-lg px-4 py-2 text-sm outline-none focus:border-[#4285F4] dark:text-dark-text"
+                                class="flex-1 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg px-4 py-2 text-sm outline-none focus:border-primary dark:text-dark-text"
                             />
                             <button
                                 type="submit"
                                 disabled={!apiKey}
-                                class="bg-[#4285F4] text-white font-bold py-2 px-6 rounded-lg hover:bg-[#1A73E8] disabled:opacity-50 transition-all"
+                                class="bg-primary text-primary-foreground font-bold py-2 px-6 rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-all"
                             >
                                 {$t("common.save")}
                             </button>
@@ -231,14 +231,14 @@
                     <div class="space-y-6">
                         {#if context}
                             <div
-                                class="bg-[#F8F9FA] dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-lg p-3"
+                                class="bg-accent/60 dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg p-3"
                             >
                                 <span
-                                    class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase mb-1 block"
+                                    class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase mb-1 block"
                                     >{$t("gemini.context_selected")}</span
                                 >
                                 <div
-                                    class="text-xs text-[#3C4043] dark:text-dark-text font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
+                                    class="text-xs text-foreground dark:text-dark-text font-mono whitespace-pre-wrap max-h-32 overflow-y-auto"
                                 >
                                     {context}
                                 </div>
@@ -247,7 +247,7 @@
 
                         {#if response}
                             <div
-                                class="prose dark:prose-invert max-w-none text-[#3C4043] dark:text-dark-text text-sm leading-relaxed gemini-response"
+                                class="prose dark:prose-invert max-w-none text-foreground dark:text-dark-text text-sm leading-relaxed gemini-response"
                             >
                                 {@html renderedResponse}
                             </div>
@@ -255,7 +255,7 @@
 
                         {#if loading}
                             <div
-                                class="flex items-center gap-2 text-[#5F6368] dark:text-dark-text-muted text-sm animate-pulse"
+                                class="flex items-center gap-2 text-muted-foreground dark:text-dark-text-muted text-sm animate-pulse"
                             >
                                 <Loader2
                                     size={16}
@@ -272,7 +272,7 @@
             <!-- Footer Input -->
             {#if hasKey}
                 <div
-                    class="p-4 border-t border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface"
+                    class="p-4 border-t border-border dark:border-dark-border bg-white dark:bg-dark-surface"
                 >
                     <div class="relative flex items-end gap-2">
                         <textarea
@@ -291,12 +291,12 @@
                             placeholder={$t("gemini.ask_question_placeholder")}
                             aria-label={$t("gemini.ask_question_placeholder")}
                             rows="3"
-                            class="w-full pl-4 pr-12 py-3 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] transition-all text-sm resize-none dark:text-dark-text"
+                            class="w-full pl-4 pr-12 py-3 bg-background dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary transition-all text-sm resize-none dark:text-dark-text"
                         ></textarea>
                         <button
                             onclick={handleSubmit}
                             disabled={!prompt.trim() || loading}
-                            class="absolute right-2 bottom-2 p-2 text-[#4285F4] hover:bg-[#E8F0FE] rounded-lg transition-all disabled:opacity-50 disabled:hover:bg-transparent"
+                            class="absolute right-2 bottom-2 p-2 text-primary hover:bg-accent/70 rounded-lg transition-all disabled:opacity-50 disabled:hover:bg-transparent"
                             aria-label={$t("editor.send_dm")}
                         >
                             <Send size={18} />
@@ -311,18 +311,23 @@
 <style>
     /* Add GitHub-like markdown styles for the response */
     :global(.gemini-response pre) {
-        background-color: #1e1e1e;
-        border: 1px solid #3c4043;
+        background-color: var(--color-muted);
+        border: 1px solid var(--color-border);
         border-radius: 6px;
         padding: 16px;
         overflow: auto;
         font-size: 85%;
         line-height: 1.45;
-        color: #e8eaed;
+        color: var(--color-foreground);
         transition: background-color 0.2s;
     }
+    :global(html.dark .gemini-response pre) {
+        background-color: var(--color-dark-bg);
+        border-color: var(--color-dark-border);
+        color: var(--color-dark-text);
+    }
     :global(.gemini-response code) {
-        background-color: rgba(175, 184, 193, 0.2);
+        background-color: var(--color-accent);
         padding: 0.2em 0.4em;
         border-radius: 6px;
         font-family:
@@ -334,11 +339,11 @@
             Liberation Mono,
             monospace;
         font-size: 85%;
-        color: #24292e;
+        color: var(--color-foreground);
     }
     :global(html.dark .gemini-response code) {
-        background-color: rgba(232, 234, 237, 0.1);
-        color: #e8eaed;
+        background-color: var(--color-dark-hover);
+        color: var(--color-dark-text);
     }
     :global(.gemini-response pre code) {
         background-color: transparent;

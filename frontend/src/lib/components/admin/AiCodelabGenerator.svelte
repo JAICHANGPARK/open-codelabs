@@ -1455,11 +1455,11 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
     aria-labelledby="modal-title"
 >
     <div
-        class="bg-white dark:bg-dark-surface rounded-3xl shadow-2xl w-full max-w-4xl h-[85vh] flex flex-col overflow-hidden relative border dark:border-dark-border"
+        class="bg-white dark:bg-dark-surface rounded-3xl shadow-2xl w-full max-w-6xl h-[88vh] flex flex-col overflow-hidden relative border dark:border-dark-border"
         in:fly={{ y: 20, duration: 400 }}
     >
         <!-- Header -->
-        <div class="bg-[#4285F4] p-6 text-white shrink-0">
+        <div class="bg-primary p-6 text-white shrink-0">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
                     <div class="bg-white/20 p-2 rounded-lg" aria-hidden="true">
@@ -1506,85 +1506,85 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         </div>
 
         <!-- Content -->
-        <div class="flex-1 flex flex-col overflow-hidden p-6 bg-[#F8F9FA] dark:bg-dark-bg">
-            <div
-                class="mb-4 bg-white dark:bg-dark-surface/50 border border-[#DADCE0] dark:border-dark-border rounded-2xl p-3 shadow-sm"
-            >
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <span
-                        class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted"
-                    >
-                        {$t("ai_generator.mode_label")}
-                    </span>
-                    <div class="flex items-center gap-2">
-                        <button
-                            onclick={() => setGenerationMode("basic")}
-                            disabled={loading || advancedLoading}
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
-                            'basic'
-                                ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
-                                : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
+        <div class="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden p-6 bg-accent/60 dark:bg-dark-bg">
+            <div class="flex flex-col w-full lg:w-1/2 min-h-0 overflow-y-auto pr-1">
+                <div
+                    class="mb-4 bg-white dark:bg-dark-surface/50 border border-border dark:border-dark-border rounded-2xl p-3 shadow-sm"
+                >
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <span
+                            class="text-sm font-bold text-muted-foreground dark:text-dark-text-muted"
                         >
-                            {$t("ai_generator.mode_basic")}
-                        </button>
-                        <button
-                            onclick={() => setGenerationMode("advanced")}
-                            disabled={loading || advancedLoading}
-                            class="group relative px-4 py-2 rounded-xl text-xs font-bold transition-all border overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed {generationMode ===
-                            'advanced'
-                                ? 'text-white border-[#1A73E8] bg-[#1A73E8] shadow-lg shadow-[#4285F4]/25'
-                                : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4] hover:shadow-md'}"
-                        >
-                            <span class="relative z-10 flex items-center gap-1">
-                                <Sparkles
-                                    size={14}
-                                    class={generationMode === "advanced"
-                                        ? "text-white/90"
-                                        : "text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"}
-                                />
-                                <span>{$t("ai_generator.mode_advanced")}</span>
-                            </span>
-                        </button>
+                            {$t("ai_generator.mode_label")}
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <button
+                                onclick={() => setGenerationMode("basic")}
+                                disabled={loading || advancedLoading}
+                                class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
+                                'basic'
+                                    ? 'bg-primary text-white border-primary shadow-md'
+                                    : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
+                            >
+                                {$t("ai_generator.mode_basic")}
+                            </button>
+                            <button
+                                onclick={() => setGenerationMode("advanced")}
+                                disabled={loading || advancedLoading}
+                                class="group relative px-4 py-2 rounded-xl text-xs font-bold transition-all border overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed {generationMode ===
+                                'advanced'
+                                    ? 'text-white border-primary bg-primary/90 shadow-lg shadow-primary/25'
+                                    : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary hover:shadow-md'}"
+                            >
+                                <span class="relative z-10 flex items-center gap-1">
+                                    <Sparkles
+                                        size={14}
+                                        class={generationMode === "advanced"
+                                            ? "text-white/90"
+                                            : "text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"}
+                                    />
+                                    <span>{$t("ai_generator.mode_advanced")}</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3 space-y-3">
+                        <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
+                            {generationMode === "basic"
+                                ? $t("ai_generator.mode_basic_desc")
+                                : $t("ai_generator.mode_advanced_desc")}
+                        </p>
+                        {#if generationMode === "advanced"}
+                            <div
+                                class="flex flex-col gap-3 rounded-2xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface/50 p-4 shadow-sm"
+                            >
+                                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                                    <p class="text-sm text-foreground dark:text-dark-text">
+                                        {$t("ai_generator.mode_advanced_star_message")}
+                                    </p>
+                                    <a
+                                        class="flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide transition-all hover:scale-105 border-border text-muted-foreground hover:text-primary dark:border-dark-border dark:text-dark-text-muted dark:hover:text-white"
+                                        href="https://github.com/JAICHANGPARK/open-codelabs"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        aria-label={$t("ai_generator.mode_advanced_star_button")}
+                                    >
+                                        <Github size={14} />
+                                        <span>{$t("ai_generator.mode_advanced_star_button")}</span>
+                                    </a>
+                                </div>
+                            </div>
+                        {/if}
                     </div>
                 </div>
-                <div class="mt-3 space-y-3">
-                    <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
-                        {generationMode === "basic"
-                            ? $t("ai_generator.mode_basic_desc")
-                            : $t("ai_generator.mode_advanced_desc")}
-                    </p>
-                    {#if generationMode === "advanced"}
-                        <div
-                            class="flex flex-col gap-3 rounded-2xl border border-[#DADCE0] dark:border-dark-border bg-white dark:bg-dark-surface/50 p-4 shadow-sm"
-                        >
-                            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                <p class="text-sm text-[#3C4043] dark:text-dark-text">
-                                    {$t("ai_generator.mode_advanced_star_message")}
-                                </p>
-                                <a
-                                    class="flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide transition-all hover:scale-105 border-[#E8EAED] text-[#5F6368] hover:text-[#4285F4] dark:border-dark-border dark:text-dark-text-muted dark:hover:text-white"
-                                    href="https://github.com/JAICHANGPARK/open-codelabs"
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    aria-label={$t("ai_generator.mode_advanced_star_button")}
-                                >
-                                    <Github size={14} />
-                                    <span>{$t("ai_generator.mode_advanced_star_button")}</span>
-                                </a>
-                            </div>
-                        </div>
-                    {/if}
-                </div>
-            </div>
 
-            <div class="flex-1 min-h-0 overflow-y-auto">
-            {#if generationMode === "basic"}
-                {#if generationStep === "input"}
-                <div class="min-h-full flex flex-col gap-4" in:fade>
+                {#if generationMode === "basic"}
+                    {#if generationStep === "input"}
+                        <div class="min-h-full flex flex-col gap-4" in:fade>
                     <div class="flex items-center justify-between">
                         <label
                             for="source-code"
-                            class="text-[#5F6368] dark:text-dark-text-muted font-bold text-lg"
+                            class="text-muted-foreground dark:text-dark-text-muted font-bold text-lg"
                             >{$t("ai_generator.input_label")}</label
                         >
 
@@ -1599,7 +1599,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             />
                             <button
                                 onclick={() => fileInput.click()}
-                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-xl text-sm font-bold text-[#4285F4] hover:bg-[#4285F4]/5 transition-all shadow-sm"
+                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl text-sm font-bold text-primary hover:bg-primary/5 transition-all shadow-sm"
                             >
                                 <Upload size={18} />
                                 {$t("ai_generator.upload_files") ||
@@ -1607,7 +1607,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             </button>
                         </div>
                     </div>
-                    <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
+                    <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
                         {$t("ai_generator.upload_limits", {
                             values: { maxFiles: MAX_FILES, maxZipFiles: MAX_ZIP_FILES, maxSizeMb: MAX_FILE_SIZE_MB }
                         })}
@@ -1618,14 +1618,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
 
                     <!-- Advanced Options -->
                     <div
-                        class="flex flex-col gap-4 mb-4 bg-white dark:bg-dark-surface/50 p-4 rounded-2xl border border-[#DADCE0] dark:border-dark-border shadow-sm"
+                        class="flex flex-col gap-4 mb-4 bg-white dark:bg-dark-surface/50 p-4 rounded-2xl border border-border dark:border-dark-border shadow-sm"
                     >
                         <!-- Duration Selection -->
                         <div class="flex flex-col gap-3">
                             <span
-                                class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted flex items-center gap-2"
+                                class="text-sm font-bold text-muted-foreground dark:text-dark-text-muted flex items-center gap-2"
                             >
-                                <Clock size={16} class="text-[#4285F4]" />
+                                <Clock size={16} class="text-primary" />
                                 {$t("ai_generator.duration_label")}
                             </span>
                             <div class="flex flex-wrap gap-2">
@@ -1634,8 +1634,8 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                         onclick={() => (handsOnDuration = d)}
                                         class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {handsOnDuration ===
                                         d
-                                            ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
-                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
+                                            ? 'bg-primary text-white border-primary shadow-md'
+                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
                                     >
                                         {d === "custom"
                                             ? $t("ai_generator.duration_custom")
@@ -1653,10 +1653,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                             type="number"
                                             bind:value={customDuration}
                                             placeholder="10"
-                                            class="w-20 bg-white dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/10"
+                                            class="w-20 bg-white dark:bg-dark-bg border border-border dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                                         />
                                         <span
-                                            class="text-xs font-medium text-[#5F6368] dark:text-dark-text-muted"
+                                            class="text-xs font-medium text-muted-foreground dark:text-dark-text-muted"
                                             >{$t("ai_generator.mins")}</span
                                         >
                                     </div>
@@ -1665,7 +1665,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         </div>
 
                         <div
-                            class="h-px bg-[#F1F3F4] dark:bg-dark-border w-full"
+                            class="h-px bg-border dark:bg-dark-border w-full"
                         ></div>
 
                         <div class="flex flex-wrap gap-6">
@@ -1675,10 +1675,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 <input
                                     type="checkbox"
                                     bind:checked={useGoogleSearch}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
                                 />
                                 <span
-                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
+                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
                                 >
                                     {$t("ai_generator.google_search")}
                                 </span>
@@ -1690,10 +1690,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 <input
                                     type="checkbox"
                                     bind:checked={useUrlContext}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
                                 />
                                 <span
-                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
+                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
                                 >
                                     {$t("ai_generator.url_context")}
                                 </span>
@@ -1705,10 +1705,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 <input
                                     type="checkbox"
                                     bind:checked={showThinking}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
                                 />
                                 <span
-                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
+                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
                                 >
                                     {$t("ai_generator.show_thinking")}
                                 </span>
@@ -1718,14 +1718,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
 
                     {#if useGoogleSearch || useUrlContext}
                         <div
-                            class="flex items-start gap-2 p-3 bg-[#FEF7E0] dark:bg-[#F9AB00]/10 border border-[#F9AB00]/30 rounded-lg mb-4"
+                            class="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 rounded-lg mb-4"
                         >
                             <Info
                                 size={16}
-                                class="text-[#F9AB00] mt-0.5 shrink-0"
+                                class="text-amber-500 mt-0.5 shrink-0"
                             />
                             <p
-                                class="text-xs text-[#3C4043] dark:text-dark-text"
+                                class="text-xs text-foreground dark:text-dark-text"
                             >
                                 <strong
                                     >{$t("ai_generator.billing_notice")}</strong
@@ -1739,19 +1739,19 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         id="source-code"
                         bind:value={sourceCode}
                         placeholder={$t("ai_generator.placeholder")}
-                        class="flex-1 w-full bg-white dark:bg-dark-surface text-[#3C4043] dark:text-dark-text border border-[#DADCE0] dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 outline-none resize-none shadow-sm transition-all"
+                        class="flex-1 w-full bg-white dark:bg-dark-surface text-foreground dark:text-dark-text border border-border dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none resize-none shadow-sm transition-all"
                     ></textarea>
 
-                    <div class="flex justify-end pt-2">
+                        <div class="flex justify-end pt-2">
                         {#if !apiKey}
                             <p
-                                class="text-[#EA4335] font-bold mr-4 self-center"
+                                class="text-red-500 font-bold mr-4 self-center"
                             >
                                 {$t("ai_generator.api_key_required")}
                             </p>
                             <button
                                 disabled
-                                class="bg-[#E8EAED] dark:bg-dark-border text-[#9AA0A6] dark:text-dark-text-muted px-8 py-3 rounded-full font-bold cursor-not-allowed"
+                                class="bg-accent/80 dark:bg-dark-border text-muted-foreground dark:text-dark-text-muted px-8 py-3 rounded-full font-bold cursor-not-allowed"
                             >
                                 {$t("common.create")}
                             </button>
@@ -1760,7 +1760,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 onclick={handleGenerate}
                                 disabled={!sourceCode.trim() &&
                                     uploadedFiles.length === 0}
-                                class="bg-[#4285F4] text-white px-8 py-3 rounded-full font-bold hover:bg-[#1A73E8] hover:shadow-lg transition-colors text-lg flex items-center gap-2 disabled:opacity-50"
+                                class="bg-primary text-white px-8 py-3 rounded-full font-bold hover:bg-primary/90 hover:shadow-lg transition-colors text-lg flex items-center gap-2 disabled:opacity-50"
                             >
                                 <Sparkles size={20} />
                                 {$t("ai_generator.generate_button")}
@@ -1768,153 +1768,18 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         {/if}
                     </div>
                 </div>
-            {:else if generationStep === "generating"}
-                <div
-                    class="min-h-full flex flex-col items-center justify-center gap-6"
-                    in:fade
-                    aria-live="polite"
-                >
-                    <div class="relative">
-                        <div
-                            class="absolute inset-0 bg-[#4285F4] rounded-full blur-xl opacity-20 animate-pulse"
-                            aria-hidden="true"
-                        ></div>
-                        <Loader2
-                            class="w-16 h-16 text-[#4285F4] animate-spin relative z-10"
-                            aria-hidden="true"
-                        />
-                    </div>
-                    <h3
-                        class="text-xl font-bold text-[#3C4043] dark:text-dark-text"
-                    >
-                        {$t("ai_generator.analyzing")}
-                    </h3>
-                    <p
-                        class="text-[#5F6368] dark:text-dark-text-muted text-center"
-                    >
-                        {@html $t("ai_generator.analyzing_desc").replace(
-                            "\n",
-                            "<br />",
-                        )}
-                    </p>
-
-                    <!-- Thinking Display -->
-                    {#if showThinking && thinkingContent}
-                        <div class="w-full max-w-2xl mt-6">
-                            <details
-                                open
-                                class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden"
-                            >
-                                <summary
-                                    class="px-4 py-3 cursor-pointer hover:bg-[#F8F9FA] dark:hover:bg-white/5 flex items-center gap-2 font-medium text-[#5F6368] dark:text-dark-text-muted"
-                                >
-                                    <Sparkles
-                                        size={16}
-                                        class="text-[#4285F4]"
-                                    />
-                                    {$t("ai_generator.thinking_process")}
-                                </summary>
-                                <div
-                                    class="px-4 py-3 text-xs text-[#5F6368] dark:text-dark-text-muted font-mono bg-[#F8F9FA] dark:bg-dark-bg/50 max-h-48 overflow-y-auto border-t border-[#E8EAED] dark:border-dark-border"
-                                >
-                                    {thinkingContent}
-                                </div>
-                            </details>
+                    {:else}
+                        <div class="rounded-2xl border border-dashed border-border dark:border-dark-border bg-white/70 dark:bg-dark-surface/60 p-6 text-sm text-muted-foreground dark:text-dark-text-muted">
+                            {$t("ai_generator.output_panel_notice")}
                         </div>
                     {/if}
-
-                    <!-- Preview of raw stream just to show activity -->
-                    <div
-                        class="w-full max-w-2xl h-32 overflow-hidden text-xs text-[#9AA0A6] dark:text-dark-text-muted font-mono text-center opacity-50 relative mt-8"
-                    >
-                        <div
-                            class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#F8F9FA] dark:from-dark-bg to-transparent"
-                        ></div>
-                        {generatedContent.slice(-500)}
-                    </div>
-                </div>
-            {:else if generationStep === "review" && parsedData}
-                <div class="min-h-full flex flex-col gap-6" in:fade>
-                    <div
-                        class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
-                    >
-                        <div>
-                            <h3
-                                class="text-xl font-bold text-[#202124] dark:text-dark-text"
-                            >
-                                {$t("ai_generator.preview_title")}
-                            </h3>
-                            <p
-                                class="text-[#5F6368] dark:text-dark-text-muted text-sm"
-                            >
-                                {$t("ai_generator.preview_subtitle")}
-                            </p>
-                        </div>
-                        <div class="flex gap-3">
-                            <button
-                                onclick={() => (generationStep = "input")}
-                                class="px-6 py-2 text-[#5F6368] dark:text-dark-text-muted font-bold hover:bg-[#E8EAED] dark:hover:bg-dark-border rounded-full transition-all"
-                            >
-                                {$t("ai_generator.back")}
-                            </button>
-                            <button
-                                onclick={handleSave}
-                                disabled={loading}
-                                class="bg-[#34A853] text-white px-8 py-2 rounded-full font-bold hover:bg-[#1E8E3E] shadow-md transition-all flex items-center gap-2"
-                            >
-                                {#if loading}
-                                    <Loader2 class="animate-spin" size={18} />
-                                    {$t("ai_generator.saving")}
-                                {:else}
-                                    <ArrowRight size={18} />
-                                    {$t("ai_generator.create_button")}
-                                {/if}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div
-                        class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-8 shadow-sm"
-                    >
-                        <h1
-                            class="text-3xl font-bold text-[#202124] dark:text-dark-text mb-4"
-                        >
-                            {parsedData.title}
-                        </h1>
-                        <p
-                            class="text-lg text-[#5F6368] dark:text-dark-text-muted mb-8"
-                        >
-                            {parsedData.description}
-                        </p>
-
-                        <div class="space-y-8">
-                            {#each parsedData.steps as step, i}
-                                <div
-                                    class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
-                                >
-                                    <h4
-                                        class="font-bold text-lg text-[#202124] dark:text-dark-text mb-2"
-                                    >
-                                        {i + 1}. {step.title}
-                                    </h4>
-                                    <div
-                                        class="text-[#3C4043] dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
-                                    >
-                                        {step.content}
-                                    </div>
-                                </div>
-                            {/each}
-                        </div>
-                    </div>
-                </div>
-            {/if}
-        {:else}
-            {#if advancedStep === "input"}
-                <div class="min-h-full flex flex-col gap-4" in:fade>
+                {:else}
+                    {#if advancedStep === "input"}
+                        <div class="min-h-full flex flex-col gap-4" in:fade>
                     <div class="flex items-center justify-between">
                         <label
                             for="source-code"
-                            class="text-[#5F6368] dark:text-dark-text-muted font-bold text-lg"
+                            class="text-muted-foreground dark:text-dark-text-muted font-bold text-lg"
                             >{$t("ai_generator.input_label")}</label
                         >
 
@@ -1929,7 +1794,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             />
                             <button
                                 onclick={() => fileInput.click()}
-                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-xl text-sm font-bold text-[#4285F4] hover:bg-[#4285F4]/5 transition-all shadow-sm"
+                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl text-sm font-bold text-primary hover:bg-primary/5 transition-all shadow-sm"
                             >
                                 <Upload size={18} />
                                 {$t("ai_generator.upload_files") ||
@@ -1937,7 +1802,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             </button>
                         </div>
                     </div>
-                    <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
+                    <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
                         {$t("ai_generator.upload_limits", {
                             values: { maxFiles: MAX_FILES, maxZipFiles: MAX_ZIP_FILES, maxSizeMb: MAX_FILE_SIZE_MB }
                         })}
@@ -1951,14 +1816,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
 
                     <!-- Advanced Options -->
                     <div
-                        class="flex flex-col gap-4 mb-4 bg-white dark:bg-dark-surface/50 p-4 rounded-2xl border border-[#DADCE0] dark:border-dark-border shadow-sm"
+                        class="flex flex-col gap-4 mb-4 bg-white dark:bg-dark-surface/50 p-4 rounded-2xl border border-border dark:border-dark-border shadow-sm"
                     >
                         <!-- Duration Selection -->
                         <div class="flex flex-col gap-3">
                             <span
-                                class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted flex items-center gap-2"
+                                class="text-sm font-bold text-muted-foreground dark:text-dark-text-muted flex items-center gap-2"
                             >
-                                <Clock size={16} class="text-[#4285F4]" />
+                                <Clock size={16} class="text-primary" />
                                 {$t("ai_generator.duration_label")}
                             </span>
                             <div class="flex flex-wrap gap-2">
@@ -1967,8 +1832,8 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                         onclick={() => (handsOnDuration = d)}
                                         class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {handsOnDuration ===
                                         d
-                                            ? 'bg-[#4285F4] text-white border-[#4285F4] shadow-md'
-                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border hover:border-[#4285F4]'}"
+                                            ? 'bg-primary text-white border-primary shadow-md'
+                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
                                     >
                                         {d === "custom"
                                             ? $t("ai_generator.duration_custom")
@@ -1986,10 +1851,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                             type="number"
                                             bind:value={customDuration}
                                             placeholder="10"
-                                            class="w-20 bg-white dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/10"
+                                            class="w-20 bg-white dark:bg-dark-bg border border-border dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                                         />
                                         <span
-                                            class="text-xs font-medium text-[#5F6368] dark:text-dark-text-muted"
+                                            class="text-xs font-medium text-muted-foreground dark:text-dark-text-muted"
                                             >{$t("ai_generator.mins")}</span
                                         >
                                     </div>
@@ -1998,7 +1863,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         </div>
 
                         <div
-                            class="h-px bg-[#F1F3F4] dark:bg-dark-border w-full"
+                            class="h-px bg-border dark:bg-dark-border w-full"
                         ></div>
 
                         <div class="flex flex-wrap gap-6">
@@ -2008,10 +1873,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 <input
                                     type="checkbox"
                                     bind:checked={advancedUseGoogleSearch}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
                                 />
                                 <span
-                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
+                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
                                 >
                                     {$t("ai_generator.google_search")}
                                 </span>
@@ -2023,10 +1888,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 <input
                                     type="checkbox"
                                     bind:checked={advancedUseUrlContext}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
                                 />
                                 <span
-                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
+                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
                                 >
                                     {$t("ai_generator.url_context")}
                                 </span>
@@ -2039,10 +1904,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     type="checkbox"
                                     bind:checked={enableCodeServer}
                                     disabled={uploadedFiles.length === 0}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
                                 />
                                 <span
-                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4] {uploadedFiles.length === 0 ? 'opacity-50' : ''}"
+                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary {uploadedFiles.length === 0 ? 'opacity-50' : ''}"
                                 >
                                     Create Workspace
                                 </span>
@@ -2055,18 +1920,18 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                             type="radio"
                                             bind:group={workspaceStructureType}
                                             value="branch"
-                                            class="w-4 h-4 text-[#4285F4] focus:ring-[#4285F4]"
+                                            class="w-4 h-4 text-primary focus:ring-primary"
                                         />
-                                        <span class="text-[#5F6368] dark:text-dark-text-muted">Branch-based (Git branches)</span>
+                                        <span class="text-muted-foreground dark:text-dark-text-muted">Branch-based (Git branches)</span>
                                     </label>
                                     <label class="flex items-center gap-2 cursor-pointer">
                                         <input
                                             type="radio"
                                             bind:group={workspaceStructureType}
                                             value="folder"
-                                            class="w-4 h-4 text-[#4285F4] focus:ring-[#4285F4]"
+                                            class="w-4 h-4 text-primary focus:ring-primary"
                                         />
-                                        <span class="text-[#5F6368] dark:text-dark-text-muted">Folder-based (Directories)</span>
+                                        <span class="text-muted-foreground dark:text-dark-text-muted">Folder-based (Directories)</span>
                                     </label>
                                 </div>
                             {/if}
@@ -2077,10 +1942,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 <input
                                     type="checkbox"
                                     bind:checked={showThinking}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-[#4285F4] focus:ring-[#4285F4]"
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
                                 />
                                 <span
-                                    class="text-sm font-medium text-[#5F6368] dark:text-dark-text-muted group-hover:text-[#4285F4]"
+                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
                                 >
                                     {$t("ai_generator.show_thinking")}
                                 </span>
@@ -2090,14 +1955,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
 
                     {#if advancedUseGoogleSearch || advancedUseUrlContext}
                         <div
-                            class="flex items-start gap-2 p-3 bg-[#FEF7E0] dark:bg-[#F9AB00]/10 border border-[#F9AB00]/30 rounded-lg mb-4"
+                            class="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 rounded-lg mb-4"
                         >
                             <Info
                                 size={16}
-                                class="text-[#F9AB00] mt-0.5 shrink-0"
+                                class="text-amber-500 mt-0.5 shrink-0"
                             />
                             <p
-                                class="text-xs text-[#3C4043] dark:text-dark-text"
+                                class="text-xs text-foreground dark:text-dark-text"
                             >
                                 <strong
                                     >{$t("ai_generator.billing_notice")}</strong
@@ -2111,19 +1976,19 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         id="source-code"
                         bind:value={sourceCode}
                         placeholder={$t("ai_generator.placeholder")}
-                        class="flex-1 min-h-[320px] lg:min-h-[420px] w-full bg-white dark:bg-dark-surface text-[#3C4043] dark:text-dark-text border border-[#DADCE0] dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 outline-none resize-none shadow-sm transition-all"
+                        class="flex-1 min-h-[320px] lg:min-h-[420px] w-full bg-white dark:bg-dark-surface text-foreground dark:text-dark-text border border-border dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none resize-none shadow-sm transition-all"
                     ></textarea>
 
-                    <div class="flex justify-end pt-2">
+                        <div class="flex justify-end pt-2">
                         {#if !apiKey}
                             <p
-                                class="text-[#EA4335] font-bold mr-4 self-center"
+                                class="text-red-500 font-bold mr-4 self-center"
                             >
                                 {$t("ai_generator.api_key_required")}
                             </p>
                             <button
                                 disabled
-                                class="bg-[#E8EAED] dark:bg-dark-border text-[#9AA0A6] dark:text-dark-text-muted px-8 py-3 rounded-full font-bold cursor-not-allowed"
+                                class="bg-accent/80 dark:bg-dark-border text-muted-foreground dark:text-dark-text-muted px-8 py-3 rounded-full font-bold cursor-not-allowed"
                             >
                                 {$t("common.create")}
                             </button>
@@ -2133,7 +1998,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 disabled={advancedLoading ||
                                     (!sourceCode.trim() &&
                                         uploadedFiles.length === 0)}
-                                class="bg-[#4285F4] text-white px-8 py-3 rounded-full font-bold hover:bg-[#1A73E8] hover:shadow-lg transition-colors text-lg flex items-center gap-2 disabled:opacity-50"
+                                class="bg-primary text-white px-8 py-3 rounded-full font-bold hover:bg-primary/90 hover:shadow-lg transition-colors text-lg flex items-center gap-2 disabled:opacity-50"
                             >
                                 <Sparkles size={20} />
                                 {$t("ai_generator.plan_button")}
@@ -2141,95 +2006,262 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         {/if}
                     </div>
                 </div>
-            {:else if advancedStep === "planning" || advancedStep === "drafting" || advancedStep === "reviewing" || advancedStep === "revising"}
-                <div
-                    class="min-h-full flex flex-col items-center justify-center gap-6"
-                    in:fade
-                    aria-live="polite"
-                >
-                    <div class="relative">
-                        <div
-                            class="absolute inset-0 bg-[#4285F4] rounded-full blur-xl opacity-20 animate-pulse"
-                            aria-hidden="true"
-                        ></div>
-                        <Loader2
-                            class="w-16 h-16 text-[#4285F4] animate-spin relative z-10"
-                            aria-hidden="true"
-                        />
-                    </div>
-                    <h3
-                        class="text-xl font-bold text-[#3C4043] dark:text-dark-text"
-                    >
-                        {#if advancedStep === "planning"}
-                            {$t("ai_generator.plan_loading")}
-                        {:else if advancedStep === "drafting"}
-                            {$t("ai_generator.draft_loading")}
-                        {:else if advancedStep === "reviewing"}
-                            {$t("ai_generator.review_loading")}
-                        {:else}
-                            {$t("ai_generator.revise_loading")}
-                        {/if}
-                    </h3>
-                    <p
-                        class="text-[#5F6368] dark:text-dark-text-muted text-center"
-                    >
-                        {#if advancedStep === "planning"}
-                            {$t("ai_generator.plan_loading_desc")}
-                        {:else if advancedStep === "drafting"}
-                            {$t("ai_generator.draft_loading_desc")}
-                        {:else if advancedStep === "reviewing"}
-                            {$t("ai_generator.review_loading_desc")}
-                        {:else}
-                            {$t("ai_generator.revise_loading_desc")}
-                        {/if}
-                    </p>
-
-                    {#if showThinking && advancedThinkingContent}
-                        <div class="w-full max-w-2xl mt-6">
-                            <details
-                                open
-                                class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden"
-                            >
-                                <summary
-                                    class="px-4 py-3 cursor-pointer hover:bg-[#F8F9FA] dark:hover:bg-white/5 flex items-center gap-2 font-medium text-[#5F6368] dark:text-dark-text-muted"
-                                >
-                                    <Sparkles
-                                        size={16}
-                                        class="text-[#4285F4]"
-                                    />
-                                    {$t("ai_generator.thinking_process")}
-                                </summary>
-                                <div
-                                    class="px-4 py-3 text-xs text-[#5F6368] dark:text-dark-text-muted font-mono bg-[#F8F9FA] dark:bg-dark-bg/50 max-h-48 overflow-y-auto border-t border-[#E8EAED] dark:border-dark-border"
-                                >
-                                    {advancedThinkingContent}
-                                </div>
-                            </details>
+                    {:else}
+                        <div class="rounded-2xl border border-dashed border-border dark:border-dark-border bg-white/70 dark:bg-dark-surface/60 p-6 text-sm text-muted-foreground dark:text-dark-text-muted">
+                            {$t("ai_generator.output_panel_notice")}
                         </div>
                     {/if}
+                {/if}
+            </div>
 
-                    <div
-                        class="w-full max-w-2xl h-32 overflow-hidden text-xs text-[#9AA0A6] dark:text-dark-text-muted font-mono text-center opacity-50 relative mt-8"
-                    >
+            <div class="flex flex-col w-full lg:w-1/2 min-h-0 overflow-y-auto bg-white/90 dark:bg-dark-surface/60 border border-border dark:border-dark-border rounded-2xl p-6">
+                {#if generationMode === "basic"}
+                    {#if generationStep === "input"}
+                        <div class="flex-1 flex flex-col items-center justify-center text-center gap-3 text-muted-foreground dark:text-dark-text-muted">
+                            <div class="text-lg font-bold text-foreground dark:text-dark-text">
+                                {$t("ai_generator.output_placeholder_title")}
+                            </div>
+                            <p class="text-sm max-w-sm">
+                                {$t("ai_generator.output_placeholder_desc")}
+                            </p>
+                        </div>
+                    {:else if generationStep === "generating"}
                         <div
-                            class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-[#F8F9FA] dark:from-dark-bg to-transparent"
-                        ></div>
-                        {advancedStreamContent.slice(-500)}
-                    </div>
-                </div>
-            {:else if advancedStep === "plan" && advancedPlanData}
-                <div class="min-h-full flex flex-col gap-6" in:fade>
+                            class="min-h-full flex flex-col items-center justify-center gap-6"
+                            in:fade
+                            aria-live="polite"
+                        >
+                            <div class="relative">
+                                <div
+                                    class="absolute inset-0 bg-primary rounded-full blur-xl opacity-20 animate-pulse"
+                                    aria-hidden="true"
+                                ></div>
+                                <Loader2
+                                    class="w-16 h-16 text-primary animate-spin relative z-10"
+                                    aria-hidden="true"
+                                />
+                            </div>
+                            <h3
+                                class="text-xl font-bold text-foreground dark:text-dark-text"
+                            >
+                                {$t("ai_generator.analyzing")}
+                            </h3>
+                            <p
+                                class="text-muted-foreground dark:text-dark-text-muted text-center"
+                            >
+                                {@html $t("ai_generator.analyzing_desc").replace(
+                                    "\n",
+                                    "<br />",
+                                )}
+                            </p>
+
+                            {#if showThinking && thinkingContent}
+                                <div class="w-full max-w-2xl mt-6">
+                                    <details
+                                        open
+                                        class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border shadow-sm overflow-hidden"
+                                    >
+                                        <summary
+                                            class="px-4 py-3 cursor-pointer hover:bg-accent/60 dark:hover:bg-white/5 flex items-center gap-2 font-medium text-muted-foreground dark:text-dark-text-muted"
+                                        >
+                                            <Sparkles
+                                                size={16}
+                                                class="text-primary"
+                                            />
+                                            {$t("ai_generator.thinking_process")}
+                                        </summary>
+                                        <div
+                                            class="px-4 py-3 text-xs text-muted-foreground dark:text-dark-text-muted font-mono bg-accent/60 dark:bg-dark-bg/50 max-h-48 overflow-y-auto border-t border-border dark:border-dark-border"
+                                        >
+                                            {thinkingContent}
+                                        </div>
+                                    </details>
+                                </div>
+                            {/if}
+
+                            <div
+                                class="w-full max-w-2xl h-32 overflow-hidden text-xs text-muted-foreground dark:text-dark-text-muted font-mono text-center opacity-50 relative mt-8"
+                            >
+                                <div
+                                    class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-accent/60 dark:from-dark-bg to-transparent"
+                                ></div>
+                                {generatedContent.slice(-500)}
+                            </div>
+                        </div>
+                    {:else if generationStep === "review" && parsedData}
+                        <div class="min-h-full flex flex-col gap-6" in:fade>
+                            <div
+                                class="flex items-center justify-between border-b border-border dark:border-dark-border pb-4"
+                            >
+                                <div>
+                                    <h3
+                                        class="text-xl font-bold text-foreground dark:text-dark-text"
+                                    >
+                                        {$t("ai_generator.preview_title")}
+                                    </h3>
+                                    <p
+                                        class="text-muted-foreground dark:text-dark-text-muted text-sm"
+                                    >
+                                        {$t("ai_generator.preview_subtitle")}
+                                    </p>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button
+                                        onclick={() => (generationStep = "input")}
+                                        class="px-6 py-2 text-muted-foreground dark:text-dark-text-muted font-bold hover:bg-accent/80 dark:hover:bg-dark-border rounded-full transition-all"
+                                    >
+                                        {$t("ai_generator.back")}
+                                    </button>
+                                    <button
+                                        onclick={handleSave}
+                                        disabled={loading}
+                                        class="bg-emerald-600 text-white px-8 py-2 rounded-full font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2"
+                                    >
+                                        {#if loading}
+                                            <Loader2 class="animate-spin" size={18} />
+                                            {$t("ai_generator.saving")}
+                                        {:else}
+                                            <ArrowRight size={18} />
+                                            {$t("ai_generator.create_button")}
+                                        {/if}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div
+                                class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
+                            >
+                                <h1
+                                    class="text-3xl font-bold text-foreground dark:text-dark-text mb-4"
+                                >
+                                    {parsedData.title}
+                                </h1>
+                                <p
+                                    class="text-lg text-muted-foreground dark:text-dark-text-muted mb-8"
+                                >
+                                    {parsedData.description}
+                                </p>
+
+                                <div class="space-y-8">
+                                    {#each parsedData.steps as step, i}
+                                        <div
+                                            class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
+                                        >
+                                            <h4
+                                                class="font-bold text-lg text-foreground dark:text-dark-text mb-2"
+                                            >
+                                                {i + 1}. {step.title}
+                                            </h4>
+                                            <div
+                                                class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                            >
+                                                {step.content}
+                                            </div>
+                                        </div>
+                                    {/each}
+                                </div>
+                            </div>
+                        </div>
+                    {/if}
+                {:else}
+                    {#if advancedStep === "input"}
+                        <div class="flex-1 flex flex-col items-center justify-center text-center gap-3 text-muted-foreground dark:text-dark-text-muted">
+                            <div class="text-lg font-bold text-foreground dark:text-dark-text">
+                                {$t("ai_generator.output_placeholder_title")}
+                            </div>
+                            <p class="text-sm max-w-sm">
+                                {$t("ai_generator.output_placeholder_desc")}
+                            </p>
+                        </div>
+                    {:else if advancedStep === "planning" || advancedStep === "drafting" || advancedStep === "reviewing" || advancedStep === "revising"}
+                        <div
+                            class="min-h-full flex flex-col items-center justify-center gap-6"
+                            in:fade
+                            aria-live="polite"
+                        >
+                            <div class="relative">
+                                <div
+                                    class="absolute inset-0 bg-primary rounded-full blur-xl opacity-20 animate-pulse"
+                                    aria-hidden="true"
+                                ></div>
+                                <Loader2
+                                    class="w-16 h-16 text-primary animate-spin relative z-10"
+                                    aria-hidden="true"
+                                />
+                            </div>
+                            <h3
+                                class="text-xl font-bold text-foreground dark:text-dark-text"
+                            >
+                                {#if advancedStep === "planning"}
+                                    {$t("ai_generator.plan_loading")}
+                                {:else if advancedStep === "drafting"}
+                                    {$t("ai_generator.draft_loading")}
+                                {:else if advancedStep === "reviewing"}
+                                    {$t("ai_generator.review_loading")}
+                                {:else}
+                                    {$t("ai_generator.revise_loading")}
+                                {/if}
+                            </h3>
+                            <p
+                                class="text-muted-foreground dark:text-dark-text-muted text-center"
+                            >
+                                {#if advancedStep === "planning"}
+                                    {$t("ai_generator.plan_loading_desc")}
+                                {:else if advancedStep === "drafting"}
+                                    {$t("ai_generator.draft_loading_desc")}
+                                {:else if advancedStep === "reviewing"}
+                                    {$t("ai_generator.review_loading_desc")}
+                                {:else}
+                                    {$t("ai_generator.revise_loading_desc")}
+                                {/if}
+                            </p>
+
+                            {#if showThinking && advancedThinkingContent}
+                                <div class="w-full max-w-2xl mt-6">
+                                    <details
+                                        open
+                                        class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border shadow-sm overflow-hidden"
+                                    >
+                                        <summary
+                                            class="px-4 py-3 cursor-pointer hover:bg-accent/60 dark:hover:bg-white/5 flex items-center gap-2 font-medium text-muted-foreground dark:text-dark-text-muted"
+                                        >
+                                            <Sparkles
+                                                size={16}
+                                                class="text-primary"
+                                            />
+                                            {$t("ai_generator.thinking_process")}
+                                        </summary>
+                                        <div
+                                            class="px-4 py-3 text-xs text-muted-foreground dark:text-dark-text-muted font-mono bg-accent/60 dark:bg-dark-bg/50 max-h-48 overflow-y-auto border-t border-border dark:border-dark-border"
+                                        >
+                                            {advancedThinkingContent}
+                                        </div>
+                                    </details>
+                                </div>
+                            {/if}
+
+                            <div
+                                class="w-full max-w-2xl h-32 overflow-hidden text-xs text-muted-foreground dark:text-dark-text-muted font-mono text-center opacity-50 relative mt-8"
+                            >
+                                <div
+                                    class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-accent/60 dark:from-dark-bg to-transparent"
+                                ></div>
+                                {advancedStreamContent.slice(-500)}
+                            </div>
+                        </div>
+                    {:else if advancedStep === "plan" && advancedPlanData}
+                        <div class="min-h-full flex flex-col gap-6" in:fade>
                     <div
-                        class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
+                        class="flex items-center justify-between border-b border-border dark:border-dark-border pb-4"
                     >
                         <div>
                             <h3
-                                class="text-xl font-bold text-[#202124] dark:text-dark-text"
+                                class="text-xl font-bold text-foreground dark:text-dark-text"
                             >
                                 {$t("ai_generator.plan_title")}
                             </h3>
                             <p
-                                class="text-[#5F6368] dark:text-dark-text-muted text-sm"
+                                class="text-muted-foreground dark:text-dark-text-muted text-sm"
                             >
                                 {$t("ai_generator.plan_subtitle")}
                             </p>
@@ -2237,14 +2269,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         <div class="flex gap-3">
                             <button
                                 onclick={() => (advancedStep = "input")}
-                                class="px-6 py-2 text-[#5F6368] dark:text-dark-text-muted font-bold hover:bg-[#E8EAED] dark:hover:bg-dark-border rounded-full transition-all"
+                                class="px-6 py-2 text-muted-foreground dark:text-dark-text-muted font-bold hover:bg-accent/80 dark:hover:bg-dark-border rounded-full transition-all"
                             >
                                 {$t("ai_generator.back")}
                             </button>
                             <button
                                 onclick={handleAdvancedDraft}
                                 disabled={advancedLoading}
-                                class="bg-[#4285F4] text-white px-8 py-2 rounded-full font-bold hover:shadow-md transition-all flex items-center gap-2"
+                                class="bg-primary text-white px-8 py-2 rounded-full font-bold hover:shadow-md transition-all flex items-center gap-2"
                             >
                                 <ArrowRight size={18} />
                                 {$t("ai_generator.draft_button")}
@@ -2257,39 +2289,39 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         onmouseup={handlePlanSelection}
                         onkeyup={handlePlanSelection}
                         onscroll={clearPlanSelection}
-                        class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-8 shadow-sm"
+                        class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
                     >
                         <div class="space-y-6">
                             <div
-                                class="flex items-start gap-2 p-3 bg-[#F8F9FA] dark:bg-dark-bg border border-[#E8EAED] dark:border-dark-border rounded-lg"
+                                class="flex items-start gap-2 p-3 bg-accent/60 dark:bg-dark-bg border border-border dark:border-dark-border rounded-lg"
                             >
                                 <Info
                                     size={16}
-                                    class="text-[#4285F4] mt-0.5 shrink-0"
+                                    class="text-primary mt-0.5 shrink-0"
                                 />
                                 <p
-                                    class="text-xs text-[#3C4043] dark:text-dark-text"
+                                    class="text-xs text-foreground dark:text-dark-text"
                                 >
                                     {$t("ai_generator.plan_comment_hint")}
                                 </p>
                             </div>
-                            <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                            <div class="border border-border dark:border-dark-border rounded-lg p-6">
                                 <h1
-                                    class="text-2xl font-bold text-[#202124] dark:text-dark-text mb-2"
+                                    class="text-2xl font-bold text-foreground dark:text-dark-text mb-2"
                                 >
                                     {advancedPlanData.title}
                                 </h1>
                                 <p
-                                    class="text-sm text-[#5F6368] dark:text-dark-text-muted"
+                                    class="text-sm text-muted-foreground dark:text-dark-text-muted"
                                 >
                                     {advancedPlanData.description}
                                 </p>
                                 {#if advancedPlanData.audience}
                                     <p
-                                        class="mt-3 text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                        class="mt-3 text-sm text-foreground dark:text-dark-text-muted"
                                     >
                                         <span
-                                            class="font-semibold text-[#202124] dark:text-dark-text"
+                                            class="font-semibold text-foreground dark:text-dark-text"
                                             >{$t(
                                                 "ai_generator.plan_audience_label",
                                             )}</span
@@ -2300,16 +2332,16 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             </div>
 
                             {#if advancedPlanData.learning_objectives.length}
-                                <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                                <div class="border border-border dark:border-dark-border rounded-lg p-6">
                                     <h4
-                                        class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                        class="font-bold text-foreground dark:text-dark-text mb-3"
                                     >
                                         {$t(
                                             "ai_generator.plan_objectives_label",
                                         )}
                                     </h4>
                                     <ul
-                                        class="list-disc ml-5 text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                        class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
                                     >
                                         {#each advancedPlanData.learning_objectives as objective}
                                             <li>{objective}</li>
@@ -2319,16 +2351,16 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             {/if}
 
                             {#if advancedPlanData.prerequisites.length}
-                                <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                                <div class="border border-border dark:border-dark-border rounded-lg p-6">
                                     <h4
-                                        class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                        class="font-bold text-foreground dark:text-dark-text mb-3"
                                     >
                                         {$t(
                                             "ai_generator.plan_prerequisites_label",
                                         )}
                                     </h4>
                                     <ul
-                                        class="list-disc ml-5 text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                        class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
                                     >
                                         {#each advancedPlanData.prerequisites as item}
                                             <li>{item}</li>
@@ -2337,9 +2369,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 </div>
                             {/if}
 
-                            <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                            <div class="border border-border dark:border-dark-border rounded-lg p-6">
                                 <h4
-                                    class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                    class="font-bold text-foreground dark:text-dark-text mb-3"
                                 >
                                     {$t(
                                         "ai_generator.plan_environment_label",
@@ -2347,14 +2379,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 </h4>
                                 {#if advancedPlanData.environment_setup.os_requirements.length}
                                     <p
-                                        class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                        class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
                                     >
                                         {$t(
                                             "ai_generator.plan_environment_os",
                                         )}
                                     </p>
                                     <p
-                                        class="text-sm text-[#3C4043] dark:text-dark-text-muted mb-3"
+                                        class="text-sm text-foreground dark:text-dark-text-muted mb-3"
                                     >
                                         {advancedPlanData.environment_setup.os_requirements.join(
                                             ", ",
@@ -2363,14 +2395,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 {/if}
                                 {#if advancedPlanData.environment_setup.tools.length}
                                     <p
-                                        class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                        class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
                                     >
                                         {$t(
                                             "ai_generator.plan_environment_tools",
                                         )}
                                     </p>
                                     <p
-                                        class="text-sm text-[#3C4043] dark:text-dark-text-muted mb-3"
+                                        class="text-sm text-foreground dark:text-dark-text-muted mb-3"
                                     >
                                         {advancedPlanData.environment_setup.tools.join(
                                             ", ",
@@ -2379,14 +2411,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 {/if}
                                 {#if advancedPlanData.environment_setup.env_vars.length}
                                     <p
-                                        class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                        class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
                                     >
                                         {$t(
                                             "ai_generator.plan_environment_envvars",
                                         )}
                                     </p>
                                     <p
-                                        class="text-sm text-[#3C4043] dark:text-dark-text-muted mb-3"
+                                        class="text-sm text-foreground dark:text-dark-text-muted mb-3"
                                     >
                                         {advancedPlanData.environment_setup.env_vars.join(
                                             ", ",
@@ -2395,28 +2427,28 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 {/if}
                                 {#if advancedPlanData.environment_setup.ide}
                                     <p
-                                        class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                        class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
                                     >
                                         {$t(
                                             "ai_generator.plan_environment_ide",
                                         )}
                                     </p>
                                     <p
-                                        class="text-sm text-[#3C4043] dark:text-dark-text-muted mb-3"
+                                        class="text-sm text-foreground dark:text-dark-text-muted mb-3"
                                     >
                                         {advancedPlanData.environment_setup.ide}
                                     </p>
                                 {/if}
                                 {#if advancedPlanData.environment_setup.ide_plugins.length}
                                     <p
-                                        class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                        class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
                                     >
                                         {$t(
                                             "ai_generator.plan_environment_plugins",
                                         )}
                                     </p>
                                     <p
-                                        class="text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                        class="text-sm text-foreground dark:text-dark-text-muted"
                                     >
                                         {advancedPlanData.environment_setup.ide_plugins.join(
                                             ", ",
@@ -2426,9 +2458,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             </div>
 
                             {#if advancedPlanData.search_terms.length}
-                                <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                                <div class="border border-border dark:border-dark-border rounded-lg p-6">
                                     <h4
-                                        class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                        class="font-bold text-foreground dark:text-dark-text mb-3"
                                     >
                                         {$t(
                                             "ai_generator.plan_search_terms_label",
@@ -2437,7 +2469,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     <div class="flex flex-wrap gap-2">
                                         {#each advancedPlanData.search_terms as term}
                                             <span
-                                                class="px-3 py-1 rounded-full bg-[#E8EAED] dark:bg-dark-border text-xs font-semibold text-[#3C4043] dark:text-dark-text"
+                                                class="px-3 py-1 rounded-full bg-accent/80 dark:bg-dark-border text-xs font-semibold text-foreground dark:text-dark-text"
                                             >
                                                 {term}
                                             </span>
@@ -2447,9 +2479,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             {/if}
 
                             {#if advancedPlanData.steps.length}
-                                <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                                <div class="border border-border dark:border-dark-border rounded-lg p-6">
                                     <h4
-                                        class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                        class="font-bold text-foreground dark:text-dark-text mb-3"
                                     >
                                         {$t(
                                             "ai_generator.plan_steps_label",
@@ -2458,21 +2490,21 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     <div class="space-y-4">
                                         {#each advancedPlanData.steps as step, i}
                                             <div
-                                                class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-4"
+                                                class="border border-border dark:border-dark-border rounded-lg p-4"
                                             >
                                                 <h5
-                                                    class="font-bold text-[#202124] dark:text-dark-text"
+                                                    class="font-bold text-foreground dark:text-dark-text"
                                                 >
                                                     {i + 1}. {step.title}
                                                 </h5>
                                                 <p
-                                                    class="text-sm text-[#3C4043] dark:text-dark-text-muted mt-2"
+                                                    class="text-sm text-foreground dark:text-dark-text-muted mt-2"
                                                 >
                                                     {step.goal}
                                                 </p>
                                                 {#if step.files.length}
                                                     <p
-                                                        class="text-xs text-[#5F6368] dark:text-dark-text-muted mt-2"
+                                                        class="text-xs text-muted-foreground dark:text-dark-text-muted mt-2"
                                                     >
                                                         <span
                                                             class="font-semibold"
@@ -2486,7 +2518,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                     </p>
                                                 {/if}
                                                 <p
-                                                    class="text-xs text-[#5F6368] dark:text-dark-text-muted mt-1"
+                                                    class="text-xs text-muted-foreground dark:text-dark-text-muted mt-1"
                                                 >
                                                     <span
                                                         class="font-semibold"
@@ -2501,9 +2533,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     </div>
                                 </div>
                             {/if}
-                            <div class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6">
+                            <div class="border border-border dark:border-dark-border rounded-lg p-6">
                                 <h4
-                                    class="font-bold text-[#202124] dark:text-dark-text mb-3"
+                                    class="font-bold text-foreground dark:text-dark-text mb-3"
                                 >
                                     {$t("ai_generator.plan_comment_label")}
                                 </h4>
@@ -2511,22 +2543,22 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     <div class="space-y-3">
                                         {#each planComments as comment}
                                             <div
-                                                class="border border-[#E8EAED] dark:border-dark-border rounded-lg p-4"
+                                                class="border border-border dark:border-dark-border rounded-lg p-4"
                                             >
                                                 <p
-                                                    class="text-[11px] font-semibold uppercase text-[#5F6368] dark:text-dark-text-muted"
+                                                    class="text-[11px] font-semibold uppercase text-muted-foreground dark:text-dark-text-muted"
                                                 >
                                                     {$t(
                                                         "ai_generator.plan_comment_selection_label",
                                                     )}
                                                 </p>
                                                 <p
-                                                    class="text-xs text-[#3C4043] dark:text-dark-text font-mono whitespace-pre-wrap line-clamp-3 mt-1"
+                                                    class="text-xs text-foreground dark:text-dark-text font-mono whitespace-pre-wrap line-clamp-3 mt-1"
                                                 >
                                                     {comment.quote}
                                                 </p>
                                                 <p
-                                                    class="text-sm text-[#202124] dark:text-dark-text mt-2"
+                                                    class="text-sm text-foreground dark:text-dark-text mt-2"
                                                 >
                                                     {comment.comment}
                                                 </p>
@@ -2535,7 +2567,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                         removePlanComment(
                                                             comment.id,
                                                         )}
-                                                    class="mt-3 text-xs font-semibold text-[#EA4335] hover:underline"
+                                                    class="mt-3 text-xs font-semibold text-red-500 hover:underline"
                                                 >
                                                     {$t(
                                                         "ai_generator.plan_comment_remove",
@@ -2546,7 +2578,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     </div>
                                 {:else}
                                     <p
-                                        class="text-xs text-[#9AA0A6] dark:text-dark-text-muted"
+                                        class="text-xs text-muted-foreground dark:text-dark-text-muted"
                                     >
                                         {$t("ai_generator.plan_comment_empty")}
                                     </p>
@@ -2556,18 +2588,18 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                     </div>
                     {#if planSelection}
                         <div
-                            class="fixed z-[60] w-80 max-w-[calc(100%-1.5rem)] bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl shadow-xl p-4"
+                            class="fixed z-[60] w-80 max-w-[calc(100%-1.5rem)] bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-xl p-4"
                             style="top: {planSelection.top}px; left: {planSelection.left}px;"
                             role="dialog"
                             aria-label={$t("ai_generator.plan_comment_title")}
                         >
                             <p
-                                class="text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
                             >
                                 {$t("ai_generator.plan_comment_title")}
                             </p>
                             <p
-                                class="text-xs text-[#3C4043] dark:text-dark-text font-mono whitespace-pre-wrap line-clamp-3 mt-2"
+                                class="text-xs text-foreground dark:text-dark-text font-mono whitespace-pre-wrap line-clamp-3 mt-2"
                             >
                                 {planSelection.text}
                             </p>
@@ -2583,19 +2615,19 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                         clearPlanSelection();
                                     }
                                 }}
-                                class="mt-3 w-full h-24 resize-none rounded-lg border border-[#DADCE0] dark:border-dark-border bg-white dark:bg-dark-surface text-sm text-[#202124] dark:text-dark-text px-3 py-2 outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/10"
+                                class="mt-3 w-full h-24 resize-none rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface text-sm text-foreground dark:text-dark-text px-3 py-2 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
                             ></textarea>
                             <div class="mt-3 flex justify-end gap-2">
                                 <button
                                     onclick={clearPlanSelection}
-                                    class="px-3 py-1.5 text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted hover:text-[#202124] dark:hover:text-dark-text"
+                                    class="px-3 py-1.5 text-xs font-semibold text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text"
                                 >
                                     {$t("ai_generator.plan_comment_cancel")}
                                 </button>
                                 <button
                                     onclick={addPlanComment}
                                     disabled={!planCommentDraft.trim()}
-                                    class="px-4 py-1.5 rounded-lg bg-[#4285F4] text-white text-xs font-semibold disabled:opacity-50"
+                                    class="px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-50"
                                 >
                                     {$t("ai_generator.plan_comment_add")}
                                 </button>
@@ -2606,16 +2638,16 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
             {:else if advancedStep === "draft" && advancedDraftData}
                 <div class="min-h-full flex flex-col gap-6" in:fade>
                     <div
-                        class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
+                        class="flex items-center justify-between border-b border-border dark:border-dark-border pb-4"
                     >
                         <div>
                             <h3
-                                class="text-xl font-bold text-[#202124] dark:text-dark-text"
+                                class="text-xl font-bold text-foreground dark:text-dark-text"
                             >
                                 {$t("ai_generator.draft_title")}
                             </h3>
                             <p
-                                class="text-[#5F6368] dark:text-dark-text-muted text-sm"
+                                class="text-muted-foreground dark:text-dark-text-muted text-sm"
                             >
                                 {$t("ai_generator.draft_subtitle")}
                             </p>
@@ -2623,14 +2655,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         <div class="flex gap-3">
                             <button
                                 onclick={() => (advancedStep = "plan")}
-                                class="px-6 py-2 text-[#5F6368] dark:text-dark-text-muted font-bold hover:bg-[#E8EAED] dark:hover:bg-dark-border rounded-full transition-all"
+                                class="px-6 py-2 text-muted-foreground dark:text-dark-text-muted font-bold hover:bg-accent/80 dark:hover:bg-dark-border rounded-full transition-all"
                             >
                                 {$t("ai_generator.back")}
                             </button>
                             <button
                                 onclick={handleAdvancedReviewAndRevise}
                                 disabled={advancedLoading}
-                                class="bg-[#34A853] text-white px-8 py-2 rounded-full font-bold hover:bg-[#1E8E3E] shadow-md transition-all flex items-center gap-2"
+                                class="bg-emerald-600 text-white px-8 py-2 rounded-full font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2"
                             >
                                 <ArrowRight size={18} />
                                 {$t("ai_generator.review_button")}
@@ -2639,15 +2671,15 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                     </div>
 
                     <div
-                        class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-8 shadow-sm"
+                        class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
                     >
                         <h1
-                            class="text-3xl font-bold text-[#202124] dark:text-dark-text mb-4"
+                            class="text-3xl font-bold text-foreground dark:text-dark-text mb-4"
                         >
                             {advancedDraftData.title}
                         </h1>
                         <p
-                            class="text-lg text-[#5F6368] dark:text-dark-text-muted mb-8"
+                            class="text-lg text-muted-foreground dark:text-dark-text-muted mb-8"
                         >
                             {advancedDraftData.description}
                         </p>
@@ -2655,15 +2687,15 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         <div class="space-y-8">
                             {#each advancedDraftData.steps as step, i}
                                 <div
-                                    class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
+                                    class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
                                 >
                                     <h4
-                                        class="font-bold text-lg text-[#202124] dark:text-dark-text mb-2"
+                                        class="font-bold text-lg text-foreground dark:text-dark-text mb-2"
                                     >
                                         {i + 1}. {step.title}
                                     </h4>
                                     <div
-                                        class="text-[#3C4043] dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                        class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
                                     >
                                         {step.content}
                                     </div>
@@ -2675,16 +2707,16 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
             {:else if advancedStep === "final" && advancedRevisedData}
                 <div class="min-h-full flex flex-col gap-6" in:fade>
                     <div
-                        class="flex items-center justify-between border-b border-[#E8EAED] dark:border-dark-border pb-4"
+                        class="flex items-center justify-between border-b border-border dark:border-dark-border pb-4"
                     >
                         <div>
                             <h3
-                                class="text-xl font-bold text-[#202124] dark:text-dark-text"
+                                class="text-xl font-bold text-foreground dark:text-dark-text"
                             >
                                 {$t("ai_generator.final_title")}
                             </h3>
                             <p
-                                class="text-[#5F6368] dark:text-dark-text-muted text-sm"
+                                class="text-muted-foreground dark:text-dark-text-muted text-sm"
                             >
                                 {$t("ai_generator.final_subtitle")}
                             </p>
@@ -2692,14 +2724,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         <div class="flex gap-3">
                             <button
                                 onclick={() => (advancedStep = "draft")}
-                                class="px-6 py-2 text-[#5F6368] dark:text-dark-text-muted font-bold hover:bg-[#E8EAED] dark:hover:bg-dark-border rounded-full transition-all"
+                                class="px-6 py-2 text-muted-foreground dark:text-dark-text-muted font-bold hover:bg-accent/80 dark:hover:bg-dark-border rounded-full transition-all"
                             >
                                 {$t("ai_generator.back")}
                             </button>
                             <button
                                 onclick={handleSaveAdvanced}
                                 disabled={advancedLoading}
-                                class="bg-[#34A853] text-white px-8 py-2 rounded-full font-bold hover:bg-[#1E8E3E] shadow-md transition-all flex items-center gap-2"
+                                class="bg-emerald-600 text-white px-8 py-2 rounded-full font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2"
                             >
                                 {#if advancedLoading}
                                     <Loader2 class="animate-spin" size={18} />
@@ -2715,15 +2747,15 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                     <div class="flex-1 overflow-y-auto space-y-6">
                         {#if advancedReviewData}
                             <div
-                                class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-6 shadow-sm"
+                                class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
                             >
                                 <h4
-                                    class="text-lg font-bold text-[#202124] dark:text-dark-text mb-2"
+                                    class="text-lg font-bold text-foreground dark:text-dark-text mb-2"
                                 >
                                     {$t("ai_generator.review_title")}
                                 </h4>
                                 <p
-                                    class="text-sm text-[#5F6368] dark:text-dark-text-muted"
+                                    class="text-sm text-muted-foreground dark:text-dark-text-muted"
                                 >
                                     {advancedReviewData.summary}
                                 </p>
@@ -2731,7 +2763,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 {#if advancedReviewData.issues.length}
                                     <div class="mt-4">
                                         <h5
-                                            class="text-sm font-bold text-[#202124] dark:text-dark-text mb-2"
+                                            class="text-sm font-bold text-foreground dark:text-dark-text mb-2"
                                         >
                                             {$t(
                                                 "ai_generator.review_issues_label",
@@ -2740,19 +2772,19 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                         <div class="space-y-3">
                                             {#each advancedReviewData.issues as issue}
                                                 <div
-                                                    class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-3"
+                                                    class="border border-border dark:border-dark-border rounded-lg p-3"
                                                 >
                                                     <div
-                                                        class="flex items-center gap-2 text-xs font-semibold text-[#5F6368] dark:text-dark-text-muted"
+                                                        class="flex items-center gap-2 text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
                                                     >
                                                         <span
-                                                            class="px-2 py-0.5 rounded-full bg-[#E8EAED] dark:bg-dark-border text-[#3C4043] dark:text-dark-text"
+                                                            class="px-2 py-0.5 rounded-full bg-accent/80 dark:bg-dark-border text-foreground dark:text-dark-text"
                                                             >{issue.severity}</span
                                                         >
                                                         <span>{issue.issue}</span>
                                                     </div>
                                                     <p
-                                                        class="text-xs text-[#5F6368] dark:text-dark-text-muted mt-2"
+                                                        class="text-xs text-muted-foreground dark:text-dark-text-muted mt-2"
                                                     >
                                                         {issue.recommendation}
                                                     </p>
@@ -2765,14 +2797,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 {#if advancedReviewData.missing_items.length}
                                     <div class="mt-4">
                                         <h5
-                                            class="text-sm font-bold text-[#202124] dark:text-dark-text mb-2"
+                                            class="text-sm font-bold text-foreground dark:text-dark-text mb-2"
                                         >
                                             {$t(
                                                 "ai_generator.review_missing_label",
                                             )}
                                         </h5>
                                         <ul
-                                            class="list-disc ml-5 text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                            class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
                                         >
                                             {#each advancedReviewData.missing_items as item}
                                                 <li>{item}</li>
@@ -2784,14 +2816,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 {#if advancedReviewData.improvements.length}
                                     <div class="mt-4">
                                         <h5
-                                            class="text-sm font-bold text-[#202124] dark:text-dark-text mb-2"
+                                            class="text-sm font-bold text-foreground dark:text-dark-text mb-2"
                                         >
                                             {$t(
                                                 "ai_generator.review_suggestions_label",
                                             )}
                                         </h5>
                                         <ul
-                                            class="list-disc ml-5 text-sm text-[#3C4043] dark:text-dark-text-muted"
+                                            class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
                                         >
                                             {#each advancedReviewData.improvements as item}
                                                 <li>{item}</li>
@@ -2803,16 +2835,16 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         {/if}
 
                         <div
-                            class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-6 shadow-sm"
+                            class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
                         >
                             <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
                                 <div>
                                     <h4
-                                        class="text-lg font-bold text-[#202124] dark:text-dark-text mb-1"
+                                        class="text-lg font-bold text-foreground dark:text-dark-text mb-1"
                                     >
                                         {$t("ai_generator.diff_title")}
                                     </h4>
-                                    <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                                    <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
                                         {$t("ai_generator.diff_desc")}
                                     </p>
                                 </div>
@@ -2820,16 +2852,16 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     <button
                                         onclick={() => (advancedDiffView = "unified")}
                                         class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDiffView === 'unified'
-                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
-                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                            ? 'bg-primary/90 text-white border-primary'
+                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                     >
                                         {$t("ai_generator.diff_view_unified")}
                                     </button>
                                     <button
                                         onclick={() => (advancedDiffView = "split")}
                                         class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDiffView === 'split'
-                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
-                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                            ? 'bg-primary/90 text-white border-primary'
+                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                     >
                                         {$t("ai_generator.diff_view_split")}
                                     </button>
@@ -2837,23 +2869,23 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             </div>
 
                             {#if !advancedDraftMarkdown || !advancedRevisedMarkdown}
-                                <p class="text-sm text-[#9AA0A6] dark:text-dark-text-muted">
+                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
                                     {$t("ai_generator.diff_empty")}
                                 </p>
                             {:else if advancedDiff.truncated}
-                                <p class="text-sm text-[#9AA0A6] dark:text-dark-text-muted">
+                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
                                     {$t("ai_generator.diff_too_large")}
                                 </p>
                             {:else if advancedDiffView === "unified"}
-                                <div class="rounded-xl border border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto">
+                                <div class="rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto">
                                     <div class="font-mono text-[11px] leading-relaxed">
                                         {#each advancedDiff.lines as line}
                                             <div
                                                 class="flex items-start gap-2 px-3 py-1 {line.type === 'add'
-                                                    ? 'bg-[#E6F4EA] text-[#137333]'
+                                                    ? 'bg-emerald-50 text-emerald-700'
                                                     : line.type === 'remove'
-                                                        ? 'bg-[#FCE8E6] text-[#C5221F]'
-                                                        : 'text-[#3C4043] dark:text-dark-text'}"
+                                                        ? 'bg-red-50 text-red-700'
+                                                        : 'text-foreground dark:text-dark-text'}"
                                             >
                                                 <span class="w-4 text-[10px] font-bold">
                                                     {line.type === "add"
@@ -2870,19 +2902,19 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     </div>
                                 </div>
                             {:else}
-                                <div class="rounded-xl border border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto">
+                                <div class="rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto">
                                     <div class="grid grid-cols-2 font-mono text-[11px] leading-relaxed">
-                                        <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#5F6368] dark:text-dark-text-muted bg-[#F8F9FA] dark:bg-dark-bg border-b border-[#E8EAED] dark:border-dark-border">
+                                        <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/60 dark:bg-dark-bg border-b border-border dark:border-dark-border">
                                             {$t("ai_generator.diff_left")}
                                         </div>
-                                        <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-[#5F6368] dark:text-dark-text-muted bg-[#F8F9FA] dark:bg-dark-bg border-b border-l border-[#E8EAED] dark:border-dark-border">
+                                        <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/60 dark:bg-dark-bg border-b border-l border-border dark:border-dark-border">
                                             {$t("ai_generator.diff_right")}
                                         </div>
                                         {#each advancedDiffRows as row}
                                             <div
-                                                class="flex items-start gap-2 px-3 py-1 border-r border-[#E8EAED] dark:border-dark-border {row.leftType === 'remove'
-                                                    ? 'bg-[#FCE8E6] text-[#C5221F]'
-                                                    : 'text-[#3C4043] dark:text-dark-text'}"
+                                                class="flex items-start gap-2 px-3 py-1 border-r border-border dark:border-dark-border {row.leftType === 'remove'
+                                                    ? 'bg-red-50 text-red-700'
+                                                    : 'text-foreground dark:text-dark-text'}"
                                             >
                                                 <span class="w-4 text-[10px] font-bold">
                                                     {row.leftType === "remove" ? "-" : " "}
@@ -2893,8 +2925,8 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                             </div>
                                             <div
                                                 class="flex items-start gap-2 px-3 py-1 {row.rightType === 'add'
-                                                    ? 'bg-[#E6F4EA] text-[#137333]'
-                                                    : 'text-[#3C4043] dark:text-dark-text'}"
+                                                    ? 'bg-emerald-50 text-emerald-700'
+                                                    : 'text-foreground dark:text-dark-text'}"
                                             >
                                                 <span class="w-4 text-[10px] font-bold">
                                                     {row.rightType === "add" ? "+" : " "}
@@ -2910,26 +2942,26 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         </div>
 
                         <div
-                            class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-6 shadow-sm"
+                            class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
                         >
                             <div class="flex items-center justify-between gap-3 mb-3">
-                                <h4 class="text-lg font-bold text-[#202124] dark:text-dark-text">
+                                <h4 class="text-lg font-bold text-foreground dark:text-dark-text">
                                     {$t("ai_generator.draft_markdown_title")}
                                 </h4>
                                 <div class="flex items-center gap-1">
                                     <button
                                         onclick={() => (advancedDraftView = "markdown")}
                                         class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDraftView === 'markdown'
-                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
-                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                            ? 'bg-primary/90 text-white border-primary'
+                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                     >
                                         {$t("ai_generator.view_markdown")}
                                     </button>
                                     <button
                                         onclick={() => (advancedDraftView = "raw")}
                                         class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDraftView === 'raw'
-                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
-                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                            ? 'bg-primary/90 text-white border-primary'
+                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                     >
                                         {$t("ai_generator.view_raw")}
                                     </button>
@@ -2941,36 +2973,36 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                         {@html advancedDraftHtml}
                                     </div>
                                 {:else}
-                                    <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-[#3C4043] dark:text-dark-text">{advancedDraftMarkdown}</pre>
+                                    <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{advancedDraftMarkdown}</pre>
                                 {/if}
                             {:else}
-                                <p class="text-sm text-[#9AA0A6] dark:text-dark-text-muted">
+                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
                                     {$t("ai_generator.diff_empty")}
                                 </p>
                             {/if}
                         </div>
 
                         <div
-                            class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-6 shadow-sm"
+                            class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
                         >
                             <div class="flex items-center justify-between gap-3 mb-3">
-                                <h4 class="text-lg font-bold text-[#202124] dark:text-dark-text">
+                                <h4 class="text-lg font-bold text-foreground dark:text-dark-text">
                                     {$t("ai_generator.revised_markdown_title")}
                                 </h4>
                                 <div class="flex items-center gap-1">
                                     <button
                                         onclick={() => (advancedRevisedView = "markdown")}
                                         class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedRevisedView === 'markdown'
-                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
-                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                            ? 'bg-primary/90 text-white border-primary'
+                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                     >
                                         {$t("ai_generator.view_markdown")}
                                     </button>
                                     <button
                                         onclick={() => (advancedRevisedView = "raw")}
                                         class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedRevisedView === 'raw'
-                                            ? 'bg-[#1A73E8] text-white border-[#1A73E8]'
-                                            : 'bg-white dark:bg-dark-surface text-[#5F6368] dark:text-dark-text-muted border-[#DADCE0] dark:border-dark-border'}"
+                                            ? 'bg-primary/90 text-white border-primary'
+                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                     >
                                         {$t("ai_generator.view_raw")}
                                     </button>
@@ -2982,25 +3014,25 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                         {@html advancedRevisedHtml}
                                     </div>
                                 {:else}
-                                    <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-[#3C4043] dark:text-dark-text">{advancedRevisedMarkdown}</pre>
+                                    <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{advancedRevisedMarkdown}</pre>
                                 {/if}
                             {:else}
-                                <p class="text-sm text-[#9AA0A6] dark:text-dark-text-muted">
+                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
                                     {$t("ai_generator.diff_empty")}
                                 </p>
                             {/if}
                         </div>
 
                         <div
-                            class="bg-white dark:bg-dark-surface rounded-xl border border-[#E8EAED] dark:border-dark-border p-8 shadow-sm"
+                            class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
                         >
                             <h1
-                                class="text-3xl font-bold text-[#202124] dark:text-dark-text mb-4"
+                                class="text-3xl font-bold text-foreground dark:text-dark-text mb-4"
                             >
                                 {advancedRevisedData.title}
                             </h1>
                             <p
-                                class="text-lg text-[#5F6368] dark:text-dark-text-muted mb-8"
+                                class="text-lg text-muted-foreground dark:text-dark-text-muted mb-8"
                             >
                                 {advancedRevisedData.description}
                             </p>
@@ -3008,15 +3040,15 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             <div class="space-y-8">
                                 {#each advancedRevisedData.steps as step, i}
                                     <div
-                                        class="border border-[#F1F3F4] dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
+                                        class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
                                     >
                                         <h4
-                                            class="font-bold text-lg text-[#202124] dark:text-dark-text mb-2"
+                                            class="font-bold text-lg text-foreground dark:text-dark-text mb-2"
                                         >
                                             {i + 1}. {step.title}
                                         </h4>
                                         <div
-                                            class="text-[#3C4043] dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                            class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
                                         >
                                             {step.content}
                                         </div>

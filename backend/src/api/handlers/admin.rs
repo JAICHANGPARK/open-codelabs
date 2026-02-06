@@ -153,9 +153,12 @@ pub async fn logout(
     State(state): State<Arc<AppState>>,
     jar: CookieJar,
 ) -> Result<(CookieJar, StatusCode), (StatusCode, String)> {
-    let jar = jar
-        .remove(clear_cookie(&state.auth.cookie_name))
-        .remove(clear_cookie(&state.auth.csrf_cookie_name));
+    let jar = jar.remove(clear_cookie(&state.auth.cookie_name));
+    let jar = if jar.get(&state.auth.attendee_cookie_name).is_some() {
+        jar
+    } else {
+        jar.remove(clear_cookie(&state.auth.csrf_cookie_name))
+    };
     Ok((jar, StatusCode::NO_CONTENT))
 }
 

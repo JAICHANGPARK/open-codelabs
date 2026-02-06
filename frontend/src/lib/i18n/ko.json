@@ -49,6 +49,22 @@
         "open_new_tab": "새 탭에서 열기",
         "confirm_delete": "정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
     },
+    "theme": {
+        "menu_label": "테마",
+        "mode_label": "모드",
+        "preset_label": "프리셋",
+        "modes": {
+            "system": "시스템",
+            "light": "라이트",
+            "dark": "다크"
+        },
+        "presets": {
+            "default": "기본",
+            "mint": "민트",
+            "ocean": "오션",
+            "sunset": "선셋"
+        }
+    },
     "dashboard": {
         "title": "퍼실리테이터 대시보드",
         "subtitle": "코드랩을 관리하고 참가자 진행 상황을 추적하세요",
@@ -520,6 +536,9 @@
     "ai_generator": {
         "title": "Gemini AI로 생성하기",
         "subtitle": "소스 코드를 즉시 대화형 코드랩으로 변환하세요",
+        "output_placeholder_title": "응답 미리보기",
+        "output_placeholder_desc": "AI 응답과 초안이 여기 표시됩니다.",
+        "output_panel_notice": "결과는 오른쪽 패널에 표시됩니다. 여기에서 설정을 계속하세요.",
         "mode_label": "생성 모드",
         "mode_basic": "일반",
         "mode_advanced": "프로",

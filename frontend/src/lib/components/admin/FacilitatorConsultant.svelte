@@ -367,7 +367,7 @@
     <FocusTrap>
         <div
             bind:this={dialogRef}
-            class="bg-white dark:bg-dark-surface shadow-2xl w-[600px] max-w-full h-full flex flex-col overflow-hidden border-l border-[#E8EAED] dark:border-dark-border relative"
+            class="bg-white dark:bg-dark-surface shadow-2xl w-[600px] max-w-full h-full flex flex-col overflow-hidden border-l border-border dark:border-dark-border relative"
             in:fly|local={{ x: 600, duration: 400 }}
             out:fly|local={{ x: 600, duration: 400 }}
             role="dialog"
@@ -376,24 +376,24 @@
         >
             <!-- Header -->
             <div
-                class="flex items-center justify-between p-4 sm:p-6 border-b border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface"
+                class="flex items-center justify-between p-4 sm:p-6 border-b border-border dark:border-dark-border bg-white dark:bg-dark-surface"
             >
-                <div class="flex items-center gap-3 text-[#4285F4]">
+                <div class="flex items-center gap-3 text-primary">
                     <div
-                        class="w-10 h-10 bg-[#E8F0FE] dark:bg-[#4285F4]/10 rounded-xl flex items-center justify-center"
+                        class="w-10 h-10 bg-accent/70 dark:bg-primary/10 rounded-xl flex items-center justify-center"
                     >
                         <Sparkles size={24} />
                     </div>
                     <div>
                         <h2
                             id="consultant-title"
-                            class="font-bold text-lg text-[#202124] dark:text-dark-text"
+                            class="font-bold text-lg text-foreground dark:text-dark-text"
                         >
                             {$t("admin.consultant.title") ||
                                 "Codelab Consultant"}
                         </h2>
                         <p
-                            class="text-xs text-[#5F6368] dark:text-dark-text-muted"
+                            class="text-xs text-muted-foreground dark:text-dark-text-muted"
                         >
                             {$t("admin.consultant.subtitle") ||
                                 "Designing your next hands-on session"}
@@ -406,8 +406,8 @@
                             showHistory = !showHistory;
                             if (showHistory) fetchThreads();
                         }}
-                        class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/10 rounded-full text-[#5F6368] dark:text-dark-text-muted transition-colors {showHistory
-                            ? 'text-[#4285F4] bg-[#E8F0FE]'
+                        class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full text-muted-foreground dark:text-dark-text-muted transition-colors {showHistory
+                            ? 'text-primary bg-accent/70'
                             : ''}"
                         title={$t("admin.consultant.history")}
                     >
@@ -416,7 +416,7 @@
                     {#if messages.length > 0 && !showHistory}
                         <button
                             onclick={startNewChat}
-                            class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/10 rounded-full text-[#5F6368] dark:text-dark-text-muted transition-colors"
+                            class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full text-muted-foreground dark:text-dark-text-muted transition-colors"
                             title={$t("admin.consultant.new_chat")}
                         >
                             <Plus size={20} />
@@ -424,7 +424,7 @@
                     {/if}
                     <button
                         onclick={onClose}
-                        class="p-2 hover:bg-[#F1F3F4] dark:hover:bg-white/10 rounded-full text-[#5F6368] dark:text-dark-text-muted transition-colors"
+                        class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full text-muted-foreground dark:text-dark-text-muted transition-colors"
                         aria-label={$t("common.close")}
                     >
                         <X size={20} />
@@ -435,7 +435,7 @@
             <!-- Content -->
             <div
                 bind:this={scrollContainer}
-                class="flex-1 overflow-y-auto p-6 bg-[#F8F9FA] dark:bg-dark-bg"
+                class="flex-1 overflow-y-auto p-6 bg-muted dark:bg-dark-bg"
             >
                 {#if !hasKey}
                     <!-- API Key Entry UI (Same as before) -->
@@ -443,18 +443,18 @@
                         class="flex flex-col items-center justify-center h-full text-center space-y-6 max-w-sm mx-auto"
                     >
                         <div
-                            class="w-16 h-16 bg-white dark:bg-dark-surface rounded-2xl shadow-sm flex items-center justify-center text-[#4285F4]"
+                            class="w-16 h-16 bg-white dark:bg-dark-surface rounded-2xl shadow-sm flex items-center justify-center text-primary"
                         >
                             <Key size={32} />
                         </div>
                         <div>
                             <h3
-                                class="font-bold text-xl text-[#202124] dark:text-dark-text"
+                                class="font-bold text-xl text-foreground dark:text-dark-text"
                             >
                                 {$t("gemini.enter_api_key")}
                             </h3>
                             <p
-                                class="text-[#5F6368] dark:text-dark-text-muted text-sm mt-2"
+                                class="text-muted-foreground dark:text-dark-text-muted text-sm mt-2"
                             >
                                 {$t("admin.consultant.api_key_desc") ||
                                     "Please configure your Gemini API key in the dashboard settings to use the consultant."}
@@ -465,14 +465,14 @@
                     <div class="space-y-4 max-w-2xl mx-auto" in:fade>
                         <div class="flex items-center justify-between mb-6">
                             <h3
-                                class="font-bold text-xl text-[#202124] dark:text-dark-text flex items-center gap-2"
+                                class="font-bold text-xl text-foreground dark:text-dark-text flex items-center gap-2"
                             >
-                                <History size={24} class="text-[#4285F4]" />
+                                <History size={24} class="text-primary" />
                                 {$t("admin.consultant.history")}
                             </h3>
                             <button
                                 onclick={startNewChat}
-                                class="flex items-center gap-2 px-4 py-2 bg-[#4285F4] text-white rounded-xl hover:bg-[#1A73E8] transition-colors text-sm font-medium shadow-sm"
+                                class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors text-sm font-medium shadow-sm"
                             >
                                 <Plus size={18} />
                                 {$t("admin.consultant.new_chat")}
@@ -481,14 +481,14 @@
 
                         {#if threads.length === 0}
                             <div
-                                class="text-center py-20 bg-white dark:bg-dark-surface rounded-3xl border border-[#E8EAED] dark:border-dark-border"
+                                class="text-center py-20 bg-white dark:bg-dark-surface rounded-3xl border border-border dark:border-dark-border"
                             >
                                 <MessageSquare
                                     size={48}
-                                    class="text-[#BDC1C6] mx-auto mb-4"
+                                    class="text-muted-foreground/60 mx-auto mb-4"
                                 />
                                 <p
-                                    class="text-[#5F6368] dark:text-dark-text-muted"
+                                    class="text-muted-foreground dark:text-dark-text-muted"
                                 >
                                     {$t("admin.consultant.no_history")}
                                 </p>
@@ -498,22 +498,22 @@
                                 <div class="group flex items-center gap-3">
                                     <button
                                         onclick={() => loadThread(thread.id)}
-                                        class="flex-1 flex items-center justify-between p-5 bg-white dark:bg-dark-surface hover:bg-[#F8F9FA] dark:hover:bg-white/5 border border-[#E8EAED] dark:border-dark-border rounded-2xl transition-all text-left shadow-sm group-hover:shadow-md"
+                                        class="flex-1 flex items-center justify-between p-5 bg-white dark:bg-dark-surface hover:bg-muted dark:hover:bg-white/5 border border-border dark:border-dark-border rounded-2xl transition-all text-left shadow-sm group-hover:shadow-md"
                                     >
                                         <div class="flex items-center gap-4">
                                             <div
-                                                class="w-10 h-10 bg-[#E8F0FE] dark:bg-[#4285F4]/10 rounded-lg flex items-center justify-center text-[#4285F4]"
+                                                class="w-10 h-10 bg-accent/70 dark:bg-primary/10 rounded-lg flex items-center justify-center text-primary"
                                             >
                                                 <MessageSquare size={20} />
                                             </div>
                                             <div>
                                                 <h4
-                                                    class="font-medium text-[#202124] dark:text-dark-text line-clamp-1"
+                                                    class="font-medium text-foreground dark:text-dark-text line-clamp-1"
                                                 >
                                                     {thread.title}
                                                 </h4>
                                                 <p
-                                                    class="text-[10px] text-[#5F6368] dark:text-dark-text-muted mt-1 uppercase tracking-wider"
+                                                    class="text-[10px] text-muted-foreground dark:text-dark-text-muted mt-1 uppercase tracking-wider"
                                                 >
                                                     {new Date(
                                                         thread.updated_at,
@@ -523,12 +523,12 @@
                                         </div>
                                         <ChevronRight
                                             size={18}
-                                            class="text-[#BDC1C6] group-hover:text-[#4285F4] transition-colors"
+                                            class="text-muted-foreground/60 group-hover:text-primary transition-colors"
                                         />
                                     </button>
                                     <button
                                         onclick={() => deleteThread(thread.id)}
-                                        class="p-3 text-[#BDC1C6] hover:text-[#EA4335] hover:bg-[#FEECEB] dark:hover:bg-[#EA4335]/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
+                                        class="p-3 text-muted-foreground/60 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                                         title={$t("common.delete")}
                                     >
                                         <Trash2 size={18} />
@@ -541,22 +541,22 @@
                     <div class="space-y-8 w-full max-w-4xl mx-auto pb-10">
                         {#if messages.length === 0}
                             <div
-                                class="bg-white dark:bg-dark-surface rounded-3xl p-10 border border-[#E8EAED] dark:border-dark-border shadow-sm text-center"
+                                class="bg-white dark:bg-dark-surface rounded-3xl p-10 border border-border dark:border-dark-border shadow-sm text-center"
                                 in:fade
                             >
                                 <div
-                                    class="w-20 h-20 bg-[#E8F0FE] dark:bg-[#4285F4]/10 rounded-3xl flex items-center justify-center text-[#4285F4] mx-auto mb-6"
+                                    class="w-20 h-20 bg-accent/70 dark:bg-primary/10 rounded-3xl flex items-center justify-center text-primary mx-auto mb-6"
                                 >
                                     <Sparkles size={40} />
                                 </div>
                                 <h3
-                                    class="font-bold text-2xl text-[#202124] dark:text-dark-text"
+                                    class="font-bold text-2xl text-foreground dark:text-dark-text"
                                 >
                                     {$t("admin.consultant.how_can_i_help") ||
                                         "How can I help you today?"}
                                 </h3>
                                 <p
-                                    class="text-[#5F6368] dark:text-dark-text-muted text-base mt-3 max-w-md mx-auto"
+                                    class="text-muted-foreground dark:text-dark-text-muted text-base mt-3 max-w-md mx-auto"
                                 >
                                     {$t("admin.consultant.help_desc") ||
                                         "Ask about codelab structure, choosing a topic, or technical implementation details."}
@@ -574,25 +574,25 @@
                                 <div class="flex items-center gap-2 px-1">
                                     {#if msg.role === "assistant"}
                                         <div
-                                            class="w-6 h-6 bg-[#4285F4] text-white rounded-full flex items-center justify-center"
+                                            class="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center"
                                         >
                                             <Bot size={14} />
                                         </div>
                                         <span
-                                            class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider"
+                                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
                                             >{$t(
                                                 "admin.consultant.role_consultant",
                                             )}</span
                                         >
                                     {:else}
                                         <span
-                                            class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider"
+                                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
                                             >{$t(
                                                 "admin.consultant.role_you",
                                             )}</span
                                         >
                                         <div
-                                            class="w-6 h-6 bg-[#E8EAED] dark:bg-white/10 text-[#5F6368] dark:text-dark-text rounded-full flex items-center justify-center"
+                                            class="w-6 h-6 bg-border dark:bg-white/10 text-muted-foreground dark:text-dark-text rounded-full flex items-center justify-center"
                                         >
                                             <UserIcon size={14} />
                                         </div>
@@ -602,8 +602,8 @@
                                 <div
                                     class="max-w-[90%] sm:max-w-[85%] rounded-3xl p-5 sm:p-6 shadow-sm border {msg.role ===
                                     'user'
-                                        ? 'bg-[#E8F0FE] dark:bg-[#4285F4]/20 border-[#D2E3FC] dark:border-[#4285F4]/30 text-[#174EA6] dark:text-blue-200'
-                                        : 'bg-white dark:bg-dark-surface border-[#E8EAED] dark:border-dark-border text-[#202124] dark:text-dark-text'}"
+                                        ? 'bg-accent/70 dark:bg-primary/20 border-primary/20 dark:border-primary/30 text-primary dark:text-blue-200'
+                                        : 'bg-white dark:bg-dark-surface border-border dark:border-dark-border text-foreground dark:text-dark-text'}"
                                 >
                                     <div
                                         class="prose dark:prose-invert max-w-none text-sm leading-relaxed markdown-content"
@@ -614,10 +614,10 @@
                                             >
                                                 <Loader2
                                                     size={18}
-                                                    class="animate-spin text-[#4285F4]"
+                                                    class="animate-spin text-primary"
                                                 />
                                                 <span
-                                                    class="text-xs text-[#5F6368] dark:text-dark-text-muted italic"
+                                                    class="text-xs text-muted-foreground dark:text-dark-text-muted italic"
                                                     >{$t(
                                                         "gemini.thinking",
                                                     )}...</span
@@ -634,10 +634,10 @@
                                         )}
                                         {#if sources.length > 0}
                                             <div
-                                                class="mt-4 pt-4 border-t border-[#E8EAED] dark:border-dark-border/50"
+                                                class="mt-4 pt-4 border-t border-border dark:border-dark-border/50"
                                             >
                                                 <p
-                                                    class="text-[10px] font-bold text-[#5F6368] dark:text-dark-text-muted uppercase mb-3 flex items-center gap-2"
+                                                    class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase mb-3 flex items-center gap-2"
                                                 >
                                                     <Search size={12} />
                                                     {$t(
@@ -652,7 +652,7 @@
                                                             href={source.uri}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#F1F3F4] dark:bg-white/5 hover:bg-[#E8EAED] dark:hover:bg-white/10 rounded-full text-[10px] font-medium transition-colors"
+                                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent/60 dark:bg-white/5 hover:bg-border dark:hover:bg-white/10 rounded-full text-[10px] font-medium transition-colors"
                                                         >
                                                             {source.title}
                                                             <ExternalLink
@@ -667,14 +667,14 @@
 
                                     {#if msg.role === "assistant" && msg.usageMetadata}
                                         <div
-                                            class="mt-3 pt-3 border-t border-[#E8EAED] dark:border-dark-border/50 flex items-center justify-between text-[10px] text-[#5F6368] dark:text-dark-text-muted"
+                                            class="mt-3 pt-3 border-t border-border dark:border-dark-border/50 flex items-center justify-between text-[10px] text-muted-foreground dark:text-dark-text-muted"
                                         >
                                             <div
                                                 class="flex items-center gap-2"
                                             >
                                                 <Sparkles
                                                     size={12}
-                                                    class="text-[#4285F4]"
+                                                    class="text-primary"
                                                 />
                                                 <span>Tokens:</span>
                                             </div>
@@ -687,7 +687,7 @@
                                                     >Output: {msg.usageMetadata
                                                         .candidatesTokenCount}</span
                                                 >
-                                                <span class="text-[#4285F4]"
+                                                <span class="text-primary"
                                                     >Total: {msg.usageMetadata
                                                         .totalTokenCount}</span
                                                 >
@@ -704,7 +704,7 @@
             <!-- Footer Input -->
             {#if hasKey && !showHistory}
                 <div
-                    class="p-4 sm:p-6 border-t border-[#E8EAED] dark:border-dark-border bg-white dark:bg-dark-surface"
+                    class="p-4 sm:p-6 border-t border-border dark:border-dark-border bg-white dark:bg-dark-surface"
                 >
                     <div
                         class="max-w-3xl mx-auto relative flex items-end gap-3"
@@ -726,12 +726,12 @@
                             placeholder={$t("admin.consultant.placeholder") ||
                                 "Ask for advice on your codelab..."}
                             rows="3"
-                            class="w-full pl-4 pr-14 py-4 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-2xl outline-none focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/10 text-sm resize-none dark:text-dark-text"
+                            class="w-full pl-4 pr-14 py-4 bg-muted dark:bg-dark-bg border border-border dark:border-dark-border rounded-2xl outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 text-sm resize-none dark:text-dark-text"
                         ></textarea>
                         <button
                             onclick={handleSubmit}
                             disabled={!prompt.trim() || loading}
-                            class="absolute right-3 bottom-3 p-3 bg-[#4285F4] text-white rounded-xl hover:bg-[#1A73E8] disabled:opacity-50 disabled:grayscale transition-all shadow-md shadow-blue-500/20"
+                            class="absolute right-3 bottom-3 p-3 bg-primary text-white rounded-xl hover:bg-primary/90 disabled:opacity-50 disabled:grayscale transition-all shadow-md shadow-blue-500/20"
                             aria-label={$t("common.send")}
                         >
                             <Send size={20} />
@@ -745,20 +745,20 @@
 
 <style>
     :global(.markdown-content pre) {
-        background-color: #f6f8fa;
+        background-color: var(--color-muted);
         border-radius: 8px;
         padding: 16px;
         overflow: auto;
         font-size: 85%;
         line-height: 1.45;
-        border: 1px solid #d0d7de;
+        border: 1px solid var(--color-border);
     }
     :global(html.dark .markdown-content pre) {
-        background-color: #161b22;
-        border-color: #30363d;
+        background-color: var(--color-dark-bg);
+        border-color: var(--color-dark-border);
     }
     :global(.markdown-content code) {
-        background-color: rgba(175, 184, 193, 0.2);
+        background-color: var(--color-accent);
         padding: 0.2em 0.4em;
         border-radius: 6px;
         font-family:
@@ -770,7 +770,7 @@
         font-size: 85%;
     }
     :global(html.dark .markdown-content code) {
-        background-color: rgba(110, 118, 129, 0.4);
+        background-color: var(--color-dark-hover);
     }
     :global(.markdown-content p) {
         margin-bottom: 1rem;

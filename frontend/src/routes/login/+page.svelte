@@ -86,19 +86,19 @@
     }
 </script>
 
-<div class="min-h-screen bg-[#F8F9FA] dark:bg-dark-bg flex items-center justify-center p-6 transition-colors">
+<div class="min-h-screen bg-background dark:bg-dark-bg flex items-center justify-center p-6 transition-colors">
     <div class="w-full max-w-md" in:fly={{ y: 20, duration: 600 }}>
         <div
-            class="bg-white dark:bg-dark-surface rounded-[2rem] shadow-2xl overflow-hidden border border-[#E8EAED] dark:border-dark-border"
+            class="bg-white dark:bg-dark-surface rounded-[2rem] shadow-2xl overflow-hidden border border-border dark:border-dark-border"
         >
-            <div class="bg-[#4285F4] p-10 text-white text-center">
+            <div class="bg-primary p-10 text-primary-foreground text-center">
                 <div
                     class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-sm"
                 >
                     <LogIn size={32} />
                 </div>
                 <h1 class="text-3xl font-bold mb-2">{$t("login.title")}</h1>
-                <p class="text-white/80 font-medium">{$t("login.subtitle")}</p>
+                <p class="text-primary-foreground/80 font-medium">{$t("login.subtitle")}</p>
             </div>
 
             <div class="p-8 sm:p-10 space-y-6 sm:space-y-8">
@@ -117,12 +117,12 @@
                     <div>
                         <label
                             for="admin_id"
-                            class="block text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-widest mb-2 px-1"
+                            class="block text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-widest mb-2 px-1"
                             >{$t("login.admin_id")}</label
                         >
                         <div class="relative group">
                             <div
-                                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#BDC1C6] dark:text-dark-text-muted group-focus-within:text-[#4285F4] transition-colors"
+                                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground/70 dark:text-dark-text-muted group-focus-within:text-primary transition-colors"
                             >
                                 <User size={20} />
                             </div>
@@ -131,7 +131,7 @@
                                 type="text"
                                 bind:value={admin_id}
                                 placeholder={$t("login.placeholder_id")}
-                                class="w-full bg-[#FAFBFF] dark:bg-dark-bg border-2 border-[#F1F3F4] dark:border-dark-border rounded-2xl pl-12 pr-4 py-4 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] dark:placeholder-dark-text-muted/30 font-medium text-[#3C4043] dark:text-dark-text"
+                                class="w-full bg-background dark:bg-dark-bg border-2 border-border dark:border-dark-border rounded-2xl pl-12 pr-4 py-4 focus:border-primary outline-none transition-all placeholder-muted-foreground/60 dark:placeholder-dark-text-muted/30 font-medium text-foreground dark:text-dark-text"
                                 onkeydown={(e) =>
                                     e.key === "Enter" && handleLogin()}
                             />
@@ -141,12 +141,12 @@
                     <div>
                         <label
                             for="admin_pw"
-                            class="block text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-widest mb-2 px-1"
+                            class="block text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-widest mb-2 px-1"
                             >{$t("login.password")}</label
                         >
                         <div class="relative group">
                             <div
-                                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[#BDC1C6] dark:text-dark-text-muted group-focus-within:text-[#4285F4] transition-colors"
+                                class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-muted-foreground/70 dark:text-dark-text-muted group-focus-within:text-primary transition-colors"
                             >
                                 <Lock size={20} />
                             </div>
@@ -155,7 +155,7 @@
                                 type="password"
                                 bind:value={admin_pw}
                                 placeholder="••••••••"
-                                class="w-full bg-[#FAFBFF] dark:bg-dark-bg border-2 border-[#F1F3F4] dark:border-dark-border rounded-2xl pl-12 pr-4 py-4 focus:border-[#4285F4] outline-none transition-all placeholder-[#BDC1C6] dark:placeholder-dark-text-muted/30 font-medium text-[#3C4043] dark:text-dark-text"
+                                class="w-full bg-background dark:bg-dark-bg border-2 border-border dark:border-dark-border rounded-2xl pl-12 pr-4 py-4 focus:border-primary outline-none transition-all placeholder-muted-foreground/60 dark:placeholder-dark-text-muted/30 font-medium text-foreground dark:text-dark-text"
                                 onkeydown={(e) =>
                                     e.key === "Enter" && handleLogin()}
                             />
@@ -166,7 +166,7 @@
                 <button
                     onclick={handleLogin}
                     disabled={loading}
-                    class="w-full bg-[#4285F4] hover:bg-[#1A73E8] text-white font-bold py-4 sm:py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 text-lg"
+                    class="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-4 sm:py-5 rounded-2xl shadow-lg hover:shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 text-lg"
                 >
                     {#if loading}
                         <div
@@ -182,26 +182,26 @@
                 {#if isServerlessMode()}
                     <div class="relative py-2">
                         <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-[#F1F3F4] dark:border-dark-border"></div>
+                            <div class="w-full border-t border-border dark:border-dark-border"></div>
                         </div>
                         <div class="relative flex justify-center text-xs uppercase">
-                            <span class="bg-white dark:bg-dark-surface px-4 text-[#9AA0A6] font-bold">{$t("common.or")}</span>
+                            <span class="bg-white dark:bg-dark-surface px-4 text-muted-foreground font-bold">{$t("common.or")}</span>
                         </div>
                     </div>
 
                     <button
                         onclick={handleGoogleLogin}
                         disabled={loading}
-                        class="w-full bg-white dark:bg-dark-surface hover:bg-[#F8F9FA] dark:hover:bg-white/5 text-[#3C4043] dark:text-dark-text font-bold py-4 rounded-2xl border-2 border-[#F1F3F4] dark:border-dark-border shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 text-lg"
+                        class="w-full bg-white dark:bg-dark-surface hover:bg-accent/60 dark:hover:bg-accent/40 text-foreground dark:text-dark-text font-bold py-4 rounded-2xl border-2 border-border dark:border-dark-border shadow-sm hover:shadow-md transition-all active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 text-lg"
                     >
-                        <Chrome size={20} class="text-[#4285F4]" />
+                        <Chrome size={20} class="text-primary" />
                         <span>{$t("common.google_login")}</span>
                     </button>
                 {/if}
 
                 <div class="pt-2 text-center">
                     <button
-                        class="text-sm font-bold text-[#5F6368] dark:text-dark-text-muted hover:text-[#4285F4] transition-colors"
+                        class="text-sm font-bold text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-colors"
                         onclick={() => (showTrouble = true)}
                     >
                         {$t("login.trouble")}
@@ -217,24 +217,24 @@
                     aria-label={$t("common.close")}
                     onclick={() => (showTrouble = false)}
                 ></button>
-                <div class="relative w-full max-w-lg bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-[#E8EAED] dark:border-dark-border p-6" in:fade>
+                <div class="relative w-full max-w-lg bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-border dark:border-dark-border p-6" in:fade>
                     <div class="flex items-start justify-between gap-4 mb-4">
                         <div>
-                            <h2 class="text-lg font-bold text-[#202124] dark:text-dark-text">
+                            <h2 class="text-lg font-bold text-foreground dark:text-dark-text">
                                 {$t("login.trouble_title")}
                             </h2>
                             {#if isServerlessMode()}
-                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mt-1">
+                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1">
                                     {$t("login.trouble_serverless_desc")}
                                 </p>
                             {:else}
-                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mt-1">
+                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1">
                                     {$t("login.trouble_local_desc")}
                                 </p>
                             {/if}
                         </div>
                         <button
-                            class="p-2 rounded-full hover:bg-[#F1F3F4] dark:hover:bg-white/10 transition-colors"
+                            class="p-2 rounded-full hover:bg-accent/60 dark:hover:bg-accent/40 transition-colors"
                             aria-label={$t("common.close")}
                             onclick={() => (showTrouble = false)}
                         >
@@ -243,33 +243,33 @@
                     </div>
 
                     {#if isServerlessMode()}
-                        <div class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                        <div class="text-sm text-muted-foreground dark:text-dark-text-muted">
                             {$t("login.trouble_serverless_hint")}
                         </div>
                     {:else}
                         <div class="space-y-4">
                             <div>
-                                <div class="text-xs font-bold uppercase tracking-widest text-[#5F6368] dark:text-dark-text-muted">
+                                <div class="text-xs font-bold uppercase tracking-widest text-muted-foreground dark:text-dark-text-muted">
                                     {$t("login.trouble_local_env_title")}
                                 </div>
-                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mt-1">
+                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1">
                                     {$t("login.trouble_local_env_desc")}
                                 </p>
-                                <pre class="mt-2 text-xs bg-[#F8F9FA] dark:bg-dark-bg text-[#202124] dark:text-dark-text rounded-xl p-3 overflow-auto border border-[#E8EAED] dark:border-dark-border">ADMIN_ID=your_admin_id
+                                <pre class="mt-2 text-xs bg-accent/60 dark:bg-dark-bg text-foreground dark:text-dark-text rounded-xl p-3 overflow-auto border border-border dark:border-dark-border">ADMIN_ID=your_admin_id
 ADMIN_PW=your_admin_pw
 DATABASE_URL=sqlite://backend.db</pre>
                             </div>
                             <div>
-                                <div class="text-xs font-bold uppercase tracking-widest text-[#5F6368] dark:text-dark-text-muted">
+                                <div class="text-xs font-bold uppercase tracking-widest text-muted-foreground dark:text-dark-text-muted">
                                     {$t("login.trouble_local_commands_title")}
                                 </div>
-                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mt-1">
+                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1">
                                     {$t("login.trouble_local_commands_desc")}
                                 </p>
-                                <pre class="mt-2 text-xs bg-[#F8F9FA] dark:bg-dark-bg text-[#202124] dark:text-dark-text rounded-xl p-3 overflow-auto border border-[#E8EAED] dark:border-dark-border">cd backend && cargo run
+                                <pre class="mt-2 text-xs bg-accent/60 dark:bg-dark-bg text-foreground dark:text-dark-text rounded-xl p-3 overflow-auto border border-border dark:border-dark-border">cd backend && cargo run
 cd frontend && bun run dev</pre>
                             </div>
-                            <p class="text-xs text-[#9AA0A6] dark:text-dark-text-muted">
+                            <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
                                 {$t("login.trouble_local_note")}
                             </p>
                         </div>
@@ -284,23 +284,23 @@ cd frontend && bun run dev</pre>
                     href="https://github.com/JAICHANGPARK/open-codelabs"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="flex items-center gap-2 text-[#9AA0A6] dark:text-dark-text-muted hover:text-[#4285F4] transition-colors text-sm font-medium"
+                    class="flex items-center gap-2 text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-colors text-sm font-medium"
                 >
                     <Github size={18} />
                     GitHub
                 </a>
-                <div class="w-px h-4 bg-[#E8EAED] dark:bg-dark-border"></div>
+                <div class="w-px h-4 bg-border dark:bg-dark-border"></div>
                 <a
                     href="https://jaichangpark.github.io/open-codelabs/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="flex items-center gap-2 text-[#9AA0A6] dark:text-dark-text-muted hover:text-[#4285F4] transition-colors text-sm font-medium"
+                    class="flex items-center gap-2 text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-colors text-sm font-medium"
                 >
                     <FileIcon size={18} />
                     Docs
                 </a>
             </div>
-            <p class="text-[#9AA0A6] dark:text-dark-text-muted text-sm font-medium">
+            <p class="text-muted-foreground dark:text-dark-text-muted text-sm font-medium">
                 {$t("common.title")} &copy; 2026
             </p>
         </div>

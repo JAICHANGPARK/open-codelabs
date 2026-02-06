@@ -1,6 +1,7 @@
 use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::middleware::auth::{
-    build_csrf_cookie, build_session_cookie, now_epoch_seconds, AuthSession, Role, SessionClaims,
+    build_attendee_session_cookie, build_csrf_cookie, now_epoch_seconds, AuthSession, Role,
+    SessionClaims,
 };
 use crate::utils::crypto::{decrypt_with_password, encrypt_with_password};
 use crate::utils::error::{bad_request, forbidden, internal_error};
@@ -117,7 +118,7 @@ pub async fn register_attendee(
     let token = state.auth.issue_token(&claims).map_err(internal_error)?;
     let csrf_token = crate::middleware::auth::generate_csrf_token();
     let jar = jar
-        .add(build_session_cookie(
+        .add(build_attendee_session_cookie(
             &state.auth,
             token,
             state.auth.attendee_ttl,

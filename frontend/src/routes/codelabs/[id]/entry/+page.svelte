@@ -126,30 +126,30 @@
 </script>
 
 <div
-    class="min-h-screen bg-[#F8F9FA] dark:bg-dark-bg flex flex-col items-center justify-center p-6 font-sans text-[#3C4043] dark:text-dark-text"
+    class="min-h-screen bg-background dark:bg-dark-bg flex flex-col items-center justify-center p-6 font-sans text-foreground dark:text-dark-text"
 >
     {#if loading}
         <div in:fade class="flex flex-col items-center gap-4">
-            <Loader2 class="w-10 h-10 text-[#4285F4] animate-spin" />
-            <p class="text-[#5F6368] dark:text-dark-text-muted font-medium">{$t("common.loading")}</p>
+            <Loader2 class="w-10 h-10 text-primary animate-spin" />
+            <p class="text-muted-foreground dark:text-dark-text-muted font-medium">{$t("common.loading")}</p>
         </div>
     {:else if codelab}
         <div in:fly={{ y: 20, duration: 600 }} class="w-full max-w-md">
             <div
-                class="bg-white dark:bg-dark-surface rounded-3xl shadow-xl shadow-[#4285F4]/5 border border-[#DADCE0] dark:border-dark-border overflow-hidden"
+                class="bg-white dark:bg-dark-surface rounded-3xl shadow-xl shadow-primary/5 border border-border dark:border-dark-border overflow-hidden"
             >
                 <div class="p-8 pb-4 text-center">
                     <div
-                        class="w-16 h-16 bg-[#4285F4]/10 dark:bg-[#4285F4]/20 rounded-2xl flex items-center justify-center mx-auto mb-6"
+                        class="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-2xl flex items-center justify-center mx-auto mb-6"
                     >
-                        <User class="w-8 h-8 text-[#4285F4]" />
+                        <User class="w-8 h-8 text-primary" />
                     </div>
-                    <h1 class="text-2xl font-bold text-[#202124] dark:text-dark-text mb-2">
+                    <h1 class="text-2xl font-bold text-foreground dark:text-dark-text mb-2">
                         {$t("attendee.join_title")}
                     </h1>
-                    <p class="text-[#5F6368] dark:text-dark-text-muted text-sm">
+                    <p class="text-muted-foreground dark:text-dark-text-muted text-sm">
                         {$t("attendee.join_desc")} <br />
-                        <span class="font-bold text-[#202124] dark:text-dark-text"
+                        <span class="font-bold text-foreground dark:text-dark-text"
                             >{codelab.title}</span
                         >
                     </p>
@@ -175,13 +175,13 @@
                     <div class="space-y-2">
                         <label
                             for="name"
-                            class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider ml-1"
+                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider ml-1"
                         >
                             {$t("attendee.nickname")}
                         </label>
                         <div class="relative group">
                             <div
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA0A6] dark:text-dark-text-muted group-focus-within:text-[#4285F4] transition-colors"
+                                class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-dark-text-muted group-focus-within:text-primary transition-colors"
                             >
                                 <User size={18} />
                             </div>
@@ -190,7 +190,7 @@
                                 type="text"
                                 bind:value={name}
                                 placeholder={$t("attendee.nickname_placeholder")}
-                                class="w-full pl-12 pr-4 py-3.5 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 transition-all text-[#202124] dark:text-dark-text placeholder-[#9AA0A6] dark:placeholder-dark-text-muted/60"
+                                class="w-full pl-12 pr-4 py-3.5 bg-background dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-foreground dark:text-dark-text placeholder-muted-foreground/60 dark:placeholder-dark-text-muted/60"
                                 required
                             />
                         </div>
@@ -199,13 +199,13 @@
                     <div class="space-y-2">
                         <label
                             for="email"
-                            class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider ml-1"
+                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider ml-1"
                         >
-                            {$t("attendee.email")} <span class="text-[#9AA0A6] dark:text-dark-text-muted font-normal lowercase">({$t("common.optional")})</span>
+                            {$t("attendee.email")} <span class="text-muted-foreground dark:text-dark-text-muted font-normal lowercase">({$t("common.optional")})</span>
                         </label>
                         <div class="relative group">
                             <div
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA0A6] dark:text-dark-text-muted group-focus-within:text-[#4285F4] transition-colors"
+                                class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-dark-text-muted group-focus-within:text-primary transition-colors"
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m2 7 8.97 5.7a1.94 1.94 0 0 0 2.06 0L22 7"/></svg>
                             </div>
@@ -214,7 +214,7 @@
                                 type="email"
                                 bind:value={email}
                                 placeholder={$t("attendee.email_placeholder")}
-                                class="w-full pl-12 pr-4 py-3.5 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 transition-all text-[#202124] dark:text-dark-text placeholder-[#9AA0A6] dark:placeholder-dark-text-muted/60"
+                                class="w-full pl-12 pr-4 py-3.5 bg-background dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-foreground dark:text-dark-text placeholder-muted-foreground/60 dark:placeholder-dark-text-muted/60"
                             />
                         </div>
                     </div>
@@ -222,13 +222,13 @@
                     <div class="space-y-2">
                         <label
                             for="code"
-                            class="text-xs font-bold text-[#5F6368] dark:text-dark-text-muted uppercase tracking-wider ml-1"
+                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider ml-1"
                         >
                             {$t("attendee.unique_code")}
                         </label>
                         <div class="relative group">
                             <div
-                                class="absolute left-4 top-1/2 -translate-y-1/2 text-[#9AA0A6] dark:text-dark-text-muted group-focus-within:text-[#4285F4] transition-colors"
+                                class="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground dark:text-dark-text-muted group-focus-within:text-primary transition-colors"
                             >
                                 <KeyRound size={18} />
                             </div>
@@ -237,7 +237,7 @@
                                 type="text"
                                 bind:value={code}
                                 placeholder={$t("attendee.unique_code_placeholder")}
-                                class="w-full pl-12 pr-4 py-3.5 bg-[#F8F9FA] dark:bg-dark-bg border border-[#DADCE0] dark:border-dark-border rounded-xl outline-none focus:border-[#4285F4] focus:ring-4 focus:ring-[#4285F4]/10 transition-all text-[#202124] dark:text-dark-text placeholder-[#9AA0A6] dark:placeholder-dark-text-muted/60"
+                                class="w-full pl-12 pr-4 py-3.5 bg-background dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-foreground dark:text-dark-text placeholder-muted-foreground/60 dark:placeholder-dark-text-muted/60"
                                 required
                             />
                         </div>
@@ -246,7 +246,7 @@
                     <button
                         type="submit"
                         disabled={submitting}
-                        class="w-full bg-[#4285F4] hover:bg-[#1A73E8] disabled:bg-[#DADCE0] text-white py-4 rounded-xl font-bold shadow-lg shadow-[#4285F4]/20 hover:shadow-[#4285F4]/30 transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
+                        class="w-full bg-primary hover:bg-primary/90 disabled:bg-border text-primary-foreground py-4 rounded-xl font-bold shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
                     >
                         {#if submitting}
                             <Loader2 class="w-5 h-5 animate-spin" />
@@ -262,10 +262,10 @@
                     {#if isServerlessMode()}
                         <div class="relative py-2">
                             <div class="absolute inset-0 flex items-center">
-                                <div class="w-full border-t border-[#F1F3F4] dark:border-dark-border"></div>
+                                <div class="w-full border-t border-border dark:border-dark-border"></div>
                             </div>
                             <div class="relative flex justify-center text-xs uppercase">
-                                <span class="bg-white dark:bg-dark-surface px-4 text-[#9AA0A6] dark:text-dark-text-muted font-bold">{$t("common.or")}</span>
+                                <span class="bg-white dark:bg-dark-surface px-4 text-muted-foreground dark:text-dark-text-muted font-bold">{$t("common.or")}</span>
                             </div>
                         </div>
 
@@ -273,16 +273,16 @@
                             type="button"
                             onclick={handleGoogleLogin}
                             disabled={submitting}
-                            class="w-full bg-white dark:bg-dark-surface hover:bg-[#F8F9FA] dark:hover:bg-white/5 text-[#3C4043] dark:text-dark-text font-bold py-4 rounded-xl border border-[#DADCE0] dark:border-dark-border shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
+                            class="w-full bg-white dark:bg-dark-surface hover:bg-accent/60 dark:hover:bg-white/5 text-foreground dark:text-dark-text font-bold py-4 rounded-xl border border-border dark:border-dark-border shadow-sm hover:shadow-md transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50"
                         >
-                            <Chrome size={20} class="text-[#4285F4]" />
+                            <Chrome size={20} class="text-primary" />
                             <span>{$t("common.google_login")}</span>
                         </button>
                     {/if}
                 </form>
             </div>
 
-            <p class="mt-8 text-center text-xs text-[#9AA0A6] dark:text-dark-text-muted font-medium">
+            <p class="mt-8 text-center text-xs text-muted-foreground dark:text-dark-text-muted font-medium">
                 Powered by Open Codelabs
             </p>
         </div>
@@ -300,13 +300,13 @@
                 {/if}
             </div>
             <h1
-                class="text-xl font-bold text-[#202124] dark:text-dark-text mb-8 break-keep leading-relaxed"
+                class="text-xl font-bold text-foreground dark:text-dark-text mb-8 break-keep leading-relaxed"
             >
                 {error}
             </h1>
             <a
                 href="/codelabs"
-                class="inline-flex items-center gap-2 bg-[#4285F4] text-white px-8 py-3 rounded-xl font-bold hover:bg-[#1A73E8] transition-all shadow-lg shadow-[#4285F4]/20 active:scale-95"
+                class="inline-flex items-center gap-2 bg-primary text-primary-foreground px-8 py-3 rounded-xl font-bold hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 active:scale-95"
             >
                 {$t("attendee.return_home")}
             </a>

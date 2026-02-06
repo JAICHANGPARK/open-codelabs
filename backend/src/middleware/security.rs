@@ -164,7 +164,8 @@ pub async fn csrf_middleware(
     let (parts, body) = req.into_parts();
     let jar = CookieJar::from_headers(&parts.headers);
 
-    let has_session = jar.get(&state.auth.cookie_name).is_some();
+    let has_session = jar.get(&state.auth.cookie_name).is_some()
+        || jar.get(&state.auth.attendee_cookie_name).is_some();
     if has_session {
         let csrf_cookie = jar
             .get(&state.auth.csrf_cookie_name)

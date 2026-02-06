@@ -11,16 +11,16 @@
 </script>
 
 <div
-    class="min-h-screen bg-[#F8F9FA] dark:bg-dark-bg flex flex-col items-center justify-center p-6 font-sans transition-colors"
+    class="min-h-screen bg-background dark:bg-dark-bg flex flex-col items-center justify-center p-6 font-sans transition-colors"
 >
     {#if visible}
         <div in:fly={{ y: 20, duration: 800 }} class="text-center max-w-2xl">
             <h1
-                class="text-5xl font-extrabold text-[#3C4043] dark:text-dark-text mb-4 tracking-tight"
+                class="text-5xl font-extrabold text-foreground dark:text-dark-text mb-4 tracking-tight"
             >
-                Open<span class="text-[#4285F4]">Codelabs</span>
+                Open<span class="text-primary">Codelabs</span>
             </h1>
-            <p class="text-xl text-[#5F6368] dark:text-dark-text-muted mb-12">
+            <p class="text-xl text-muted-foreground dark:text-dark-text-muted mb-12">
                 {$t("home.subtitle")}
             </p>
 
@@ -28,19 +28,19 @@
                 <!-- Facilitator Access -->
                 <a
                     href="/admin"
-                    class="group p-8 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-2xl shadow-sm hover:shadow-md hover:border-[#4285F4] transition-all duration-300 flex flex-col items-center text-center"
+                    class="group p-8 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-sm hover:shadow-md hover:border-primary transition-all duration-300 flex flex-col items-center text-center"
                 >
                     <div
-                        class="p-4 bg-[#4285F4]/10 rounded-full mb-4 group-hover:bg-[#4285F4] transition-colors duration-300"
+                        class="p-4 bg-primary/10 rounded-full mb-4 group-hover:bg-primary transition-colors duration-300"
                     >
                         <LayoutDashboard
-                            class="w-8 h-8 text-[#4285F4] group-hover:text-white"
+                            class="w-8 h-8 text-primary group-hover:text-primary-foreground"
                         />
                     </div>
-                    <h3 class="text-xl font-bold text-[#3C4043] dark:text-dark-text mb-2">
+                    <h3 class="text-xl font-bold text-foreground dark:text-dark-text mb-2">
                         {$t("common.facilitator")}
                     </h3>
-                    <p class="text-[#5F6368] dark:text-dark-text-muted text-sm">
+                    <p class="text-muted-foreground dark:text-dark-text-muted text-sm">
                         {$t("home.facilitator_desc")}
                     </p>
                 </a>
@@ -48,19 +48,19 @@
                 <!-- Attendee Access -->
                 <a
                     href="/codelabs"
-                    class="group p-8 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-2xl shadow-sm hover:shadow-md hover:border-[#4285F4] transition-all duration-300 flex flex-col items-center text-center"
+                    class="group p-8 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-sm hover:shadow-md hover:border-primary transition-all duration-300 flex flex-col items-center text-center"
                 >
                     <div
-                        class="p-4 bg-[#34A853]/10 rounded-full mb-4 group-hover:bg-[#34A853] transition-colors duration-300"
+                        class="p-4 bg-primary/10 rounded-full mb-4 group-hover:bg-primary transition-colors duration-300"
                     >
                         <BookOpen
-                            class="w-8 h-8 text-[#34A853] group-hover:text-white"
+                            class="w-8 h-8 text-primary group-hover:text-primary-foreground"
                         />
                     </div>
-                    <h3 class="text-xl font-bold text-[#3C4043] dark:text-dark-text mb-2">
+                    <h3 class="text-xl font-bold text-foreground dark:text-dark-text mb-2">
                         {$t("common.attendee")}
                     </h3>
-                    <p class="text-[#5F6368] dark:text-dark-text-muted text-sm">
+                    <p class="text-muted-foreground dark:text-dark-text-muted text-sm">
                         {$t("home.attendee_desc")}
                     </p>
                 </a>
@@ -72,10 +72,6 @@
 <style>
     :global(body) {
         margin: 0;
-        background-color: #f8f9fa;
-    }
-
-    :global(.dark body) {
         background-color: var(--background);
     }
 </style>

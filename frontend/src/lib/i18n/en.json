@@ -49,6 +49,22 @@
         "open_new_tab": "Open in new tab",
         "confirm_delete": "Are you sure you want to delete this item? This action cannot be undone."
     },
+    "theme": {
+        "menu_label": "Theme",
+        "mode_label": "Mode",
+        "preset_label": "Preset",
+        "modes": {
+            "system": "System",
+            "light": "Light",
+            "dark": "Dark"
+        },
+        "presets": {
+            "default": "Default",
+            "mint": "Mint",
+            "ocean": "Ocean",
+            "sunset": "Sunset"
+        }
+    },
     "dashboard": {
         "title": "Facilitator Dashboard",
         "subtitle": "Manage your codelabs and track participant progress",
@@ -520,6 +536,9 @@
     "ai_generator": {
         "title": "Create with Gemini AI",
         "subtitle": "Turn your code into an interactive Codelab instantly",
+        "output_placeholder_title": "Output Preview",
+        "output_placeholder_desc": "AI responses and drafts will appear here.",
+        "output_panel_notice": "Results are shown on the right panel. Continue setting up here.",
         "mode_label": "Generation Mode",
         "mode_basic": "General",
         "mode_advanced": "Pro",

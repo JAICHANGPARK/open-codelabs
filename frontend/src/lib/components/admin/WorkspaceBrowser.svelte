@@ -390,7 +390,7 @@
         width: 90vw;
         max-width: 1200px;
         height: 80vh;
-        background: white;
+        background: var(--color-background);
         border-radius: 8px;
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
         display: flex;
@@ -408,7 +408,7 @@
         height: 65vh;
         z-index: 1;
         box-shadow: none;
-        border: 1px solid #e0e0e0;
+        border: 1px solid var(--color-border);
     }
 
     .header {
@@ -416,7 +416,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 1rem 1.5rem;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid var(--color-border);
     }
 
     .header h2 {
@@ -429,7 +429,7 @@
         border: none;
         font-size: 1.5rem;
         cursor: pointer;
-        color: #666;
+        color: var(--color-muted-foreground);
         padding: 0;
         width: 30px;
         height: 30px;
@@ -439,12 +439,12 @@
     }
 
     .close-btn:hover {
-        color: #000;
+        color: var(--color-foreground);
     }
 
     .error {
-        background: #fee;
-        color: #c00;
+        background: var(--color-accent);
+        color: var(--color-destructive);
         padding: 1rem;
         margin: 1rem;
         border-radius: 4px;
@@ -458,7 +458,7 @@
 
     .sidebar {
         width: 300px;
-        border-right: 1px solid #e0e0e0;
+        border-right: 1px solid var(--color-border);
         display: flex;
         flex-direction: column;
         overflow: hidden;
@@ -466,7 +466,7 @@
 
     .branch-selector {
         padding: 1rem;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid var(--color-border);
     }
 
     .branch-selector label {
@@ -478,7 +478,7 @@
     .branch-selector select {
         width: 100%;
         padding: 0.5rem;
-        border: 1px solid #ccc;
+        border: 1px solid var(--color-border);
         border-radius: 4px;
     }
 
@@ -491,7 +491,7 @@
     .file-tree h3 {
         margin: 0 0 0.5rem 0;
         font-size: 0.9rem;
-        color: #666;
+        color: var(--color-muted-foreground);
         text-transform: uppercase;
     }
 
@@ -504,7 +504,7 @@
 
     .file-header {
         padding: 1rem 1.5rem;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid var(--color-border);
     }
 
     .file-header h3 {
@@ -521,7 +521,7 @@
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
         font-size: 0.9rem;
         line-height: 1.5;
-        background: #0d1117;
+        background: var(--color-dark-bg);
         white-space: pre-wrap;
         word-wrap: break-word;
     }
@@ -535,12 +535,12 @@
         flex: 1;
         padding: 1.5rem;
         overflow: auto;
-        background: #fafafa;
+        background: var(--color-muted);
     }
 
     .notebook-cell {
-        border: 1px solid #e0e0e0;
-        background: white;
+        border: 1px solid var(--color-border);
+        background: var(--color-card);
         border-radius: 6px;
         margin-bottom: 1rem;
         overflow: hidden;
@@ -552,13 +552,13 @@
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.04em;
-        color: #5f6368;
-        background: #f1f3f4;
-        border-bottom: 1px solid #e0e0e0;
+        color: var(--color-muted-foreground);
+        background: var(--color-accent);
+        border-bottom: 1px solid var(--color-border);
     }
 
     .notebook-code {
-        background: #0d1117;
+        background: var(--color-dark-bg);
     }
 
     .notebook .markdown-body {
@@ -569,7 +569,7 @@
     .empty {
         padding: 2rem;
         text-align: center;
-        color: #666;
+        color: var(--color-muted-foreground);
     }
 
     :global(html.dark) .workspace-browser {
@@ -600,7 +600,7 @@
 
     :global(html.dark) .error {
         background: rgba(120, 30, 30, 0.35);
-        color: #fca5a5;
+        color: var(--color-destructive);
     }
 
     :global(html.dark) .sidebar {
@@ -649,7 +649,7 @@
     }
 
     :global(html.dark) .notebook-code {
-        background: #0d1117;
+        background: var(--color-dark-bg);
     }
 
     :global(html.dark) .loading,

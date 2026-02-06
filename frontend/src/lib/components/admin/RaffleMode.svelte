@@ -9,13 +9,13 @@
   }>();
 
   const segmentColors = [
-    "#4285F4",
-    "#34A853",
-    "#FBBC05",
-    "#EA4335",
-    "#A142F4",
-    "#10B981",
-    "#F97316",
+    "var(--color-chart-1)",
+    "var(--color-chart-2)",
+    "var(--color-chart-3)",
+    "var(--color-chart-4)",
+    "var(--color-chart-5)",
+    "var(--color-primary)",
+    "var(--color-ring)",
   ];
 
   let spinning = $state(false);
@@ -76,23 +76,23 @@
 </script>
 
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 h-full">
-  <div class="bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col gap-6">
+  <div class="bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col gap-6">
     <div class="flex items-center justify-between gap-3">
       <div>
-        <p class="text-xs uppercase font-bold text-[#5F6368] dark:text-dark-text-muted tracking-widest">
+        <p class="text-xs uppercase font-bold text-muted-foreground dark:text-dark-text-muted tracking-widest">
           {$t("raffle.tab_label")}
         </p>
-        <h3 class="text-2xl font-bold text-[#202124] dark:text-dark-text mt-1 flex items-center gap-2">
-          <Trophy size={22} class="text-[#F4B400]" />
+        <h3 class="text-2xl font-bold text-foreground dark:text-dark-text mt-1 flex items-center gap-2">
+          <Trophy size={22} class="text-amber-500" />
           {$t("raffle.title")}
         </h3>
-        <p class="text-sm text-[#5F6368] dark:text-dark-text-muted mt-1">
+        <p class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1">
           {$t("raffle.description")}
         </p>
       </div>
       <button
         onclick={onRefresh}
-        class="inline-flex items-center gap-2 px-3 py-2 text-sm font-bold text-[#4285F4] bg-[#E8F0FE] dark:bg-[#4285F4]/10 rounded-full hover:bg-[#D2E3FC] dark:hover:bg-[#4285F4]/20 transition-all"
+        class="inline-flex items-center gap-2 px-3 py-2 text-sm font-bold text-primary bg-accent/70 dark:bg-primary/10 rounded-full hover:bg-accent dark:hover:bg-primary/20 transition-all"
         title={$t("raffle.refresh")}
       >
         <RefreshCcw size={16} class="shrink-0" />
@@ -105,11 +105,11 @@
         <div
           class="wheel absolute inset-0 rounded-full flex items-center justify-center overflow-hidden border-[8px] border-white dark:border-dark-bg shadow-xl transition-transform duration-[3200ms] ease-[cubic-bezier(0.22,1,0.36,1)]"
           style={`background: ${
-            eligible.length ? `conic-gradient(${gradient})` : "#F1F3F4"
+            eligible.length ? `conic-gradient(${gradient})` : "var(--color-border)"
           }; transform: rotate(${rotation}deg);`}
         >
           {#if eligible.length === 0}
-            <div class="flex flex-col items-center justify-center text-center gap-2 text-[#9AA0A6] dark:text-dark-text-muted">
+            <div class="flex flex-col items-center justify-center text-center gap-2 text-muted-foreground dark:text-dark-text-muted">
               <Award size={32} />
               <p class="text-sm font-medium">{$t("raffle.no_eligible")}</p>
             </div>
@@ -117,7 +117,7 @@
 
           {#each eligible as attendee, idx}
             <span
-              class="segment-label absolute left-1/2 top-1/2 origin-center text-[11px] font-semibold text-[#202124] dark:text-dark-text"
+              class="segment-label absolute left-1/2 top-1/2 origin-center text-[11px] font-semibold text-foreground dark:text-dark-text"
               style={`white-space: nowrap; transform: rotate(${idx * segmentAngle + segmentAngle / 2}deg) translateY(-46%) rotate(-${idx * segmentAngle + segmentAngle / 2}deg);`}
             >
               {attendee.name}
@@ -126,16 +126,16 @@
         </div>
 
         <div class="pointer absolute left-1/2 -translate-x-1/2 -top-3 w-0 h-0">
-          <div class="pointer-tip w-0 h-0 border-l-6 border-r-6 border-b-8 border-l-transparent border-r-transparent border-b-[#DB4437] drop-shadow-lg"></div>
+          <div class="pointer-tip w-0 h-0 border-l-6 border-r-6 border-b-8 border-l-transparent border-r-transparent border-b-red-500 drop-shadow-lg"></div>
         </div>
       </div>
 
       <div class="flex flex-col sm:flex-row items-center gap-3 w-full justify-center">
         <button
           onclick={spinWheel}
-          class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-white font-bold shadow-md bg-[#DB4437] hover:bg-[#C53929] active:scale-95 transition-all disabled:opacity-50"
-          disabled={!eligible.length || spinning}
-        >
+        class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-full text-white font-bold shadow-md bg-red-600 hover:bg-red-700 active:scale-95 transition-all disabled:opacity-50"
+        disabled={!eligible.length || spinning}
+      >
           {#if spinning}
             <span class="flex items-center gap-2">
               <Shuffle size={18} class="animate-spin" />
@@ -146,24 +146,24 @@
             {$t("raffle.spin")}
           {/if}
         </button>
-        <div class="px-4 py-2 rounded-full bg-[#F8F9FA] dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border text-xs font-bold text-[#5F6368] dark:text-dark-text-muted">
+        <div class="px-4 py-2 rounded-full bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border text-xs font-bold text-muted-foreground dark:text-dark-text-muted">
           {$t("raffle.eligible_count", { values: { count: eligible.length } })}
         </div>
       </div>
 
       {#if winner}
-        <div class="w-full bg-[#E6F4EA] dark:bg-emerald-500/10 border border-[#CEEAD6] dark:border-emerald-500/30 rounded-2xl p-4 sm:p-5 flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-white dark:bg-dark-bg shadow-sm flex items-center justify-center text-[#34A853] font-black text-lg">
+        <div class="w-full bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-2xl p-4 sm:p-5 flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-white dark:bg-dark-bg shadow-sm flex items-center justify-center text-emerald-600 font-black text-lg">
             <Award size={22} />
           </div>
           <div class="flex-1 min-w-0">
-            <p class="text-xs uppercase font-bold text-[#188038] dark:text-emerald-200 tracking-widest">
+            <p class="text-xs uppercase font-bold text-emerald-700 dark:text-emerald-200 tracking-widest">
               {$t("raffle.winner")}
             </p>
-            <p class="text-lg font-bold text-[#174EA6] dark:text-white truncate">
+            <p class="text-lg font-bold text-foreground dark:text-white truncate">
               {winner.name}
             </p>
-            <p class="text-sm text-[#5F6368] dark:text-dark-text-muted truncate">
+            <p class="text-sm text-muted-foreground dark:text-dark-text-muted truncate">
               {$t("raffle.certificate_badge")}
             </p>
           </div>
@@ -172,30 +172,30 @@
     </div>
   </div>
 
-  <div class="bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col gap-4">
+  <div class="bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-sm p-6 sm:p-8 flex flex-col gap-4">
     <div class="flex items-center justify-between gap-3">
       <div class="flex items-center gap-2">
-        <Users size={18} class="text-[#4285F4]" />
-        <h4 class="text-lg font-bold text-[#202124] dark:text-dark-text">
+        <Users size={18} class="text-primary" />
+        <h4 class="text-lg font-bold text-foreground dark:text-dark-text">
           {$t("raffle.eligible_title")}
         </h4>
       </div>
-      <span class="text-xs font-semibold px-3 py-1 rounded-full bg-[#F1F3F4] dark:bg-white/5 text-[#5F6368] dark:text-dark-text-muted">
+      <span class="text-xs font-semibold px-3 py-1 rounded-full bg-accent/60 dark:bg-white/5 text-muted-foreground dark:text-dark-text-muted">
         {$t("raffle.completed_only")}
       </span>
     </div>
 
     <div class="space-y-2 max-h-[520px] overflow-y-auto pr-1">
       {#each eligible as attendee}
-        <div class="flex items-center justify-between p-3 rounded-xl border border-[#E8EAED] dark:border-dark-border bg-[#F8F9FA] dark:bg-white/5">
+        <div class="flex items-center justify-between p-3 rounded-xl border border-border dark:border-dark-border bg-accent/60 dark:bg-white/5">
           <div class="flex items-center gap-3 min-w-0 flex-1">
-            <div class="w-10 h-10 rounded-full bg-[#E8EAED] dark:bg-white/10 flex items-center justify-center text-sm font-bold text-[#3C4043] dark:text-dark-text">
+            <div class="w-10 h-10 rounded-full bg-accent/80 dark:bg-white/10 flex items-center justify-center text-sm font-bold text-foreground dark:text-dark-text">
               {attendee.name.slice(0, 2).toUpperCase()}
             </div>
             <div class="min-w-0 flex-1">
-              <p class="font-bold text-[#202124] dark:text-dark-text truncate">{attendee.name}</p>
+              <p class="font-bold text-foreground dark:text-dark-text truncate">{attendee.name}</p>
               {#if attendee.completed_at}
-                <p class="text-xs text-[#5F6368] dark:text-dark-text-muted">
+                <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
                   {$t("raffle.completed_at", { values: { time: formatCompletedAt(attendee.completed_at) } })}
                 </p>
               {/if}
@@ -204,37 +204,37 @@
           <div class="flex items-center gap-2">
             <button
               onclick={() => downloadCertificate(attendee.id)}
-              class="p-2 rounded-lg bg-white dark:bg-dark-bg hover:bg-[#E8F0FE] dark:hover:bg-[#4285F4]/20 text-[#4285F4] border border-[#E8EAED] dark:border-dark-border transition-all"
+              class="p-2 rounded-lg bg-white dark:bg-dark-bg hover:bg-accent/70 dark:hover:bg-primary/20 text-primary border border-border dark:border-dark-border transition-all"
               title="Download Certificate"
             >
               <Download size={16} />
             </button>
-            <div class="flex items-center gap-1 text-[#34A853] dark:text-emerald-300 text-xs font-bold uppercase tracking-wide">
+            <div class="flex items-center gap-1 text-emerald-600 dark:text-emerald-300 text-xs font-bold uppercase tracking-wide">
               <Award size={16} />
               <span class="hidden sm:inline">{$t("raffle.eligible_badge")}</span>
             </div>
           </div>
         </div>
       {:else}
-        <div class="p-4 rounded-xl border border-dashed border-[#E8EAED] dark:border-dark-border text-center text-sm text-[#9AA0A6] dark:text-dark-text-muted bg-[#F8F9FA] dark:bg-white/5">
+        <div class="p-4 rounded-xl border border-dashed border-border dark:border-dark-border text-center text-sm text-muted-foreground dark:text-dark-text-muted bg-accent/60 dark:bg-white/5">
           {$t("raffle.waiting_for_completion")}
         </div>
       {/each}
     </div>
 
     {#if history.length}
-      <div class="pt-2 border-t border-[#E8EAED] dark:border-dark-border">
+      <div class="pt-2 border-t border-border dark:border-dark-border">
         <div class="flex items-center gap-2 mb-2">
-          <Trophy size={16} class="text-[#F4B400]" />
-          <p class="text-sm font-bold text-[#3C4043] dark:text-dark-text">
+          <Trophy size={16} class="text-amber-500" />
+          <p class="text-sm font-bold text-foreground dark:text-dark-text">
             {$t("raffle.recent_winners")}
           </p>
         </div>
         <div class="space-y-2">
           {#each history as item}
-            <div class="flex items-center justify-between p-2 rounded-lg bg-[#F8F9FA] dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border text-sm">
-              <span class="font-semibold text-[#202124] dark:text-dark-text truncate">{item.name}</span>
-              <span class="text-[11px] text-[#5F6368] dark:text-dark-text-muted font-mono">{item.time}</span>
+            <div class="flex items-center justify-between p-2 rounded-lg bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border text-sm">
+              <span class="font-semibold text-foreground dark:text-dark-text truncate">{item.name}</span>
+              <span class="text-[11px] text-muted-foreground dark:text-dark-text-muted font-mono">{item.time}</span>
             </div>
           {/each}
         </div>

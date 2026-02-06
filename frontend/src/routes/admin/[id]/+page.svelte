@@ -2068,7 +2068,7 @@
     }}
 />
 
-<div class="min-h-screen bg-[#F8F9FA] dark:bg-dark-bg flex flex-col font-sans text-[#3C4043] dark:text-dark-text transition-colors">
+<div class="min-h-screen bg-background dark:bg-dark-bg flex flex-col font-sans text-foreground dark:text-dark-text transition-colors">
     <AdminHeader
         {id}
         {codelab}
@@ -2086,7 +2086,7 @@
     {#if loading}
         <div class="flex-1 flex justify-center items-center">
             <div
-                class="animate-spin rounded-full h-12 w-12 border-4 border-[#E8EAED] dark:border-dark-border border-t-[#4285F4] dark:border-t-[#4285F4]"
+                class="animate-spin rounded-full h-12 w-12 border-4 border-border dark:border-dark-border border-t-primary dark:border-t-primary"
             ></div>
         </div>
     {:else}
@@ -2124,17 +2124,17 @@
             >
                 {#if steps.length > 0}
                     <div
-                        class="bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm min-h-[70vh] flex flex-col transition-colors"
+                        class="bg-white dark:bg-dark-surface rounded-2xl border border-border dark:border-dark-border shadow-sm min-h-[70vh] flex flex-col transition-colors"
                     >
                         {#if mode === "edit" || mode === "preview"}
                             <div
-                                class="p-6 sm:p-8 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/30 dark:bg-white/5 sticky top-[73px] z-20 backdrop-blur-md rounded-t-2xl"
+                                class="p-6 sm:p-8 border-b border-border dark:border-dark-border bg-accent/40 dark:bg-white/5 sticky top-[73px] z-20 backdrop-blur-md rounded-t-2xl"
                             >
                                 <input
                                     type="text"
                                     bind:value={steps[activeStepIndex].title}
                                     readonly={mode === "preview"}
-                                    class="text-2xl sm:text-3xl font-bold text-[#202124] dark:text-dark-text w-full bg-transparent outline-none placeholder-[#DADCE0] dark:placeholder-dark-text-muted border-b-2 border-transparent focus:border-[#4285F4] transition-all pb-2"
+                                    class="text-2xl sm:text-3xl font-bold text-foreground dark:text-dark-text w-full bg-transparent outline-none placeholder-muted-foreground/60 dark:placeholder-dark-text-muted border-b-2 border-transparent focus:border-primary transition-all pb-2"
                                     placeholder={$t("editor.untitled_step")}
                                 />
                             </div>
@@ -2254,25 +2254,25 @@
                     </div>
                 {:else}
                     <div
-                        class="bg-white dark:bg-dark-surface rounded-3xl border-2 border-dashed border-[#DADCE0] dark:border-dark-border p-12 sm:p-24 text-center shadow-sm"
+                        class="bg-white dark:bg-dark-surface rounded-3xl border-2 border-dashed border-border dark:border-dark-border p-12 sm:p-24 text-center shadow-sm"
                         in:fly={{ y: 20 }}
                     >
                         <div
-                            class="w-20 h-20 bg-[#F1F3F4] dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8"
+                            class="w-20 h-20 bg-accent/60 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8"
                         >
-                            <Plus size={40} class="text-[#BDC1C6] dark:text-dark-text-muted" />
+                            <Plus size={40} class="text-muted-foreground/70 dark:text-dark-text-muted" />
                         </div>
-                        <h3 class="text-2xl font-bold text-[#202124] dark:text-dark-text mb-3">
+                        <h3 class="text-2xl font-bold text-foreground dark:text-dark-text mb-3">
                             {$t("editor.empty_codelab")}
                         </h3>
                         <p
-                            class="text-[#5F6368] dark:text-dark-text-muted text-lg mb-10 max-w-sm mx-auto"
+                            class="text-muted-foreground dark:text-dark-text-muted text-lg mb-10 max-w-sm mx-auto"
                         >
                             {$t("editor.empty_desc")}
                         </p>
                         <button
                             onclick={addStep}
-                            class="bg-[#4285F4] text-white px-10 py-3 rounded-full font-bold flex items-center gap-2 mx-auto shadow-md hover:shadow-lg transition-all active:scale-95"
+                            class="bg-primary text-primary-foreground px-10 py-3 rounded-full font-bold flex items-center gap-2 mx-auto shadow-md hover:shadow-lg transition-all active:scale-95"
                         >
                             <Plus size={20} />
                             {$t("editor.add_first_step")}
@@ -2292,15 +2292,15 @@
     /* Syntax Highlighting - Handled globally in app.css */
     :global(.markdown-body code:not(pre code)) {
         font-family: inherit;
-        color: #c5221f;
-        background-color: #fce8e6;
+        color: var(--color-destructive);
+        background-color: var(--color-accent);
         padding: 2px 5px;
         border-radius: 4px;
         font-size: 0.9em;
     }
     :global(html.dark .markdown-body code:not(pre code)) {
-        color: #ff8077;
-        background-color: rgba(234, 67, 53, 0.15);
+        color: var(--color-destructive);
+        background-color: var(--color-dark-hover);
     }
     :global(.markdown-body pre code) {
         font-family: "JetBrains Mono", "Google Sans Mono", monospace;
@@ -2311,14 +2311,14 @@
     :global(.markdown-body h2) {
         font-size: 1.4rem;
         font-weight: 700;
-        color: #202124;
+        color: var(--color-foreground);
         margin-top: 2rem;
-        border-bottom: 1px solid #f1f3f4;
+        border-bottom: 1px solid var(--color-border);
         padding-bottom: 0.5rem;
     }
     :global(html.dark .markdown-body h2) {
-        color: #e8eaed;
-        border-bottom-color: #3c4043;
+        color: var(--color-dark-text);
+        border-bottom-color: var(--color-dark-border);
     }
     .modal-overlay {
         position: fixed;

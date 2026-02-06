@@ -54,6 +54,7 @@ pub struct AuthConfig {
     pub admin_ttl: Duration,
     pub attendee_ttl: Duration,
     pub cookie_name: String,
+    pub attendee_cookie_name: String,
     pub csrf_cookie_name: String,
     pub cookie_secure: bool,
     pub cookie_same_site: SameSite,
@@ -128,6 +129,7 @@ impl AuthConfig {
             admin_ttl,
             attendee_ttl,
             cookie_name: format!("{}oc_session", cookie_prefix),
+            attendee_cookie_name: format!("{}oc_attendee_session", cookie_prefix),
             csrf_cookie_name: format!("{}oc_csrf", cookie_prefix),
             cookie_secure,
             cookie_same_site,
@@ -166,10 +168,15 @@ impl AuthConfig {
 #[derive(Debug, Clone)]
 pub struct AuthSession {
     pub claims: Option<SessionClaims>,
+    pub admin_claims: Option<SessionClaims>,
+    pub attendee_claims: Option<SessionClaims>,
 }
 
 impl AuthSession {
     pub fn require_admin(&self) -> Result<SessionClaims, (StatusCode, String)> {
+        if let Some(claims) = &self.admin_claims {
+            return Ok(claims.clone());
+        }
         match &self.claims {
             Some(claims) if Role::from_str(&claims.role) == Some(Role::Admin) => Ok(claims.clone()),
             Some(_) => Err(forbidden()),
@@ -178,6 +185,9 @@ impl AuthSession {
     }
 
     pub fn require_attendee(&self) -> Result<SessionClaims, (StatusCode, String)> {
+        if let Some(claims) = &self.attendee_claims {
+            return Ok(claims.clone());
+        }
         match &self.claims {
             Some(claims) if Role::from_str(&claims.role) == Some(Role::Attendee) => {
                 Ok(claims.clone())
@@ -201,22 +211,41 @@ where
             .map_err(|_| unauthorized())?;
 
         let jar = CookieJar::from_headers(&parts.headers);
-        let token = jar
+        let admin_token = jar
             .get(&state.auth.cookie_name)
             .map(|cookie| cookie.value().to_string());
+        let attendee_token = jar
+            .get(&state.auth.attendee_cookie_name)
+            .map(|cookie| cookie.value().to_string());
 
-        if token.is_none() {
-            eprintln!("AuthSession: No session cookie found (cookie_name={})", state.auth.cookie_name);
+        if admin_token.is_none() && attendee_token.is_none() {
+            eprintln!(
+                "AuthSession: No session cookie found (cookie_name={}, attendee_cookie_name={})",
+                state.auth.cookie_name, state.auth.attendee_cookie_name
+            );
         }
 
-        let claims = token.and_then(|value| {
+        let admin_claims = admin_token.and_then(|value| {
             let result = state.auth.verify_token(&value);
             if result.is_none() {
-                eprintln!("AuthSession: Token verification failed");
+                eprintln!("AuthSession: Admin token verification failed");
             }
             result
         });
-        Ok(Self { claims })
+
+        let attendee_claims = attendee_token.and_then(|value| {
+            let result = state.auth.verify_token(&value);
+            if result.is_none() {
+                eprintln!("AuthSession: Attendee token verification failed");
+            }
+            result
+        });
+        let claims = admin_claims.clone().or(attendee_claims.clone());
+        Ok(Self {
+            claims,
+            admin_claims,
+            attendee_claims,
+        })
     }
 }
 
@@ -226,6 +255,20 @@ pub fn build_session_cookie(
     max_age: Duration,
 ) -> Cookie<'static> {
     Cookie::build((config.cookie_name.clone(), token))
+        .path("/")
+        .http_only(true)
+        .secure(config.cookie_secure)
+        .same_site(config.cookie_same_site)
+        .max_age(CookieDuration::seconds(max_age.as_secs() as i64))
+        .build()
+}
+
+pub fn build_attendee_session_cookie(
+    config: &AuthConfig,
+    token: String,
+    max_age: Duration,
+) -> Cookie<'static> {
+    Cookie::build((config.attendee_cookie_name.clone(), token))
         .path("/")
         .http_only(true)
         .secure(config.cookie_secure)
@@ -279,6 +322,7 @@ mod tests {
             admin_ttl: Duration::from_secs(60),
             attendee_ttl: Duration::from_secs(60),
             cookie_name: "oc_session".to_string(),
+            attendee_cookie_name: "oc_attendee_session".to_string(),
             csrf_cookie_name: "oc_csrf".to_string(),
             cookie_secure: false,
             cookie_same_site: SameSite::Lax,

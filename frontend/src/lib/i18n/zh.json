@@ -40,6 +40,22 @@
         "open_new_tab": "新标签页打开",
         "confirm_delete": "确定要删除吗？此操作无法撤销。"
     },
+    "theme": {
+        "menu_label": "主题",
+        "mode_label": "模式",
+        "preset_label": "预设",
+        "modes": {
+            "system": "系统",
+            "light": "浅色",
+            "dark": "深色"
+        },
+        "presets": {
+            "default": "默认",
+            "mint": "薄荷",
+            "ocean": "海洋",
+            "sunset": "落日"
+        }
+    },
     "dashboard": {
         "title": "协调员仪表板",
         "subtitle": "管理代码实验室并跟踪参与者进度",
@@ -437,6 +453,9 @@
     "ai_generator": {
         "title": "使用 Gemini AI 创建",
         "subtitle": "立即将您的代码转换为互动式代码实验室",
+        "output_placeholder_title": "输出预览",
+        "output_placeholder_desc": "AI 的回应和草稿会显示在这里。",
+        "output_panel_notice": "结果显示在右侧面板，请在此继续设置。",
         "mode_label": "生成模式",
         "mode_basic": "普通",
         "mode_advanced": "专业",

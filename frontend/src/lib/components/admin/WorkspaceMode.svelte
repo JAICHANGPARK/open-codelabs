@@ -474,17 +474,17 @@
 </script>
 
 <div
-    class="bg-white dark:bg-dark-surface rounded-2xl border border-[#E8EAED] dark:border-dark-border shadow-sm overflow-hidden min-h-[70vh] flex flex-col"
+    class="bg-white dark:bg-dark-surface rounded-2xl border border-border dark:border-dark-border shadow-sm overflow-hidden min-h-[70vh] flex flex-col"
     in:fade
 >
-    <div class="p-6 sm:p-8 border-b border-[#F1F3F4] dark:border-dark-border bg-[#F8F9FA]/30 dark:bg-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <div class="p-6 sm:p-8 border-b border-border dark:border-dark-border bg-accent/40 dark:bg-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
         <div class="flex items-center gap-3">
-            <div class="p-2 bg-[#4285F4]/10 rounded-lg text-[#4285F4]">
+            <div class="p-2 bg-primary/10 rounded-lg text-primary">
                 <FolderGit2 size={24} />
             </div>
             <div>
-                <h3 class="text-xl font-bold text-[#202124] dark:text-dark-text">{$t('workspace.title')}</h3>
-                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">{$t('workspace.subtitle')}</p>
+                <h3 class="text-xl font-bold text-foreground dark:text-dark-text">{$t('workspace.title')}</h3>
+                <p class="text-sm text-muted-foreground dark:text-dark-text-muted">{$t('workspace.subtitle')}</p>
             </div>
         </div>
     </div>
@@ -520,13 +520,13 @@
             {/if}
 
             {#if aiGenerating || aiStepLogs.length > 0}
-                <div class="bg-[#F8F9FA] dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border rounded-xl p-6 space-y-3">
+                <div class="bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border rounded-xl p-6 space-y-3">
                     <div class="flex items-center justify-between">
-                        <h4 class="text-sm font-bold text-[#202124] dark:text-dark-text">
+                        <h4 class="text-sm font-bold text-foreground dark:text-dark-text">
                             {$t('workspace.ai_response_title')}
                         </h4>
                         {#if aiCurrentStep !== null}
-                            <span class="text-xs text-[#5F6368] dark:text-dark-text-muted">
+                            <span class="text-xs text-muted-foreground dark:text-dark-text-muted">
                                 {$t('workspace.ai_response_step', {
                                     values: {
                                         step: aiCurrentStep,
@@ -538,11 +538,11 @@
                             </span>
                         {/if}
                     </div>
-                    <pre class="bg-[#0D1117] text-[#E8EAED] rounded-lg p-4 text-xs overflow-auto max-h-56">
+                    <pre class="bg-dark-bg text-dark-text rounded-lg p-4 text-xs overflow-auto max-h-56">
 {aiStreamingText || $t('workspace.ai_response_waiting')}
                     </pre>
                     {#if aiStepLogs.length > 0}
-                        <div class="text-xs text-[#5F6368] dark:text-dark-text-muted space-y-1">
+                        <div class="text-xs text-muted-foreground dark:text-dark-text-muted space-y-1">
                             {#each aiStepLogs as log}
                                 <div>
                                     {$t('workspace.ai_step_summary', {
@@ -562,28 +562,28 @@
 
             {#if loading}
                 <div class="flex items-center justify-center py-12">
-                    <Loader2 class="animate-spin text-[#4285F4]" size={32} />
+                    <Loader2 class="animate-spin text-primary" size={32} />
                 </div>
             {:else}
                 {#if workspaceExists && workspaceInfo}
                     <!-- Existing Workspace -->
-                    <div class="bg-[#F8F9FA] dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border rounded-xl p-6">
+                    <div class="bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border rounded-xl p-6">
                         <div class="flex items-start justify-between mb-4">
                             <div>
-                                <h3 class="text-lg font-bold text-[#202124] dark:text-dark-text mb-3">
+                                <h3 class="text-lg font-bold text-foreground dark:text-dark-text mb-3">
                                     {$t('workspace.active_title')}
                                 </h3>
                                 <div class="space-y-2 text-sm">
-                                    <p class="text-[#5F6368] dark:text-dark-text-muted">
-                                        <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.structure')}:</span>
+                                    <p class="text-muted-foreground dark:text-dark-text-muted">
+                                        <span class="font-medium text-foreground dark:text-dark-text">{$t('workspace.labels.structure')}:</span>
                                         <span class="capitalize ml-2">{workspaceInfo.structure_type === 'branch' ? $t('workspace.labels.branch') : $t('workspace.labels.folder')}</span>
                                     </p>
-                                    <p class="text-[#5F6368] dark:text-dark-text-muted">
-                                        <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.path')}:</span>
+                                    <p class="text-muted-foreground dark:text-dark-text-muted">
+                                        <span class="font-medium text-foreground dark:text-dark-text">{$t('workspace.labels.path')}:</span>
                                         <code class="ml-2 bg-white dark:bg-dark-bg px-2 py-0.5 rounded text-xs font-mono">{workspaceInfo.path}</code>
                                     </p>
-                                    <p class="text-[#5F6368] dark:text-dark-text-muted">
-                                        <span class="font-medium text-[#202124] dark:text-dark-text">{$t('workspace.labels.steps')}:</span>
+                                    <p class="text-muted-foreground dark:text-dark-text-muted">
+                                        <span class="font-medium text-foreground dark:text-dark-text">{$t('workspace.labels.steps')}:</span>
                                         <span class="ml-2">{$t('workspace.steps_summary', {
                                             values: {
                                                 count: steps.length,
@@ -594,13 +594,13 @@
                                     </p>
                                 </div>
                             </div>
-                            <CheckCircle2 class="text-[#34A853]" size={24} />
+                            <CheckCircle2 class="text-emerald-600" size={24} />
                         </div>
 
-                        <div class="pt-4 border-t border-[#E8EAED] dark:border-dark-border">
+                        <div class="pt-4 border-t border-border dark:border-dark-border">
                             <button
                                 onclick={handleDownload}
-                                class="flex items-center gap-2 px-4 py-2 bg-[#4285F4] text-white rounded-lg hover:bg-[#1A73E8] transition-colors text-sm font-medium shadow-sm"
+                                class="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-sm font-medium shadow-sm"
                             >
                                 <Download size={16} />
                                 {$t('workspace.download')}
@@ -608,16 +608,16 @@
                         </div>
                     </div>
 
-                    <div class="bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-6 flex flex-col gap-3">
+                    <div class="bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl p-6 flex flex-col gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="p-2 bg-[#34A853]/10 rounded-lg text-[#34A853]">
+                            <div class="p-2 bg-emerald-100/80 rounded-lg text-emerald-600">
                                 <Sparkles size={20} />
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-[#202124] dark:text-dark-text">
+                                <h3 class="text-lg font-bold text-foreground dark:text-dark-text">
                                     {$t('workspace.ai_title')}
                                 </h3>
-                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
                                     {$t('workspace.ai_desc')}
                                 </p>
                             </div>
@@ -625,7 +625,7 @@
                         <button
                             onclick={handleGenerateWorkspaceWithAi}
                             disabled={aiGenerating}
-                            class="flex items-center gap-2 px-4 py-2 bg-[#34A853] text-white rounded-lg hover:bg-[#1E8E3E] transition-colors text-sm font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed w-fit"
+                            class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors text-sm font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed w-fit"
                         >
                             {#if aiGenerating}
                                 <Loader2 class="animate-spin" size={16} />
@@ -638,16 +638,16 @@
                     </div>
 
                     <!-- Step Copy Management -->
-                    <div class="bg-white dark:bg-dark-surface border border-[#E8EAED] dark:border-dark-border rounded-xl p-6 flex flex-col gap-3">
+                    <div class="bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl p-6 flex flex-col gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="p-2 bg-[#4285F4]/10 rounded-lg text-[#4285F4]">
+                            <div class="p-2 bg-primary/10 rounded-lg text-primary">
                                 <GitCompare size={20} />
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-[#202124] dark:text-dark-text">
+                                <h3 class="text-lg font-bold text-foreground dark:text-dark-text">
                                     {$t('workspace.copy_title')}
                                 </h3>
-                                <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
                                     {$t('workspace.copy_desc')}
                                 </p>
                             </div>
@@ -658,7 +658,7 @@
                                 <button
                                     onclick={() => copyStepEndToNextStart(i + 1)}
                                     disabled={aiGenerating}
-                                    class="flex items-center gap-2 px-3 py-1.5 bg-[#F8F9FA] dark:bg-white/5 border border-[#DADCE0] dark:border-dark-border rounded-lg hover:bg-[#E8EAED] dark:hover:bg-white/10 transition-colors text-xs font-medium text-[#5F6368] dark:text-dark-text disabled:opacity-50 disabled:cursor-not-allowed"
+                                    class="flex items-center gap-2 px-3 py-1.5 bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border rounded-lg hover:bg-accent/80 dark:hover:bg-white/10 transition-colors text-xs font-medium text-muted-foreground dark:text-dark-text disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     <Copy size={12} />
                                     {$t('workspace.copy_button', { values: { source: i + 1, target: i + 2 } })}
@@ -670,8 +670,8 @@
                     <!-- Create New Workspace -->
                     <div class="space-y-6">
                         <!-- Structure Type Selection -->
-                        <div class="bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-xl border border-[#E8EAED] dark:border-dark-border">
-                            <div class="block text-sm font-bold text-[#202124] dark:text-dark-text mb-3">
+                        <div class="bg-accent/60 dark:bg-white/5 p-6 rounded-xl border border-border dark:border-dark-border">
+                            <div class="block text-sm font-bold text-foreground dark:text-dark-text mb-3">
                                 {$t('workspace.structure_title')}
                             </div>
                             <div class="flex gap-4">
@@ -680,9 +680,9 @@
                                         type="radio"
                                         bind:group={structureType}
                                         value="branch"
-                                        class="w-4 h-4 text-[#4285F4]"
+                                        class="w-4 h-4 text-primary"
                                     />
-                                    <span class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                                    <span class="text-sm text-muted-foreground dark:text-dark-text-muted">
                                         {$t('workspace.structure_options.branch')}
                                     </span>
                                 </label>
@@ -691,9 +691,9 @@
                                         type="radio"
                                         bind:group={structureType}
                                         value="folder"
-                                        class="w-4 h-4 text-[#4285F4]"
+                                        class="w-4 h-4 text-primary"
                                     />
-                                    <span class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                                    <span class="text-sm text-muted-foreground dark:text-dark-text-muted">
                                         {$t('workspace.structure_options.folder')}
                                     </span>
                                 </label>
@@ -701,11 +701,11 @@
                         </div>
 
                         <!-- File Upload -->
-                        <div class="bg-[#F8F9FA] dark:bg-white/5 p-6 rounded-xl border border-[#E8EAED] dark:border-dark-border">
-                            <div class="block text-sm font-bold text-[#202124] dark:text-dark-text mb-3">
+                        <div class="bg-accent/60 dark:bg-white/5 p-6 rounded-xl border border-border dark:border-dark-border">
+                            <div class="block text-sm font-bold text-foreground dark:text-dark-text mb-3">
                                 {$t('workspace.base_files')}
                             </div>
-                            <p class="text-xs text-[#5F6368] dark:text-dark-text-muted mb-4">
+                            <p class="text-xs text-muted-foreground dark:text-dark-text-muted mb-4">
                                 {$t('workspace.base_files_desc')}
                             </p>
 
@@ -719,7 +719,7 @@
 
                             <button
                                 onclick={() => fileInput?.click()}
-                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-[#DADCE0] dark:border-dark-border rounded-lg hover:bg-[#F8F9FA] dark:hover:bg-dark-hover transition-colors text-sm font-medium text-[#5F6368] dark:text-dark-text"
+                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg hover:bg-accent/60 dark:hover:bg-dark-hover transition-colors text-sm font-medium text-muted-foreground dark:text-dark-text"
                             >
                                 <FileUp size={16} />
                                 {$t('workspace.upload_files')}
@@ -728,13 +728,13 @@
                             {#if uploadedFiles.length > 0}
                                 <div class="mt-4 space-y-2">
                                     {#each uploadedFiles as file, i}
-                                        <div class="flex items-center justify-between p-3 bg-white dark:bg-dark-surface rounded-lg border border-[#E8EAED] dark:border-dark-border">
-                                            <span class="text-sm font-mono text-[#202124] dark:text-dark-text">
+                                        <div class="flex items-center justify-between p-3 bg-white dark:bg-dark-surface rounded-lg border border-border dark:border-dark-border">
+                                            <span class="text-sm font-mono text-foreground dark:text-dark-text">
                                                 {file.name}
                                             </span>
                                             <button
                                                 onclick={() => removeFile(i)}
-                                                class="text-[#EA4335] hover:text-[#D93025] text-xs font-medium"
+                                                class="text-red-500 hover:text-red-600 text-xs font-medium"
                                             >
                                                 {$t('workspace.remove_file')}
                                             </button>
@@ -745,10 +745,10 @@
                         </div>
 
                         <!-- Info Box -->
-                        <div class="p-4 bg-[#E8F0FE] dark:bg-[#4285F4]/10 border border-[#4285F4]/20 rounded-lg">
+                        <div class="p-4 bg-accent/70 dark:bg-primary/10 border border-primary/20 rounded-lg">
                             <div class="flex items-start gap-3">
-                                <FolderGit2 class="text-[#4285F4] shrink-0 mt-0.5" size={20} />
-                                <div class="text-sm text-[#1967D2] dark:text-[#8AB4F8]">
+                                <FolderGit2 class="text-primary shrink-0 mt-0.5" size={20} />
+                                <div class="text-sm text-primary dark:text-primary">
                                     <p class="font-medium mb-2">{$t('workspace.info_title')}</p>
                                     <ul class="list-disc list-inside space-y-1 text-xs">
                                         <li>{$t('workspace.info_step_create', { unit: structureType === 'branch' ? $t('workspace.labels.branches') : $t('workspace.labels.folders') })} <code class="bg-white/50 px-1 rounded">step-N-start</code>, <code class="bg-white/50 px-1 rounded">step-N-end</code></li>
@@ -763,7 +763,7 @@
                         <button
                             onclick={createWorkspace}
                             disabled={creating || uploadedFiles.length === 0 || steps.length === 0}
-                            class="flex items-center gap-2 px-6 py-3 bg-[#4285F4] text-white rounded-lg hover:bg-[#1A73E8] transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
+                            class="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
                         >
                             {#if creating}
                                 <Loader2 class="animate-spin" size={16} />
@@ -779,11 +779,11 @@
                 {#if workspaceExists && workspaceInfo}
                     <WorkspaceBrowser codelabId={codelabId} embedded />
                 {:else}
-                    <div class="bg-[#F8F9FA] dark:bg-white/5 border border-[#E8EAED] dark:border-dark-border rounded-xl p-6">
-                        <h3 class="text-lg font-bold text-[#202124] dark:text-dark-text mb-2">
+                    <div class="bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border rounded-xl p-6">
+                        <h3 class="text-lg font-bold text-foreground dark:text-dark-text mb-2">
                             {$t('workspace.browser_title')}
                         </h3>
-                        <p class="text-sm text-[#5F6368] dark:text-dark-text-muted">
+                        <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
                             {$t('workspace.browser_empty')}
                         </p>
                     </div>
