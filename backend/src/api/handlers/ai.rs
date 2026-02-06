@@ -67,14 +67,26 @@ pub async fn proxy_gemini_stream(
     // 3. Fallback to server env var
     let payload_key = payload.api_key.as_ref().filter(|key| !key.is_empty());
     let payload_key_provided = payload_key.is_some();
-    let mut api_key = match state.admin_api_keys.get("global_admin") {
-        Some(entry) => entry.value().clone(),
-        None => payload_key
-            .map(|key| key.to_string())
-            .unwrap_or_else(|| std::env::var("GEMINI_API_KEY").unwrap_or_default()),
+
+    enum ApiKeySource {
+        AdminStored,
+        Payload,
+        Env,
+    }
+
+    let (mut api_key, source) = match state.admin_api_keys.get("global_admin") {
+        Some(entry) => (entry.value().clone(), ApiKeySource::AdminStored),
+        None => match payload_key {
+            Some(key) => (key.to_string(), ApiKeySource::Payload),
+            None => (
+                std::env::var("GEMINI_API_KEY").unwrap_or_default(),
+                ApiKeySource::Env,
+            ),
+        },
     };
 
-    if !api_key.is_empty() && payload_key_provided {
+    // Only decrypt when we actually use the payload key.
+    if !api_key.is_empty() && matches!(source, ApiKeySource::Payload) && payload_key_provided {
         match decrypt_with_password(&api_key, &state.admin_pw) {
             Ok(decrypted) => api_key = decrypted,
             Err(_) => return bad_request("Invalid encrypted API key format").into_response(),

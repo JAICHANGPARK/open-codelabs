@@ -21,6 +21,7 @@
         Loader2,
         Send
     } from "lucide-svelte";
+    import { tick } from "svelte";
     import { t } from "svelte-i18n";
     import type { Step } from "$lib/api";
     import hljs from "highlight.js";
@@ -102,6 +103,16 @@
 
     let selectionCount = $derived.by(() => {
         return selectedText ? selectedText.length : 0;
+    });
+
+    let aiInstructionEl = $state<HTMLTextAreaElement | null>(null);
+
+    $effect(() => {
+        if (!showAiMenu) return;
+        tick().then(() => {
+            aiInstructionEl?.focus();
+            aiInstructionEl?.select();
+        });
     });
 
     const toolbarButtonClass =
@@ -402,8 +413,9 @@
 
 {#if showAiMenu}
     <div
-        class="fixed z-50 animate-in fade-in zoom-in-95 duration-200 ai-menu-container"
+        class="fixed z-50 ai-menu-container ai-menu-enter"
         style="top: {menuPos.y}px; left: {menuPos.x}px;"
+        on:keydown|stopPropagation
     >
         <div class="bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-[#D2E3FC] dark:border-[#4285F4]/30 p-4 w-80 flex flex-col gap-3">
             <div class="flex items-center justify-between">
@@ -426,8 +438,10 @@
                 <textarea
                     id="ai-instruction"
                     bind:value={aiInstruction}
+                    bind:this={aiInstructionEl}
                     placeholder={$t("gemini.improvement_placeholder")}
                     class="w-full h-20 p-2 text-xs bg-[#F8F9FA] dark:bg-white/5 border border-[#DADCE0] dark:border-dark-border rounded-lg outline-none focus:border-[#4285F4] dark:focus:border-[#4285F4] resize-none"
+                    on:keydown|stopPropagation
                     onkeydown={(e) => {
                         if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                             e.preventDefault();
@@ -445,13 +459,8 @@
                 disabled={aiLoading || !geminiApiKey}
                 class="w-full py-2 bg-[#4285F4] hover:bg-[#1A73E8] disabled:opacity-50 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2"
             >
-                {#if aiLoading}
-                    <Loader2 size={14} class="animate-spin" />
-                    <span>{$t("gemini.thinking")}</span>
-                {:else}
-                    <Send size={14} />
-                    <span>{$t("gemini.ai_improve_submit")}</span>
-                {/if}
+                <Send size={14} />
+                <span>{$t("gemini.ai_improve_submit")}</span>
             </button>
 
             <div class="grid grid-cols-2 gap-1.5">
@@ -515,26 +524,69 @@
         inset: -2px;
         border-radius: inherit;
         padding: 2px;
-        background: conic-gradient(
-            from 0deg,
-            #4285f4,
-            #34a853,
-            #fbbc05,
-            #ea4335,
-            #4285f4
+        background: linear-gradient(
+            120deg,
+            rgba(66, 133, 244, 0.2),
+            rgba(52, 168, 83, 0.35),
+            rgba(251, 188, 5, 0.35),
+            rgba(234, 67, 53, 0.35),
+            rgba(66, 133, 244, 0.2)
         );
+        background-size: 220% 220%;
         -webkit-mask: linear-gradient(#000 0 0) content-box,
             linear-gradient(#000 0 0);
         -webkit-mask-composite: xor;
         mask-composite: exclude;
-        animation: ai-loading-spin 1.4s linear infinite;
+        animation: ai-loading-shimmer 1.8s ease-in-out infinite;
         pointer-events: none;
         z-index: 1;
     }
 
-    @keyframes ai-loading-spin {
-        to {
-            transform: rotate(360deg);
+    @keyframes ai-loading-shimmer {
+        0% {
+            background-position: 0% 50%;
+            filter: saturate(1);
+        }
+        50% {
+            background-position: 100% 50%;
+            filter: saturate(1.2);
+        }
+        100% {
+            background-position: 0% 50%;
+            filter: saturate(1);
+        }
+    }
+
+    .ai-menu-container {
+        transform-origin: top left;
+        will-change: transform, opacity, filter;
+    }
+
+    .ai-menu-enter {
+        animation: ai-menu-pop 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes ai-menu-pop {
+        0% {
+            opacity: 0;
+            transform: translateY(8px) scale(0.96);
+            filter: blur(2px);
+        }
+        60% {
+            opacity: 1;
+            transform: translateY(-1px) scale(1.01);
+            filter: blur(0);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .ai-menu-enter {
+            animation: none;
         }
     }
 </style>

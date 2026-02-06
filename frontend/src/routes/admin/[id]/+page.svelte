@@ -942,6 +942,7 @@
             3. Environment setup instructions.
             4. Initial project boilerplate setup if necessary.
             5. A local environment smoke test with minimal runnable code and commands for the primary language in the codelab. The test must pass to confirm readiness.
+            6. A "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions.
             
             Write ALL content in ${targetLanguage}.
             Write it in professional markdown. 
@@ -1031,6 +1032,7 @@
                 `Include prerequisites, setup flow, environment checks, and common pitfalls. ` +
                 `Provide a clear outline, checklist, and search_terms for latest info. ` +
                 `Include a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab. ` +
+                `Include a "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions. ` +
                 `For search_terms, use short English queries. ` +
                 `Write ALL content in ${targetLanguage}.\n\n` +
                 `Codelab Title: ${codelab.title}\n` +
@@ -1077,7 +1079,8 @@
                 `Write the full preparation guide using the plan. ` +
                 `${searchHint} Write ALL content in ${targetLanguage}. ` +
                 `Use clear headings, checklists, and code blocks when needed. ` +
-                `Include a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab, and explain that the test must pass to confirm readiness.\n\n` +
+                `Include a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab, and explain that the test must pass to confirm readiness. ` +
+                `Include a "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions.\n\n` +
                 `${planBlock}\n\n` +
                 `Codelab Title: ${codelab.title}\n` +
                 `Description: ${codelab.description}\n\n` +
@@ -1159,7 +1162,8 @@
             const revisePrompt = clampPrompt(
                 `Revise the preparation guide based on the expert and novice reviews. ` +
                     `${searchHint} Write ALL content in ${targetLanguage}. ` +
-                    `Ensure the guide includes a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab.\n\n` +
+                    `Ensure the guide includes a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab. ` +
+                    `Ensure the guide includes a "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions.\n\n` +
                     `${formatPromptSection(
                         "Plan JSON:",
                         planJson,
