@@ -14,6 +14,7 @@
     import {
         Plus,
         BookOpen,
+        Headset,
         User,
         Clock,
         LayoutDashboard,
@@ -351,7 +352,7 @@
                     onclick={() => (showConsultant = true)}
                     class="bg-white dark:bg-dark-surface hover:bg-[#F8F9FA] dark:hover:bg-white/5 text-[#5F6368] dark:text-dark-text-muted px-3 sm:px-4 py-2 sm:py-2.5 rounded-full flex items-center gap-2 transition-all border border-[#DADCE0] dark:border-dark-border font-bold text-xs sm:text-sm"
                 >
-                    <User size={18} />
+                    <Headset size={18} />
                     <span class="hidden xs:inline"
                         >{$t("admin.consultant.button") || "Consultant"}</span
                     >

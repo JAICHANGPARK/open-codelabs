@@ -387,6 +387,14 @@
         }
     }
 
+    function openAiMenuForFullDoc(pos: { x: number; y: number }) {
+        if (mode !== "edit") return;
+        selectedText = "";
+        selectionRange = null;
+        menuPos = pos;
+        showAiMenu = true;
+    }
+
 
     async function improveWithAi(instructionOverride?: string) {
         if (!geminiApiKey) {
@@ -2154,6 +2162,7 @@
                                     {handleMouseUp}
                                     {handleContextMenu}
                                     {improveWithAi}
+                                    {openAiMenuForFullDoc}
                                     {syncEditorScroll}
                                     {syncPreviewScroll}
                                 />

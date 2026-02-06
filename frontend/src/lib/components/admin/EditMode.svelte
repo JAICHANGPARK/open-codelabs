@@ -47,6 +47,7 @@
         handleMouseUp,
         handleContextMenu,
         improveWithAi,
+        openAiMenuForFullDoc,
         syncEditorScroll,
         syncPreviewScroll
     } = $props<{
@@ -72,6 +73,7 @@
         handleMouseUp: (e: MouseEvent) => void;
         handleContextMenu: (e: MouseEvent) => void;
         improveWithAi: (instruction?: string) => void;
+        openAiMenuForFullDoc: (pos: { x: number; y: number }) => void;
         syncEditorScroll: () => void;
         syncPreviewScroll: () => void;
     }>();
@@ -268,7 +270,12 @@
             <div class="ml-auto flex items-center gap-2">
                 <div class="flex items-center gap-1">
                     <button
-                        onclick={() => improveWithAi()}
+                        onclick={(e) => {
+                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                            const x = Math.min(rect.left, window.innerWidth - 360);
+                            const y = Math.min(rect.bottom + 8, window.innerHeight - 260);
+                            openAiMenuForFullDoc({ x, y });
+                        }}
                         disabled={aiLoading || !geminiApiKey}
                         class="flex items-center gap-2 px-3 py-2 rounded-full transition-colors border border-[#D2E3FC] dark:border-[#4285F4]/30 {aiLoading || !geminiApiKey ? 'text-[#9AA0A6] dark:text-dark-text-muted cursor-not-allowed' : 'text-[#4285F4] bg-white dark:bg-dark-surface hover:bg-[#E8F0FE] dark:hover:bg-white/10'}"
                         title={$t("editor.toolbar.improve_with_gemini")}
