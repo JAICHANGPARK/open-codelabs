@@ -4,6 +4,7 @@ use sqlx::AnyPool;
 use std::sync::Arc;
 use tokio::sync::broadcast;
 
+use crate::infrastructure::AppConfig;
 use crate::middleware::auth::AuthConfig;
 use crate::middleware::rate_limit::{RateLimitConfig, RateLimiter};
 use crate::middleware::security::SecurityHeadersConfig;
@@ -34,6 +35,39 @@ pub struct AppState {
 }
 
 impl AppState {
+    pub fn new(
+        pool: AnyPool,
+        db_kind: DbKind,
+        admin_id: String,
+        admin_pw: String,
+        trust_proxy: bool,
+    ) -> Self {
+        Self {
+            pool,
+            db_kind,
+            admin_id,
+            admin_pw,
+            auth: AuthConfig::from_env(),
+            rate_limit_config: RateLimitConfig::from_env(),
+            rate_limiter: Arc::new(RateLimiter::new()),
+            security_headers: SecurityHeadersConfig::from_env(),
+            trust_proxy,
+            admin_api_keys: Arc::new(DashMap::new()),
+            channels: Arc::new(DashMap::new()),
+            sessions: Arc::new(DashMap::new()),
+        }
+    }
+
+    pub fn new_with_config(pool: AnyPool, db_kind: DbKind, config: AppConfig) -> Self {
+        Self::new(
+            pool,
+            db_kind,
+            config.admin_id,
+            config.admin_pw,
+            config.trust_proxy,
+        )
+    }
+
     /// Fix query placeholders for different databases (e.g., ? -> $1 for Postgres)
     pub fn q(&self, sql: &str) -> String {
         if self.db_kind == DbKind::Postgres {
@@ -71,10 +105,47 @@ impl AppState {
     }
 }
 
+pub fn db_kind_from_url(database_url: &str) -> DbKind {
+    if database_url.starts_with("postgres") {
+        DbKind::Postgres
+    } else if database_url.starts_with("mysql") {
+        DbKind::Mysql
+    } else {
+        DbKind::Sqlite
+    }
+}
+
+pub fn sqlite_path_from_url(database_url: &str) -> Option<std::path::PathBuf> {
+    if !database_url.starts_with("sqlite:") {
+        return None;
+    }
+
+    let path = database_url.trim_start_matches("sqlite:");
+    let path = path.split('?').next().unwrap_or(path);
+    if path.is_empty() || path.starts_with(":memory:") || path.starts_with("::memory:") {
+        return None;
+    }
+
+    Some(std::path::PathBuf::from(path))
+}
+
+pub fn ensure_sqlite_directory(database_url: &str) -> std::io::Result<()> {
+    let Some(path) = sqlite_path_from_url(database_url) else {
+        return Ok(());
+    };
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            std::fs::create_dir_all(parent)?;
+        }
+    }
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use sqlx::any::AnyPoolOptions;
+    use tempfile::TempDir;
 
     #[tokio::test]
     async fn test_q_placeholder_transformation() {
@@ -87,35 +158,21 @@ mod tests {
             .await
             .unwrap();
 
-        let state_sqlite = AppState {
-            pool: pool.clone(),
-            db_kind: DbKind::Sqlite,
-            admin_id: "admin".to_string(),
-            admin_pw: "pass".to_string(),
-            auth: AuthConfig::from_env(),
-            rate_limit_config: RateLimitConfig::from_env(),
-            rate_limiter: Arc::new(RateLimiter::new()),
-            security_headers: SecurityHeadersConfig::from_env(),
-            trust_proxy: false,
-            admin_api_keys: Arc::new(DashMap::new()),
-            channels: Arc::new(DashMap::new()),
-            sessions: Arc::new(DashMap::new()),
-        };
+        let state_sqlite = AppState::new(
+            pool.clone(),
+            DbKind::Sqlite,
+            "admin".to_string(),
+            "pass".to_string(),
+            false,
+        );
 
-        let state_postgres = AppState {
+        let state_postgres = AppState::new(
             pool,
-            db_kind: DbKind::Postgres,
-            admin_id: "admin".to_string(),
-            admin_pw: "pass".to_string(),
-            auth: AuthConfig::from_env(),
-            rate_limit_config: RateLimitConfig::from_env(),
-            rate_limiter: Arc::new(RateLimiter::new()),
-            security_headers: SecurityHeadersConfig::from_env(),
-            trust_proxy: false,
-            admin_api_keys: Arc::new(DashMap::new()),
-            channels: Arc::new(DashMap::new()),
-            sessions: Arc::new(DashMap::new()),
-        };
+            DbKind::Postgres,
+            "admin".to_string(),
+            "pass".to_string(),
+            false,
+        );
 
         let sql = "SELECT * FROM users WHERE id = ? AND name = ?";
 
@@ -137,25 +194,53 @@ mod tests {
             .await
             .unwrap();
 
-        let state_postgres = AppState {
+        let state_postgres = AppState::new(
             pool,
-            db_kind: DbKind::Postgres,
-            admin_id: "admin".to_string(),
-            admin_pw: "pass".to_string(),
-            auth: AuthConfig::from_env(),
-            rate_limit_config: RateLimitConfig::from_env(),
-            rate_limiter: Arc::new(RateLimiter::new()),
-            security_headers: SecurityHeadersConfig::from_env(),
-            trust_proxy: false,
-            admin_api_keys: Arc::new(DashMap::new()),
-            channels: Arc::new(DashMap::new()),
-            sessions: Arc::new(DashMap::new()),
-        };
+            DbKind::Postgres,
+            "admin".to_string(),
+            "pass".to_string(),
+            false,
+        );
 
         let sql = "SELECT * FROM users WHERE name = '?' AND id = ?";
         assert_eq!(
             state_postgres.q(sql),
             "SELECT * FROM users WHERE name = '?' AND id = $1"
         );
+    }
+
+    #[test]
+    fn test_db_kind_from_url() {
+        assert_eq!(
+            db_kind_from_url("postgresql://localhost/db"),
+            DbKind::Postgres
+        );
+        assert_eq!(db_kind_from_url("mysql://localhost/db"), DbKind::Mysql);
+        assert_eq!(db_kind_from_url("sqlite:data/db.sqlite"), DbKind::Sqlite);
+    }
+
+    #[test]
+    fn test_sqlite_path_from_url() {
+        let path = sqlite_path_from_url("sqlite:data/sqlite.db?mode=rwc").unwrap();
+        assert_eq!(path.to_string_lossy(), "data/sqlite.db");
+        assert!(sqlite_path_from_url("sqlite::memory:").is_none());
+        assert!(sqlite_path_from_url("sqlite:").is_none());
+    }
+
+    #[test]
+    fn test_ensure_sqlite_directory_creates_parent() {
+        let temp_dir = TempDir::new().expect("failed to create temp dir");
+        let nested = temp_dir.path().join("nested/sqlite.db");
+        let database_url = format!("sqlite:{}", nested.to_string_lossy());
+
+        assert!(!nested
+            .parent()
+            .expect("missing parent")
+            .exists());
+        ensure_sqlite_directory(&database_url).expect("failed to create sqlite directory");
+        assert!(nested
+            .parent()
+            .expect("missing parent")
+            .exists());
     }
 }

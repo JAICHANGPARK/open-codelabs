@@ -4,6 +4,7 @@ use crate::utils::error::{bad_request, forbidden, internal_error, unauthorized};
 use crate::domain::models::{Submission, SubmissionWithAttendee};
 use crate::middleware::request_info::RequestInfo;
 use crate::infrastructure::database::AppState;
+use crate::infrastructure::db_models::SubmissionWithAttendeeRaw;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -11,7 +12,6 @@ use axum::{
 };
 use axum_extra::extract::Multipart;
 use image::{codecs::webp::WebPEncoder, ExtendedColorType};
-use serde::{Deserialize, Serialize};
 use std::io::Cursor;
 use std::path::Path as StdPath;
 use std::sync::Arc;
@@ -211,17 +211,6 @@ pub async fn get_submissions(
     Ok(Json(submissions))
 }
 
-#[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
-struct SubmissionWithAttendeeRaw {
-    pub id: String,
-    pub codelab_id: String,
-    pub attendee_id: String,
-    pub attendee_name: String,
-    pub file_path: String,
-    pub file_name: String,
-    pub file_size: i64,
-    pub created_at: Option<String>,
-}
 
 fn convert_image_to_webp(original_name: &str, data: &[u8]) -> Option<(Vec<u8>, String)> {
     let img = image::load_from_memory(data).ok()?;

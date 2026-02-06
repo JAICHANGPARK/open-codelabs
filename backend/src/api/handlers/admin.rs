@@ -5,13 +5,13 @@ use crate::middleware::auth::{
 };
 use crate::utils::crypto::decrypt_with_password;
 use crate::utils::error::{bad_request, internal_error, unauthorized};
+use crate::api::dto::SettingsPayload;
 use crate::domain::models::LoginPayload;
 use crate::middleware::request_info::RequestInfo;
 use crate::middleware::security::ensure_csrf_cookie;
 use crate::infrastructure::database::AppState;
 use axum::{extract::State, http::StatusCode, Json};
 use axum_extra::extract::cookie::CookieJar;
-use serde::Deserialize;
 use std::sync::Arc;
 use subtle::ConstantTimeEq;
 
@@ -95,11 +95,6 @@ pub async fn login(
     .await;
 
     Ok((jar, Json(serde_json::json!({ "status": "ok" }))))
-}
-
-#[derive(Deserialize)]
-pub struct SettingsPayload {
-    pub gemini_api_key: String,
 }
 
 pub async fn update_settings(

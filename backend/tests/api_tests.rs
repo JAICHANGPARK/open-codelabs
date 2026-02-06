@@ -3,11 +3,8 @@ use axum::{
     http::{header, HeaderMap, Request, StatusCode},
 };
 use backend::{
-    middleware::auth::AuthConfig,
     create_router,
     domain::models::{Codelab, CreateCodelab},
-    middleware::rate_limit::{RateLimitConfig, RateLimiter},
-    middleware::security::SecurityHeadersConfig,
     AppState, DbKind,
 };
 use cookie::Cookie;
@@ -36,20 +33,13 @@ async fn setup_test_app() -> TestApp {
         .await
         .expect("Failed to run migrations");
 
-    let state = Arc::new(AppState {
+    let state = Arc::new(AppState::new(
         pool,
-        db_kind: DbKind::Sqlite,
-        admin_id: "admin".to_string(),
-        admin_pw: "admin123".to_string(),
-        auth: AuthConfig::from_env(),
-        rate_limit_config: RateLimitConfig::from_env(),
-        rate_limiter: Arc::new(RateLimiter::new()),
-        security_headers: SecurityHeadersConfig::from_env(),
-        trust_proxy: false,
-        admin_api_keys: Arc::new(dashmap::DashMap::new()),
-        channels: Arc::new(dashmap::DashMap::new()),
-        sessions: Arc::new(dashmap::DashMap::new()),
-    });
+        DbKind::Sqlite,
+        "admin".to_string(),
+        "admin123".to_string(),
+        false,
+    ));
 
     let app = create_router(state.clone());
     TestApp { app, state }

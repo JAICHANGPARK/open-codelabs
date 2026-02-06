@@ -1,7 +1,5 @@
-use backend::middleware::auth::AuthConfig;
-use backend::middleware::rate_limit::{RateLimitConfig, RateLimiter};
-use backend::middleware::security::SecurityHeadersConfig;
-use backend::{create_router, AppState, DbKind};
+use backend::infrastructure::{db_kind_from_url, ensure_sqlite_directory, AppConfig};
+use backend::{create_router, AppState};
 use sqlx::any::AnyPoolOptions;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -28,15 +26,7 @@ async fn main() -> anyhow::Result<()> {
     }
 
     // Ensure directory exists for sqlite
-    if database_url.starts_with("sqlite:") {
-        let path = database_url.replace("sqlite:", "");
-        let path = path.split('?').next().unwrap_or(&path);
-        if let Some(parent) = std::path::Path::new(path).parent() {
-            if !parent.as_os_str().is_empty() {
-                std::fs::create_dir_all(parent).ok();
-            }
-        }
-    }
+    ensure_sqlite_directory(&database_url).ok();
 
     sqlx::any::install_default_drivers();
     let pool = AnyPoolOptions::new()
@@ -44,38 +34,14 @@ async fn main() -> anyhow::Result<()> {
         .connect(&database_url)
         .await?;
 
-    let db_kind = if database_url.starts_with("postgres") {
-        DbKind::Postgres
-    } else if database_url.starts_with("mysql") {
-        DbKind::Mysql
-    } else {
-        DbKind::Sqlite
-    };
+    let db_kind = db_kind_from_url(&database_url);
 
     // Run migrations
     sqlx::migrate!("./migrations").run(&pool).await?;
 
-    let admin_id = std::env::var("ADMIN_ID").expect("ADMIN_ID must be set");
-    let admin_pw = std::env::var("ADMIN_PW").expect("ADMIN_PW must be set");
-    let trust_proxy = std::env::var("TRUST_PROXY")
-        .ok()
-        .map(|value| value == "true")
-        .unwrap_or(false);
+    let app_config = AppConfig::from_env()?;
 
-    let state = Arc::new(AppState {
-        pool,
-        db_kind,
-        admin_id,
-        admin_pw,
-        auth: AuthConfig::from_env(),
-        rate_limit_config: RateLimitConfig::from_env(),
-        rate_limiter: Arc::new(RateLimiter::new()),
-        security_headers: SecurityHeadersConfig::from_env(),
-        trust_proxy,
-        admin_api_keys: Arc::new(dashmap::DashMap::new()),
-        channels: Arc::new(dashmap::DashMap::new()),
-        sessions: Arc::new(dashmap::DashMap::new()),
-    });
+    let state = Arc::new(AppState::new_with_config(pool, db_kind, app_config));
 
     // Build our application with routes
     let app = create_router(state);

@@ -1,35 +1,14 @@
 use crate::infrastructure::database::AppState;
+use crate::infrastructure::db_models::AuditLog;
 use crate::middleware::auth::AuthSession;
 use crate::utils::error::internal_error;
+use crate::api::dto::AuditLogQuery;
 use axum::{
     extract::{Query, State},
     http::StatusCode,
     Json,
 };
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-
-#[derive(Serialize, sqlx::FromRow)]
-pub struct AuditLog {
-    pub id: String,
-    pub action: String,
-    pub actor_type: String,
-    pub actor_id: Option<String>,
-    pub target_id: Option<String>,
-    pub codelab_id: Option<String>,
-    pub ip: Option<String>,
-    pub user_agent: Option<String>,
-    pub metadata: Option<String>,
-    pub created_at: String,
-}
-
-#[derive(Deserialize)]
-pub struct AuditLogQuery {
-    pub limit: Option<i32>,
-    pub offset: Option<i32>,
-    pub codelab_id: Option<String>,
-    pub action: Option<String>,
-}
 
 pub async fn get_audit_logs(
     State(state): State<Arc<AppState>>,

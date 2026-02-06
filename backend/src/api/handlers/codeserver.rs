@@ -1,9 +1,14 @@
 use crate::domain::services::codeserver::CodeServerManager;
 use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::infrastructure::database::AppState;
+use crate::infrastructure::db_models::WorkspaceRow;
 use crate::middleware::auth::AuthSession;
 use crate::middleware::request_info::RequestInfo;
 use crate::utils::error::{bad_request, internal_error};
+use crate::api::dto::{
+    CodeServerInfo, CreateBranchRequest, CreateCodeServerRequest, CreateFolderRequest,
+    ReadFileQuery, UpdateWorkspaceFilesRequest,
+};
 use axum::{
     body::Body,
     extract::{Path, State},
@@ -11,53 +16,7 @@ use axum::{
     response::Response,
     Json,
 };
-use serde::{Deserialize, Serialize};
 use std::sync::Arc;
-
-#[derive(Deserialize)]
-pub struct CreateCodeServerRequest {
-    pub codelab_id: String,
-    pub workspace_files: Option<Vec<WorkspaceFile>>,
-    pub structure_type: Option<String>, // "branch" or "folder"
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct WorkspaceFile {
-    pub path: String,
-    pub content: String,
-}
-
-#[derive(Serialize)]
-pub struct CodeServerInfo {
-    pub path: String,
-    pub structure_type: String,
-}
-
-#[derive(Deserialize)]
-pub struct CreateBranchRequest {
-    pub step_number: i32,
-    pub branch_type: String, // "start" or "end"
-}
-
-#[derive(Deserialize)]
-pub struct CreateFolderRequest {
-    pub step_number: i32,
-    pub folder_type: String, // "start" or "end"
-    pub files: Vec<WorkspaceFile>,
-}
-
-#[derive(Deserialize)]
-pub struct UpdateWorkspaceFilesRequest {
-    pub files: Vec<WorkspaceFile>,
-    pub delete_files: Option<Vec<String>>,
-    pub commit_message: Option<String>,
-}
-
-#[derive(sqlx::FromRow)]
-struct WorkspaceRow {
-    url: String,
-    structure_type: String,
-}
 
 /// Create workspace in code-server for a codelab
 pub async fn create_codeserver(
@@ -419,11 +378,6 @@ pub async fn list_files(
         .map_err(internal_error)?;
 
     Ok(Json(files))
-}
-
-#[derive(Deserialize)]
-pub struct ReadFileQuery {
-    pub file: String,
 }
 
 /// Read file content from a branch

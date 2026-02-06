@@ -9,6 +9,7 @@ use crate::middleware::request_info::RequestInfo;
 use crate::utils::crypto::decrypt_with_password;
 use crate::utils::error::{bad_request, forbidden, internal_error};
 use crate::utils::validation::validate_prompt;
+use crate::api::dto::AiRequest;
 use axum::{
     body::Body,
     extract::{Path, State},
@@ -16,22 +17,8 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use serde::Deserialize;
 use std::sync::Arc;
 use std::time::Duration;
-
-#[derive(Deserialize)]
-pub struct AiRequest {
-    pub prompt: Option<String>,
-    pub contents: Option<serde_json::Value>,
-    pub system_instruction: Option<String>,
-    pub api_key: Option<String>,
-    pub model: Option<String>,
-    pub generation_config: Option<serde_json::Value>,
-    pub tools: Option<serde_json::Value>,
-    pub codelab_id: Option<String>,
-    pub step_number: Option<i32>,
-}
 
 pub async fn proxy_gemini_stream(
     State(state): State<Arc<AppState>>,
@@ -40,7 +27,7 @@ pub async fn proxy_gemini_stream(
     Json(payload): Json<AiRequest>,
 ) -> impl IntoResponse {
     // Allow both admin and attendees to use AI
-    let (user_id, user_type, user_name) = if let Ok(admin) = session.require_admin() {
+    let (user_id, user_type, _user_name) = if let Ok(admin) = session.require_admin() {
         (admin.sub, "admin".to_string(), "Admin".to_string())
     } else if let Ok(attendee) = session.require_attendee() {
         // For attendees, verify they belong to the codelab if codelab_id is provided

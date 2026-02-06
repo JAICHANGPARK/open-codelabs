@@ -38,13 +38,21 @@ use axum::{
 use std::sync::Arc;
 use tower_http::services::ServeDir;
 
-pub fn create_router(state: Arc<AppState>) -> Router {
+fn auth_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/api/login", post(login))
         .route("/api/logout", post(logout))
         .route("/api/session", get(get_session))
+}
+
+fn admin_routes() -> Router<Arc<AppState>> {
+    Router::new()
         .route("/api/admin/settings", post(update_settings))
         .route("/api/admin/audit-logs", get(get_audit_logs))
+}
+
+fn codelab_routes() -> Router<Arc<AppState>> {
+    Router::new()
         .route("/api/codelabs/reference", get(get_reference_codelabs))
         .route("/api/codelabs", get(list_codelabs).post(create_codelab))
         .route(
@@ -100,8 +108,20 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             delete(delete_submission),
         )
         .route("/api/codelabs/{id}/chat", get(get_chat_history))
+        .route(
+            "/api/codelabs/{id}/ai/conversations",
+            get(get_ai_conversations),
+        )
+}
+
+fn upload_routes() -> Router<Arc<AppState>> {
+    Router::new()
         .route("/api/upload/image", post(upload_image))
         .route("/api/upload/material", post(upload_material_file))
+}
+
+fn ai_routes() -> Router<Arc<AppState>> {
+    Router::new()
         .route("/api/ai/stream", post(proxy_gemini_stream))
         .route("/api/ai/conversations", post(save_ai_conversation))
         .route(
@@ -114,11 +134,14 @@ pub fn create_router(state: Arc<AppState>) -> Router {
                 .post(add_ai_message)
                 .delete(delete_ai_thread),
         )
-        .route(
-            "/api/codelabs/{id}/ai/conversations",
-            get(get_ai_conversations),
-        )
-        .route("/api/ws/{id}", get(ws_handler))
+}
+
+fn websocket_routes() -> Router<Arc<AppState>> {
+    Router::new().route("/api/ws/{id}", get(ws_handler))
+}
+
+fn codeserver_routes() -> Router<Arc<AppState>> {
+    Router::new()
         .route("/api/codeserver", post(create_codeserver))
         .route(
             "/api/codeserver/{codelab_id}",
@@ -148,6 +171,16 @@ pub fn create_router(state: Arc<AppState>) -> Router {
             "/api/codeserver/{codelab_id}/folders/{folder}/file",
             get(read_folder_file),
         )
+}
+
+pub fn create_router(state: Arc<AppState>) -> Router {
+    auth_routes()
+        .merge(admin_routes())
+        .merge(codelab_routes())
+        .merge(upload_routes())
+        .merge(ai_routes())
+        .merge(websocket_routes())
+        .merge(codeserver_routes())
         .nest_service("/assets", ServeDir::new("static/assets"))
         .fallback_service(ServeDir::new("static"))
         .layer(middleware::from_fn_with_state(
