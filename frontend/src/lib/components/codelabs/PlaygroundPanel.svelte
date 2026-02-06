@@ -47,9 +47,7 @@
 
     let isOpen = $state(true);
     let copied = $state(false);
-    let activeLanguage = $state<PlaygroundLanguage>(
-        playgrounds[0]?.language ?? "python",
-    );
+    let activeLanguage = $state<PlaygroundLanguage>("python");
 
     let availableLanguages = $derived(playgrounds.map((block) => block.language));
     let activeBlock = $derived(

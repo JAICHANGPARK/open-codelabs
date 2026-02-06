@@ -9,14 +9,16 @@
 
 {#if files.length > 0}
     <div
-        class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-white/50 dark:bg-dark-surface/50 rounded-xl border border-dashed border-border dark:border-dark-border"
+        class="flex flex-wrap gap-2 max-h-32 overflow-y-auto p-2 bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border shadow-sm"
     >
         {#each files as file, i}
             <div
-                class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-lg text-xs font-medium text-foreground dark:text-dark-text shadow-sm group"
+                class="flex items-center gap-2 px-3 py-1.5 bg-accent/60 dark:bg-dark-bg border border-border dark:border-dark-border rounded-lg text-xs font-medium text-foreground dark:text-dark-text shadow-sm group"
             >
                 <FileCode size={14} class="text-primary" />
-                <span class="max-w-[150px] truncate">{file.name}</span>
+                <span class="max-w-[220px] truncate" title={file.name}>
+                    {file.name}
+                </span>
                 <button
                     type="button"
                     onclick={() => onRemove(i)}

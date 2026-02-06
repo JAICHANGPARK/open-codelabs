@@ -956,10 +956,12 @@
             Include:
             1. System requirements (Prerequisites).
             2. Required software/tools to install.
-            3. Environment setup instructions.
-            4. Initial project boilerplate setup if necessary.
-            5. A local environment smoke test with minimal runnable code and commands for the primary language in the codelab. The test must pass to confirm readiness.
-            6. A "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions.
+            3. Language/framework installation guidance (where to download, how to install, and version verification).
+            4. Environment variable and PATH setup steps (what to set and how to verify).
+            5. Environment setup instructions.
+            6. Initial project boilerplate setup if necessary.
+            7. A local environment smoke test with minimal runnable code and commands for the primary language in the codelab. The test must pass to confirm readiness.
+            8. A "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions.
             
             Write ALL content in ${targetLanguage}.
             Write it in professional markdown. 
@@ -1047,6 +1049,8 @@
             const planHeader =
                 `Create a professional plan for a "Preparation & Setup Guide" for attendees. ` +
                 `Include prerequisites, setup flow, environment checks, and common pitfalls. ` +
+                `Add a dedicated section for language/framework installation (download location, install steps, version check). ` +
+                `Add a dedicated section for environment variables/PATH setup and verification. ` +
                 `Provide a clear outline, checklist, and search_terms for latest info. ` +
                 `Include a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab. ` +
                 `Include a "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions. ` +
@@ -1096,6 +1100,8 @@
                 `Write the full preparation guide using the plan. ` +
                 `${searchHint} Write ALL content in ${targetLanguage}. ` +
                 `Use clear headings, checklists, and code blocks when needed. ` +
+                `Include explicit language/framework installation steps (download link location, installation commands/steps, version verification). ` +
+                `Include environment variable/PATH setup steps and verification commands. ` +
                 `Include a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab, and explain that the test must pass to confirm readiness. ` +
                 `Include a "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions.\n\n` +
                 `${planBlock}\n\n` +
@@ -1179,6 +1185,8 @@
             const revisePrompt = clampPrompt(
                 `Revise the preparation guide based on the expert and novice reviews. ` +
                     `${searchHint} Write ALL content in ${targetLanguage}. ` +
+                    `Ensure the guide includes language/framework installation steps (download location, install steps, version verification). ` +
+                    `Ensure the guide includes environment variable/PATH setup steps and verification. ` +
                     `Ensure the guide includes a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab. ` +
                     `Ensure the guide includes a "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions.\n\n` +
                     `${formatPromptSection(

@@ -101,7 +101,7 @@
     let geminiApiKey = $state("");
     let apiKeySaved = $state(false);
     let showConsultant = $state(false);
-    let backupFileInput: HTMLInputElement;
+    let backupFileInput = $state<HTMLInputElement | null>(null);
 
     let user = $state<any>(null);
 

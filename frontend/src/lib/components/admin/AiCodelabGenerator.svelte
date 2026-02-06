@@ -38,6 +38,7 @@
     let generatedContent = $state("");
     let thinkingContent = $state("");
     let showThinking = $state(true);
+    let facilitatorNotes = $state("");
     let useGoogleSearch = $state(false);
     let useUrlContext = $state(false);
     let handsOnDuration = $state("60");
@@ -733,7 +734,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
             ? `The target duration for this hands-on session is approximately ${durationValue} minutes. Please adjust the depth and number of steps to fit this timeframe.`
             : "";
 
-        const prompt = `Create a codelab tutorial from the following source code and context. ${durationText} Write ALL content in ${targetLanguage}. For every code block, include inline comments on each logical line, specify the filename before the block, and append a numbered line-by-line explanation list immediately after the block (same language).\n\nSource code/Context:\n${fullContext}`;
+        const facilitatorNoteText = facilitatorNotes.trim()
+            ? `Facilitator notes (must follow):\n${facilitatorNotes.trim()}\n\n`
+            : "";
+        const prompt = `Create a codelab tutorial from the following source code and context. ${durationText} Write ALL content in ${targetLanguage}. For every code block, include inline comments on each logical line, specify the filename before the block, and append a numbered line-by-line explanation list immediately after the block (same language).\n\n${facilitatorNoteText}Source code/Context:\n${fullContext}`;
 
         // Build tools array
         const tools: GeminiStructuredConfig["tools"] = [];
@@ -1115,7 +1119,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         };
 
         const durationText = buildDurationText();
-        const planPrompt = `Design a codelab plan from the following source code and context. ${durationText} Write all content in ${advancedTargetLanguage}. For "search_terms", use short English queries to find the latest versions, commands, or best practices (3-8 items). Keep step count aligned with the target duration. If something is unknown, return empty arrays.\n\nSource code/Context:\n${fullContext}`;
+        const facilitatorNoteText = facilitatorNotes.trim()
+            ? `Facilitator notes (must follow):\n${facilitatorNotes.trim()}\n\n`
+            : "";
+        const planPrompt = `Design a codelab plan from the following source code and context. ${durationText} Write all content in ${advancedTargetLanguage}. For "search_terms", use short English queries to find the latest versions, commands, or best practices (3-8 items). Keep step count aligned with the target duration. If something is unknown, return empty arrays.\n\n${facilitatorNoteText}Source code/Context:\n${fullContext}`;
 
         try {
             const stream = streamGeminiStructuredOutput(
@@ -1184,7 +1191,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                   2,
               )}\n\n`
             : "";
-        const draftPrompt = `Create a codelab using the plan and source context. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\nPlan JSON:\n${JSON.stringify(
+        const facilitatorNoteText = facilitatorNotes.trim()
+            ? `Facilitator notes (must follow):\n${facilitatorNotes.trim()}\n\n`
+            : "";
+        const draftPrompt = `Create a codelab using the plan and source context. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\n${facilitatorNoteText}Plan JSON:\n${JSON.stringify(
             advancedPlanData,
             null,
             2,
@@ -1296,7 +1306,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
             required: ["summary", "issues", "missing_items", "improvements"],
         };
 
-        const reviewPrompt = `Review the draft codelab as a third-party facilitator expert. Use the plan to verify structure and completeness. Write ALL content in ${advancedTargetLanguage}.\n\nPlan JSON:\n${JSON.stringify(
+        const facilitatorNoteText = facilitatorNotes.trim()
+            ? `Facilitator notes (must follow):\n${facilitatorNotes.trim()}\n\n`
+            : "";
+        const reviewPrompt = `Review the draft codelab as a third-party facilitator expert. Use the plan to verify structure and completeness. Write ALL content in ${advancedTargetLanguage}.\n\n${facilitatorNoteText}Plan JSON:\n${JSON.stringify(
             advancedPlanData,
             null,
             2,
@@ -1358,7 +1371,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
               )}.`
             : "Use the Google Search tool if any versions, commands, or APIs need verification.";
 
-        const revisePrompt = `Revise the draft codelab based on the expert review. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\nPlan JSON:\n${JSON.stringify(
+        const revisePrompt = `Revise the draft codelab based on the expert review. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\n${facilitatorNoteText}Plan JSON:\n${JSON.stringify(
             advancedPlanData,
             null,
             2,
@@ -1509,6 +1522,80 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         <div class="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden p-6 bg-accent/60 dark:bg-dark-bg">
             <div class="flex flex-col w-full lg:w-1/2 min-h-0 overflow-y-auto pr-1">
                 <div
+                    class="mb-4 bg-white dark:bg-dark-surface/50 border border-border dark:border-dark-border rounded-2xl p-4 shadow-sm"
+                >
+                    <div class="flex flex-col gap-3">
+                        <span
+                            class="text-sm font-bold text-muted-foreground dark:text-dark-text-muted flex items-center gap-2"
+                        >
+                            <Clock size={16} class="text-primary" />
+                            {$t("ai_generator.duration_label")}
+                        </span>
+                        <div class="flex flex-wrap gap-2">
+                            {#each ["60", "90", "120", "150", "180", "custom"] as d}
+                                <button
+                                    onclick={() => (handsOnDuration = d)}
+                                    class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {handsOnDuration ===
+                                    d
+                                        ? 'bg-primary text-white border-primary shadow-md'
+                                        : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
+                                >
+                                    {d === "custom"
+                                        ? $t("ai_generator.duration_custom")
+                                        : $t("ai_generator.duration_mins", {
+                                              values: { mins: d },
+                                          })}
+                                </button>
+                            {/each}
+                            {#if handsOnDuration === "custom"}
+                                <div class="flex items-center gap-2 ml-2" in:fade>
+                                    <input
+                                        type="number"
+                                        min="1"
+                                        step="1"
+                                        bind:value={customDuration}
+                                        placeholder="10"
+                                        oninput={(e) => {
+                                            const el = e.currentTarget as HTMLInputElement;
+                                            if (el.value === "") return;
+                                            const value = Math.max(1, Math.floor(Number(el.value)));
+                                            if (!Number.isFinite(value)) return;
+                                            if (String(value) !== el.value) el.value = String(value);
+                                            customDuration = el.value;
+                                        }}
+                                        class="w-20 bg-white dark:bg-dark-bg border border-border dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                                    />
+                                    <span
+                                        class="text-xs font-medium text-muted-foreground dark:text-dark-text-muted"
+                                        >{$t("ai_generator.mins")}</span
+                                    >
+                                </div>
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+
+                <div
+                    class="mb-4 bg-white dark:bg-dark-surface/50 border border-border dark:border-dark-border rounded-2xl p-4 shadow-sm"
+                >
+                    <label
+                        for="facilitator-notes"
+                        class="block text-sm font-bold text-muted-foreground dark:text-dark-text-muted mb-2"
+                    >
+                        {$t("ai_generator.facilitator_notes_label")}
+                    </label>
+                    <textarea
+                        id="facilitator-notes"
+                        bind:value={facilitatorNotes}
+                        placeholder={$t("ai_generator.facilitator_notes_placeholder")}
+                        class="w-full min-h-[96px] bg-white dark:bg-dark-surface text-foreground dark:text-dark-text border border-border dark:border-dark-border rounded-xl p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none resize-y"
+                    ></textarea>
+                    <p class="text-xs text-muted-foreground dark:text-dark-text-muted mt-2">
+                        {$t("ai_generator.facilitator_notes_desc")}
+                    </p>
+                </div>
+
+                <div
                     class="mb-4 bg-white dark:bg-dark-surface/50 border border-border dark:border-dark-border rounded-2xl p-3 shadow-sm"
                 >
                     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -1548,16 +1635,81 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             </button>
                         </div>
                     </div>
-                    <div class="mt-3 space-y-3">
-                        <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
-                            {generationMode === "basic"
-                                ? $t("ai_generator.mode_basic_desc")
-                                : $t("ai_generator.mode_advanced_desc")}
-                        </p>
-                        {#if generationMode === "advanced"}
-                            <div
-                                class="flex flex-col gap-3 rounded-2xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface/50 p-4 shadow-sm"
-                            >
+                <div class="mt-3 space-y-3">
+                    <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
+                        {generationMode === "basic"
+                            ? $t("ai_generator.mode_basic_desc")
+                            : $t("ai_generator.mode_advanced_desc")}
+                    </p>
+                    <div class="flex flex-wrap gap-4">
+                        {#if generationMode === "basic"}
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    bind:checked={useGoogleSearch}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                />
+                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
+                                    {$t("ai_generator.google_search")}
+                                </span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    bind:checked={useUrlContext}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                />
+                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
+                                    {$t("ai_generator.url_context")}
+                                </span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    bind:checked={showThinking}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                />
+                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
+                                    {$t("ai_generator.show_thinking")}
+                                </span>
+                            </label>
+                        {:else}
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    bind:checked={advancedUseGoogleSearch}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                />
+                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
+                                    {$t("ai_generator.google_search")}
+                                </span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    bind:checked={advancedUseUrlContext}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                />
+                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
+                                    {$t("ai_generator.url_context")}
+                                </span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer group">
+                                <input
+                                    type="checkbox"
+                                    bind:checked={showThinking}
+                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                />
+                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
+                                    {$t("ai_generator.show_thinking")}
+                                </span>
+                            </label>
+                        {/if}
+                    </div>
+                    {#if generationMode === "advanced"}
+                        <div
+                            class="flex flex-col gap-3 rounded-2xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface/50 p-4 shadow-sm"
+                        >
                                 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                                     <p class="text-sm text-foreground dark:text-dark-text">
                                         {$t("ai_generator.mode_advanced_star_message")}
@@ -1616,105 +1768,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                     <!-- Uploaded Files List -->
                     <UploadedFileList files={uploadedFiles} onRemove={removeFile} />
 
-                    <!-- Advanced Options -->
-                    <div
-                        class="flex flex-col gap-4 mb-4 bg-white dark:bg-dark-surface/50 p-4 rounded-2xl border border-border dark:border-dark-border shadow-sm"
-                    >
-                        <!-- Duration Selection -->
-                        <div class="flex flex-col gap-3">
-                            <span
-                                class="text-sm font-bold text-muted-foreground dark:text-dark-text-muted flex items-center gap-2"
-                            >
-                                <Clock size={16} class="text-primary" />
-                                {$t("ai_generator.duration_label")}
-                            </span>
-                            <div class="flex flex-wrap gap-2">
-                                {#each ["60", "90", "120", "150", "180", "custom"] as d}
-                                    <button
-                                        onclick={() => (handsOnDuration = d)}
-                                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {handsOnDuration ===
-                                        d
-                                            ? 'bg-primary text-white border-primary shadow-md'
-                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
-                                    >
-                                        {d === "custom"
-                                            ? $t("ai_generator.duration_custom")
-                                            : $t("ai_generator.duration_mins", {
-                                                  values: { mins: d },
-                                              })}
-                                    </button>
-                                {/each}
-                                {#if handsOnDuration === "custom"}
-                                    <div
-                                        class="flex items-center gap-2 ml-2"
-                                        in:fade
-                                    >
-                                        <input
-                                            type="number"
-                                            bind:value={customDuration}
-                                            placeholder="10"
-                                            class="w-20 bg-white dark:bg-dark-bg border border-border dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-                                        />
-                                        <span
-                                            class="text-xs font-medium text-muted-foreground dark:text-dark-text-muted"
-                                            >{$t("ai_generator.mins")}</span
-                                        >
-                                    </div>
-                                {/if}
-                            </div>
-                        </div>
 
-                        <div
-                            class="h-px bg-border dark:bg-dark-border w-full"
-                        ></div>
-
-                        <div class="flex flex-wrap gap-6">
-                            <label
-                                class="flex items-center gap-2 cursor-pointer group"
-                            >
-                                <input
-                                    type="checkbox"
-                                    bind:checked={useGoogleSearch}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span
-                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
-                                >
-                                    {$t("ai_generator.google_search")}
-                                </span>
-                            </label>
-
-                            <label
-                                class="flex items-center gap-2 cursor-pointer group"
-                            >
-                                <input
-                                    type="checkbox"
-                                    bind:checked={useUrlContext}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span
-                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
-                                >
-                                    {$t("ai_generator.url_context")}
-                                </span>
-                            </label>
-
-                            <label
-                                class="flex items-center gap-2 cursor-pointer group"
-                            >
-                                <input
-                                    type="checkbox"
-                                    bind:checked={showThinking}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span
-                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
-                                >
-                                    {$t("ai_generator.show_thinking")}
-                                </span>
-                            </label>
-                        </div>
-                    </div>
 
                     {#if useGoogleSearch || useUrlContext}
                         <div
@@ -1818,88 +1872,8 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                     <div
                         class="flex flex-col gap-4 mb-4 bg-white dark:bg-dark-surface/50 p-4 rounded-2xl border border-border dark:border-dark-border shadow-sm"
                     >
-                        <!-- Duration Selection -->
-                        <div class="flex flex-col gap-3">
-                            <span
-                                class="text-sm font-bold text-muted-foreground dark:text-dark-text-muted flex items-center gap-2"
-                            >
-                                <Clock size={16} class="text-primary" />
-                                {$t("ai_generator.duration_label")}
-                            </span>
-                            <div class="flex flex-wrap gap-2">
-                                {#each ["60", "90", "120", "150", "180", "custom"] as d}
-                                    <button
-                                        onclick={() => (handsOnDuration = d)}
-                                        class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {handsOnDuration ===
-                                        d
-                                            ? 'bg-primary text-white border-primary shadow-md'
-                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
-                                    >
-                                        {d === "custom"
-                                            ? $t("ai_generator.duration_custom")
-                                            : $t("ai_generator.duration_mins", {
-                                                  values: { mins: d },
-                                              })}
-                                    </button>
-                                {/each}
-                                {#if handsOnDuration === "custom"}
-                                    <div
-                                        class="flex items-center gap-2 ml-2"
-                                        in:fade
-                                    >
-                                        <input
-                                            type="number"
-                                            bind:value={customDuration}
-                                            placeholder="10"
-                                            class="w-20 bg-white dark:bg-dark-bg border border-border dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-                                        />
-                                        <span
-                                            class="text-xs font-medium text-muted-foreground dark:text-dark-text-muted"
-                                            >{$t("ai_generator.mins")}</span
-                                        >
-                                    </div>
-                                {/if}
-                            </div>
-                        </div>
-
-                        <div
-                            class="h-px bg-border dark:bg-dark-border w-full"
-                        ></div>
-
                         <div class="flex flex-wrap gap-6">
-                            <label
-                                class="flex items-center gap-2 cursor-pointer group"
-                            >
-                                <input
-                                    type="checkbox"
-                                    bind:checked={advancedUseGoogleSearch}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span
-                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
-                                >
-                                    {$t("ai_generator.google_search")}
-                                </span>
-                            </label>
-
-                            <label
-                                class="flex items-center gap-2 cursor-pointer group"
-                            >
-                                <input
-                                    type="checkbox"
-                                    bind:checked={advancedUseUrlContext}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span
-                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
-                                >
-                                    {$t("ai_generator.url_context")}
-                                </span>
-                            </label>
-
-                            <label
-                                class="flex items-center gap-2 cursor-pointer group"
-                            >
+                            <label class="flex items-center gap-2 cursor-pointer group">
                                 <input
                                     type="checkbox"
                                     bind:checked={enableCodeServer}
@@ -1935,21 +1909,6 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     </label>
                                 </div>
                             {/if}
-
-                            <label
-                                class="flex items-center gap-2 cursor-pointer group"
-                            >
-                                <input
-                                    type="checkbox"
-                                    bind:checked={showThinking}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span
-                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
-                                >
-                                    {$t("ai_generator.show_thinking")}
-                                </span>
-                            </label>
                         </div>
                     </div>
 
