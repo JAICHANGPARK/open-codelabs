@@ -634,7 +634,7 @@
                     ? {
                           ...img,
                           status: "failed",
-                          error: $t("chat.image_upload_failed"),
+                          error: e?.message || $t("chat.image_upload_failed"),
                       }
                     : img,
             );
