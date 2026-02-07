@@ -334,7 +334,10 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
         method: 'POST',
         body: formData,
     });
-    if (!res.ok) throw new Error('Upload failed');
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text ? `Upload failed: ${text}` : 'Upload failed');
+    }
     return res.json();
 }
 
