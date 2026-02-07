@@ -108,8 +108,17 @@
     let chatMessage = $state("");
     let chatImageUploading = $state(false);
     let chatImageError = $state("");
-    let pendingImageUrl = $state<string | null>(null);
-    let pendingImageName = $state("");
+    let pendingImages = $state<
+        {
+            id: string;
+            name: string;
+            previewUrl: string | null;
+            url: string | null;
+            status: "uploading" | "success" | "failed";
+            error?: string;
+            sourceFile?: File;
+        }[]
+    >([]);
     function getChatImageUrl(text: string) {
         const mdMatch = text.match(/!\[[^\]]*]\(([^)]+)\)/);
         if (mdMatch?.[1]) return mdMatch[1];
@@ -263,7 +272,8 @@
                 const session = await getSession();
                 const sessionMatches =
                     session?.role === "attendee" && session.codelab_id === id;
-                if (!sessionMatches) {
+                const isAdminSession = session?.role === "admin";
+                if (!sessionMatches && !isAdminSession) {
                     localStorage.removeItem(`attendee_${id}`);
                     goto(`/codelabs/${id}/entry`);
                     return;
@@ -529,8 +539,10 @@
     function sendChat() {
         if (!attendee) return;
         const text = chatMessage.trim();
-        const imagePart = pendingImageUrl ? `![image](${pendingImageUrl})` : "";
-        const message = [text, imagePart].filter(Boolean).join("\n\n");
+        const imageParts = pendingImages
+            .filter((img) => img.status === "success" && img.url)
+            .map((img) => `![image](${img.url})`);
+        const message = [text, ...imageParts].filter(Boolean).join("\n\n");
         if (!message) return;
 
         if (isServerlessMode()) {
@@ -540,8 +552,7 @@
                 type: "chat",
             });
             chatMessage = "";
-            pendingImageUrl = null;
-            pendingImageName = "";
+            pendingImages = pendingImages.filter((img) => img.status !== "success");
             return;
         }
 
@@ -557,8 +568,7 @@
 
         ws.send(JSON.stringify(msg));
         chatMessage = "";
-        pendingImageUrl = null;
-        pendingImageName = "";
+        pendingImages = pendingImages.filter((img) => img.status !== "success");
     }
 
     async function convertToWebp(file: File): Promise<File> {
@@ -579,35 +589,120 @@
         return new File([blob], newName, { type: "image/webp" });
     }
 
-    async function handleChatImageSelect(file: File) {
-        if (chatImageUploading) return;
-        chatImageError = "";
+    async function uploadChatImage(file: File, targetId: string) {
         const MAX_MB = 5;
         const MAX_BYTES = MAX_MB * 1024 * 1024;
         if (file.size > MAX_BYTES * 2) {
-            chatImageError = $t("chat.image_too_large", { values: { max: MAX_MB } });
+            pendingImages = pendingImages.map((img) =>
+                img.id === targetId
+                    ? {
+                          ...img,
+                          status: "failed",
+                          error: $t("chat.image_too_large", { values: { max: MAX_MB } }),
+                      }
+                    : img,
+            );
             return;
         }
-        chatImageUploading = true;
         try {
             const webpFile = await convertToWebp(file);
             if (webpFile.size > MAX_BYTES) {
-                chatImageError = $t("chat.image_too_large", { values: { max: MAX_MB } });
+                pendingImages = pendingImages.map((img) =>
+                    img.id === targetId
+                        ? {
+                              ...img,
+                              status: "failed",
+                              error: $t("chat.image_too_large", { values: { max: MAX_MB } }),
+                          }
+                        : img,
+                );
                 return;
             }
+            const previewUrl = browser ? URL.createObjectURL(webpFile) : null;
+            pendingImages = pendingImages.map((img) =>
+                img.id === targetId ? { ...img, previewUrl } : img,
+            );
             const { url } = await uploadImage(webpFile);
-            pendingImageUrl = url;
-            pendingImageName = webpFile.name;
+            pendingImages = pendingImages.map((img) =>
+                img.id === targetId
+                    ? { ...img, url, status: "success", error: undefined }
+                    : img,
+            );
         } catch (e: any) {
-            chatImageError = $t("chat.image_upload_failed");
+            pendingImages = pendingImages.map((img) =>
+                img.id === targetId
+                    ? {
+                          ...img,
+                          status: "failed",
+                          error: $t("chat.image_upload_failed"),
+                      }
+                    : img,
+            );
+        }
+    }
+
+    async function handleChatImageFiles(files: File[]) {
+        if (chatImageUploading) return;
+        chatImageError = "";
+        chatImageUploading = true;
+        try {
+            for (const file of files) {
+                const id = crypto.randomUUID();
+                pendingImages = [
+                    ...pendingImages,
+                    {
+                        id,
+                        name: file.name,
+                        previewUrl: null,
+                        url: null,
+                        status: "uploading",
+                        sourceFile: file,
+                    },
+                ];
+                await uploadChatImage(file, id);
+            }
         } finally {
             chatImageUploading = false;
         }
     }
 
-    function clearPendingImage() {
-        pendingImageUrl = null;
-        pendingImageName = "";
+    async function handleChatImagesSelect(files: FileList) {
+        await handleChatImageFiles(Array.from(files));
+    }
+
+    function handleChatPaste(event: ClipboardEvent) {
+        const items = event.clipboardData?.items;
+        if (!items) return;
+        const files: File[] = [];
+        for (const item of Array.from(items)) {
+            if (item.type.startsWith("image/")) {
+                const file = item.getAsFile();
+                if (file) files.push(file);
+            }
+        }
+        if (files.length > 0) {
+            event.preventDefault();
+            handleChatImageFiles(files);
+        }
+    }
+
+    function retryChatImage(id: string) {
+        const item = pendingImages.find((img) => img.id === id);
+        if (!item?.sourceFile) return;
+        pendingImages = pendingImages.map((img) =>
+            img.id === id
+                ? { ...img, status: "uploading", error: undefined }
+                : img,
+        );
+        uploadChatImage(item.sourceFile, id);
+    }
+
+    function removePendingImage(id: string) {
+        const target = pendingImages.find((img) => img.id === id);
+        if (target?.previewUrl && browser) {
+            URL.revokeObjectURL(target.previewUrl);
+        }
+        pendingImages = pendingImages.filter((img) => img.id !== id);
     }
 
     async function handleRequestHelp() {
@@ -1631,12 +1726,13 @@
                         <input
                             type="file"
                             accept="image/*"
+                            multiple
                             bind:this={chatImageInput}
                             class="hidden"
-                            on:change={(e) => {
+                            onchange={(e) => {
                                 const input = e.currentTarget as HTMLInputElement;
-                                if (input.files && input.files[0]) {
-                                    handleChatImageSelect(input.files[0]);
+                                if (input.files && input.files.length > 0) {
+                                    handleChatImagesSelect(input.files);
                                 }
                                 input.value = "";
                             }}
@@ -1646,6 +1742,7 @@
                             bind:value={chatMessage}
                             placeholder="Type a message..."
                             aria-label="Chat message"
+                            onpaste={handleChatPaste}
                             class="w-full pl-12 pr-12 py-3 bg-background dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary transition-all text-sm text-foreground dark:text-dark-text"
                         />
                         <button
@@ -1674,19 +1771,64 @@
                             {chatImageError}
                         </div>
                     {/if}
-                    {#if pendingImageUrl}
-                        <div class="mt-2 flex items-center justify-between gap-2 text-xs bg-accent/60 dark:bg-white/10 px-3 py-2 rounded-lg">
-                            <div class="flex items-center gap-2 text-muted-foreground dark:text-dark-text-muted">
-                                <FileText size={14} />
-                                <span class="truncate max-w-[180px]">{pendingImageName || "image.webp"}</span>
-                            </div>
-                            <button
-                                type="button"
-                                class="text-xs font-medium text-foreground hover:text-red-600 dark:hover:text-red-400"
-                                onclick={clearPendingImage}
-                            >
-                                {$t("chat.remove_image")}
-                            </button>
+                    {#if pendingImages.length > 0}
+                        <div class="mt-2 space-y-2">
+                            {#each pendingImages as image (image.id)}
+                                <div class="flex items-center justify-between gap-2 text-xs bg-accent/60 dark:bg-white/10 px-3 py-2 rounded-lg">
+                                    <div class="flex items-center gap-2 text-muted-foreground dark:text-dark-text-muted">
+                                        {#if image.previewUrl}
+                                            <img
+                                                src={image.previewUrl}
+                                                alt="upload preview"
+                                                class="w-10 h-10 rounded-md object-cover border border-white/20"
+                                            />
+                                        {:else}
+                                            <div class="w-10 h-10 rounded-md bg-accent/80 dark:bg-white/10 flex items-center justify-center">
+                                                <FileText size={16} />
+                                            </div>
+                                        {/if}
+                                        <div class="flex flex-col">
+                                            <span class="truncate max-w-[160px]">{image.name || "image.webp"}</span>
+                                            <span
+                                                class="text-[10px] font-semibold uppercase tracking-wide {image.status === 'success'
+                                                    ? 'text-emerald-600 dark:text-emerald-300'
+                                                    : image.status === 'failed'
+                                                      ? 'text-red-600 dark:text-red-300'
+                                                      : 'text-amber-600 dark:text-amber-300'}"
+                                            >
+                                                {image.status === "success"
+                                                    ? $t("chat.upload_success")
+                                                    : image.status === "failed"
+                                                      ? $t("chat.upload_failed")
+                                                      : $t("chat.uploading")}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        {#if image.status === "failed"}
+                                            <button
+                                                type="button"
+                                                class="text-xs font-semibold text-red-700 dark:text-red-300 hover:underline"
+                                                onclick={() => retryChatImage(image.id)}
+                                            >
+                                                {$t("chat.retry_upload")}
+                                            </button>
+                                        {/if}
+                                        <button
+                                            type="button"
+                                            class="text-xs font-medium text-foreground hover:text-red-600 dark:hover:text-red-400"
+                                            onclick={() => removePendingImage(image.id)}
+                                        >
+                                            {$t("chat.remove_image")}
+                                        </button>
+                                    </div>
+                                </div>
+                                {#if image.status === "failed" && image.error}
+                                    <div class="-mt-1 ml-2 text-[11px] text-red-600 dark:text-red-400">
+                                        {image.error}
+                                    </div>
+                                {/if}
+                            {/each}
                         </div>
                     {/if}
                 </div>

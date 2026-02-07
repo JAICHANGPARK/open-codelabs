@@ -353,11 +353,23 @@
         "error_fill_fields": "请填写所有字段",
         "error_duplicate_name": "该昵称已在此代码实验室中使用。请换一个。",
         "error_invalid_code": "代码只能包含字母、数字以及 - 或 _。",
+        "error_name_too_long": "姓名过长。",
+        "error_code_too_long": "唯一代码过长。",
         "error_registration_failed": "注册失败。请检查您的网络连接并重试。",
         "error_private_codelab": "此代码实验室目前为私有状态，无法访问。请联系管理员。",
         "return_home": "返回首页",
         "codelab_not_found": "找不到代码实验室",
         "anonymous_user": "匿名"
+    },
+    "chat": {
+        "upload_image": "上传图片",
+        "uploading": "上传中",
+        "upload_success": "上传完成",
+        "upload_failed": "上传失败",
+        "retry_upload": "重试",
+        "remove_image": "移除图片",
+        "image_too_large": "图片过大。最大 {max}MB。",
+        "image_upload_failed": "图片上传失败。"
     },
     "profile": {
         "title": "个人资料",

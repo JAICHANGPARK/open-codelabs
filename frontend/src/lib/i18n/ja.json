@@ -382,11 +382,23 @@
         "error_fill_fields": "すべてのフィールドを入力してください",
         "error_duplicate_name": "このニックネームは既に使用されています。別の名前を試してください。",
         "error_invalid_code": "コードは英数字と - _ のみ使用できます。",
+        "error_name_too_long": "名前が長すぎます。",
+        "error_code_too_long": "固有コードが長すぎます。",
         "error_registration_failed": "登録に失敗しました。接続を確認してもう一度お試しください。",
         "error_private_codelab": "このコードラボは非公開です。ファシリテーターにお問い合わせください。",
         "return_home": "ホームに戻る",
         "codelab_not_found": "コードラボが見つかりませんでした",
         "anonymous_user": "匿名"
+    },
+    "chat": {
+        "upload_image": "画像をアップロード",
+        "uploading": "アップロード中",
+        "upload_success": "アップロード完了",
+        "upload_failed": "アップロード失敗",
+        "retry_upload": "再試行",
+        "remove_image": "画像を削除",
+        "image_too_large": "画像が大きすぎます。最大 {max}MB。",
+        "image_upload_failed": "画像のアップロードに失敗しました。"
     },
     "profile": {
         "title": "プロフィール",
