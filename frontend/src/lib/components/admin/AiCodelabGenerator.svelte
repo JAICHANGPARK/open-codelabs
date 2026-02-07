@@ -112,7 +112,7 @@
         quote: string;
         comment: string;
     };
-    type GenerationMode = "basic" | "advanced";
+    type GenerationMode = "basic" | "prompt" | "advanced";
     type AdvancedStep =
         | "input"
         | "planning"
@@ -512,6 +512,28 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         };
     }
 
+    function buildPromptOnlyInstructions(targetLanguage: string) {
+        return `This is a prompt-only (vibe coding/prototyping) hands-on. Each step MUST include a "Prompt" section for attendees to copy, an "Expected Output" section, a "Facilitator Tips" section, and a "Timebox (minutes)" line. Avoid writing code; focus on prompts and guidance. Write all content in ${targetLanguage}.`;
+    }
+
+    function extractPromptSections(content: string) {
+        const getSection = (label: string) => {
+            const pattern = new RegExp(
+                `(?:^|\\n)${label}\\s*[:\\-]?\\s*([\\s\\S]*?)(?=\\n(?:Prompt|Expected Output|Facilitator Tips|Timebox)\\b|$)`,
+                "i",
+            );
+            const match = content.match(pattern);
+            return match?.[1]?.trim() || "";
+        };
+        const prompt = getSection("Prompt");
+        const expected = getSection("Expected Output");
+        const tips = getSection("Facilitator Tips");
+        const timebox =
+            getSection("Timebox(?: \\(minutes\\))?") ||
+            getSection("Timebox");
+        return { prompt, expected, tips, timebox };
+    }
+
     function buildCodelabMarkdown(data: CodelabDraft | null) {
         if (!data) return "";
         const sections: string[] = [];
@@ -737,7 +759,15 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         const facilitatorNoteText = facilitatorNotes.trim()
             ? `Facilitator notes (must follow):\n${facilitatorNotes.trim()}\n\n`
             : "";
-        const prompt = `Create a codelab tutorial from the following source code and context. ${durationText} Write ALL content in ${targetLanguage}. For every code block, include inline comments on each logical line, specify the filename before the block, and append a numbered line-by-line explanation list immediately after the block (same language).\n\n${facilitatorNoteText}Source code/Context:\n${fullContext}`;
+        const promptModeInstruction =
+            generationMode === "prompt"
+                ? `${buildPromptOnlyInstructions(targetLanguage)}\n\n`
+                : "";
+        const codeInstruction =
+            generationMode === "prompt"
+                ? "Do NOT include code blocks unless explicitly requested by the facilitator notes.\n\n"
+                : "For every code block, include inline comments on each logical line, specify the filename before the block, and append a numbered line-by-line explanation list immediately after the block (same language).\n\n";
+        const prompt = `Create a codelab tutorial from the following source code and context. ${durationText} Write ALL content in ${targetLanguage}. ${promptModeInstruction}${codeInstruction}${facilitatorNoteText}Source code/Context:\n${fullContext}`;
 
         // Build tools array
         const tools: GeminiStructuredConfig["tools"] = [];
@@ -1122,7 +1152,11 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         const facilitatorNoteText = facilitatorNotes.trim()
             ? `Facilitator notes (must follow):\n${facilitatorNotes.trim()}\n\n`
             : "";
-        const planPrompt = `Design a codelab plan from the following source code and context. ${durationText} Write all content in ${advancedTargetLanguage}. For "search_terms", use short English queries to find the latest versions, commands, or best practices (3-8 items). Keep step count aligned with the target duration. If something is unknown, return empty arrays.\n\n${facilitatorNoteText}Source code/Context:\n${fullContext}`;
+        const planPromptModeInstruction =
+            generationMode === "prompt"
+                ? `${buildPromptOnlyInstructions(advancedTargetLanguage)}\n\n`
+                : "";
+        const planPrompt = `Design a codelab plan from the following source code and context. ${durationText} Write all content in ${advancedTargetLanguage}. For "search_terms", use short English queries to find the latest versions, commands, or best practices (3-8 items). Keep step count aligned with the target duration. If something is unknown, return empty arrays.\n\n${planPromptModeInstruction}${facilitatorNoteText}Source code/Context:\n${fullContext}`;
 
         try {
             const stream = streamGeminiStructuredOutput(
@@ -1194,7 +1228,11 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         const facilitatorNoteText = facilitatorNotes.trim()
             ? `Facilitator notes (must follow):\n${facilitatorNotes.trim()}\n\n`
             : "";
-        const draftPrompt = `Create a codelab using the plan and source context. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\n${facilitatorNoteText}Plan JSON:\n${JSON.stringify(
+        const draftPromptModeInstruction =
+            generationMode === "prompt"
+                ? `${buildPromptOnlyInstructions(advancedTargetLanguage)}\n\n`
+                : "";
+        const draftPrompt = `Create a codelab using the plan and source context. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\n${draftPromptModeInstruction}${facilitatorNoteText}Plan JSON:\n${JSON.stringify(
             advancedPlanData,
             null,
             2,
@@ -1309,7 +1347,11 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         const facilitatorNoteText = facilitatorNotes.trim()
             ? `Facilitator notes (must follow):\n${facilitatorNotes.trim()}\n\n`
             : "";
-        const reviewPrompt = `Review the draft codelab as a third-party facilitator expert. Use the plan to verify structure and completeness. Write ALL content in ${advancedTargetLanguage}.\n\n${facilitatorNoteText}Plan JSON:\n${JSON.stringify(
+        const reviewPromptModeInstruction =
+            generationMode === "prompt"
+                ? `${buildPromptOnlyInstructions(advancedTargetLanguage)}\n\n`
+                : "";
+        const reviewPrompt = `Review the draft codelab as a third-party facilitator expert. Use the plan to verify structure and completeness. Write ALL content in ${advancedTargetLanguage}.\n\n${reviewPromptModeInstruction}${facilitatorNoteText}Plan JSON:\n${JSON.stringify(
             advancedPlanData,
             null,
             2,
@@ -1371,7 +1413,11 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
               )}.`
             : "Use the Google Search tool if any versions, commands, or APIs need verification.";
 
-        const revisePrompt = `Revise the draft codelab based on the expert review. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\n${facilitatorNoteText}Plan JSON:\n${JSON.stringify(
+        const revisePromptModeInstruction =
+            generationMode === "prompt"
+                ? `${buildPromptOnlyInstructions(advancedTargetLanguage)}\n\n`
+                : "";
+        const revisePrompt = `Revise the draft codelab based on the expert review. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\n${revisePromptModeInstruction}${facilitatorNoteText}Plan JSON:\n${JSON.stringify(
             advancedPlanData,
             null,
             2,
@@ -1605,42 +1651,54 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             {$t("ai_generator.mode_label")}
                         </span>
                         <div class="flex items-center gap-2">
-                            <button
-                                onclick={() => setGenerationMode("basic")}
-                                disabled={loading || advancedLoading}
-                                class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
-                                'basic'
-                                    ? 'bg-primary text-white border-primary shadow-md'
-                                    : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
-                            >
-                                {$t("ai_generator.mode_basic")}
-                            </button>
-                            <button
-                                onclick={() => setGenerationMode("advanced")}
-                                disabled={loading || advancedLoading}
-                                class="group relative px-4 py-2 rounded-xl text-xs font-bold transition-all border overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed {generationMode ===
-                                'advanced'
-                                    ? 'text-white border-primary bg-primary/90 shadow-lg shadow-primary/25'
-                                    : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary hover:shadow-md'}"
-                            >
-                                <span class="relative z-10 flex items-center gap-1">
-                                    <Sparkles
-                                        size={14}
-                                        class={generationMode === "advanced"
-                                            ? "text-white/90"
-                                            : "text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"}
-                                    />
-                                    <span>{$t("ai_generator.mode_advanced")}</span>
-                                </span>
-                            </button>
+                        <button
+                            onclick={() => setGenerationMode("basic")}
+                            disabled={loading || advancedLoading}
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
+                            'basic'
+                                ? 'bg-primary text-white border-primary shadow-md'
+                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
+                        >
+                            {$t("ai_generator.mode_basic")}
+                        </button>
+                        <button
+                            onclick={() => setGenerationMode("prompt")}
+                            disabled={loading || advancedLoading}
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
+                            'prompt'
+                                ? 'bg-primary text-white border-primary shadow-md'
+                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
+                        >
+                            {$t("ai_generator.mode_prompt")}
+                        </button>
+                        <button
+                            onclick={() => setGenerationMode("advanced")}
+                            disabled={loading || advancedLoading}
+                            class="group relative px-4 py-2 rounded-xl text-xs font-bold transition-all border overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed {generationMode ===
+                            'advanced'
+                                ? 'text-white border-primary bg-primary/90 shadow-lg shadow-primary/25'
+                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary hover:shadow-md'}"
+                        >
+                            <span class="relative z-10 flex items-center gap-1">
+                                <Sparkles
+                                    size={14}
+                                    class={generationMode === "advanced"
+                                        ? "text-white/90"
+                                        : "text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"}
+                                />
+                                <span>{$t("ai_generator.mode_advanced")}</span>
+                            </span>
+                        </button>
                         </div>
                     </div>
                 <div class="mt-3 space-y-3">
-                    <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
-                        {generationMode === "basic"
-                            ? $t("ai_generator.mode_basic_desc")
-                            : $t("ai_generator.mode_advanced_desc")}
-                    </p>
+                        <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
+                            {generationMode === "basic"
+                                ? $t("ai_generator.mode_basic_desc")
+                                : generationMode === "prompt"
+                                    ? $t("ai_generator.mode_prompt_desc")
+                                    : $t("ai_generator.mode_advanced_desc")}
+                        </p>
                     <div class="flex flex-wrap gap-4">
                         {#if generationMode === "basic"}
                             <label class="flex items-center gap-2 cursor-pointer group">
@@ -2101,24 +2159,62 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     {parsedData.description}
                                 </p>
 
-                                <div class="space-y-8">
-                                    {#each parsedData.steps as step, i}
-                                        <div
-                                            class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
-                                        >
-                                            <h4
-                                                class="font-bold text-lg text-foreground dark:text-dark-text mb-2"
-                                            >
-                                                {i + 1}. {step.title}
-                                            </h4>
-                                            <div
-                                                class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
-                                            >
-                                                {step.content}
+                        <div class="space-y-8">
+                            {#each parsedData.steps as step, i}
+                                <div
+                                    class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
+                                >
+                                    <h4
+                                        class="font-bold text-lg text-foreground dark:text-dark-text mb-4"
+                                    >
+                                        {i + 1}. {step.title}
+                                    </h4>
+                                    {#if generationMode === "prompt"}
+                                        {@const sections = extractPromptSections(step.content)}
+                                        <div class="grid gap-3">
+                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                    {$t("ai_generator.prompt_section")}
+                                                </div>
+                                                <div class="text-sm text-foreground dark:text-dark-text">
+                                                    {sections.prompt || $t("ai_generator.section_empty")}
+                                                </div>
+                                            </div>
+                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                    {$t("ai_generator.expected_output_section")}
+                                                </div>
+                                                <div class="text-sm text-foreground dark:text-dark-text">
+                                                    {sections.expected || $t("ai_generator.section_empty")}
+                                                </div>
+                                            </div>
+                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                    {$t("ai_generator.facilitator_tips_section")}
+                                                </div>
+                                                <div class="text-sm text-foreground dark:text-dark-text">
+                                                    {sections.tips || $t("ai_generator.section_empty")}
+                                                </div>
+                                            </div>
+                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                    {$t("ai_generator.timebox_section")}
+                                                </div>
+                                                <div class="text-sm text-foreground dark:text-dark-text">
+                                                    {sections.timebox || $t("ai_generator.section_empty")}
+                                                </div>
                                             </div>
                                         </div>
-                                    {/each}
+                                    {:else}
+                                        <div
+                                            class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                        >
+                                            {step.content}
+                                        </div>
+                                    {/if}
                                 </div>
+                            {/each}
+                        </div>
                             </div>
                         </div>
                     {/if}
@@ -2649,15 +2745,53 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
                                 >
                                     <h4
-                                        class="font-bold text-lg text-foreground dark:text-dark-text mb-2"
+                                        class="font-bold text-lg text-foreground dark:text-dark-text mb-4"
                                     >
                                         {i + 1}. {step.title}
                                     </h4>
-                                    <div
-                                        class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
-                                    >
-                                        {step.content}
-                                    </div>
+                                    {#if generationMode === "prompt"}
+                                        {@const sections = extractPromptSections(step.content)}
+                                        <div class="grid gap-3">
+                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                    {$t("ai_generator.prompt_section")}
+                                                </div>
+                                                <div class="text-sm text-foreground dark:text-dark-text">
+                                                    {sections.prompt || $t("ai_generator.section_empty")}
+                                                </div>
+                                            </div>
+                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                    {$t("ai_generator.expected_output_section")}
+                                                </div>
+                                                <div class="text-sm text-foreground dark:text-dark-text">
+                                                    {sections.expected || $t("ai_generator.section_empty")}
+                                                </div>
+                                            </div>
+                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                    {$t("ai_generator.facilitator_tips_section")}
+                                                </div>
+                                                <div class="text-sm text-foreground dark:text-dark-text">
+                                                    {sections.tips || $t("ai_generator.section_empty")}
+                                                </div>
+                                            </div>
+                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                    {$t("ai_generator.timebox_section")}
+                                                </div>
+                                                <div class="text-sm text-foreground dark:text-dark-text">
+                                                    {sections.timebox || $t("ai_generator.section_empty")}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {:else}
+                                        <div
+                                            class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                        >
+                                            {step.content}
+                                        </div>
+                                    {/if}
                                 </div>
                             {/each}
                         </div>
@@ -3002,15 +3136,53 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                         class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
                                     >
                                         <h4
-                                            class="font-bold text-lg text-foreground dark:text-dark-text mb-2"
+                                            class="font-bold text-lg text-foreground dark:text-dark-text mb-4"
                                         >
                                             {i + 1}. {step.title}
                                         </h4>
-                                        <div
-                                            class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
-                                        >
-                                            {step.content}
-                                        </div>
+                                        {#if generationMode === "prompt"}
+                                            {@const sections = extractPromptSections(step.content)}
+                                            <div class="grid gap-3">
+                                                <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                    <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                        {$t("ai_generator.prompt_section")}
+                                                    </div>
+                                                    <div class="text-sm text-foreground dark:text-dark-text">
+                                                        {sections.prompt || $t("ai_generator.section_empty")}
+                                                    </div>
+                                                </div>
+                                                <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                    <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                        {$t("ai_generator.expected_output_section")}
+                                                    </div>
+                                                    <div class="text-sm text-foreground dark:text-dark-text">
+                                                        {sections.expected || $t("ai_generator.section_empty")}
+                                                    </div>
+                                                </div>
+                                                <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                    <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                        {$t("ai_generator.facilitator_tips_section")}
+                                                    </div>
+                                                    <div class="text-sm text-foreground dark:text-dark-text">
+                                                        {sections.tips || $t("ai_generator.section_empty")}
+                                                    </div>
+                                                </div>
+                                                <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
+                                                    <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
+                                                        {$t("ai_generator.timebox_section")}
+                                                    </div>
+                                                    <div class="text-sm text-foreground dark:text-dark-text">
+                                                        {sections.timebox || $t("ai_generator.section_empty")}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {:else}
+                                            <div
+                                                class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                            >
+                                                {step.content}
+                                            </div>
+                                        {/if}
                                     </div>
                                 {/each}
                             </div>
