@@ -52,8 +52,8 @@
     let totalCost = $state(0);
 
     // Gemini 3 Flash Preview pricing (per 1M tokens)
-    const INPUT_PRICE_PER_1M = 0.50;  // $0.50
-    const OUTPUT_PRICE_PER_1M = 3.00; // $3.00
+    const INPUT_PRICE_PER_1M = 0.5; // $0.50
+    const OUTPUT_PRICE_PER_1M = 3.0; // $3.00
 
     function calculateCost(inputTokens: number, outputTokens: number): number {
         const inputCost = (inputTokens / 1_000_000) * INPUT_PRICE_PER_1M;
@@ -323,7 +323,8 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         if (!target.files) return;
 
         const pendingFiles: { name: string; content: string }[] = [];
-        const remainingSlots = () => MAX_FILES - (uploadedFiles.length + pendingFiles.length);
+        const remainingSlots = () =>
+            MAX_FILES - (uploadedFiles.length + pendingFiles.length);
 
         if (remainingSlots() <= 0) {
             alert(`You can upload up to ${MAX_FILES} files per prompt.`);
@@ -334,24 +335,28 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         try {
             for (const file of Array.from(target.files)) {
                 if (remainingSlots() <= 0) {
-                    alert(`You can upload up to ${MAX_FILES} files per prompt.`);
+                    alert(
+                        `You can upload up to ${MAX_FILES} files per prompt.`,
+                    );
                     break;
                 }
 
                 const isZip = file.name.toLowerCase().endsWith(".zip");
 
                 if (file.size > MAX_FILE_SIZE_BYTES) {
-                    alert(`${file.name} exceeds the ${MAX_FILE_SIZE_MB} MB file size limit.`);
+                    alert(
+                        `${file.name} exceeds the ${MAX_FILE_SIZE_MB} MB file size limit.`,
+                    );
                     continue;
                 }
 
                 if (isZip) {
-                    const { added, truncated, blockedReason } = await extractCodeFromZip(
-                        file,
-                        remainingSlots(),
-                    );
+                    const { added, truncated, blockedReason } =
+                        await extractCodeFromZip(file, remainingSlots());
                     if (blockedReason === "too_many_files") {
-                        alert(`ZIP files can contain up to ${MAX_ZIP_FILES} files.`);
+                        alert(
+                            `ZIP files can contain up to ${MAX_ZIP_FILES} files.`,
+                        );
                         continue;
                     }
                     if (blockedReason === "media") {
@@ -368,12 +373,16 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                 }
 
                 if (isMediaFile(file.name)) {
-                    alert(`${file.name} is an audio/video file and cannot be uploaded.`);
+                    alert(
+                        `${file.name} is an audio/video file and cannot be uploaded.`,
+                    );
                     continue;
                 }
 
                 if (shouldSkipFile(file.name)) {
-                    alert(`${file.name} is skipped (env/build/binary artifact).`);
+                    alert(
+                        `${file.name} is skipped (env/build/binary artifact).`,
+                    );
                     continue;
                 } else {
                     const content = await file.text();
@@ -382,10 +391,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
             }
 
             if (pendingFiles.length > 0) {
-                uploadedFiles = [
-                    ...uploadedFiles,
-                    ...pendingFiles,
-                ].slice(0, MAX_FILES);
+                uploadedFiles = [...uploadedFiles, ...pendingFiles].slice(
+                    0,
+                    MAX_FILES,
+                );
             }
         } catch (e) {
             console.error("File upload failed", e);
@@ -408,7 +417,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         const content = await zip.loadAsync(file);
         const added: { name: string; content: string }[] = [];
         let truncated = false;
-        const entries = Object.entries(content.files).filter(([, entry]) => !entry.dir);
+        const entries = Object.entries(content.files).filter(
+            ([, entry]) => !entry.dir,
+        );
 
         if (entries.length > MAX_ZIP_FILES) {
             return { added, truncated, blockedReason: "too_many_files" };
@@ -529,8 +540,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         const expected = getSection("Expected Output");
         const tips = getSection("Facilitator Tips");
         const timebox =
-            getSection("Timebox(?: \\(minutes\\))?") ||
-            getSection("Timebox");
+            getSection("Timebox(?: \\(minutes\\))?") || getSection("Timebox");
         return { prompt, expected, tips, timebox };
     }
 
@@ -805,7 +815,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                 const result = await stream.next();
                 if (result.done && result.value) {
                     tokenUsage = result.value;
-                    addTokenUsage(tokenUsage.promptTokenCount || 0, tokenUsage.candidatesTokenCount || 0);
+                    addTokenUsage(
+                        tokenUsage.promptTokenCount || 0,
+                        tokenUsage.candidatesTokenCount || 0,
+                    );
                 }
             } catch (e) {
                 // Token usage not available, continue without it
@@ -863,35 +876,63 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
             // 3. Create Code Server if enabled
             if (enableCodeServer && uploadedFiles.length > 0) {
                 try {
-                    const workspaceFiles = uploadedFiles.map(f => ({
+                    const workspaceFiles = uploadedFiles.map((f) => ({
                         path: f.name,
-                        content: f.content
+                        content: f.content,
                     }));
 
-                    if (workspaceStructureType === 'branch') {
-                        const { createCodeServer, createCodeServerBranch } = await import('$lib/api');
-                        await createCodeServer(codelab.id, workspaceFiles, 'branch');
+                    if (workspaceStructureType === "branch") {
+                        const { createCodeServer, createCodeServerBranch } =
+                            await import("$lib/api");
+                        await createCodeServer(
+                            codelab.id,
+                            workspaceFiles,
+                            "branch",
+                        );
 
                         // Create branches for each step
                         for (let i = 0; i < parsedData.steps.length; i++) {
-                            await createCodeServerBranch(codelab.id, i + 1, 'start');
-                            await createCodeServerBranch(codelab.id, i + 1, 'end');
+                            await createCodeServerBranch(
+                                codelab.id,
+                                i + 1,
+                                "start",
+                            );
+                            await createCodeServerBranch(
+                                codelab.id,
+                                i + 1,
+                                "end",
+                            );
                         }
                     } else {
                         // Folder-based structure
-                        const { createCodeServer, createCodeServerFolder } = await import('$lib/api');
-                        await createCodeServer(codelab.id, undefined, 'folder');
+                        const { createCodeServer, createCodeServerFolder } =
+                            await import("$lib/api");
+                        await createCodeServer(codelab.id, undefined, "folder");
 
                         // Create folders for each step with workspace files
                         for (let i = 0; i < parsedData.steps.length; i++) {
-                            await createCodeServerFolder(codelab.id, i + 1, 'start', workspaceFiles);
-                            await createCodeServerFolder(codelab.id, i + 1, 'end', workspaceFiles);
+                            await createCodeServerFolder(
+                                codelab.id,
+                                i + 1,
+                                "start",
+                                workspaceFiles,
+                            );
+                            await createCodeServerFolder(
+                                codelab.id,
+                                i + 1,
+                                "end",
+                                workspaceFiles,
+                            );
                         }
                     }
-                    console.log('Workspace created successfully');
+                    console.log("Workspace created successfully");
                 } catch (e) {
-                    console.error('Failed to create workspace:', e);
-                    alert('Warning: Workspace creation failed. Error: ' + (e as Error).message + '\nThe codelab was created but workspace features will not work.');
+                    console.error("Failed to create workspace:", e);
+                    alert(
+                        "Warning: Workspace creation failed. Error: " +
+                            (e as Error).message +
+                            "\nThe codelab was created but workspace features will not work.",
+                    );
                 }
             }
 
@@ -1536,19 +1577,27 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                 <div class="flex items-center gap-4">
                     <!-- Token Usage Display -->
                     {#if totalInputTokens > 0 || totalOutputTokens > 0}
-                        <div class="text-xs bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/20">
+                        <div
+                            class="text-xs bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2 border border-white/20"
+                        >
                             <div class="flex items-center gap-4">
                                 <div>
                                     <span class="text-white/70">Input:</span>
-                                    <span class="text-white font-bold ml-1">{totalInputTokens.toLocaleString()}</span>
+                                    <span class="text-white font-bold ml-1"
+                                        >{totalInputTokens.toLocaleString()}</span
+                                    >
                                 </div>
                                 <div>
                                     <span class="text-white/70">Output:</span>
-                                    <span class="text-white font-bold ml-1">{totalOutputTokens.toLocaleString()}</span>
+                                    <span class="text-white font-bold ml-1"
+                                        >{totalOutputTokens.toLocaleString()}</span
+                                    >
                                 </div>
                                 <div>
                                     <span class="text-white/70">Cost:</span>
-                                    <span class="text-white font-bold ml-1">${totalCost.toFixed(4)}</span>
+                                    <span class="text-white font-bold ml-1"
+                                        >${totalCost.toFixed(4)}</span
+                                    >
                                 </div>
                             </div>
                         </div>
@@ -1565,8 +1614,12 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         </div>
 
         <!-- Content -->
-        <div class="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden p-6 bg-accent/60 dark:bg-dark-bg">
-            <div class="flex flex-col w-full lg:w-1/2 min-h-0 overflow-y-auto pr-1">
+        <div
+            class="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden p-6 bg-accent/60 dark:bg-dark-bg"
+        >
+            <div
+                class="flex flex-col w-full lg:w-1/2 min-h-0 overflow-y-auto pr-1"
+            >
                 <div
                     class="mb-4 bg-white dark:bg-dark-surface/50 border border-border dark:border-dark-border rounded-2xl p-4 shadow-sm"
                 >
@@ -1594,7 +1647,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 </button>
                             {/each}
                             {#if handsOnDuration === "custom"}
-                                <div class="flex items-center gap-2 ml-2" in:fade>
+                                <div
+                                    class="flex items-center gap-2 ml-2"
+                                    in:fade
+                                >
                                     <input
                                         type="number"
                                         min="1"
@@ -1602,11 +1658,16 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                         bind:value={customDuration}
                                         placeholder="10"
                                         oninput={(e) => {
-                                            const el = e.currentTarget as HTMLInputElement;
+                                            const el =
+                                                e.currentTarget as HTMLInputElement;
                                             if (el.value === "") return;
-                                            const value = Math.max(1, Math.floor(Number(el.value)));
+                                            const value = Math.max(
+                                                1,
+                                                Math.floor(Number(el.value)),
+                                            );
                                             if (!Number.isFinite(value)) return;
-                                            if (String(value) !== el.value) el.value = String(value);
+                                            if (String(value) !== el.value)
+                                                el.value = String(value);
                                             customDuration = el.value;
                                         }}
                                         class="w-20 bg-white dark:bg-dark-bg border border-border dark:border-dark-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
@@ -1622,6 +1683,199 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                 </div>
 
                 <div
+                    class="mb-4 bg-white dark:bg-dark-surface/50 border border-border dark:border-dark-border rounded-2xl p-3 shadow-sm"
+                >
+                    <div
+                        class="flex flex-wrap items-center justify-between gap-3"
+                    >
+                        <span
+                            class="text-sm font-bold text-muted-foreground dark:text-dark-text-muted"
+                        >
+                            {$t("ai_generator.mode_label")}
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <button
+                                onclick={() => setGenerationMode("basic")}
+                                disabled={loading || advancedLoading}
+                                class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
+                                'basic'
+                                    ? 'bg-primary text-white border-primary shadow-md'
+                                    : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
+                            >
+                                {$t("ai_generator.mode_basic")}
+                            </button>
+                            <button
+                                onclick={() => setGenerationMode("prompt")}
+                                disabled={loading || advancedLoading}
+                                class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
+                                'prompt'
+                                    ? 'bg-primary text-white border-primary shadow-md'
+                                    : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
+                            >
+                                {$t("ai_generator.mode_prompt")}
+                            </button>
+                            <button
+                                onclick={() => setGenerationMode("advanced")}
+                                disabled={loading || advancedLoading}
+                                class="group relative px-4 py-2 rounded-xl text-xs font-bold transition-all border overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed {generationMode ===
+                                'advanced'
+                                    ? 'text-white border-primary bg-primary/90 shadow-lg shadow-primary/25'
+                                    : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary hover:shadow-md'}"
+                            >
+                                <span
+                                    class="relative z-10 flex items-center gap-1"
+                                >
+                                    <Sparkles
+                                        size={14}
+                                        class={generationMode === "advanced"
+                                            ? "text-white/90"
+                                            : "text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"}
+                                    />
+                                    <span
+                                        >{$t(
+                                            "ai_generator.mode_advanced",
+                                        )}</span
+                                    >
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-3 space-y-3">
+                        <p
+                            class="text-sm text-muted-foreground dark:text-dark-text-muted"
+                        >
+                            {generationMode === "basic"
+                                ? $t("ai_generator.mode_basic_desc")
+                                : generationMode === "prompt"
+                                  ? $t("ai_generator.mode_prompt_desc")
+                                  : $t("ai_generator.mode_advanced_desc")}
+                        </p>
+                        <div class="flex flex-wrap gap-4">
+                            {#if generationMode === "basic"}
+                                <label
+                                    class="flex items-center gap-2 cursor-pointer group"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        bind:checked={useGoogleSearch}
+                                        class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                    />
+                                    <span
+                                        class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
+                                    >
+                                        {$t("ai_generator.google_search")}
+                                    </span>
+                                </label>
+                                <label
+                                    class="flex items-center gap-2 cursor-pointer group"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        bind:checked={useUrlContext}
+                                        class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                    />
+                                    <span
+                                        class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
+                                    >
+                                        {$t("ai_generator.url_context")}
+                                    </span>
+                                </label>
+                                <label
+                                    class="flex items-center gap-2 cursor-pointer group"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        bind:checked={showThinking}
+                                        class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                    />
+                                    <span
+                                        class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
+                                    >
+                                        {$t("ai_generator.show_thinking")}
+                                    </span>
+                                </label>
+                            {:else}
+                                <label
+                                    class="flex items-center gap-2 cursor-pointer group"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        bind:checked={advancedUseGoogleSearch}
+                                        class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                    />
+                                    <span
+                                        class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
+                                    >
+                                        {$t("ai_generator.google_search")}
+                                    </span>
+                                </label>
+                                <label
+                                    class="flex items-center gap-2 cursor-pointer group"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        bind:checked={advancedUseUrlContext}
+                                        class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                    />
+                                    <span
+                                        class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
+                                    >
+                                        {$t("ai_generator.url_context")}
+                                    </span>
+                                </label>
+                                <label
+                                    class="flex items-center gap-2 cursor-pointer group"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        bind:checked={showThinking}
+                                        class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
+                                    />
+                                    <span
+                                        class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"
+                                    >
+                                        {$t("ai_generator.show_thinking")}
+                                    </span>
+                                </label>
+                            {/if}
+                        </div>
+                        {#if generationMode === "advanced"}
+                            <div
+                                class="flex flex-col gap-3 rounded-2xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface/50 p-4 shadow-sm"
+                            >
+                                <div
+                                    class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                                >
+                                    <p
+                                        class="text-sm text-foreground dark:text-dark-text"
+                                    >
+                                        {$t(
+                                            "ai_generator.mode_advanced_star_message",
+                                        )}
+                                    </p>
+                                    <a
+                                        class="flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide transition-all hover:scale-105 border-border text-muted-foreground hover:text-primary dark:border-dark-border dark:text-dark-text-muted dark:hover:text-white"
+                                        href="https://github.com/JAICHANGPARK/open-codelabs"
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        aria-label={$t(
+                                            "ai_generator.mode_advanced_star_button",
+                                        )}
+                                    >
+                                        <Github size={14} />
+                                        <span
+                                            >{$t(
+                                                "ai_generator.mode_advanced_star_button",
+                                            )}</span
+                                        >
+                                    </a>
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+                </div>
+
+                <div
                     class="mb-4 bg-white dark:bg-dark-surface/50 border border-border dark:border-dark-border rounded-2xl p-4 shadow-sm"
                 >
                     <label
@@ -1633,409 +1887,312 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                     <textarea
                         id="facilitator-notes"
                         bind:value={facilitatorNotes}
-                        placeholder={$t("ai_generator.facilitator_notes_placeholder")}
+                        placeholder={$t(
+                            "ai_generator.facilitator_notes_placeholder",
+                        )}
                         class="w-full min-h-[96px] bg-white dark:bg-dark-surface text-foreground dark:text-dark-text border border-border dark:border-dark-border rounded-xl p-3 text-sm focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none resize-y"
                     ></textarea>
-                    <p class="text-xs text-muted-foreground dark:text-dark-text-muted mt-2">
+                    <p
+                        class="text-xs text-muted-foreground dark:text-dark-text-muted mt-2"
+                    >
                         {$t("ai_generator.facilitator_notes_desc")}
                     </p>
                 </div>
 
-                <div
-                    class="mb-4 bg-white dark:bg-dark-surface/50 border border-border dark:border-dark-border rounded-2xl p-3 shadow-sm"
-                >
-                    <div class="flex flex-wrap items-center justify-between gap-3">
-                        <span
-                            class="text-sm font-bold text-muted-foreground dark:text-dark-text-muted"
-                        >
-                            {$t("ai_generator.mode_label")}
-                        </span>
-                        <div class="flex items-center gap-2">
-                        <button
-                            onclick={() => setGenerationMode("basic")}
-                            disabled={loading || advancedLoading}
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
-                            'basic'
-                                ? 'bg-primary text-white border-primary shadow-md'
-                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
-                        >
-                            {$t("ai_generator.mode_basic")}
-                        </button>
-                        <button
-                            onclick={() => setGenerationMode("prompt")}
-                            disabled={loading || advancedLoading}
-                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all border {generationMode ===
-                            'prompt'
-                                ? 'bg-primary text-white border-primary shadow-md'
-                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary'}"
-                        >
-                            {$t("ai_generator.mode_prompt")}
-                        </button>
-                        <button
-                            onclick={() => setGenerationMode("advanced")}
-                            disabled={loading || advancedLoading}
-                            class="group relative px-4 py-2 rounded-xl text-xs font-bold transition-all border overflow-hidden disabled:opacity-60 disabled:cursor-not-allowed {generationMode ===
-                            'advanced'
-                                ? 'text-white border-primary bg-primary/90 shadow-lg shadow-primary/25'
-                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border hover:border-primary hover:shadow-md'}"
-                        >
-                            <span class="relative z-10 flex items-center gap-1">
-                                <Sparkles
-                                    size={14}
-                                    class={generationMode === "advanced"
-                                        ? "text-white/90"
-                                        : "text-muted-foreground dark:text-dark-text-muted group-hover:text-primary"}
-                                />
-                                <span>{$t("ai_generator.mode_advanced")}</span>
-                            </span>
-                        </button>
-                        </div>
-                    </div>
-                <div class="mt-3 space-y-3">
-                        <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
-                            {generationMode === "basic"
-                                ? $t("ai_generator.mode_basic_desc")
-                                : generationMode === "prompt"
-                                    ? $t("ai_generator.mode_prompt_desc")
-                                    : $t("ai_generator.mode_advanced_desc")}
-                        </p>
-                    <div class="flex flex-wrap gap-4">
-                        {#if generationMode === "basic"}
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input
-                                    type="checkbox"
-                                    bind:checked={useGoogleSearch}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
-                                    {$t("ai_generator.google_search")}
-                                </span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input
-                                    type="checkbox"
-                                    bind:checked={useUrlContext}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
-                                    {$t("ai_generator.url_context")}
-                                </span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input
-                                    type="checkbox"
-                                    bind:checked={showThinking}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
-                                    {$t("ai_generator.show_thinking")}
-                                </span>
-                            </label>
-                        {:else}
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input
-                                    type="checkbox"
-                                    bind:checked={advancedUseGoogleSearch}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
-                                    {$t("ai_generator.google_search")}
-                                </span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input
-                                    type="checkbox"
-                                    bind:checked={advancedUseUrlContext}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
-                                    {$t("ai_generator.url_context")}
-                                </span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer group">
-                                <input
-                                    type="checkbox"
-                                    bind:checked={showThinking}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary"
-                                />
-                                <span class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary">
-                                    {$t("ai_generator.show_thinking")}
-                                </span>
-                            </label>
-                        {/if}
-                    </div>
-                    {#if generationMode === "advanced"}
-                        <div
-                            class="flex flex-col gap-3 rounded-2xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface/50 p-4 shadow-sm"
-                        >
-                                <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                    <p class="text-sm text-foreground dark:text-dark-text">
-                                        {$t("ai_generator.mode_advanced_star_message")}
-                                    </p>
-                                    <a
-                                        class="flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold uppercase tracking-wide transition-all hover:scale-105 border-border text-muted-foreground hover:text-primary dark:border-dark-border dark:text-dark-text-muted dark:hover:text-white"
-                                        href="https://github.com/JAICHANGPARK/open-codelabs"
-                                        target="_blank"
-                                        rel="noreferrer"
-                                        aria-label={$t("ai_generator.mode_advanced_star_button")}
-                                    >
-                                        <Github size={14} />
-                                        <span>{$t("ai_generator.mode_advanced_star_button")}</span>
-                                    </a>
-                                </div>
-                            </div>
-                        {/if}
-                    </div>
-                </div>
-
                 {#if generationMode === "basic"}
                     {#if generationStep === "input"}
                         <div class="min-h-full flex flex-col gap-4" in:fade>
-                    <div class="flex items-center justify-between">
-                        <label
-                            for="source-code"
-                            class="text-muted-foreground dark:text-dark-text-muted font-bold text-lg"
-                            >{$t("ai_generator.input_label")}</label
-                        >
-
-                        <div class="flex items-center gap-2">
-                            <input
-                                type="file"
-                                multiple
-                                accept=".zip,.js,.ts,.py,.rs,.go,.mod,.sum,.kt,.kts,.java,.c,.cpp,.h,.html,.css,.xml,.gradle,.json,.yml,.yaml,.toml,.proto,.md,.ipynb,.dart,.lock"
-                                bind:this={fileInput}
-                                onchange={handleFileUpload}
-                                class="hidden"
-                            />
-                            <button
-                                onclick={() => fileInput.click()}
-                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl text-sm font-bold text-primary hover:bg-primary/5 transition-all shadow-sm"
-                            >
-                                <Upload size={18} />
-                                {$t("ai_generator.upload_files") ||
-                                    "Upload Files / Zip"}
-                            </button>
-                        </div>
-                    </div>
-                    <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
-                        {$t("ai_generator.upload_limits", {
-                            values: { maxFiles: MAX_FILES, maxZipFiles: MAX_ZIP_FILES, maxSizeMb: MAX_FILE_SIZE_MB }
-                        })}
-                    </p>
-
-                    <!-- Uploaded Files List -->
-                    <UploadedFileList files={uploadedFiles} onRemove={removeFile} />
-
-
-
-                    {#if useGoogleSearch || useUrlContext}
-                        <div
-                            class="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 rounded-lg mb-4"
-                        >
-                            <Info
-                                size={16}
-                                class="text-amber-500 mt-0.5 shrink-0"
-                            />
-                            <p
-                                class="text-xs text-foreground dark:text-dark-text"
-                            >
-                                <strong
-                                    >{$t("ai_generator.billing_notice")}</strong
+                            <div class="flex items-center justify-between">
+                                <label
+                                    for="source-code"
+                                    class="text-muted-foreground dark:text-dark-text-muted font-bold text-lg"
+                                    >{$t("ai_generator.input_label")}</label
                                 >
-                                {$t("ai_generator.billing_desc")}
-                            </p>
-                        </div>
-                    {/if}
 
-                    <textarea
-                        id="source-code"
-                        bind:value={sourceCode}
-                        placeholder={$t("ai_generator.placeholder")}
-                        class="flex-1 w-full bg-white dark:bg-dark-surface text-foreground dark:text-dark-text border border-border dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none resize-none shadow-sm transition-all"
-                    ></textarea>
-
-                        <div class="flex justify-end pt-2">
-                        {#if !apiKey}
+                                <div class="flex items-center gap-2">
+                                    <input
+                                        type="file"
+                                        multiple
+                                        accept=".zip,.js,.ts,.py,.rs,.go,.mod,.sum,.kt,.kts,.java,.c,.cpp,.h,.html,.css,.xml,.gradle,.json,.yml,.yaml,.toml,.proto,.md,.ipynb,.dart,.lock"
+                                        bind:this={fileInput}
+                                        onchange={handleFileUpload}
+                                        class="hidden"
+                                    />
+                                    <button
+                                        onclick={() => fileInput.click()}
+                                        class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl text-sm font-bold text-primary hover:bg-primary/5 transition-all shadow-sm"
+                                    >
+                                        <Upload size={18} />
+                                        {$t("ai_generator.upload_files") ||
+                                            "Upload Files / Zip"}
+                                    </button>
+                                </div>
+                            </div>
                             <p
-                                class="text-red-500 font-bold mr-4 self-center"
+                                class="text-xs text-muted-foreground dark:text-dark-text-muted"
                             >
-                                {$t("ai_generator.api_key_required")}
+                                {$t("ai_generator.upload_limits", {
+                                    values: {
+                                        maxFiles: MAX_FILES,
+                                        maxZipFiles: MAX_ZIP_FILES,
+                                        maxSizeMb: MAX_FILE_SIZE_MB,
+                                    },
+                                })}
                             </p>
-                            <button
-                                disabled
-                                class="bg-accent/80 dark:bg-dark-border text-muted-foreground dark:text-dark-text-muted px-8 py-3 rounded-full font-bold cursor-not-allowed"
-                            >
-                                {$t("common.create")}
-                            </button>
-                        {:else}
-                            <button
-                                onclick={handleGenerate}
-                                disabled={!sourceCode.trim() &&
-                                    uploadedFiles.length === 0}
-                                class="bg-primary text-white px-8 py-3 rounded-full font-bold hover:bg-primary/90 hover:shadow-lg transition-colors text-lg flex items-center gap-2 disabled:opacity-50"
-                            >
-                                <Sparkles size={20} />
-                                {$t("ai_generator.generate_button")}
-                            </button>
-                        {/if}
-                    </div>
-                </div>
+
+                            <!-- Uploaded Files List -->
+                            <UploadedFileList
+                                files={uploadedFiles}
+                                onRemove={removeFile}
+                            />
+
+                            {#if useGoogleSearch || useUrlContext}
+                                <div
+                                    class="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 rounded-lg mb-4"
+                                >
+                                    <Info
+                                        size={16}
+                                        class="text-amber-500 mt-0.5 shrink-0"
+                                    />
+                                    <p
+                                        class="text-xs text-foreground dark:text-dark-text"
+                                    >
+                                        <strong
+                                            >{$t(
+                                                "ai_generator.billing_notice",
+                                            )}</strong
+                                        >
+                                        {$t("ai_generator.billing_desc")}
+                                    </p>
+                                </div>
+                            {/if}
+
+                            <textarea
+                                id="source-code"
+                                bind:value={sourceCode}
+                                placeholder={$t("ai_generator.placeholder")}
+                                class="flex-1 w-full bg-white dark:bg-dark-surface text-foreground dark:text-dark-text border border-border dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none resize-none shadow-sm transition-all"
+                            ></textarea>
+
+                            <div class="flex justify-end pt-2">
+                                {#if !apiKey}
+                                    <p
+                                        class="text-red-500 font-bold mr-4 self-center"
+                                    >
+                                        {$t("ai_generator.api_key_required")}
+                                    </p>
+                                    <button
+                                        disabled
+                                        class="bg-accent/80 dark:bg-dark-border text-muted-foreground dark:text-dark-text-muted px-8 py-3 rounded-full font-bold cursor-not-allowed"
+                                    >
+                                        {$t("common.create")}
+                                    </button>
+                                {:else}
+                                    <button
+                                        onclick={handleGenerate}
+                                        disabled={!sourceCode.trim() &&
+                                            uploadedFiles.length === 0}
+                                        class="bg-primary text-white px-8 py-3 rounded-full font-bold hover:bg-primary/90 hover:shadow-lg transition-colors text-lg flex items-center gap-2 disabled:opacity-50"
+                                    >
+                                        <Sparkles size={20} />
+                                        {$t("ai_generator.generate_button")}
+                                    </button>
+                                {/if}
+                            </div>
+                        </div>
                     {:else}
-                        <div class="rounded-2xl border border-dashed border-border dark:border-dark-border bg-white/70 dark:bg-dark-surface/60 p-6 text-sm text-muted-foreground dark:text-dark-text-muted">
+                        <div
+                            class="rounded-2xl border border-dashed border-border dark:border-dark-border bg-white/70 dark:bg-dark-surface/60 p-6 text-sm text-muted-foreground dark:text-dark-text-muted"
+                        >
                             {$t("ai_generator.output_panel_notice")}
                         </div>
                     {/if}
-                {:else}
-                    {#if advancedStep === "input"}
-                        <div class="min-h-full flex flex-col gap-4" in:fade>
-                    <div class="flex items-center justify-between">
-                        <label
-                            for="source-code"
-                            class="text-muted-foreground dark:text-dark-text-muted font-bold text-lg"
-                            >{$t("ai_generator.input_label")}</label
-                        >
-
-                        <div class="flex items-center gap-2">
-                            <input
-                                type="file"
-                                multiple
-                                accept=".zip,.js,.ts,.py,.rs,.go,.mod,.sum,.kt,.kts,.java,.c,.cpp,.h,.html,.css,.xml,.gradle,.json,.yml,.yaml,.toml,.proto,.md,.ipynb,.dart,.lock"
-                                bind:this={fileInput}
-                                onchange={handleFileUpload}
-                                class="hidden"
-                            />
-                            <button
-                                onclick={() => fileInput.click()}
-                                class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl text-sm font-bold text-primary hover:bg-primary/5 transition-all shadow-sm"
+                {:else if advancedStep === "input"}
+                    <div class="min-h-full flex flex-col gap-4" in:fade>
+                        <div class="flex items-center justify-between">
+                            <label
+                                for="source-code"
+                                class="text-muted-foreground dark:text-dark-text-muted font-bold text-lg"
+                                >{$t("ai_generator.input_label")}</label
                             >
-                                <Upload size={18} />
-                                {$t("ai_generator.upload_files") ||
-                                    "Upload Files / Zip"}
-                            </button>
-                        </div>
-                    </div>
-                    <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
-                        {$t("ai_generator.upload_limits", {
-                            values: { maxFiles: MAX_FILES, maxZipFiles: MAX_ZIP_FILES, maxSizeMb: MAX_FILE_SIZE_MB }
-                        })}
-                    </p>
 
-                    <!-- Uploaded Files List -->
-                    <UploadedFileList
-                        files={uploadedFiles}
-                        onRemove={removeFile}
-                    />
-
-                    <!-- Advanced Options -->
-                    <div
-                        class="flex flex-col gap-4 mb-4 bg-white dark:bg-dark-surface/50 p-4 rounded-2xl border border-border dark:border-dark-border shadow-sm"
-                    >
-                        <div class="flex flex-wrap gap-6">
-                            <label class="flex items-center gap-2 cursor-pointer group">
+                            <div class="flex items-center gap-2">
                                 <input
-                                    type="checkbox"
-                                    bind:checked={enableCodeServer}
-                                    disabled={uploadedFiles.length === 0}
-                                    class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                    type="file"
+                                    multiple
+                                    accept=".zip,.js,.ts,.py,.rs,.go,.mod,.sum,.kt,.kts,.java,.c,.cpp,.h,.html,.css,.xml,.gradle,.json,.yml,.yaml,.toml,.proto,.md,.ipynb,.dart,.lock"
+                                    bind:this={fileInput}
+                                    onchange={handleFileUpload}
+                                    class="hidden"
                                 />
-                                <span
-                                    class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary {uploadedFiles.length === 0 ? 'opacity-50' : ''}"
+                                <button
+                                    onclick={() => fileInput.click()}
+                                    class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl text-sm font-bold text-primary hover:bg-primary/5 transition-all shadow-sm"
                                 >
-                                    Create Workspace
-                                </span>
-                            </label>
+                                    <Upload size={18} />
+                                    {$t("ai_generator.upload_files") ||
+                                        "Upload Files / Zip"}
+                                </button>
+                            </div>
+                        </div>
+                        <p
+                            class="text-xs text-muted-foreground dark:text-dark-text-muted"
+                        >
+                            {$t("ai_generator.upload_limits", {
+                                values: {
+                                    maxFiles: MAX_FILES,
+                                    maxZipFiles: MAX_ZIP_FILES,
+                                    maxSizeMb: MAX_FILE_SIZE_MB,
+                                },
+                            })}
+                        </p>
 
-                            {#if enableCodeServer}
-                                <div class="ml-7 flex items-center gap-4 text-sm">
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            bind:group={workspaceStructureType}
-                                            value="branch"
-                                            class="w-4 h-4 text-primary focus:ring-primary"
-                                        />
-                                        <span class="text-muted-foreground dark:text-dark-text-muted">Branch-based (Git branches)</span>
-                                    </label>
-                                    <label class="flex items-center gap-2 cursor-pointer">
-                                        <input
-                                            type="radio"
-                                            bind:group={workspaceStructureType}
-                                            value="folder"
-                                            class="w-4 h-4 text-primary focus:ring-primary"
-                                        />
-                                        <span class="text-muted-foreground dark:text-dark-text-muted">Folder-based (Directories)</span>
-                                    </label>
-                                </div>
+                        <!-- Uploaded Files List -->
+                        <UploadedFileList
+                            files={uploadedFiles}
+                            onRemove={removeFile}
+                        />
+
+                        <!-- Advanced Options -->
+                        <div
+                            class="flex flex-col gap-4 mb-4 bg-white dark:bg-dark-surface/50 p-4 rounded-2xl border border-border dark:border-dark-border shadow-sm"
+                        >
+                            <div class="flex flex-wrap gap-6">
+                                <label
+                                    class="flex items-center gap-2 cursor-pointer group"
+                                >
+                                    <input
+                                        type="checkbox"
+                                        bind:checked={enableCodeServer}
+                                        disabled={uploadedFiles.length === 0}
+                                        class="w-5 h-5 rounded border-gray-300 dark:border-dark-border bg-white dark:bg-dark-surface text-primary focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                                    />
+                                    <span
+                                        class="text-sm font-medium text-muted-foreground dark:text-dark-text-muted group-hover:text-primary {uploadedFiles.length ===
+                                        0
+                                            ? 'opacity-50'
+                                            : ''}"
+                                    >
+                                        Create Workspace
+                                    </span>
+                                </label>
+
+                                {#if enableCodeServer}
+                                    <div
+                                        class="ml-7 flex items-center gap-4 text-sm"
+                                    >
+                                        <label
+                                            class="flex items-center gap-2 cursor-pointer"
+                                        >
+                                            <input
+                                                type="radio"
+                                                bind:group={
+                                                    workspaceStructureType
+                                                }
+                                                value="branch"
+                                                class="w-4 h-4 text-primary focus:ring-primary"
+                                            />
+                                            <span
+                                                class="text-muted-foreground dark:text-dark-text-muted"
+                                                >Branch-based (Git branches)</span
+                                            >
+                                        </label>
+                                        <label
+                                            class="flex items-center gap-2 cursor-pointer"
+                                        >
+                                            <input
+                                                type="radio"
+                                                bind:group={
+                                                    workspaceStructureType
+                                                }
+                                                value="folder"
+                                                class="w-4 h-4 text-primary focus:ring-primary"
+                                            />
+                                            <span
+                                                class="text-muted-foreground dark:text-dark-text-muted"
+                                                >Folder-based (Directories)</span
+                                            >
+                                        </label>
+                                    </div>
+                                {/if}
+                            </div>
+                        </div>
+
+                        {#if advancedUseGoogleSearch || advancedUseUrlContext}
+                            <div
+                                class="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 rounded-lg mb-4"
+                            >
+                                <Info
+                                    size={16}
+                                    class="text-amber-500 mt-0.5 shrink-0"
+                                />
+                                <p
+                                    class="text-xs text-foreground dark:text-dark-text"
+                                >
+                                    <strong
+                                        >{$t(
+                                            "ai_generator.billing_notice",
+                                        )}</strong
+                                    >
+                                    {$t("ai_generator.billing_desc")}
+                                </p>
+                            </div>
+                        {/if}
+
+                        <textarea
+                            id="source-code"
+                            bind:value={sourceCode}
+                            placeholder={$t("ai_generator.placeholder")}
+                            class="flex-1 min-h-[320px] lg:min-h-[420px] w-full bg-white dark:bg-dark-surface text-foreground dark:text-dark-text border border-border dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none resize-none shadow-sm transition-all"
+                        ></textarea>
+
+                        <div class="flex justify-end pt-2">
+                            {#if !apiKey}
+                                <p
+                                    class="text-red-500 font-bold mr-4 self-center"
+                                >
+                                    {$t("ai_generator.api_key_required")}
+                                </p>
+                                <button
+                                    disabled
+                                    class="bg-accent/80 dark:bg-dark-border text-muted-foreground dark:text-dark-text-muted px-8 py-3 rounded-full font-bold cursor-not-allowed"
+                                >
+                                    {$t("common.create")}
+                                </button>
+                            {:else}
+                                <button
+                                    onclick={handleAdvancedPlan}
+                                    disabled={advancedLoading ||
+                                        (!sourceCode.trim() &&
+                                            uploadedFiles.length === 0)}
+                                    class="bg-primary text-white px-8 py-3 rounded-full font-bold hover:bg-primary/90 hover:shadow-lg transition-colors text-lg flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    <Sparkles size={20} />
+                                    {$t("ai_generator.plan_button")}
+                                </button>
                             {/if}
                         </div>
                     </div>
-
-                    {#if advancedUseGoogleSearch || advancedUseUrlContext}
-                        <div
-                            class="flex items-start gap-2 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200/60 rounded-lg mb-4"
-                        >
-                            <Info
-                                size={16}
-                                class="text-amber-500 mt-0.5 shrink-0"
-                            />
-                            <p
-                                class="text-xs text-foreground dark:text-dark-text"
-                            >
-                                <strong
-                                    >{$t("ai_generator.billing_notice")}</strong
-                                >
-                                {$t("ai_generator.billing_desc")}
-                            </p>
-                        </div>
-                    {/if}
-
-                    <textarea
-                        id="source-code"
-                        bind:value={sourceCode}
-                        placeholder={$t("ai_generator.placeholder")}
-                        class="flex-1 min-h-[320px] lg:min-h-[420px] w-full bg-white dark:bg-dark-surface text-foreground dark:text-dark-text border border-border dark:border-dark-border rounded-xl p-4 font-mono text-sm focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none resize-none shadow-sm transition-all"
-                    ></textarea>
-
-                        <div class="flex justify-end pt-2">
-                        {#if !apiKey}
-                            <p
-                                class="text-red-500 font-bold mr-4 self-center"
-                            >
-                                {$t("ai_generator.api_key_required")}
-                            </p>
-                            <button
-                                disabled
-                                class="bg-accent/80 dark:bg-dark-border text-muted-foreground dark:text-dark-text-muted px-8 py-3 rounded-full font-bold cursor-not-allowed"
-                            >
-                                {$t("common.create")}
-                            </button>
-                        {:else}
-                            <button
-                                onclick={handleAdvancedPlan}
-                                disabled={advancedLoading ||
-                                    (!sourceCode.trim() &&
-                                        uploadedFiles.length === 0)}
-                                class="bg-primary text-white px-8 py-3 rounded-full font-bold hover:bg-primary/90 hover:shadow-lg transition-colors text-lg flex items-center gap-2 disabled:opacity-50"
-                            >
-                                <Sparkles size={20} />
-                                {$t("ai_generator.plan_button")}
-                            </button>
-                        {/if}
+                {:else}
+                    <div
+                        class="rounded-2xl border border-dashed border-border dark:border-dark-border bg-white/70 dark:bg-dark-surface/60 p-6 text-sm text-muted-foreground dark:text-dark-text-muted"
+                    >
+                        {$t("ai_generator.output_panel_notice")}
                     </div>
-                </div>
-                    {:else}
-                        <div class="rounded-2xl border border-dashed border-border dark:border-dark-border bg-white/70 dark:bg-dark-surface/60 p-6 text-sm text-muted-foreground dark:text-dark-text-muted">
-                            {$t("ai_generator.output_panel_notice")}
-                        </div>
-                    {/if}
                 {/if}
             </div>
 
-            <div class="flex flex-col w-full lg:w-1/2 min-h-0 overflow-y-auto bg-white/90 dark:bg-dark-surface/60 border border-border dark:border-dark-border rounded-2xl p-6">
+            <div
+                class="flex flex-col w-full lg:w-1/2 min-h-0 overflow-y-auto bg-white/90 dark:bg-dark-surface/60 border border-border dark:border-dark-border rounded-2xl p-6"
+            >
                 {#if generationMode === "basic"}
                     {#if generationStep === "input"}
-                        <div class="flex-1 flex flex-col items-center justify-center text-center gap-3 text-muted-foreground dark:text-dark-text-muted">
-                            <div class="text-lg font-bold text-foreground dark:text-dark-text">
+                        <div
+                            class="flex-1 flex flex-col items-center justify-center text-center gap-3 text-muted-foreground dark:text-dark-text-muted"
+                        >
+                            <div
+                                class="text-lg font-bold text-foreground dark:text-dark-text"
+                            >
                                 {$t("ai_generator.output_placeholder_title")}
                             </div>
                             <p class="text-sm max-w-sm">
@@ -2066,10 +2223,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             <p
                                 class="text-muted-foreground dark:text-dark-text-muted text-center"
                             >
-                                {@html $t("ai_generator.analyzing_desc").replace(
-                                    "\n",
-                                    "<br />",
-                                )}
+                                {@html $t(
+                                    "ai_generator.analyzing_desc",
+                                ).replace("\n", "<br />")}
                             </p>
 
                             {#if showThinking && thinkingContent}
@@ -2085,7 +2241,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                 size={16}
                                                 class="text-primary"
                                             />
-                                            {$t("ai_generator.thinking_process")}
+                                            {$t(
+                                                "ai_generator.thinking_process",
+                                            )}
                                         </summary>
                                         <div
                                             class="px-4 py-3 text-xs text-muted-foreground dark:text-dark-text-muted font-mono bg-accent/60 dark:bg-dark-bg/50 max-h-48 overflow-y-auto border-t border-border dark:border-dark-border"
@@ -2124,7 +2282,8 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 </div>
                                 <div class="flex gap-3">
                                     <button
-                                        onclick={() => (generationStep = "input")}
+                                        onclick={() =>
+                                            (generationStep = "input")}
                                         class="px-6 py-2 text-muted-foreground dark:text-dark-text-muted font-bold hover:bg-accent/80 dark:hover:bg-dark-border rounded-full transition-all"
                                     >
                                         {$t("ai_generator.back")}
@@ -2135,7 +2294,10 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                         class="bg-emerald-600 text-white px-8 py-2 rounded-full font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2"
                                     >
                                         {#if loading}
-                                            <Loader2 class="animate-spin" size={18} />
+                                            <Loader2
+                                                class="animate-spin"
+                                                size={18}
+                                            />
                                             {$t("ai_generator.saving")}
                                         {:else}
                                             <ArrowRight size={18} />
@@ -2159,979 +2321,657 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     {parsedData.description}
                                 </p>
 
-                        <div class="space-y-8">
-                            {#each parsedData.steps as step, i}
-                                <div
-                                    class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
-                                >
-                                    <h4
-                                        class="font-bold text-lg text-foreground dark:text-dark-text mb-4"
-                                    >
-                                        {i + 1}. {step.title}
-                                    </h4>
-                                    {#if generationMode === "prompt"}
-                                        {@const sections = extractPromptSections(step.content)}
-                                        <div class="grid gap-3">
-                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                    {$t("ai_generator.prompt_section")}
-                                                </div>
-                                                <div class="text-sm text-foreground dark:text-dark-text">
-                                                    {sections.prompt || $t("ai_generator.section_empty")}
-                                                </div>
-                                            </div>
-                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                    {$t("ai_generator.expected_output_section")}
-                                                </div>
-                                                <div class="text-sm text-foreground dark:text-dark-text">
-                                                    {sections.expected || $t("ai_generator.section_empty")}
-                                                </div>
-                                            </div>
-                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                    {$t("ai_generator.facilitator_tips_section")}
-                                                </div>
-                                                <div class="text-sm text-foreground dark:text-dark-text">
-                                                    {sections.tips || $t("ai_generator.section_empty")}
-                                                </div>
-                                            </div>
-                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                    {$t("ai_generator.timebox_section")}
-                                                </div>
-                                                <div class="text-sm text-foreground dark:text-dark-text">
-                                                    {sections.timebox || $t("ai_generator.section_empty")}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {:else}
+                                <div class="space-y-8">
+                                    {#each parsedData.steps as step, i}
                                         <div
-                                            class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                            class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
                                         >
-                                            {step.content}
-                                        </div>
-                                    {/if}
-                                </div>
-                            {/each}
-                        </div>
-                            </div>
-                        </div>
-                    {/if}
-                {:else}
-                    {#if advancedStep === "input"}
-                        <div class="flex-1 flex flex-col items-center justify-center text-center gap-3 text-muted-foreground dark:text-dark-text-muted">
-                            <div class="text-lg font-bold text-foreground dark:text-dark-text">
-                                {$t("ai_generator.output_placeholder_title")}
-                            </div>
-                            <p class="text-sm max-w-sm">
-                                {$t("ai_generator.output_placeholder_desc")}
-                            </p>
-                        </div>
-                    {:else if advancedStep === "planning" || advancedStep === "drafting" || advancedStep === "reviewing" || advancedStep === "revising"}
-                        <div
-                            class="min-h-full flex flex-col items-center justify-center gap-6"
-                            in:fade
-                            aria-live="polite"
-                        >
-                            <div class="relative">
-                                <div
-                                    class="absolute inset-0 bg-primary rounded-full blur-xl opacity-20 animate-pulse"
-                                    aria-hidden="true"
-                                ></div>
-                                <Loader2
-                                    class="w-16 h-16 text-primary animate-spin relative z-10"
-                                    aria-hidden="true"
-                                />
-                            </div>
-                            <h3
-                                class="text-xl font-bold text-foreground dark:text-dark-text"
-                            >
-                                {#if advancedStep === "planning"}
-                                    {$t("ai_generator.plan_loading")}
-                                {:else if advancedStep === "drafting"}
-                                    {$t("ai_generator.draft_loading")}
-                                {:else if advancedStep === "reviewing"}
-                                    {$t("ai_generator.review_loading")}
-                                {:else}
-                                    {$t("ai_generator.revise_loading")}
-                                {/if}
-                            </h3>
-                            <p
-                                class="text-muted-foreground dark:text-dark-text-muted text-center"
-                            >
-                                {#if advancedStep === "planning"}
-                                    {$t("ai_generator.plan_loading_desc")}
-                                {:else if advancedStep === "drafting"}
-                                    {$t("ai_generator.draft_loading_desc")}
-                                {:else if advancedStep === "reviewing"}
-                                    {$t("ai_generator.review_loading_desc")}
-                                {:else}
-                                    {$t("ai_generator.revise_loading_desc")}
-                                {/if}
-                            </p>
-
-                            {#if showThinking && advancedThinkingContent}
-                                <div class="w-full max-w-2xl mt-6">
-                                    <details
-                                        open
-                                        class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border shadow-sm overflow-hidden"
-                                    >
-                                        <summary
-                                            class="px-4 py-3 cursor-pointer hover:bg-accent/60 dark:hover:bg-white/5 flex items-center gap-2 font-medium text-muted-foreground dark:text-dark-text-muted"
-                                        >
-                                            <Sparkles
-                                                size={16}
-                                                class="text-primary"
-                                            />
-                                            {$t("ai_generator.thinking_process")}
-                                        </summary>
-                                        <div
-                                            class="px-4 py-3 text-xs text-muted-foreground dark:text-dark-text-muted font-mono bg-accent/60 dark:bg-dark-bg/50 max-h-48 overflow-y-auto border-t border-border dark:border-dark-border"
-                                        >
-                                            {advancedThinkingContent}
-                                        </div>
-                                    </details>
-                                </div>
-                            {/if}
-
-                            <div
-                                class="w-full max-w-2xl h-32 overflow-hidden text-xs text-muted-foreground dark:text-dark-text-muted font-mono text-center opacity-50 relative mt-8"
-                            >
-                                <div
-                                    class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-accent/60 dark:from-dark-bg to-transparent"
-                                ></div>
-                                {advancedStreamContent.slice(-500)}
-                            </div>
-                        </div>
-                    {:else if advancedStep === "plan" && advancedPlanData}
-                        <div class="min-h-full flex flex-col gap-6" in:fade>
-                    <div
-                        class="flex items-center justify-between border-b border-border dark:border-dark-border pb-4"
-                    >
-                        <div>
-                            <h3
-                                class="text-xl font-bold text-foreground dark:text-dark-text"
-                            >
-                                {$t("ai_generator.plan_title")}
-                            </h3>
-                            <p
-                                class="text-muted-foreground dark:text-dark-text-muted text-sm"
-                            >
-                                {$t("ai_generator.plan_subtitle")}
-                            </p>
-                        </div>
-                        <div class="flex gap-3">
-                            <button
-                                onclick={() => (advancedStep = "input")}
-                                class="px-6 py-2 text-muted-foreground dark:text-dark-text-muted font-bold hover:bg-accent/80 dark:hover:bg-dark-border rounded-full transition-all"
-                            >
-                                {$t("ai_generator.back")}
-                            </button>
-                            <button
-                                onclick={handleAdvancedDraft}
-                                disabled={advancedLoading}
-                                class="bg-primary text-white px-8 py-2 rounded-full font-bold hover:shadow-md transition-all flex items-center gap-2"
-                            >
-                                <ArrowRight size={18} />
-                                {$t("ai_generator.draft_button")}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div
-                        bind:this={planContainerRef}
-                        onmouseup={handlePlanSelection}
-                        onkeyup={handlePlanSelection}
-                        onscroll={clearPlanSelection}
-                        class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
-                    >
-                        <div class="space-y-6">
-                            <div
-                                class="flex items-start gap-2 p-3 bg-accent/60 dark:bg-dark-bg border border-border dark:border-dark-border rounded-lg"
-                            >
-                                <Info
-                                    size={16}
-                                    class="text-primary mt-0.5 shrink-0"
-                                />
-                                <p
-                                    class="text-xs text-foreground dark:text-dark-text"
-                                >
-                                    {$t("ai_generator.plan_comment_hint")}
-                                </p>
-                            </div>
-                            <div class="border border-border dark:border-dark-border rounded-lg p-6">
-                                <h1
-                                    class="text-2xl font-bold text-foreground dark:text-dark-text mb-2"
-                                >
-                                    {advancedPlanData.title}
-                                </h1>
-                                <p
-                                    class="text-sm text-muted-foreground dark:text-dark-text-muted"
-                                >
-                                    {advancedPlanData.description}
-                                </p>
-                                {#if advancedPlanData.audience}
-                                    <p
-                                        class="mt-3 text-sm text-foreground dark:text-dark-text-muted"
-                                    >
-                                        <span
-                                            class="font-semibold text-foreground dark:text-dark-text"
-                                            >{$t(
-                                                "ai_generator.plan_audience_label",
-                                            )}</span
-                                        >
-                                        {advancedPlanData.audience}
-                                    </p>
-                                {/if}
-                            </div>
-
-                            {#if advancedPlanData.learning_objectives.length}
-                                <div class="border border-border dark:border-dark-border rounded-lg p-6">
-                                    <h4
-                                        class="font-bold text-foreground dark:text-dark-text mb-3"
-                                    >
-                                        {$t(
-                                            "ai_generator.plan_objectives_label",
-                                        )}
-                                    </h4>
-                                    <ul
-                                        class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
-                                    >
-                                        {#each advancedPlanData.learning_objectives as objective}
-                                            <li>{objective}</li>
-                                        {/each}
-                                    </ul>
-                                </div>
-                            {/if}
-
-                            {#if advancedPlanData.prerequisites.length}
-                                <div class="border border-border dark:border-dark-border rounded-lg p-6">
-                                    <h4
-                                        class="font-bold text-foreground dark:text-dark-text mb-3"
-                                    >
-                                        {$t(
-                                            "ai_generator.plan_prerequisites_label",
-                                        )}
-                                    </h4>
-                                    <ul
-                                        class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
-                                    >
-                                        {#each advancedPlanData.prerequisites as item}
-                                            <li>{item}</li>
-                                        {/each}
-                                    </ul>
-                                </div>
-                            {/if}
-
-                            <div class="border border-border dark:border-dark-border rounded-lg p-6">
-                                <h4
-                                    class="font-bold text-foreground dark:text-dark-text mb-3"
-                                >
-                                    {$t(
-                                        "ai_generator.plan_environment_label",
-                                    )}
-                                </h4>
-                                {#if advancedPlanData.environment_setup.os_requirements.length}
-                                    <p
-                                        class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
-                                    >
-                                        {$t(
-                                            "ai_generator.plan_environment_os",
-                                        )}
-                                    </p>
-                                    <p
-                                        class="text-sm text-foreground dark:text-dark-text-muted mb-3"
-                                    >
-                                        {advancedPlanData.environment_setup.os_requirements.join(
-                                            ", ",
-                                        )}
-                                    </p>
-                                {/if}
-                                {#if advancedPlanData.environment_setup.tools.length}
-                                    <p
-                                        class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
-                                    >
-                                        {$t(
-                                            "ai_generator.plan_environment_tools",
-                                        )}
-                                    </p>
-                                    <p
-                                        class="text-sm text-foreground dark:text-dark-text-muted mb-3"
-                                    >
-                                        {advancedPlanData.environment_setup.tools.join(
-                                            ", ",
-                                        )}
-                                    </p>
-                                {/if}
-                                {#if advancedPlanData.environment_setup.env_vars.length}
-                                    <p
-                                        class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
-                                    >
-                                        {$t(
-                                            "ai_generator.plan_environment_envvars",
-                                        )}
-                                    </p>
-                                    <p
-                                        class="text-sm text-foreground dark:text-dark-text-muted mb-3"
-                                    >
-                                        {advancedPlanData.environment_setup.env_vars.join(
-                                            ", ",
-                                        )}
-                                    </p>
-                                {/if}
-                                {#if advancedPlanData.environment_setup.ide}
-                                    <p
-                                        class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
-                                    >
-                                        {$t(
-                                            "ai_generator.plan_environment_ide",
-                                        )}
-                                    </p>
-                                    <p
-                                        class="text-sm text-foreground dark:text-dark-text-muted mb-3"
-                                    >
-                                        {advancedPlanData.environment_setup.ide}
-                                    </p>
-                                {/if}
-                                {#if advancedPlanData.environment_setup.ide_plugins.length}
-                                    <p
-                                        class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
-                                    >
-                                        {$t(
-                                            "ai_generator.plan_environment_plugins",
-                                        )}
-                                    </p>
-                                    <p
-                                        class="text-sm text-foreground dark:text-dark-text-muted"
-                                    >
-                                        {advancedPlanData.environment_setup.ide_plugins.join(
-                                            ", ",
-                                        )}
-                                    </p>
-                                {/if}
-                            </div>
-
-                            {#if advancedPlanData.search_terms.length}
-                                <div class="border border-border dark:border-dark-border rounded-lg p-6">
-                                    <h4
-                                        class="font-bold text-foreground dark:text-dark-text mb-3"
-                                    >
-                                        {$t(
-                                            "ai_generator.plan_search_terms_label",
-                                        )}
-                                    </h4>
-                                    <div class="flex flex-wrap gap-2">
-                                        {#each advancedPlanData.search_terms as term}
-                                            <span
-                                                class="px-3 py-1 rounded-full bg-accent/80 dark:bg-dark-border text-xs font-semibold text-foreground dark:text-dark-text"
+                                            <h4
+                                                class="font-bold text-lg text-foreground dark:text-dark-text mb-4"
                                             >
-                                                {term}
-                                            </span>
-                                        {/each}
-                                    </div>
-                                </div>
-                            {/if}
-
-                            {#if advancedPlanData.steps.length}
-                                <div class="border border-border dark:border-dark-border rounded-lg p-6">
-                                    <h4
-                                        class="font-bold text-foreground dark:text-dark-text mb-3"
-                                    >
-                                        {$t(
-                                            "ai_generator.plan_steps_label",
-                                        )}
-                                    </h4>
-                                    <div class="space-y-4">
-                                        {#each advancedPlanData.steps as step, i}
-                                            <div
-                                                class="border border-border dark:border-dark-border rounded-lg p-4"
-                                            >
-                                                <h5
-                                                    class="font-bold text-foreground dark:text-dark-text"
-                                                >
-                                                    {i + 1}. {step.title}
-                                                </h5>
-                                                <p
-                                                    class="text-sm text-foreground dark:text-dark-text-muted mt-2"
-                                                >
-                                                    {step.goal}
-                                                </p>
-                                                {#if step.files.length}
-                                                    <p
-                                                        class="text-xs text-muted-foreground dark:text-dark-text-muted mt-2"
+                                                {i + 1}. {step.title}
+                                            </h4>
+                                            {#if generationMode === "prompt"}
+                                                {@const sections =
+                                                    extractPromptSections(
+                                                        step.content,
+                                                    )}
+                                                <div class="grid gap-3">
+                                                    <div
+                                                        class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
                                                     >
-                                                        <span
-                                                            class="font-semibold"
-                                                            >{$t(
-                                                                "ai_generator.plan_files_label",
-                                                            )}</span
+                                                        <div
+                                                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
                                                         >
-                                                        {step.files.join(
-                                                            ", ",
-                                                        )}
-                                                    </p>
-                                                {/if}
-                                                <p
-                                                    class="text-xs text-muted-foreground dark:text-dark-text-muted mt-1"
-                                                >
-                                                    <span
-                                                        class="font-semibold"
-                                                        >{$t(
-                                                            "ai_generator.plan_verification_label",
-                                                        )}</span
+                                                            {$t(
+                                                                "ai_generator.prompt_section",
+                                                            )}
+                                                        </div>
+                                                        <div
+                                                            class="text-sm text-foreground dark:text-dark-text"
+                                                        >
+                                                            {sections.prompt ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                )}
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
                                                     >
-                                                    {step.verification}
-                                                </p>
-                                            </div>
-                                        {/each}
-                                    </div>
+                                                        <div
+                                                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
+                                                        >
+                                                            {$t(
+                                                                "ai_generator.expected_output_section",
+                                                            )}
+                                                        </div>
+                                                        <div
+                                                            class="text-sm text-foreground dark:text-dark-text"
+                                                        >
+                                                            {sections.expected ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                )}
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
+                                                    >
+                                                        <div
+                                                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
+                                                        >
+                                                            {$t(
+                                                                "ai_generator.facilitator_tips_section",
+                                                            )}
+                                                        </div>
+                                                        <div
+                                                            class="text-sm text-foreground dark:text-dark-text"
+                                                        >
+                                                            {sections.tips ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                )}
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
+                                                    >
+                                                        <div
+                                                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
+                                                        >
+                                                            {$t(
+                                                                "ai_generator.timebox_section",
+                                                            )}
+                                                        </div>
+                                                        <div
+                                                            class="text-sm text-foreground dark:text-dark-text"
+                                                        >
+                                                            {sections.timebox ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {:else}
+                                                <div
+                                                    class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                                >
+                                                    {step.content}
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    {/each}
                                 </div>
-                            {/if}
-                            <div class="border border-border dark:border-dark-border rounded-lg p-6">
-                                <h4
-                                    class="font-bold text-foreground dark:text-dark-text mb-3"
-                                >
-                                    {$t("ai_generator.plan_comment_label")}
-                                </h4>
-                                {#if planComments.length}
-                                    <div class="space-y-3">
-                                        {#each planComments as comment}
-                                            <div
-                                                class="border border-border dark:border-dark-border rounded-lg p-4"
-                                            >
-                                                <p
-                                                    class="text-[11px] font-semibold uppercase text-muted-foreground dark:text-dark-text-muted"
-                                                >
-                                                    {$t(
-                                                        "ai_generator.plan_comment_selection_label",
-                                                    )}
-                                                </p>
-                                                <p
-                                                    class="text-xs text-foreground dark:text-dark-text font-mono whitespace-pre-wrap line-clamp-3 mt-1"
-                                                >
-                                                    {comment.quote}
-                                                </p>
-                                                <p
-                                                    class="text-sm text-foreground dark:text-dark-text mt-2"
-                                                >
-                                                    {comment.comment}
-                                                </p>
-                                                <button
-                                                    onclick={() =>
-                                                        removePlanComment(
-                                                            comment.id,
-                                                        )}
-                                                    class="mt-3 text-xs font-semibold text-red-500 hover:underline"
-                                                >
-                                                    {$t(
-                                                        "ai_generator.plan_comment_remove",
-                                                    )}
-                                                </button>
-                                            </div>
-                                        {/each}
-                                    </div>
-                                {:else}
-                                    <p
-                                        class="text-xs text-muted-foreground dark:text-dark-text-muted"
-                                    >
-                                        {$t("ai_generator.plan_comment_empty")}
-                                    </p>
-                                {/if}
-                            </div>
-                        </div>
-                    </div>
-                    {#if planSelection}
-                        <div
-                            class="fixed z-[60] w-80 max-w-[calc(100%-1.5rem)] bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-xl p-4"
-                            style="top: {planSelection.top}px; left: {planSelection.left}px;"
-                            role="dialog"
-                            aria-label={$t("ai_generator.plan_comment_title")}
-                        >
-                            <p
-                                class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
-                            >
-                                {$t("ai_generator.plan_comment_title")}
-                            </p>
-                            <p
-                                class="text-xs text-foreground dark:text-dark-text font-mono whitespace-pre-wrap line-clamp-3 mt-2"
-                            >
-                                {planSelection.text}
-                            </p>
-                            <textarea
-                                bind:this={planCommentInputRef}
-                                bind:value={planCommentDraft}
-                                placeholder={$t(
-                                    "ai_generator.plan_comment_placeholder",
-                                )}
-                                onkeydown={(event) => {
-                                    if (event.key === "Escape") {
-                                        event.preventDefault();
-                                        clearPlanSelection();
-                                    }
-                                }}
-                                class="mt-3 w-full h-24 resize-none rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface text-sm text-foreground dark:text-dark-text px-3 py-2 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
-                            ></textarea>
-                            <div class="mt-3 flex justify-end gap-2">
-                                <button
-                                    onclick={clearPlanSelection}
-                                    class="px-3 py-1.5 text-xs font-semibold text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text"
-                                >
-                                    {$t("ai_generator.plan_comment_cancel")}
-                                </button>
-                                <button
-                                    onclick={addPlanComment}
-                                    disabled={!planCommentDraft.trim()}
-                                    class="px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-50"
-                                >
-                                    {$t("ai_generator.plan_comment_add")}
-                                </button>
                             </div>
                         </div>
                     {/if}
-                </div>
-            {:else if advancedStep === "draft" && advancedDraftData}
-                <div class="min-h-full flex flex-col gap-6" in:fade>
+                {:else if advancedStep === "input"}
                     <div
-                        class="flex items-center justify-between border-b border-border dark:border-dark-border pb-4"
+                        class="flex-1 flex flex-col items-center justify-center text-center gap-3 text-muted-foreground dark:text-dark-text-muted"
                     >
-                        <div>
-                            <h3
-                                class="text-xl font-bold text-foreground dark:text-dark-text"
-                            >
-                                {$t("ai_generator.draft_title")}
-                            </h3>
-                            <p
-                                class="text-muted-foreground dark:text-dark-text-muted text-sm"
-                            >
-                                {$t("ai_generator.draft_subtitle")}
-                            </p>
+                        <div
+                            class="text-lg font-bold text-foreground dark:text-dark-text"
+                        >
+                            {$t("ai_generator.output_placeholder_title")}
                         </div>
-                        <div class="flex gap-3">
-                            <button
-                                onclick={() => (advancedStep = "plan")}
-                                class="px-6 py-2 text-muted-foreground dark:text-dark-text-muted font-bold hover:bg-accent/80 dark:hover:bg-dark-border rounded-full transition-all"
-                            >
-                                {$t("ai_generator.back")}
-                            </button>
-                            <button
-                                onclick={handleAdvancedReviewAndRevise}
-                                disabled={advancedLoading}
-                                class="bg-emerald-600 text-white px-8 py-2 rounded-full font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2"
-                            >
-                                <ArrowRight size={18} />
-                                {$t("ai_generator.review_button")}
-                            </button>
-                        </div>
+                        <p class="text-sm max-w-sm">
+                            {$t("ai_generator.output_placeholder_desc")}
+                        </p>
                     </div>
-
+                {:else if advancedStep === "planning" || advancedStep === "drafting" || advancedStep === "reviewing" || advancedStep === "revising"}
                     <div
-                        class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
+                        class="min-h-full flex flex-col items-center justify-center gap-6"
+                        in:fade
+                        aria-live="polite"
                     >
-                        <h1
-                            class="text-3xl font-bold text-foreground dark:text-dark-text mb-4"
+                        <div class="relative">
+                            <div
+                                class="absolute inset-0 bg-primary rounded-full blur-xl opacity-20 animate-pulse"
+                                aria-hidden="true"
+                            ></div>
+                            <Loader2
+                                class="w-16 h-16 text-primary animate-spin relative z-10"
+                                aria-hidden="true"
+                            />
+                        </div>
+                        <h3
+                            class="text-xl font-bold text-foreground dark:text-dark-text"
                         >
-                            {advancedDraftData.title}
-                        </h1>
+                            {#if advancedStep === "planning"}
+                                {$t("ai_generator.plan_loading")}
+                            {:else if advancedStep === "drafting"}
+                                {$t("ai_generator.draft_loading")}
+                            {:else if advancedStep === "reviewing"}
+                                {$t("ai_generator.review_loading")}
+                            {:else}
+                                {$t("ai_generator.revise_loading")}
+                            {/if}
+                        </h3>
                         <p
-                            class="text-lg text-muted-foreground dark:text-dark-text-muted mb-8"
+                            class="text-muted-foreground dark:text-dark-text-muted text-center"
                         >
-                            {advancedDraftData.description}
+                            {#if advancedStep === "planning"}
+                                {$t("ai_generator.plan_loading_desc")}
+                            {:else if advancedStep === "drafting"}
+                                {$t("ai_generator.draft_loading_desc")}
+                            {:else if advancedStep === "reviewing"}
+                                {$t("ai_generator.review_loading_desc")}
+                            {:else}
+                                {$t("ai_generator.revise_loading_desc")}
+                            {/if}
                         </p>
 
-                        <div class="space-y-8">
-                            {#each advancedDraftData.steps as step, i}
-                                <div
-                                    class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
+                        {#if showThinking && advancedThinkingContent}
+                            <div class="w-full max-w-2xl mt-6">
+                                <details
+                                    open
+                                    class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border shadow-sm overflow-hidden"
                                 >
-                                    <h4
-                                        class="font-bold text-lg text-foreground dark:text-dark-text mb-4"
+                                    <summary
+                                        class="px-4 py-3 cursor-pointer hover:bg-accent/60 dark:hover:bg-white/5 flex items-center gap-2 font-medium text-muted-foreground dark:text-dark-text-muted"
                                     >
-                                        {i + 1}. {step.title}
-                                    </h4>
-                                    {#if generationMode === "prompt"}
-                                        {@const sections = extractPromptSections(step.content)}
-                                        <div class="grid gap-3">
-                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                    {$t("ai_generator.prompt_section")}
-                                                </div>
-                                                <div class="text-sm text-foreground dark:text-dark-text">
-                                                    {sections.prompt || $t("ai_generator.section_empty")}
-                                                </div>
-                                            </div>
-                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                    {$t("ai_generator.expected_output_section")}
-                                                </div>
-                                                <div class="text-sm text-foreground dark:text-dark-text">
-                                                    {sections.expected || $t("ai_generator.section_empty")}
-                                                </div>
-                                            </div>
-                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                    {$t("ai_generator.facilitator_tips_section")}
-                                                </div>
-                                                <div class="text-sm text-foreground dark:text-dark-text">
-                                                    {sections.tips || $t("ai_generator.section_empty")}
-                                                </div>
-                                            </div>
-                                            <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                    {$t("ai_generator.timebox_section")}
-                                                </div>
-                                                <div class="text-sm text-foreground dark:text-dark-text">
-                                                    {sections.timebox || $t("ai_generator.section_empty")}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    {:else}
-                                        <div
-                                            class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
-                                        >
-                                            {step.content}
-                                        </div>
-                                    {/if}
-                                </div>
-                            {/each}
-                        </div>
-                    </div>
-                </div>
-            {:else if advancedStep === "final" && advancedRevisedData}
-                <div class="min-h-full flex flex-col gap-6" in:fade>
-                    <div
-                        class="flex items-center justify-between border-b border-border dark:border-dark-border pb-4"
-                    >
-                        <div>
-                            <h3
-                                class="text-xl font-bold text-foreground dark:text-dark-text"
-                            >
-                                {$t("ai_generator.final_title")}
-                            </h3>
-                            <p
-                                class="text-muted-foreground dark:text-dark-text-muted text-sm"
-                            >
-                                {$t("ai_generator.final_subtitle")}
-                            </p>
-                        </div>
-                        <div class="flex gap-3">
-                            <button
-                                onclick={() => (advancedStep = "draft")}
-                                class="px-6 py-2 text-muted-foreground dark:text-dark-text-muted font-bold hover:bg-accent/80 dark:hover:bg-dark-border rounded-full transition-all"
-                            >
-                                {$t("ai_generator.back")}
-                            </button>
-                            <button
-                                onclick={handleSaveAdvanced}
-                                disabled={advancedLoading}
-                                class="bg-emerald-600 text-white px-8 py-2 rounded-full font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2"
-                            >
-                                {#if advancedLoading}
-                                    <Loader2 class="animate-spin" size={18} />
-                                    {$t("ai_generator.saving")}
-                                {:else}
-                                    <ArrowRight size={18} />
-                                    {$t("ai_generator.create_button")}
-                                {/if}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex-1 overflow-y-auto space-y-6">
-                        {#if advancedReviewData}
-                            <div
-                                class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
-                            >
-                                <h4
-                                    class="text-lg font-bold text-foreground dark:text-dark-text mb-2"
-                                >
-                                    {$t("ai_generator.review_title")}
-                                </h4>
-                                <p
-                                    class="text-sm text-muted-foreground dark:text-dark-text-muted"
-                                >
-                                    {advancedReviewData.summary}
-                                </p>
-
-                                {#if advancedReviewData.issues.length}
-                                    <div class="mt-4">
-                                        <h5
-                                            class="text-sm font-bold text-foreground dark:text-dark-text mb-2"
-                                        >
-                                            {$t(
-                                                "ai_generator.review_issues_label",
-                                            )}
-                                        </h5>
-                                        <div class="space-y-3">
-                                            {#each advancedReviewData.issues as issue}
-                                                <div
-                                                    class="border border-border dark:border-dark-border rounded-lg p-3"
-                                                >
-                                                    <div
-                                                        class="flex items-center gap-2 text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
-                                                    >
-                                                        <span
-                                                            class="px-2 py-0.5 rounded-full bg-accent/80 dark:bg-dark-border text-foreground dark:text-dark-text"
-                                                            >{issue.severity}</span
-                                                        >
-                                                        <span>{issue.issue}</span>
-                                                    </div>
-                                                    <p
-                                                        class="text-xs text-muted-foreground dark:text-dark-text-muted mt-2"
-                                                    >
-                                                        {issue.recommendation}
-                                                    </p>
-                                                </div>
-                                            {/each}
-                                        </div>
+                                        <Sparkles
+                                            size={16}
+                                            class="text-primary"
+                                        />
+                                        {$t("ai_generator.thinking_process")}
+                                    </summary>
+                                    <div
+                                        class="px-4 py-3 text-xs text-muted-foreground dark:text-dark-text-muted font-mono bg-accent/60 dark:bg-dark-bg/50 max-h-48 overflow-y-auto border-t border-border dark:border-dark-border"
+                                    >
+                                        {advancedThinkingContent}
                                     </div>
-                                {/if}
-
-                                {#if advancedReviewData.missing_items.length}
-                                    <div class="mt-4">
-                                        <h5
-                                            class="text-sm font-bold text-foreground dark:text-dark-text mb-2"
-                                        >
-                                            {$t(
-                                                "ai_generator.review_missing_label",
-                                            )}
-                                        </h5>
-                                        <ul
-                                            class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
-                                        >
-                                            {#each advancedReviewData.missing_items as item}
-                                                <li>{item}</li>
-                                            {/each}
-                                        </ul>
-                                    </div>
-                                {/if}
-
-                                {#if advancedReviewData.improvements.length}
-                                    <div class="mt-4">
-                                        <h5
-                                            class="text-sm font-bold text-foreground dark:text-dark-text mb-2"
-                                        >
-                                            {$t(
-                                                "ai_generator.review_suggestions_label",
-                                            )}
-                                        </h5>
-                                        <ul
-                                            class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
-                                        >
-                                            {#each advancedReviewData.improvements as item}
-                                                <li>{item}</li>
-                                            {/each}
-                                        </ul>
-                                    </div>
-                                {/if}
+                                </details>
                             </div>
                         {/if}
 
                         <div
-                            class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
+                            class="w-full max-w-2xl h-32 overflow-hidden text-xs text-muted-foreground dark:text-dark-text-muted font-mono text-center opacity-50 relative mt-8"
                         >
-                            <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
-                                <div>
-                                    <h4
-                                        class="text-lg font-bold text-foreground dark:text-dark-text mb-1"
+                            <div
+                                class="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-accent/60 dark:from-dark-bg to-transparent"
+                            ></div>
+                            {advancedStreamContent.slice(-500)}
+                        </div>
+                    </div>
+                {:else if advancedStep === "plan" && advancedPlanData}
+                    <div class="min-h-full flex flex-col gap-6" in:fade>
+                        <div
+                            class="flex items-center justify-between border-b border-border dark:border-dark-border pb-4"
+                        >
+                            <div>
+                                <h3
+                                    class="text-xl font-bold text-foreground dark:text-dark-text"
+                                >
+                                    {$t("ai_generator.plan_title")}
+                                </h3>
+                                <p
+                                    class="text-muted-foreground dark:text-dark-text-muted text-sm"
+                                >
+                                    {$t("ai_generator.plan_subtitle")}
+                                </p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button
+                                    onclick={() => (advancedStep = "input")}
+                                    class="px-6 py-2 text-muted-foreground dark:text-dark-text-muted font-bold hover:bg-accent/80 dark:hover:bg-dark-border rounded-full transition-all"
+                                >
+                                    {$t("ai_generator.back")}
+                                </button>
+                                <button
+                                    onclick={handleAdvancedDraft}
+                                    disabled={advancedLoading}
+                                    class="bg-primary text-white px-8 py-2 rounded-full font-bold hover:shadow-md transition-all flex items-center gap-2"
+                                >
+                                    <ArrowRight size={18} />
+                                    {$t("ai_generator.draft_button")}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div
+                            bind:this={planContainerRef}
+                            onmouseup={handlePlanSelection}
+                            onkeyup={handlePlanSelection}
+                            onscroll={clearPlanSelection}
+                            class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
+                        >
+                            <div class="space-y-6">
+                                <div
+                                    class="flex items-start gap-2 p-3 bg-accent/60 dark:bg-dark-bg border border-border dark:border-dark-border rounded-lg"
+                                >
+                                    <Info
+                                        size={16}
+                                        class="text-primary mt-0.5 shrink-0"
+                                    />
+                                    <p
+                                        class="text-xs text-foreground dark:text-dark-text"
                                     >
-                                        {$t("ai_generator.diff_title")}
-                                    </h4>
-                                    <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
-                                        {$t("ai_generator.diff_desc")}
+                                        {$t("ai_generator.plan_comment_hint")}
                                     </p>
                                 </div>
-                                <div class="flex items-center gap-1">
-                                    <button
-                                        onclick={() => (advancedDiffView = "unified")}
-                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDiffView === 'unified'
-                                            ? 'bg-primary/90 text-white border-primary'
-                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
+                                <div
+                                    class="border border-border dark:border-dark-border rounded-lg p-6"
+                                >
+                                    <h1
+                                        class="text-2xl font-bold text-foreground dark:text-dark-text mb-2"
                                     >
-                                        {$t("ai_generator.diff_view_unified")}
-                                    </button>
-                                    <button
-                                        onclick={() => (advancedDiffView = "split")}
-                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDiffView === 'split'
-                                            ? 'bg-primary/90 text-white border-primary'
-                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
+                                        {advancedPlanData.title}
+                                    </h1>
+                                    <p
+                                        class="text-sm text-muted-foreground dark:text-dark-text-muted"
                                     >
-                                        {$t("ai_generator.diff_view_split")}
-                                    </button>
+                                        {advancedPlanData.description}
+                                    </p>
+                                    {#if advancedPlanData.audience}
+                                        <p
+                                            class="mt-3 text-sm text-foreground dark:text-dark-text-muted"
+                                        >
+                                            <span
+                                                class="font-semibold text-foreground dark:text-dark-text"
+                                                >{$t(
+                                                    "ai_generator.plan_audience_label",
+                                                )}</span
+                                            >
+                                            {advancedPlanData.audience}
+                                        </p>
+                                    {/if}
                                 </div>
-                            </div>
 
-                            {#if !advancedDraftMarkdown || !advancedRevisedMarkdown}
-                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
-                                    {$t("ai_generator.diff_empty")}
-                                </p>
-                            {:else if advancedDiff.truncated}
-                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
-                                    {$t("ai_generator.diff_too_large")}
-                                </p>
-                            {:else if advancedDiffView === "unified"}
-                                <div class="rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto">
-                                    <div class="font-mono text-[11px] leading-relaxed">
-                                        {#each advancedDiff.lines as line}
-                                            <div
-                                                class="flex items-start gap-2 px-3 py-1 {line.type === 'add'
-                                                    ? 'bg-emerald-50 text-emerald-700'
-                                                    : line.type === 'remove'
-                                                        ? 'bg-red-50 text-red-700'
-                                                        : 'text-foreground dark:text-dark-text'}"
-                                            >
-                                                <span class="w-4 text-[10px] font-bold">
-                                                    {line.type === "add"
-                                                        ? "+"
-                                                        : line.type === "remove"
-                                                            ? "-"
-                                                            : " "}
-                                                </span>
-                                                <span class="whitespace-pre-wrap break-words flex-1">
-                                                    {line.text || " "}
-                                                </span>
-                                            </div>
-                                        {/each}
-                                    </div>
-                                </div>
-                            {:else}
-                                <div class="rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto">
-                                    <div class="grid grid-cols-2 font-mono text-[11px] leading-relaxed">
-                                        <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/60 dark:bg-dark-bg border-b border-border dark:border-dark-border">
-                                            {$t("ai_generator.diff_left")}
-                                        </div>
-                                        <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/60 dark:bg-dark-bg border-b border-l border-border dark:border-dark-border">
-                                            {$t("ai_generator.diff_right")}
-                                        </div>
-                                        {#each advancedDiffRows as row}
-                                            <div
-                                                class="flex items-start gap-2 px-3 py-1 border-r border-border dark:border-dark-border {row.leftType === 'remove'
-                                                    ? 'bg-red-50 text-red-700'
-                                                    : 'text-foreground dark:text-dark-text'}"
-                                            >
-                                                <span class="w-4 text-[10px] font-bold">
-                                                    {row.leftType === "remove" ? "-" : " "}
-                                                </span>
-                                                <span class="whitespace-pre-wrap break-words flex-1">
-                                                    {row.leftText || " "}
-                                                </span>
-                                            </div>
-                                            <div
-                                                class="flex items-start gap-2 px-3 py-1 {row.rightType === 'add'
-                                                    ? 'bg-emerald-50 text-emerald-700'
-                                                    : 'text-foreground dark:text-dark-text'}"
-                                            >
-                                                <span class="w-4 text-[10px] font-bold">
-                                                    {row.rightType === "add" ? "+" : " "}
-                                                </span>
-                                                <span class="whitespace-pre-wrap break-words flex-1">
-                                                    {row.rightText || " "}
-                                                </span>
-                                            </div>
-                                        {/each}
-                                    </div>
-                                </div>
-                            {/if}
-                        </div>
-
-                        <div
-                            class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
-                        >
-                            <div class="flex items-center justify-between gap-3 mb-3">
-                                <h4 class="text-lg font-bold text-foreground dark:text-dark-text">
-                                    {$t("ai_generator.draft_markdown_title")}
-                                </h4>
-                                <div class="flex items-center gap-1">
-                                    <button
-                                        onclick={() => (advancedDraftView = "markdown")}
-                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDraftView === 'markdown'
-                                            ? 'bg-primary/90 text-white border-primary'
-                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
+                                {#if advancedPlanData.learning_objectives.length}
+                                    <div
+                                        class="border border-border dark:border-dark-border rounded-lg p-6"
                                     >
-                                        {$t("ai_generator.view_markdown")}
-                                    </button>
-                                    <button
-                                        onclick={() => (advancedDraftView = "raw")}
-                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDraftView === 'raw'
-                                            ? 'bg-primary/90 text-white border-primary'
-                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
-                                    >
-                                        {$t("ai_generator.view_raw")}
-                                    </button>
-                                </div>
-                            </div>
-                            {#if advancedDraftMarkdown}
-                                {#if advancedDraftView === "markdown"}
-                                    <div class="markdown-body text-sm">
-                                        {@html advancedDraftHtml}
+                                        <h4
+                                            class="font-bold text-foreground dark:text-dark-text mb-3"
+                                        >
+                                            {$t(
+                                                "ai_generator.plan_objectives_label",
+                                            )}
+                                        </h4>
+                                        <ul
+                                            class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
+                                        >
+                                            {#each advancedPlanData.learning_objectives as objective}
+                                                <li>{objective}</li>
+                                            {/each}
+                                        </ul>
                                     </div>
-                                {:else}
-                                    <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{advancedDraftMarkdown}</pre>
                                 {/if}
-                            {:else}
-                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
-                                    {$t("ai_generator.diff_empty")}
-                                </p>
-                            {/if}
-                        </div>
 
-                        <div
-                            class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
-                        >
-                            <div class="flex items-center justify-between gap-3 mb-3">
-                                <h4 class="text-lg font-bold text-foreground dark:text-dark-text">
-                                    {$t("ai_generator.revised_markdown_title")}
-                                </h4>
-                                <div class="flex items-center gap-1">
-                                    <button
-                                        onclick={() => (advancedRevisedView = "markdown")}
-                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedRevisedView === 'markdown'
-                                            ? 'bg-primary/90 text-white border-primary'
-                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
+                                {#if advancedPlanData.prerequisites.length}
+                                    <div
+                                        class="border border-border dark:border-dark-border rounded-lg p-6"
                                     >
-                                        {$t("ai_generator.view_markdown")}
+                                        <h4
+                                            class="font-bold text-foreground dark:text-dark-text mb-3"
+                                        >
+                                            {$t(
+                                                "ai_generator.plan_prerequisites_label",
+                                            )}
+                                        </h4>
+                                        <ul
+                                            class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
+                                        >
+                                            {#each advancedPlanData.prerequisites as item}
+                                                <li>{item}</li>
+                                            {/each}
+                                        </ul>
+                                    </div>
+                                {/if}
+
+                                <div
+                                    class="border border-border dark:border-dark-border rounded-lg p-6"
+                                >
+                                    <h4
+                                        class="font-bold text-foreground dark:text-dark-text mb-3"
+                                    >
+                                        {$t(
+                                            "ai_generator.plan_environment_label",
+                                        )}
+                                    </h4>
+                                    {#if advancedPlanData.environment_setup.os_requirements.length}
+                                        <p
+                                            class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
+                                        >
+                                            {$t(
+                                                "ai_generator.plan_environment_os",
+                                            )}
+                                        </p>
+                                        <p
+                                            class="text-sm text-foreground dark:text-dark-text-muted mb-3"
+                                        >
+                                            {advancedPlanData.environment_setup.os_requirements.join(
+                                                ", ",
+                                            )}
+                                        </p>
+                                    {/if}
+                                    {#if advancedPlanData.environment_setup.tools.length}
+                                        <p
+                                            class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
+                                        >
+                                            {$t(
+                                                "ai_generator.plan_environment_tools",
+                                            )}
+                                        </p>
+                                        <p
+                                            class="text-sm text-foreground dark:text-dark-text-muted mb-3"
+                                        >
+                                            {advancedPlanData.environment_setup.tools.join(
+                                                ", ",
+                                            )}
+                                        </p>
+                                    {/if}
+                                    {#if advancedPlanData.environment_setup.env_vars.length}
+                                        <p
+                                            class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
+                                        >
+                                            {$t(
+                                                "ai_generator.plan_environment_envvars",
+                                            )}
+                                        </p>
+                                        <p
+                                            class="text-sm text-foreground dark:text-dark-text-muted mb-3"
+                                        >
+                                            {advancedPlanData.environment_setup.env_vars.join(
+                                                ", ",
+                                            )}
+                                        </p>
+                                    {/if}
+                                    {#if advancedPlanData.environment_setup.ide}
+                                        <p
+                                            class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
+                                        >
+                                            {$t(
+                                                "ai_generator.plan_environment_ide",
+                                            )}
+                                        </p>
+                                        <p
+                                            class="text-sm text-foreground dark:text-dark-text-muted mb-3"
+                                        >
+                                            {advancedPlanData.environment_setup
+                                                .ide}
+                                        </p>
+                                    {/if}
+                                    {#if advancedPlanData.environment_setup.ide_plugins.length}
+                                        <p
+                                            class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
+                                        >
+                                            {$t(
+                                                "ai_generator.plan_environment_plugins",
+                                            )}
+                                        </p>
+                                        <p
+                                            class="text-sm text-foreground dark:text-dark-text-muted"
+                                        >
+                                            {advancedPlanData.environment_setup.ide_plugins.join(
+                                                ", ",
+                                            )}
+                                        </p>
+                                    {/if}
+                                </div>
+
+                                {#if advancedPlanData.search_terms.length}
+                                    <div
+                                        class="border border-border dark:border-dark-border rounded-lg p-6"
+                                    >
+                                        <h4
+                                            class="font-bold text-foreground dark:text-dark-text mb-3"
+                                        >
+                                            {$t(
+                                                "ai_generator.plan_search_terms_label",
+                                            )}
+                                        </h4>
+                                        <div class="flex flex-wrap gap-2">
+                                            {#each advancedPlanData.search_terms as term}
+                                                <span
+                                                    class="px-3 py-1 rounded-full bg-accent/80 dark:bg-dark-border text-xs font-semibold text-foreground dark:text-dark-text"
+                                                >
+                                                    {term}
+                                                </span>
+                                            {/each}
+                                        </div>
+                                    </div>
+                                {/if}
+
+                                {#if advancedPlanData.steps.length}
+                                    <div
+                                        class="border border-border dark:border-dark-border rounded-lg p-6"
+                                    >
+                                        <h4
+                                            class="font-bold text-foreground dark:text-dark-text mb-3"
+                                        >
+                                            {$t(
+                                                "ai_generator.plan_steps_label",
+                                            )}
+                                        </h4>
+                                        <div class="space-y-4">
+                                            {#each advancedPlanData.steps as step, i}
+                                                <div
+                                                    class="border border-border dark:border-dark-border rounded-lg p-4"
+                                                >
+                                                    <h5
+                                                        class="font-bold text-foreground dark:text-dark-text"
+                                                    >
+                                                        {i + 1}. {step.title}
+                                                    </h5>
+                                                    <p
+                                                        class="text-sm text-foreground dark:text-dark-text-muted mt-2"
+                                                    >
+                                                        {step.goal}
+                                                    </p>
+                                                    {#if step.files.length}
+                                                        <p
+                                                            class="text-xs text-muted-foreground dark:text-dark-text-muted mt-2"
+                                                        >
+                                                            <span
+                                                                class="font-semibold"
+                                                                >{$t(
+                                                                    "ai_generator.plan_files_label",
+                                                                )}</span
+                                                            >
+                                                            {step.files.join(
+                                                                ", ",
+                                                            )}
+                                                        </p>
+                                                    {/if}
+                                                    <p
+                                                        class="text-xs text-muted-foreground dark:text-dark-text-muted mt-1"
+                                                    >
+                                                        <span
+                                                            class="font-semibold"
+                                                            >{$t(
+                                                                "ai_generator.plan_verification_label",
+                                                            )}</span
+                                                        >
+                                                        {step.verification}
+                                                    </p>
+                                                </div>
+                                            {/each}
+                                        </div>
+                                    </div>
+                                {/if}
+                                <div
+                                    class="border border-border dark:border-dark-border rounded-lg p-6"
+                                >
+                                    <h4
+                                        class="font-bold text-foreground dark:text-dark-text mb-3"
+                                    >
+                                        {$t("ai_generator.plan_comment_label")}
+                                    </h4>
+                                    {#if planComments.length}
+                                        <div class="space-y-3">
+                                            {#each planComments as comment}
+                                                <div
+                                                    class="border border-border dark:border-dark-border rounded-lg p-4"
+                                                >
+                                                    <p
+                                                        class="text-[11px] font-semibold uppercase text-muted-foreground dark:text-dark-text-muted"
+                                                    >
+                                                        {$t(
+                                                            "ai_generator.plan_comment_selection_label",
+                                                        )}
+                                                    </p>
+                                                    <p
+                                                        class="text-xs text-foreground dark:text-dark-text font-mono whitespace-pre-wrap line-clamp-3 mt-1"
+                                                    >
+                                                        {comment.quote}
+                                                    </p>
+                                                    <p
+                                                        class="text-sm text-foreground dark:text-dark-text mt-2"
+                                                    >
+                                                        {comment.comment}
+                                                    </p>
+                                                    <button
+                                                        onclick={() =>
+                                                            removePlanComment(
+                                                                comment.id,
+                                                            )}
+                                                        class="mt-3 text-xs font-semibold text-red-500 hover:underline"
+                                                    >
+                                                        {$t(
+                                                            "ai_generator.plan_comment_remove",
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            {/each}
+                                        </div>
+                                    {:else}
+                                        <p
+                                            class="text-xs text-muted-foreground dark:text-dark-text-muted"
+                                        >
+                                            {$t(
+                                                "ai_generator.plan_comment_empty",
+                                            )}
+                                        </p>
+                                    {/if}
+                                </div>
+                            </div>
+                        </div>
+                        {#if planSelection}
+                            <div
+                                class="fixed z-[60] w-80 max-w-[calc(100%-1.5rem)] bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl shadow-xl p-4"
+                                style="top: {planSelection.top}px; left: {planSelection.left}px;"
+                                role="dialog"
+                                aria-label={$t(
+                                    "ai_generator.plan_comment_title",
+                                )}
+                            >
+                                <p
+                                    class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
+                                >
+                                    {$t("ai_generator.plan_comment_title")}
+                                </p>
+                                <p
+                                    class="text-xs text-foreground dark:text-dark-text font-mono whitespace-pre-wrap line-clamp-3 mt-2"
+                                >
+                                    {planSelection.text}
+                                </p>
+                                <textarea
+                                    bind:this={planCommentInputRef}
+                                    bind:value={planCommentDraft}
+                                    placeholder={$t(
+                                        "ai_generator.plan_comment_placeholder",
+                                    )}
+                                    onkeydown={(event) => {
+                                        if (event.key === "Escape") {
+                                            event.preventDefault();
+                                            clearPlanSelection();
+                                        }
+                                    }}
+                                    class="mt-3 w-full h-24 resize-none rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface text-sm text-foreground dark:text-dark-text px-3 py-2 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10"
+                                ></textarea>
+                                <div class="mt-3 flex justify-end gap-2">
+                                    <button
+                                        onclick={clearPlanSelection}
+                                        class="px-3 py-1.5 text-xs font-semibold text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text"
+                                    >
+                                        {$t("ai_generator.plan_comment_cancel")}
                                     </button>
                                     <button
-                                        onclick={() => (advancedRevisedView = "raw")}
-                                        class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedRevisedView === 'raw'
-                                            ? 'bg-primary/90 text-white border-primary'
-                                            : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
+                                        onclick={addPlanComment}
+                                        disabled={!planCommentDraft.trim()}
+                                        class="px-4 py-1.5 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-50"
                                     >
-                                        {$t("ai_generator.view_raw")}
+                                        {$t("ai_generator.plan_comment_add")}
                                     </button>
                                 </div>
                             </div>
-                            {#if advancedRevisedMarkdown}
-                                {#if advancedRevisedView === "markdown"}
-                                    <div class="markdown-body text-sm">
-                                        {@html advancedRevisedHtml}
-                                    </div>
-                                {:else}
-                                    <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{advancedRevisedMarkdown}</pre>
-                                {/if}
-                            {:else}
-                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted">
-                                    {$t("ai_generator.diff_empty")}
+                        {/if}
+                    </div>
+                {:else if advancedStep === "draft" && advancedDraftData}
+                    <div class="min-h-full flex flex-col gap-6" in:fade>
+                        <div
+                            class="flex items-center justify-between border-b border-border dark:border-dark-border pb-4"
+                        >
+                            <div>
+                                <h3
+                                    class="text-xl font-bold text-foreground dark:text-dark-text"
+                                >
+                                    {$t("ai_generator.draft_title")}
+                                </h3>
+                                <p
+                                    class="text-muted-foreground dark:text-dark-text-muted text-sm"
+                                >
+                                    {$t("ai_generator.draft_subtitle")}
                                 </p>
-                            {/if}
+                            </div>
+                            <div class="flex gap-3">
+                                <button
+                                    onclick={() => (advancedStep = "plan")}
+                                    class="px-6 py-2 text-muted-foreground dark:text-dark-text-muted font-bold hover:bg-accent/80 dark:hover:bg-dark-border rounded-full transition-all"
+                                >
+                                    {$t("ai_generator.back")}
+                                </button>
+                                <button
+                                    onclick={handleAdvancedReviewAndRevise}
+                                    disabled={advancedLoading}
+                                    class="bg-emerald-600 text-white px-8 py-2 rounded-full font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2"
+                                >
+                                    <ArrowRight size={18} />
+                                    {$t("ai_generator.review_button")}
+                                </button>
+                            </div>
                         </div>
 
                         <div
-                            class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
+                            class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
                         >
                             <h1
                                 class="text-3xl font-bold text-foreground dark:text-dark-text mb-4"
                             >
-                                {advancedRevisedData.title}
+                                {advancedDraftData.title}
                             </h1>
                             <p
                                 class="text-lg text-muted-foreground dark:text-dark-text-muted mb-8"
                             >
-                                {advancedRevisedData.description}
+                                {advancedDraftData.description}
                             </p>
 
                             <div class="space-y-8">
-                                {#each advancedRevisedData.steps as step, i}
+                                {#each advancedDraftData.steps as step, i}
                                     <div
                                         class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
                                     >
@@ -3141,38 +2981,85 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                             {i + 1}. {step.title}
                                         </h4>
                                         {#if generationMode === "prompt"}
-                                            {@const sections = extractPromptSections(step.content)}
+                                            {@const sections =
+                                                extractPromptSections(
+                                                    step.content,
+                                                )}
                                             <div class="grid gap-3">
-                                                <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                    <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                        {$t("ai_generator.prompt_section")}
+                                                <div
+                                                    class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
+                                                >
+                                                    <div
+                                                        class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
+                                                    >
+                                                        {$t(
+                                                            "ai_generator.prompt_section",
+                                                        )}
                                                     </div>
-                                                    <div class="text-sm text-foreground dark:text-dark-text">
-                                                        {sections.prompt || $t("ai_generator.section_empty")}
-                                                    </div>
-                                                </div>
-                                                <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                    <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                        {$t("ai_generator.expected_output_section")}
-                                                    </div>
-                                                    <div class="text-sm text-foreground dark:text-dark-text">
-                                                        {sections.expected || $t("ai_generator.section_empty")}
-                                                    </div>
-                                                </div>
-                                                <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                    <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                        {$t("ai_generator.facilitator_tips_section")}
-                                                    </div>
-                                                    <div class="text-sm text-foreground dark:text-dark-text">
-                                                        {sections.tips || $t("ai_generator.section_empty")}
+                                                    <div
+                                                        class="text-sm text-foreground dark:text-dark-text"
+                                                    >
+                                                        {sections.prompt ||
+                                                            $t(
+                                                                "ai_generator.section_empty",
+                                                            )}
                                                     </div>
                                                 </div>
-                                                <div class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3">
-                                                    <div class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1">
-                                                        {$t("ai_generator.timebox_section")}
+                                                <div
+                                                    class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
+                                                >
+                                                    <div
+                                                        class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
+                                                    >
+                                                        {$t(
+                                                            "ai_generator.expected_output_section",
+                                                        )}
                                                     </div>
-                                                    <div class="text-sm text-foreground dark:text-dark-text">
-                                                        {sections.timebox || $t("ai_generator.section_empty")}
+                                                    <div
+                                                        class="text-sm text-foreground dark:text-dark-text"
+                                                    >
+                                                        {sections.expected ||
+                                                            $t(
+                                                                "ai_generator.section_empty",
+                                                            )}
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
+                                                >
+                                                    <div
+                                                        class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
+                                                    >
+                                                        {$t(
+                                                            "ai_generator.facilitator_tips_section",
+                                                        )}
+                                                    </div>
+                                                    <div
+                                                        class="text-sm text-foreground dark:text-dark-text"
+                                                    >
+                                                        {sections.tips ||
+                                                            $t(
+                                                                "ai_generator.section_empty",
+                                                            )}
+                                                    </div>
+                                                </div>
+                                                <div
+                                                    class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
+                                                >
+                                                    <div
+                                                        class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
+                                                    >
+                                                        {$t(
+                                                            "ai_generator.timebox_section",
+                                                        )}
+                                                    </div>
+                                                    <div
+                                                        class="text-sm text-foreground dark:text-dark-text"
+                                                    >
+                                                        {sections.timebox ||
+                                                            $t(
+                                                                "ai_generator.section_empty",
+                                                            )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -3188,9 +3075,526 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             </div>
                         </div>
                     </div>
-                </div>
-            {/if}
-        {/if}
+                {:else if advancedStep === "final" && advancedRevisedData}
+                    <div class="min-h-full flex flex-col gap-6" in:fade>
+                        <div
+                            class="flex items-center justify-between border-b border-border dark:border-dark-border pb-4"
+                        >
+                            <div>
+                                <h3
+                                    class="text-xl font-bold text-foreground dark:text-dark-text"
+                                >
+                                    {$t("ai_generator.final_title")}
+                                </h3>
+                                <p
+                                    class="text-muted-foreground dark:text-dark-text-muted text-sm"
+                                >
+                                    {$t("ai_generator.final_subtitle")}
+                                </p>
+                            </div>
+                            <div class="flex gap-3">
+                                <button
+                                    onclick={() => (advancedStep = "draft")}
+                                    class="px-6 py-2 text-muted-foreground dark:text-dark-text-muted font-bold hover:bg-accent/80 dark:hover:bg-dark-border rounded-full transition-all"
+                                >
+                                    {$t("ai_generator.back")}
+                                </button>
+                                <button
+                                    onclick={handleSaveAdvanced}
+                                    disabled={advancedLoading}
+                                    class="bg-emerald-600 text-white px-8 py-2 rounded-full font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2"
+                                >
+                                    {#if advancedLoading}
+                                        <Loader2
+                                            class="animate-spin"
+                                            size={18}
+                                        />
+                                        {$t("ai_generator.saving")}
+                                    {:else}
+                                        <ArrowRight size={18} />
+                                        {$t("ai_generator.create_button")}
+                                    {/if}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex-1 overflow-y-auto space-y-6">
+                            {#if advancedReviewData}
+                                <div
+                                    class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
+                                >
+                                    <h4
+                                        class="text-lg font-bold text-foreground dark:text-dark-text mb-2"
+                                    >
+                                        {$t("ai_generator.review_title")}
+                                    </h4>
+                                    <p
+                                        class="text-sm text-muted-foreground dark:text-dark-text-muted"
+                                    >
+                                        {advancedReviewData.summary}
+                                    </p>
+
+                                    {#if advancedReviewData.issues.length}
+                                        <div class="mt-4">
+                                            <h5
+                                                class="text-sm font-bold text-foreground dark:text-dark-text mb-2"
+                                            >
+                                                {$t(
+                                                    "ai_generator.review_issues_label",
+                                                )}
+                                            </h5>
+                                            <div class="space-y-3">
+                                                {#each advancedReviewData.issues as issue}
+                                                    <div
+                                                        class="border border-border dark:border-dark-border rounded-lg p-3"
+                                                    >
+                                                        <div
+                                                            class="flex items-center gap-2 text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
+                                                        >
+                                                            <span
+                                                                class="px-2 py-0.5 rounded-full bg-accent/80 dark:bg-dark-border text-foreground dark:text-dark-text"
+                                                                >{issue.severity}</span
+                                                            >
+                                                            <span
+                                                                >{issue.issue}</span
+                                                            >
+                                                        </div>
+                                                        <p
+                                                            class="text-xs text-muted-foreground dark:text-dark-text-muted mt-2"
+                                                        >
+                                                            {issue.recommendation}
+                                                        </p>
+                                                    </div>
+                                                {/each}
+                                            </div>
+                                        </div>
+                                    {/if}
+
+                                    {#if advancedReviewData.missing_items.length}
+                                        <div class="mt-4">
+                                            <h5
+                                                class="text-sm font-bold text-foreground dark:text-dark-text mb-2"
+                                            >
+                                                {$t(
+                                                    "ai_generator.review_missing_label",
+                                                )}
+                                            </h5>
+                                            <ul
+                                                class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
+                                            >
+                                                {#each advancedReviewData.missing_items as item}
+                                                    <li>{item}</li>
+                                                {/each}
+                                            </ul>
+                                        </div>
+                                    {/if}
+
+                                    {#if advancedReviewData.improvements.length}
+                                        <div class="mt-4">
+                                            <h5
+                                                class="text-sm font-bold text-foreground dark:text-dark-text mb-2"
+                                            >
+                                                {$t(
+                                                    "ai_generator.review_suggestions_label",
+                                                )}
+                                            </h5>
+                                            <ul
+                                                class="list-disc ml-5 text-sm text-foreground dark:text-dark-text-muted"
+                                            >
+                                                {#each advancedReviewData.improvements as item}
+                                                    <li>{item}</li>
+                                                {/each}
+                                            </ul>
+                                        </div>
+                                    {/if}
+                                </div>
+                            {/if}
+
+                            <div
+                                class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
+                            >
+                                <div
+                                    class="flex flex-wrap items-center justify-between gap-3 mb-3"
+                                >
+                                    <div>
+                                        <h4
+                                            class="text-lg font-bold text-foreground dark:text-dark-text mb-1"
+                                        >
+                                            {$t("ai_generator.diff_title")}
+                                        </h4>
+                                        <p
+                                            class="text-sm text-muted-foreground dark:text-dark-text-muted"
+                                        >
+                                            {$t("ai_generator.diff_desc")}
+                                        </p>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <button
+                                            onclick={() =>
+                                                (advancedDiffView = "unified")}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDiffView ===
+                                            'unified'
+                                                ? 'bg-primary/90 text-white border-primary'
+                                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
+                                        >
+                                            {$t(
+                                                "ai_generator.diff_view_unified",
+                                            )}
+                                        </button>
+                                        <button
+                                            onclick={() =>
+                                                (advancedDiffView = "split")}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDiffView ===
+                                            'split'
+                                                ? 'bg-primary/90 text-white border-primary'
+                                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
+                                        >
+                                            {$t("ai_generator.diff_view_split")}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {#if !advancedDraftMarkdown || !advancedRevisedMarkdown}
+                                    <p
+                                        class="text-sm text-muted-foreground dark:text-dark-text-muted"
+                                    >
+                                        {$t("ai_generator.diff_empty")}
+                                    </p>
+                                {:else if advancedDiff.truncated}
+                                    <p
+                                        class="text-sm text-muted-foreground dark:text-dark-text-muted"
+                                    >
+                                        {$t("ai_generator.diff_too_large")}
+                                    </p>
+                                {:else if advancedDiffView === "unified"}
+                                    <div
+                                        class="rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto"
+                                    >
+                                        <div
+                                            class="font-mono text-[11px] leading-relaxed"
+                                        >
+                                            {#each advancedDiff.lines as line}
+                                                <div
+                                                    class="flex items-start gap-2 px-3 py-1 {line.type ===
+                                                    'add'
+                                                        ? 'bg-emerald-50 text-emerald-700'
+                                                        : line.type === 'remove'
+                                                          ? 'bg-red-50 text-red-700'
+                                                          : 'text-foreground dark:text-dark-text'}"
+                                                >
+                                                    <span
+                                                        class="w-4 text-[10px] font-bold"
+                                                    >
+                                                        {line.type === "add"
+                                                            ? "+"
+                                                            : line.type ===
+                                                                "remove"
+                                                              ? "-"
+                                                              : " "}
+                                                    </span>
+                                                    <span
+                                                        class="whitespace-pre-wrap break-words flex-1"
+                                                    >
+                                                        {line.text || " "}
+                                                    </span>
+                                                </div>
+                                            {/each}
+                                        </div>
+                                    </div>
+                                {:else}
+                                    <div
+                                        class="rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto"
+                                    >
+                                        <div
+                                            class="grid grid-cols-2 font-mono text-[11px] leading-relaxed"
+                                        >
+                                            <div
+                                                class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/60 dark:bg-dark-bg border-b border-border dark:border-dark-border"
+                                            >
+                                                {$t("ai_generator.diff_left")}
+                                            </div>
+                                            <div
+                                                class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/60 dark:bg-dark-bg border-b border-l border-border dark:border-dark-border"
+                                            >
+                                                {$t("ai_generator.diff_right")}
+                                            </div>
+                                            {#each advancedDiffRows as row}
+                                                <div
+                                                    class="flex items-start gap-2 px-3 py-1 border-r border-border dark:border-dark-border {row.leftType ===
+                                                    'remove'
+                                                        ? 'bg-red-50 text-red-700'
+                                                        : 'text-foreground dark:text-dark-text'}"
+                                                >
+                                                    <span
+                                                        class="w-4 text-[10px] font-bold"
+                                                    >
+                                                        {row.leftType ===
+                                                        "remove"
+                                                            ? "-"
+                                                            : " "}
+                                                    </span>
+                                                    <span
+                                                        class="whitespace-pre-wrap break-words flex-1"
+                                                    >
+                                                        {row.leftText || " "}
+                                                    </span>
+                                                </div>
+                                                <div
+                                                    class="flex items-start gap-2 px-3 py-1 {row.rightType ===
+                                                    'add'
+                                                        ? 'bg-emerald-50 text-emerald-700'
+                                                        : 'text-foreground dark:text-dark-text'}"
+                                                >
+                                                    <span
+                                                        class="w-4 text-[10px] font-bold"
+                                                    >
+                                                        {row.rightType === "add"
+                                                            ? "+"
+                                                            : " "}
+                                                    </span>
+                                                    <span
+                                                        class="whitespace-pre-wrap break-words flex-1"
+                                                    >
+                                                        {row.rightText || " "}
+                                                    </span>
+                                                </div>
+                                            {/each}
+                                        </div>
+                                    </div>
+                                {/if}
+                            </div>
+
+                            <div
+                                class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
+                            >
+                                <div
+                                    class="flex items-center justify-between gap-3 mb-3"
+                                >
+                                    <h4
+                                        class="text-lg font-bold text-foreground dark:text-dark-text"
+                                    >
+                                        {$t(
+                                            "ai_generator.draft_markdown_title",
+                                        )}
+                                    </h4>
+                                    <div class="flex items-center gap-1">
+                                        <button
+                                            onclick={() =>
+                                                (advancedDraftView =
+                                                    "markdown")}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDraftView ===
+                                            'markdown'
+                                                ? 'bg-primary/90 text-white border-primary'
+                                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
+                                        >
+                                            {$t("ai_generator.view_markdown")}
+                                        </button>
+                                        <button
+                                            onclick={() =>
+                                                (advancedDraftView = "raw")}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedDraftView ===
+                                            'raw'
+                                                ? 'bg-primary/90 text-white border-primary'
+                                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
+                                        >
+                                            {$t("ai_generator.view_raw")}
+                                        </button>
+                                    </div>
+                                </div>
+                                {#if advancedDraftMarkdown}
+                                    {#if advancedDraftView === "markdown"}
+                                        <div class="markdown-body text-sm">
+                                            {@html advancedDraftHtml}
+                                        </div>
+                                    {:else}
+                                        <pre
+                                            class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{advancedDraftMarkdown}</pre>
+                                    {/if}
+                                {:else}
+                                    <p
+                                        class="text-sm text-muted-foreground dark:text-dark-text-muted"
+                                    >
+                                        {$t("ai_generator.diff_empty")}
+                                    </p>
+                                {/if}
+                            </div>
+
+                            <div
+                                class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-6 shadow-sm"
+                            >
+                                <div
+                                    class="flex items-center justify-between gap-3 mb-3"
+                                >
+                                    <h4
+                                        class="text-lg font-bold text-foreground dark:text-dark-text"
+                                    >
+                                        {$t(
+                                            "ai_generator.revised_markdown_title",
+                                        )}
+                                    </h4>
+                                    <div class="flex items-center gap-1">
+                                        <button
+                                            onclick={() =>
+                                                (advancedRevisedView =
+                                                    "markdown")}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedRevisedView ===
+                                            'markdown'
+                                                ? 'bg-primary/90 text-white border-primary'
+                                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
+                                        >
+                                            {$t("ai_generator.view_markdown")}
+                                        </button>
+                                        <button
+                                            onclick={() =>
+                                                (advancedRevisedView = "raw")}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {advancedRevisedView ===
+                                            'raw'
+                                                ? 'bg-primary/90 text-white border-primary'
+                                                : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
+                                        >
+                                            {$t("ai_generator.view_raw")}
+                                        </button>
+                                    </div>
+                                </div>
+                                {#if advancedRevisedMarkdown}
+                                    {#if advancedRevisedView === "markdown"}
+                                        <div class="markdown-body text-sm">
+                                            {@html advancedRevisedHtml}
+                                        </div>
+                                    {:else}
+                                        <pre
+                                            class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{advancedRevisedMarkdown}</pre>
+                                    {/if}
+                                {:else}
+                                    <p
+                                        class="text-sm text-muted-foreground dark:text-dark-text-muted"
+                                    >
+                                        {$t("ai_generator.diff_empty")}
+                                    </p>
+                                {/if}
+                            </div>
+
+                            <div
+                                class="bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
+                            >
+                                <h1
+                                    class="text-3xl font-bold text-foreground dark:text-dark-text mb-4"
+                                >
+                                    {advancedRevisedData.title}
+                                </h1>
+                                <p
+                                    class="text-lg text-muted-foreground dark:text-dark-text-muted mb-8"
+                                >
+                                    {advancedRevisedData.description}
+                                </p>
+
+                                <div class="space-y-8">
+                                    {#each advancedRevisedData.steps as step, i}
+                                        <div
+                                            class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
+                                        >
+                                            <h4
+                                                class="font-bold text-lg text-foreground dark:text-dark-text mb-4"
+                                            >
+                                                {i + 1}. {step.title}
+                                            </h4>
+                                            {#if generationMode === "prompt"}
+                                                {@const sections =
+                                                    extractPromptSections(
+                                                        step.content,
+                                                    )}
+                                                <div class="grid gap-3">
+                                                    <div
+                                                        class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
+                                                    >
+                                                        <div
+                                                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
+                                                        >
+                                                            {$t(
+                                                                "ai_generator.prompt_section",
+                                                            )}
+                                                        </div>
+                                                        <div
+                                                            class="text-sm text-foreground dark:text-dark-text"
+                                                        >
+                                                            {sections.prompt ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                )}
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
+                                                    >
+                                                        <div
+                                                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
+                                                        >
+                                                            {$t(
+                                                                "ai_generator.expected_output_section",
+                                                            )}
+                                                        </div>
+                                                        <div
+                                                            class="text-sm text-foreground dark:text-dark-text"
+                                                        >
+                                                            {sections.expected ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                )}
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
+                                                    >
+                                                        <div
+                                                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
+                                                        >
+                                                            {$t(
+                                                                "ai_generator.facilitator_tips_section",
+                                                            )}
+                                                        </div>
+                                                        <div
+                                                            class="text-sm text-foreground dark:text-dark-text"
+                                                        >
+                                                            {sections.tips ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                )}
+                                                        </div>
+                                                    </div>
+                                                    <div
+                                                        class="rounded-lg border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-3"
+                                                    >
+                                                        <div
+                                                            class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted mb-1"
+                                                        >
+                                                            {$t(
+                                                                "ai_generator.timebox_section",
+                                                            )}
+                                                        </div>
+                                                        <div
+                                                            class="text-sm text-foreground dark:text-dark-text"
+                                                        >
+                                                            {sections.timebox ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            {:else}
+                                                <div
+                                                    class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                                >
+                                                    {step.content}
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    {/each}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {/if}
             </div>
         </div>
     </div>
