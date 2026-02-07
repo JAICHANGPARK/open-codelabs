@@ -35,6 +35,10 @@ export const handle: Handle = async ({ event, resolve }) => {
 		connectSrc.add('http://localhost:8080');
 		connectSrc.add('http://127.0.0.1:8080');
 		connectSrc.add('http://0.0.0.0:8080');
+		imgSrc.add('http://localhost:8080');
+		imgSrc.add('http://127.0.0.1:8080');
+		imgSrc.add('http://0.0.0.0:8080');
+		imgSrc.add('http://[::1]:8080');
 	}
 	const frameSrc = [
 		"'self'",
