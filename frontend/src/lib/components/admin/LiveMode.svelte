@@ -51,6 +51,24 @@
         if (text.startsWith("/uploads/")) return text;
         return "";
     }
+
+    function handleChatPaste(event: ClipboardEvent) {
+        const items = event.clipboardData?.items;
+        if (!items) return;
+        const files: File[] = [];
+        for (const item of Array.from(items)) {
+            if (item.type.startsWith("image/")) {
+                const file = item.getAsFile();
+                if (file) files.push(file);
+            }
+        }
+        if (files.length > 0) {
+            event.preventDefault();
+            for (const file of files) {
+                attachImage(file);
+            }
+        }
+    }
 </script>
 
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 h-full">
@@ -205,6 +223,7 @@
                             bind:value={chatMessage}
                             placeholder="Send a message to everyone..."
                             aria-label={$t("editor.chat_placeholder")}
+                            onpaste={handleChatPaste}
                             class="flex-1 pl-4 pr-12 py-3 bg-muted dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary text-sm text-foreground dark:text-dark-text"
                         />
                     {:else}
@@ -213,6 +232,7 @@
                             bind:value={dmMessage}
                             placeholder="Type a message..."
                             aria-label={$t("editor.chat_placeholder")}
+                            onpaste={handleChatPaste}
                             class="flex-1 {dmTarget ? 'pl-24' : 'pl-4'} pr-12 py-3 bg-muted dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary text-sm text-foreground dark:text-dark-text"
                         />
                     {/if}
