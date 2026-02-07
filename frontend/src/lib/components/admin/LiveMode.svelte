@@ -9,6 +9,8 @@
     } from "lucide-svelte";
     import { slide } from "svelte/transition";
     import { t } from "svelte-i18n";
+    import { browser } from "$app/environment";
+    import { ASSET_URL } from "$lib/api";
     import type { Attendee, HelpRequest } from "$lib/api";
 
     let {
@@ -40,16 +42,35 @@
     }>();
 
     let imageInput = $state<HTMLInputElement | null>(null);
+    let chatImageLightboxUrl = $state<string | null>(null);
+
+    const assetBaseUrl =
+        ASSET_URL ||
+        (browser
+            ? `${window.location.protocol}//${window.location.hostname}:8080`
+            : "");
 
     function getImageUrl(text: string) {
         const mdMatch = text.match(/!\[[^\]]*]\(([^)]+)\)/);
-        if (mdMatch?.[1]) return mdMatch[1];
+        if (mdMatch?.[1]) {
+            const url = mdMatch[1];
+            return url.startsWith("/uploads/") ? `${assetBaseUrl}${url}` : url;
+        }
         const urlMatch = text.match(
             /(https?:\/\/[^\s]+?\.(png|jpe?g|gif|webp))$/i,
         );
         if (urlMatch?.[1]) return urlMatch[1];
-        if (text.startsWith("/uploads/")) return text;
+        if (text.startsWith("/uploads/")) return `${assetBaseUrl}${text}`;
         return "";
+    }
+
+    function openChatImage(url: string) {
+        if (!url) return;
+        chatImageLightboxUrl = url;
+    }
+
+    function closeChatImage() {
+        chatImageLightboxUrl = null;
     }
 
     function handleChatPaste(event: ClipboardEvent) {
@@ -185,7 +206,8 @@
                             <img
                                 src={getImageUrl(msg.text)}
                                 alt="chat image"
-                                class="max-w-full rounded-lg border border-white/20"
+                                class="max-w-full rounded-lg border border-white/20 cursor-zoom-in"
+                                onclick={() => openChatImage(getImageUrl(msg.text))}
                             />
                         {:else}
                             {msg.text}
@@ -271,3 +293,26 @@
         </div>
     </div>
 </div>
+{#if chatImageLightboxUrl}
+    <div
+        class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-6"
+        role="dialog"
+        aria-modal="true"
+        onclick={closeChatImage}
+    >
+        <img
+            src={chatImageLightboxUrl}
+            alt="chat image enlarged"
+            class="max-h-[90vh] max-w-[90vw] rounded-xl shadow-2xl border border-white/10"
+            onclick={(e) => e.stopPropagation()}
+        />
+        <button
+            type="button"
+            class="absolute top-4 right-4 text-white/80 hover:text-white text-2xl font-bold"
+            aria-label="Close image"
+            onclick={closeChatImage}
+        >
+            ×
+        </button>
+    </div>
+{/if}
