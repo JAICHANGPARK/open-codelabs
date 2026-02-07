@@ -409,6 +409,7 @@
         "processing": "처리 중...",
         "error_fill_fields": "모든 필드를 채워주세요",
         "error_duplicate_name": "이미 사용 중인 닉네임입니다. 다른 이름을 사용해주세요.",
+        "error_invalid_code": "고유 코드는 영문/숫자와 - _ 만 사용할 수 있습니다.",
         "error_registration_failed": "등록에 실패했습니다. 연결을 확인하고 다시 시도해주세요.",
         "error_private_codelab": "이 코드랩은 현재 비공개 상태로 접근이 불가능합니다. 관리자에게 문의하세요.",
         "return_home": "홈으로 돌아가기",

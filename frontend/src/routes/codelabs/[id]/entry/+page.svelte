@@ -23,6 +23,12 @@
         try {
             const data = await getCodelab(id);
             codelab = data[0];
+            if (!codelab.is_public) {
+                error = $t("attendee.error_private_codelab");
+                errorType = "PRIVATE";
+                codelab = null;
+                return;
+            }
 
             // Check if already registered in this session
             const savedAttendee = localStorage.getItem(`attendee_${id}`);
@@ -76,22 +82,41 @@
     });
 
     async function handleSubmit() {
-        if (!name || !code) {
+        const trimmedName = name.trim();
+        const trimmedCode = code.trim();
+        if (!trimmedName || !trimmedCode) {
             error = $t("attendee.error_fill_fields");
+            return;
+        }
+        if (trimmedName.length > 80) {
+            error = $t("attendee.error_name_too_long");
+            return;
+        }
+        if (trimmedCode.length > 64) {
+            error = $t("attendee.error_code_too_long");
             return;
         }
 
         submitting = true;
         error = "";
         try {
-            const attendee = await registerAttendee(id, name, code, email || undefined);
+            const attendee = await registerAttendee(
+                id,
+                trimmedName,
+                trimmedCode,
+                email || undefined,
+            );
             localStorage.setItem(`attendee_${id}`, JSON.stringify(attendee));
             goto(`/codelabs/${id}`);
         } catch (e: any) {
             if (e.message === "DUPLICATE_NAME") {
                 error = $t("attendee.error_duplicate_name");
+            } else if (e.message?.toLowerCase().includes("codelab not found")) {
+                error = $t("attendee.codelab_not_found");
+            } else if (e.message?.toLowerCase().includes("forbidden")) {
+                error = $t("attendee.error_private_codelab");
             } else {
-                error = $t("attendee.error_registration_failed");
+                error = e?.message || $t("attendee.error_registration_failed");
             }
         } finally {
             submitting = false;

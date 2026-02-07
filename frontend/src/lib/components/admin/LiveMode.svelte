@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { 
-        Users, 
-        MessageSquare, 
-        Bell, 
-        Send, 
-        X 
+    import {
+        Users,
+        MessageSquare,
+        Bell,
+        Send,
+        X,
+        Image
     } from "lucide-svelte";
     import { slide } from "svelte/transition";
     import { t } from "svelte-i18n";
@@ -21,7 +22,8 @@
         filteredMessages,
         handleResolveHelp,
         sendChat,
-        sendDM
+        sendDM,
+        attachImage
     } = $props<{
         attendees: Attendee[];
         helpRequests: HelpRequest[];
@@ -34,7 +36,21 @@
         handleResolveHelp: (id: string) => void;
         sendChat: () => void;
         sendDM: () => void;
+        attachImage: (file: File) => void;
     }>();
+
+    let imageInput = $state<HTMLInputElement | null>(null);
+
+    function getImageUrl(text: string) {
+        const mdMatch = text.match(/!\[[^\]]*]\(([^)]+)\)/);
+        if (mdMatch?.[1]) return mdMatch[1];
+        const urlMatch = text.match(
+            /(https?:\/\/[^\s]+?\.(png|jpe?g|gif|webp))$/i,
+        );
+        if (urlMatch?.[1]) return urlMatch[1];
+        if (text.startsWith("/uploads/")) return text;
+        return "";
+    }
 </script>
 
 <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 h-full">
@@ -147,7 +163,15 @@
                     <div class="max-w-[85%] p-3 rounded-2xl text-sm shadow-sm {msg.self
                         ? 'bg-primary text-white rounded-tr-none'
                         : 'bg-white dark:bg-dark-surface text-foreground dark:text-dark-text rounded-tl-none'}">
-                        {msg.text}
+                        {#if getImageUrl(msg.text)}
+                            <img
+                                src={getImageUrl(msg.text)}
+                                alt="chat image"
+                                class="max-w-full rounded-lg border border-white/20"
+                            />
+                        {:else}
+                            {msg.text}
+                        {/if}
                     </div>
                 </div>
             {:else}
@@ -192,6 +216,28 @@
                             class="flex-1 {dmTarget ? 'pl-24' : 'pl-4'} pr-12 py-3 bg-muted dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary text-sm text-foreground dark:text-dark-text"
                         />
                     {/if}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        bind:this={imageInput}
+                        onchange={(e) => {
+                            const input = e.currentTarget as HTMLInputElement;
+                            const file = input.files?.[0];
+                            if (file) attachImage(file);
+                            input.value = "";
+                        }}
+                        class="hidden"
+                    />
+                    <button
+                        type="button"
+                        class="absolute right-10 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-lg transition-all"
+                        onclick={() => imageInput?.click()}
+                        disabled={chatTab === "direct" && !dmTarget}
+                        aria-label={$t("common.upload")}
+                        title={$t("common.upload")}
+                    >
+                        <Image size={18} />
+                    </button>
                     <button
                         type="submit"
                         class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-lg transition-all"

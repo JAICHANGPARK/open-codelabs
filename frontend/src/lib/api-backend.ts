@@ -283,7 +283,10 @@ export async function registerAttendee(codelabId: string, name: string, code: st
         body: JSON.stringify({ name, code, email }),
     });
     if (res.status === 409) throw new Error('DUPLICATE_NAME');
-    if (!res.ok) throw new Error('Registration failed');
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || 'Registration failed');
+    }
     return res.json();
 }
 

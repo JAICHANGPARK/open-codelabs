@@ -135,6 +135,7 @@
     let dmTarget = $state<Attendee | null>(null);
     let dmMessage = $state("");
     let fileInput = $state<HTMLInputElement>(); // File input ref
+    let chatUploadLoading = $state(false);
 
     // AI State
     let geminiApiKey = $state("");
@@ -1535,6 +1536,92 @@
         scrollToBottom();
     }
 
+    async function sendChatImage(file: File) {
+        if (chatTab === "direct" && !dmTarget) return;
+        if (chatUploadLoading) return;
+        chatUploadLoading = true;
+        try {
+            const { url } = await uploadImage(file);
+            const message = `![image](${url})`;
+            if (isServerlessMode()) {
+                sendChatMessage(id, {
+                    sender: "Facilitator",
+                    message,
+                    type: chatTab === "public" ? "chat" : "dm",
+                    target_id: chatTab === "direct" ? dmTarget?.id : undefined,
+                });
+                if (chatTab === "direct" && dmTarget) {
+                    messages = [
+                        ...messages,
+                        {
+                            sender: `To: ${dmTarget.name}`,
+                            text: message,
+                            time: new Date().toLocaleTimeString(),
+                            self: true,
+                            type: "dm",
+                        },
+                    ];
+                    dmTarget = null;
+                } else {
+                    messages = [
+                        ...messages,
+                        {
+                            sender: "Facilitator",
+                            text: message,
+                            time: new Date().toLocaleTimeString(),
+                            self: true,
+                            type: "chat",
+                        },
+                    ];
+                }
+                scrollToBottom();
+                return;
+            }
+
+            if (!ws) return;
+            const msg = {
+                type: chatTab === "public" ? "chat" : "dm",
+                target_id: chatTab === "direct" ? dmTarget?.id : undefined,
+                sender: "Facilitator",
+                message,
+                timestamp: new Date().toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }),
+            };
+            ws.send(JSON.stringify(msg));
+            if (chatTab === "direct" && dmTarget) {
+                messages = [
+                    ...messages,
+                    {
+                        sender: `To: ${dmTarget.name}`,
+                        text: message,
+                        time: msg.timestamp,
+                        self: true,
+                        type: "dm",
+                    },
+                ];
+                dmTarget = null;
+            } else {
+                messages = [
+                    ...messages,
+                    {
+                        sender: "Facilitator",
+                        text: message,
+                        time: msg.timestamp,
+                        self: true,
+                        type: "chat",
+                    },
+                ];
+            }
+            scrollToBottom();
+        } catch (e) {
+            alert($t("common.error"));
+        } finally {
+            chatUploadLoading = false;
+        }
+    }
+
     async function handleResolveHelp(helpId: string) {
         try {
             await resolveHelpRequest(id, helpId);
@@ -2189,6 +2276,7 @@
                                     {handleResolveHelp}
                                     sendChat={sendBroadcast}
                                     sendDM={sendDM}
+                                    attachImage={sendChatImage}
                                 />
                             {:else if mode === "feedback"}
                                 <FeedbackMode {feedbacks} />

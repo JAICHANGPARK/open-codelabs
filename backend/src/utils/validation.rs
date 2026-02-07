@@ -39,13 +39,6 @@ pub fn validate_step(step: &CreateStep) -> Result<(), (StatusCode, String)> {
 pub fn validate_registration(payload: &RegistrationPayload) -> Result<(), (StatusCode, String)> {
     validate_text(&payload.name, "name", 1, 80)?;
     validate_text(&payload.code, "code", 1, 64)?;
-    if !payload
-        .code
-        .chars()
-        .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
-    {
-        return Err(bad_request("code has invalid characters"));
-    }
     Ok(())
 }
 
@@ -153,13 +146,13 @@ mod tests {
     }
 
     #[test]
-    fn validate_registration_rejects_bad_code() {
+    fn validate_registration_accepts_non_ascii_code() {
         let payload = RegistrationPayload {
             name: "Alice".to_string(),
-            code: "bad code!".to_string(),
+            code: "바이브-코드 123".to_string(),
             email: None,
         };
-        assert!(validate_registration(&payload).is_err());
+        assert!(validate_registration(&payload).is_ok());
     }
 
     #[test]

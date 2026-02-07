@@ -60,6 +60,7 @@
         Upload,
         Trash2,
         FileUp,
+        Loader2,
     } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
     import AskGemini from "$lib/components/codelabs/AskGemini.svelte";
@@ -105,6 +106,20 @@
     let feedbackSubmitted = $state(false);
     let feedbackSubmitting = $state(false);
     let chatMessage = $state("");
+    let chatImageUploading = $state(false);
+    let chatImageError = $state("");
+    let pendingImageUrl = $state<string | null>(null);
+    let pendingImageName = $state("");
+    function getChatImageUrl(text: string) {
+        const mdMatch = text.match(/!\[[^\]]*]\(([^)]+)\)/);
+        if (mdMatch?.[1]) return mdMatch[1];
+        const urlMatch = text.match(
+            /(https?:\/\/[^\s]+?\.(png|jpe?g|gif|webp))$/i,
+        );
+        if (urlMatch?.[1]) return urlMatch[1];
+        if (text.startsWith("/uploads/")) return text;
+        return "";
+    }
     let messages = $state<
         {
             sender: string;
@@ -120,6 +135,7 @@
     let hasNewDm = $state(false);
     let lastStepId = $state<string | null>(null);
     let profileRef = $state<HTMLDivElement | null>(null);
+    let chatImageInput = $state<HTMLInputElement | null>(null);
 
     const defaultPlaygrounds: PlaygroundBlock[] = [
         { language: "dart", code: "" },
@@ -511,22 +527,28 @@
     }
 
     function sendChat() {
-        if (!chatMessage.trim() || !attendee) return;
+        if (!attendee) return;
+        const text = chatMessage.trim();
+        const imagePart = pendingImageUrl ? `![image](${pendingImageUrl})` : "";
+        const message = [text, imagePart].filter(Boolean).join("\n\n");
+        if (!message) return;
 
         if (isServerlessMode()) {
             sendChatMessage(id, {
                 sender: attendee.name,
-                message: chatMessage.trim(),
+                message,
                 type: "chat",
             });
             chatMessage = "";
+            pendingImageUrl = null;
+            pendingImageName = "";
             return;
         }
 
         if (!ws) return;
         const msg = {
             type: "chat",
-            message: chatMessage.trim(),
+            message,
             timestamp: new Date().toLocaleTimeString([], {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -535,6 +557,57 @@
 
         ws.send(JSON.stringify(msg));
         chatMessage = "";
+        pendingImageUrl = null;
+        pendingImageName = "";
+    }
+
+    async function convertToWebp(file: File): Promise<File> {
+        if (!browser) return file;
+        if (file.type === "image/webp") return file;
+        const bitmap = await createImageBitmap(file);
+        const canvas = document.createElement("canvas");
+        canvas.width = bitmap.width;
+        canvas.height = bitmap.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return file;
+        ctx.drawImage(bitmap, 0, 0);
+        const blob: Blob | null = await new Promise((resolve) =>
+            canvas.toBlob(resolve, "image/webp", 0.8),
+        );
+        if (!blob) return file;
+        const newName = file.name.replace(/\.[^.]+$/, "") + ".webp";
+        return new File([blob], newName, { type: "image/webp" });
+    }
+
+    async function handleChatImageSelect(file: File) {
+        if (chatImageUploading) return;
+        chatImageError = "";
+        const MAX_MB = 5;
+        const MAX_BYTES = MAX_MB * 1024 * 1024;
+        if (file.size > MAX_BYTES * 2) {
+            chatImageError = $t("chat.image_too_large", { values: { max: MAX_MB } });
+            return;
+        }
+        chatImageUploading = true;
+        try {
+            const webpFile = await convertToWebp(file);
+            if (webpFile.size > MAX_BYTES) {
+                chatImageError = $t("chat.image_too_large", { values: { max: MAX_MB } });
+                return;
+            }
+            const { url } = await uploadImage(webpFile);
+            pendingImageUrl = url;
+            pendingImageName = webpFile.name;
+        } catch (e: any) {
+            chatImageError = $t("chat.image_upload_failed");
+        } finally {
+            chatImageUploading = false;
+        }
+    }
+
+    function clearPendingImage() {
+        pendingImageUrl = null;
+        pendingImageName = "";
     }
 
     async function handleRequestHelp() {
@@ -1517,7 +1590,15 @@
                                       ? 'bg-amber-100/80 dark:bg-yellow-500/20 text-foreground dark:text-yellow-200 rounded-tl-none border border-amber-200 dark:border-yellow-500/30'
                                       : 'bg-accent/70 dark:bg-dark-surface text-foreground dark:text-dark-text rounded-tl-none border border-transparent dark:border-dark-border'}"
                             >
-                                {msg.text}
+                                {#if getChatImageUrl(msg.text)}
+                                    <img
+                                        src={getChatImageUrl(msg.text)}
+                                        alt="chat image"
+                                        class="max-w-full rounded-lg border border-white/20"
+                                    />
+                                {:else}
+                                    {msg.text}
+                                {/if}
                             </div>
                         </div>
                     {/each}
@@ -1548,20 +1629,66 @@
                         class="relative"
                     >
                         <input
+                            type="file"
+                            accept="image/*"
+                            bind:this={chatImageInput}
+                            class="hidden"
+                            on:change={(e) => {
+                                const input = e.currentTarget as HTMLInputElement;
+                                if (input.files && input.files[0]) {
+                                    handleChatImageSelect(input.files[0]);
+                                }
+                                input.value = "";
+                            }}
+                        />
+                        <input
                             type="text"
                             bind:value={chatMessage}
                             placeholder="Type a message..."
                             aria-label="Chat message"
-                        class="w-full pl-4 pr-12 py-3 bg-background dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary transition-all text-sm text-foreground dark:text-dark-text"
-                    />
-                    <button
-                        type="submit"
-                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary hover:bg-primary hover:text-primary-foreground rounded-lg transition-all"
-                        aria-label="Send message"
-                    >
+                            class="w-full pl-12 pr-12 py-3 bg-background dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary transition-all text-sm text-foreground dark:text-dark-text"
+                        />
+                        <button
+                            type="button"
+                            class="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all disabled:opacity-50"
+                            aria-label={$t("chat.upload_image")}
+                            disabled={chatImageUploading}
+                            onclick={() => chatImageInput?.click()}
+                        >
+                            {#if chatImageUploading}
+                                <Loader2 size={16} class="animate-spin" />
+                            {:else}
+                                <FileUp size={18} />
+                            {/if}
+                        </button>
+                        <button
+                            type="submit"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary hover:bg-primary hover:text-primary-foreground rounded-lg transition-all"
+                            aria-label="Send message"
+                        >
                             <Send size={18} />
                         </button>
                     </form>
+                    {#if chatImageError}
+                        <div class="mt-2 text-xs text-red-600 dark:text-red-400">
+                            {chatImageError}
+                        </div>
+                    {/if}
+                    {#if pendingImageUrl}
+                        <div class="mt-2 flex items-center justify-between gap-2 text-xs bg-accent/60 dark:bg-white/10 px-3 py-2 rounded-lg">
+                            <div class="flex items-center gap-2 text-muted-foreground dark:text-dark-text-muted">
+                                <FileText size={14} />
+                                <span class="truncate max-w-[180px]">{pendingImageName || "image.webp"}</span>
+                            </div>
+                            <button
+                                type="button"
+                                class="text-xs font-medium text-foreground hover:text-red-600 dark:hover:text-red-400"
+                                onclick={clearPendingImage}
+                            >
+                                {$t("chat.remove_image")}
+                            </button>
+                        </div>
+                    {/if}
                 </div>
             </aside>
         {/if}

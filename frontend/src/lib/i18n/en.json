@@ -409,6 +409,7 @@
         "processing": "Processing...",
         "error_fill_fields": "Please fill in all fields",
         "error_duplicate_name": "This nickname is already taken in this codelab. Please try another one.",
+        "error_invalid_code": "The code may only contain letters, numbers, '-' or '_'.",
         "error_registration_failed": "Registration failed. Please check your connection and try again.",
         "error_private_codelab": "This codelab is currently private and inaccessible. Please contact the facilitator.",
         "return_home": "Return to Home",

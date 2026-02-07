@@ -1,6 +1,6 @@
 use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::middleware::auth::AuthSession;
-use crate::utils::error::{bad_request, internal_error};
+use crate::utils::error::{bad_request, internal_error, unauthorized};
 use crate::middleware::request_info::RequestInfo;
 use crate::infrastructure::database::AppState;
 use axum::{extract::State, http::StatusCode, response::Json};
@@ -17,7 +17,17 @@ pub async fn upload_image(
     info: RequestInfo,
     mut multipart: Multipart,
 ) -> Result<Json<serde_json::Value>, (StatusCode, String)> {
-    let admin = session.require_admin()?;
+    let (actor_type, actor_id, codelab_id) = if let Ok(admin) = session.require_admin() {
+        ("admin".to_string(), Some(admin.sub), None)
+    } else if let Ok(attendee) = session.require_attendee() {
+        (
+            "attendee".to_string(),
+            Some(attendee.sub),
+            attendee.codelab_id,
+        )
+    } else {
+        return Err(unauthorized());
+    };
     if let Some(field) = multipart.next_field().await.map_err(internal_error)? {
         let data = field.bytes().await.map_err(internal_error)?;
         if data.len() > MAX_IMAGE_UPLOAD_SIZE {
@@ -54,10 +64,10 @@ pub async fn upload_image(
             &state,
             AuditEntry {
                 action: "image_upload".to_string(),
-                actor_type: "admin".to_string(),
-                actor_id: Some(admin.sub),
+                actor_type,
+                actor_id,
                 target_id: None,
-                codelab_id: None,
+                codelab_id,
                 ip: Some(info.ip),
                 user_agent: info.user_agent,
                 metadata: None,

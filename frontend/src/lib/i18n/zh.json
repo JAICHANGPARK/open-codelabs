@@ -352,6 +352,7 @@
         "processing": "处理中...",
         "error_fill_fields": "请填写所有字段",
         "error_duplicate_name": "该昵称已在此代码实验室中使用。请换一个。",
+        "error_invalid_code": "代码只能包含字母、数字以及 - 或 _。",
         "error_registration_failed": "注册失败。请检查您的网络连接并重试。",
         "error_private_codelab": "此代码实验室目前为私有状态，无法访问。请联系管理员。",
         "return_home": "返回首页",
