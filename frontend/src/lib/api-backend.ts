@@ -363,6 +363,27 @@ export async function getFeedback(codelabId: string): Promise<Feedback[]> {
     return res.json();
 }
 
+export async function submitSubmissionLink(
+    codelabId: string,
+    attendeeId: string,
+    url: string,
+    title?: string,
+): Promise<Submission> {
+    const res = await apiFetch(
+        `/codelabs/${codelabId}/attendees/${attendeeId}/submissions/link`,
+        {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url, title }),
+        },
+    );
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || 'Link submission failed');
+    }
+    return res.json();
+}
+
 export async function completeCodelab(codelabId: string): Promise<void> {
     const res = await apiFetch(`/codelabs/${codelabId}/complete`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to complete codelab');
