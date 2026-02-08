@@ -395,9 +395,9 @@
                     bind:value={step.content_markdown}
                     onkeydown={handleKeydown}
                     onpaste={handlePaste}
-                    readonly={aiLoading}
+                    readonly={aiLoading || showAiMenu}
                     class="h-full w-full p-6 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl font-mono text-sm sm:text-base leading-relaxed resize-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-foreground dark:text-dark-text"
-                    style={aiLoading ? "cursor: wait;" : ""}
+                    style={aiLoading ? "cursor: wait;" : showAiMenu ? "cursor: not-allowed;" : ""}
                     placeholder={$t("editor.start_writing")}
                     onmouseup={handleMouseUp}
                     oncontextmenu={handleContextMenu}
@@ -446,7 +446,7 @@
         style="top: {menuPos.y}px; left: {menuPos.x}px;"
         onkeydown={(e) => e.stopPropagation()}
     >
-        <div class="bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-border dark:border-dark-border p-4 w-80 flex flex-col gap-3">
+        <div class="bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-border dark:border-dark-border p-4 w-80 max-h-[70vh] overflow-y-auto flex flex-col gap-3">
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 text-primary">
                     <Sparkles size={18} />
@@ -464,6 +464,11 @@
                 >
                     {$t("gemini.improvement_instruction")}
                 </label>
+                {#if selectedText}
+                    <div class="text-[11px] text-muted-foreground dark:text-dark-text-muted bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border rounded-lg p-2 max-h-24 overflow-y-auto">
+                        {selectedText}
+                    </div>
+                {/if}
                 <textarea
                     id="ai-instruction"
                     bind:value={aiInstruction}
