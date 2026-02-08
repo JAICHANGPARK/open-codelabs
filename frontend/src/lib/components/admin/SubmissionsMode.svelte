@@ -28,9 +28,10 @@
 
     let searchTerm = $state("");
     let filteredSubmissions = $derived(
-        submissions.filter(s => 
+        submissions.filter(s =>
             s.attendee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.file_name.toLowerCase().includes(searchTerm.toLowerCase())
+            s.file_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (s.link_url || "").toLowerCase().includes(searchTerm.toLowerCase())
         )
     );
 
@@ -42,9 +43,16 @@
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    function isImage(fileName: string) {
+    function isImage(fileName: string, type?: string) {
+        if (type === "link") return false;
         const ext = fileName.split('.').pop()?.toLowerCase();
         return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '');
+    }
+
+    function getSubmissionUrl(sub: SubmissionWithAttendee) {
+        if (sub.submission_type === "link" && sub.link_url) return sub.link_url;
+        if (sub.file_path.startsWith("http")) return sub.file_path;
+        return `${ASSET_URL}${sub.file_path}`;
     }
 
     function formatDate(dateStr?: string) {
@@ -98,16 +106,16 @@
                     class="bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl p-5 hover:shadow-md transition-all group relative overflow-hidden flex flex-col"
                     in:fly={{ y: 20, delay: i * 50 }}
                 >
-                    {#if isImage(sub.file_name)}
+                    {#if isImage(sub.file_name, sub.submission_type)}
                         <div class="aspect-video w-full mb-4 rounded-xl overflow-hidden bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border relative group/img">
                             <img 
-                                src={`${ASSET_URL}${sub.file_path}`} 
+                                src={getSubmissionUrl(sub)} 
                                 alt={sub.file_name}
                                 class="w-full h-full object-cover transition-transform duration-500 group-hover/img:scale-110"
                             />
                             <div class="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
                                 <a 
-                                    href={`${ASSET_URL}${sub.file_path}`} 
+                                    href={getSubmissionUrl(sub)} 
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="bg-white text-black p-2 rounded-full shadow-lg"
@@ -122,7 +130,11 @@
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex items-center gap-3 min-w-0">
                             <div class="w-10 h-10 bg-accent/70 dark:bg-primary/10 rounded-xl flex items-center justify-center shrink-0">
-                                <FileText size={20} class="text-primary" />
+                                {#if sub.submission_type === "link"}
+                                    <ExternalLink size={18} class="text-primary" />
+                                {:else}
+                                    <FileText size={20} class="text-primary" />
+                                {/if}
                             </div>
                             <div class="min-w-0">
                                 <h4 class="font-bold text-foreground dark:text-dark-text truncate text-sm" title={sub.file_name}>
@@ -142,9 +154,15 @@
                         <div class="flex items-center justify-between text-[11px]">
                             <span class="text-muted-foreground flex items-center gap-1">
                                 <HardDrive size={12} />
-                                {$t("submission.file_size")}
+                                {sub.submission_type === "link"
+                                    ? $t("submission.link_type")
+                                    : $t("submission.file_size")}
                             </span>
-                            <span class="font-medium text-muted-foreground dark:text-dark-text-muted">{formatSize(sub.file_size)}</span>
+                            <span class="font-medium text-muted-foreground dark:text-dark-text-muted">
+                                {sub.submission_type === "link"
+                                    ? $t("submission.link_label")
+                                    : formatSize(sub.file_size)}
+                            </span>
                         </div>
                         <div class="flex items-center justify-between text-[11px]">
                             <span class="text-muted-foreground flex items-center gap-1">
@@ -156,26 +174,38 @@
                     </div>
 
                     <div class="flex items-center gap-2 mt-auto">
-                        <a 
-                            href={`${ASSET_URL}${sub.file_path}`} 
-                            target="_blank"
-                            download={sub.file_name}
-                            rel="noopener noreferrer"
-                            class="flex-1 bg-accent/60 dark:bg-white/5 hover:bg-accent/80 dark:hover:bg-primary/10 text-muted-foreground dark:text-dark-text-muted hover:text-primary py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-transparent hover:border-border/70 dark:hover:border-primary/30"
-                        >
-                            <Download size={14} />
-                            {$t("common.download")}
-                        </a>
-                        <a 
-                            href={`${ASSET_URL}${sub.file_path}`} 
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            class="p-2 text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-xl transition-all border border-transparent hover:border-border/70 dark:hover:border-primary/30"
-                            title={$t("common.open_new_tab")}
-                            aria-label={$t("common.open_new_tab")}
-                        >
-                            <ExternalLink size={16} />
-                        </a>
+                        {#if sub.submission_type === "link"}
+                            <a 
+                                href={getSubmissionUrl(sub)} 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="flex-1 bg-accent/60 dark:bg-white/5 hover:bg-accent/80 dark:hover:bg-primary/10 text-muted-foreground dark:text-dark-text-muted hover:text-primary py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-transparent hover:border-border/70 dark:hover:border-primary/30"
+                            >
+                                <ExternalLink size={14} />
+                                {$t("submission.open_link")}
+                            </a>
+                        {:else}
+                            <a 
+                                href={getSubmissionUrl(sub)} 
+                                target="_blank"
+                                download={sub.file_name}
+                                rel="noopener noreferrer"
+                                class="flex-1 bg-accent/60 dark:bg-white/5 hover:bg-accent/80 dark:hover:bg-primary/10 text-muted-foreground dark:text-dark-text-muted hover:text-primary py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 border border-transparent hover:border-border/70 dark:hover:border-primary/30"
+                            >
+                                <Download size={14} />
+                                {$t("common.download")}
+                            </a>
+                            <a 
+                                href={getSubmissionUrl(sub)} 
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="p-2 text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-xl transition-all border border-transparent hover:border-border/70 dark:hover:border-primary/30"
+                                title={$t("common.open_new_tab")}
+                                aria-label={$t("common.open_new_tab")}
+                            >
+                                <ExternalLink size={16} />
+                            </a>
+                        {/if}
                         <button 
                             type="button"
                             onclick={() => onDelete(sub.attendee_id, sub.id)}
