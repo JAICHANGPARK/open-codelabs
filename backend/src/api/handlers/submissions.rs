@@ -1,7 +1,7 @@
 use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::middleware::auth::AuthSession;
 use crate::utils::error::{bad_request, forbidden, internal_error, unauthorized};
-use crate::domain::models::{Submission, SubmissionWithAttendee};
+use crate::domain::models::{CreateSubmissionLink, Submission, SubmissionWithAttendee};
 use crate::middleware::request_info::RequestInfo;
 use crate::infrastructure::database::AppState;
 use crate::infrastructure::db_models::SubmissionWithAttendeeRaw;
@@ -17,6 +17,8 @@ use std::path::Path as StdPath;
 use std::sync::Arc;
 use tokio::fs;
 use uuid::Uuid;
+use serde_json;
+use url::Url;
 
 const MAX_TOTAL_SIZE: i64 = 10 * 1024 * 1024; // 10MB
 const MAX_UPLOAD_SIZE: usize = 5 * 1024 * 1024; // 5MB per file
@@ -98,7 +100,7 @@ pub async fn submit_file(
         let id = Uuid::new_v4().to_string();
 
         sqlx::query(
-            &state.q("INSERT INTO submissions (id, codelab_id, attendee_id, file_path, file_name, file_size) VALUES (?, ?, ?, ?, ?, ?)")
+            &state.q("INSERT INTO submissions (id, codelab_id, attendee_id, file_path, file_name, file_size, submission_type, link_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
         )
         .bind(&id)
         .bind(&codelab_id)
@@ -106,6 +108,8 @@ pub async fn submit_file(
         .bind(&db_path)
         .bind(&stored_name)
         .bind(&file_size)
+        .bind("file")
+        .bind::<Option<String>>(None)
         .execute(&state.pool)
         .await
         .map_err(internal_error)?;
@@ -117,6 +121,8 @@ pub async fn submit_file(
             file_path: db_path,
             file_name: stored_name,
             file_size,
+            submission_type: "file".to_string(),
+            link_url: None,
             created_at: Some(chrono::Utc::now().to_rfc3339()),
         };
 
@@ -141,6 +147,90 @@ pub async fn submit_file(
     Err(bad_request("No file uploaded"))
 }
 
+pub async fn submit_link(
+    State(state): State<Arc<AppState>>,
+    Path((codelab_id, attendee_id)): Path<(String, String)>,
+    session: AuthSession,
+    info: RequestInfo,
+    Json(payload): Json<CreateSubmissionLink>,
+) -> Result<Json<Submission>, (StatusCode, String)> {
+    let attendee = session.require_attendee()?;
+    if attendee.codelab_id.as_deref() != Some(codelab_id.as_str()) {
+        return Err(forbidden());
+    }
+    if attendee.sub != attendee_id {
+        return Err(forbidden());
+    }
+    let url = payload.url.trim();
+    if url.is_empty() {
+        return Err(bad_request("url is required"));
+    }
+    if url.len() > 2048 {
+        return Err(bad_request("url is too long"));
+    }
+    let parsed = Url::parse(url).map_err(|_| bad_request("invalid url"))?;
+    if parsed.scheme() != "http" && parsed.scheme() != "https" {
+        return Err(bad_request("url must be http or https"));
+    }
+    let title = payload
+        .title
+        .as_ref()
+        .map(|t| t.trim().to_string())
+        .filter(|t| !t.is_empty())
+        .unwrap_or_else(|| parsed.host_str().unwrap_or("link").to_string());
+    let trimmed_title = if title.len() > 200 {
+        title.chars().take(200).collect::<String>()
+    } else {
+        title
+    };
+
+    let id = Uuid::new_v4().to_string();
+    let file_size = 0i64;
+    sqlx::query(
+        &state.q("INSERT INTO submissions (id, codelab_id, attendee_id, file_path, file_name, file_size, submission_type, link_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)")
+    )
+    .bind(&id)
+    .bind(&codelab_id)
+    .bind(&attendee_id)
+    .bind(url)
+    .bind(&trimmed_title)
+    .bind(&file_size)
+    .bind("link")
+    .bind(url)
+    .execute(&state.pool)
+    .await
+    .map_err(internal_error)?;
+
+    let submission = Submission {
+        id,
+        codelab_id,
+        attendee_id,
+        file_path: url.to_string(),
+        file_name: trimmed_title,
+        file_size,
+        submission_type: "link".to_string(),
+        link_url: Some(url.to_string()),
+        created_at: Some(chrono::Utc::now().to_rfc3339()),
+    };
+
+    record_audit(
+        &state,
+        AuditEntry {
+            action: "submission_link".to_string(),
+            actor_type: "attendee".to_string(),
+            actor_id: Some(attendee.sub),
+            target_id: Some(submission.id.clone()),
+            codelab_id: Some(submission.codelab_id.clone()),
+            ip: Some(info.ip),
+            user_agent: info.user_agent,
+            metadata: Some(serde_json::json!({ "url": url })),
+        },
+    )
+    .await;
+
+    Ok(Json(submission))
+}
+
 pub async fn get_submissions(
     State(state): State<Arc<AppState>>,
     Path(codelab_id): Path<String>,
@@ -156,7 +246,7 @@ pub async fn get_submissions(
             r#"
             SELECT 
                 s.id, s.codelab_id, s.attendee_id, COALESCE(a.name, 'Unknown') as attendee_name, 
-                s.file_path, s.file_name, s.file_size, CAST(s.created_at AS TEXT) AS created_at
+                s.file_path, s.file_name, s.file_size, s.submission_type, s.link_url, CAST(s.created_at AS TEXT) AS created_at
             FROM submissions s
             LEFT JOIN attendees a ON s.attendee_id = a.id
             WHERE s.codelab_id = ?
@@ -170,7 +260,7 @@ pub async fn get_submissions(
             r#"
             SELECT 
                 s.id, s.codelab_id, s.attendee_id, COALESCE(a.name, 'Unknown') as attendee_name, 
-                s.file_path, s.file_name, s.file_size, CAST(s.created_at AS TEXT) AS created_at
+                s.file_path, s.file_name, s.file_size, s.submission_type, s.link_url, CAST(s.created_at AS TEXT) AS created_at
             FROM submissions s
             LEFT JOIN attendees a ON s.attendee_id = a.id
             WHERE s.codelab_id = ? AND s.attendee_id = ?
@@ -203,6 +293,8 @@ pub async fn get_submissions(
             file_path: r.file_path,
             file_name: r.file_name,
             file_size: r.file_size,
+            submission_type: r.submission_type,
+            link_url: r.link_url,
             created_at: r.created_at,
         })
         .collect();
@@ -256,14 +348,14 @@ pub async fn delete_submission(
         None => return Err(unauthorized()),
     };
     // Get file path first
-    let submission_row: Option<(String, String, String)> = sqlx::query_as(
-        &state.q("SELECT file_path, codelab_id, attendee_id FROM submissions WHERE id = ?"),
+    let submission_row: Option<(String, String, String, String)> = sqlx::query_as(
+        &state.q("SELECT file_path, codelab_id, attendee_id, submission_type FROM submissions WHERE id = ?"),
     )
     .bind(&submission_id)
     .fetch_optional(&state.pool)
     .await
     .map_err(internal_error)?;
-    let (file_path, submission_codelab_id, submission_attendee_id) =
+    let (file_path, submission_codelab_id, submission_attendee_id, submission_type) =
         submission_row.ok_or((StatusCode::NOT_FOUND, "Submission not found".to_string()))?;
 
     if claims.role == "admin" {
@@ -284,10 +376,12 @@ pub async fn delete_submission(
         .await
         .map_err(internal_error)?;
 
-    // Delete from filesystem (path starts with /uploads/...)
-    let relative_path = file_path.trim_start_matches('/');
-    let full_path = format!("static/{}", relative_path);
-    let _ = fs::remove_file(full_path).await;
+    if submission_type == "file" && file_path.starts_with("/uploads/") {
+        // Delete from filesystem (path starts with /uploads/...)
+        let relative_path = file_path.trim_start_matches('/');
+        let full_path = format!("static/{}", relative_path);
+        let _ = fs::remove_file(full_path).await;
+    }
 
     record_audit(
         &state,
