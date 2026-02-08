@@ -142,6 +142,7 @@
             "raffle": "抽取抽奖获奖者。",
             "quiz": "创建测验并查看结果。",
             "submissions": "查看提交内容。",
+            "gallery": "在图库中查看提交的图像。",
             "certificate": "发放结业证书。",
             "workspace": "查看/下载工作区文件。",
             "settings": "配置可见性与要求。",
@@ -633,6 +634,17 @@
         "link_label": "链接",
         "open_link": "打开链接",
         "submitted_at": "提交时间"
+    },
+    "gallery": {
+        "title": "图片画廊",
+        "tab_title": "图片画廊",
+        "image_count": "张图片",
+        "search_placeholder": "按参与者姓名或文件名搜索...",
+        "no_images": "暂无图片。",
+        "no_search_results": "没有符合搜索条件的图片。",
+        "waiting_images": "正在等待参与者上传图片。",
+        "grid_view": "网格视图",
+        "masonry_view": "瀑布流视图"
     },
     "admin": {
         "consultant": {

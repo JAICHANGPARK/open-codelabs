@@ -151,6 +151,7 @@
             "raffle": "Pick a raffle winner.",
             "quiz": "Create quizzes and review results.",
             "submissions": "Review uploaded submissions.",
+            "gallery": "View submitted images in a gallery.",
             "certificate": "Issue completion certificates.",
             "workspace": "Browse or download workspace files.",
             "settings": "Configure visibility and requirements.",
@@ -735,6 +736,17 @@
         "link_label": "Link",
         "open_link": "Open link",
         "submitted_at": "Submitted At"
+    },
+    "gallery": {
+        "title": "Image Gallery",
+        "tab_title": "Image Gallery",
+        "image_count": "images",
+        "search_placeholder": "Search by attendee or file name...",
+        "no_images": "No images yet.",
+        "no_search_results": "No images match your search.",
+        "waiting_images": "Waiting for attendees to upload images.",
+        "grid_view": "Grid View",
+        "masonry_view": "Masonry View"
     },
     "audit": {
         "title": "Audit Logs",

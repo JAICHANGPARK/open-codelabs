@@ -143,6 +143,7 @@
             "raffle": "抽選で当選者を選びます。",
             "quiz": "クイズを作成し結果を確認します。",
             "submissions": "提出物を確認します。",
+            "gallery": "提出された画像をギャラリーで表示します。",
             "certificate": "修了証を発行します。",
             "workspace": "ワークスペースのファイルを確認/ダウンロードします。",
             "settings": "公開設定や要件を管理します。",
@@ -694,6 +695,17 @@
         "link_label": "リンク",
         "open_link": "リンクを開く",
         "submitted_at": "提出日時"
+    },
+    "gallery": {
+        "title": "画像ギャラリー",
+        "tab_title": "画像ギャラリー",
+        "image_count": "個の画像",
+        "search_placeholder": "参加者名またはファイル名で検索...",
+        "no_images": "画像はまだありません。",
+        "no_search_results": "検索条件に一致する画像はありません。",
+        "waiting_images": "参加者が画像をアップロードするのを待っています。",
+        "grid_view": "グリッド表示",
+        "masonry_view": "メイソンリー表示"
     },
     "audit": {
         "title": "監査ログ",

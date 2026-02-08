@@ -11,8 +11,8 @@ use axum::{
     response::Json,
 };
 use axum_extra::extract::Multipart;
-use image::{codecs::webp::WebPEncoder, ExtendedColorType};
-use std::io::Cursor;
+use image::{codecs::webp::WebPEncoder, ExtendedColorType, ImageReader};
+use std::io::Cursor as IoCursor;
 use std::path::Path as StdPath;
 use std::sync::Arc;
 use tokio::fs;
@@ -55,6 +55,16 @@ pub async fn submit_file(
         let data = field.bytes().await.map_err(internal_error)?;
         if data.len() > MAX_UPLOAD_SIZE {
             return Err(bad_request("file too large"));
+        }
+
+        // Check for HEIC files - not supported
+        let ext = std::path::Path::new(&file_name)
+            .extension()
+            .and_then(|s| s.to_str())
+            .unwrap_or("")
+            .to_lowercase();
+        if ext == "heic" || ext == "heif" {
+            return Err(bad_request("HEIC files are not supported. Please convert to JPG/PNG format or take photos in Compatibility Mode on iPhone."));
         }
 
         // Convert images to webp to reduce size
@@ -305,11 +315,25 @@ pub async fn get_submissions(
 
 
 fn convert_image_to_webp(original_name: &str, data: &[u8]) -> Option<(Vec<u8>, String)> {
-    let img = image::load_from_memory(data).ok()?;
+    // Use ImageReader to automatically handle EXIF orientation
+    let reader = ImageReader::new(IoCursor::new(data));
+    let reader = reader.with_guessed_format().ok()?;
+
+    // Load image with automatic EXIF orientation handling
+    let img = match reader.decode() {
+        Ok(img) => img,
+        Err(_) => {
+            // Fallback to basic loading
+            let img = image::load_from_memory(data).ok()?;
+            img
+        }
+    };
+
+    // Ensure RGBA8 for WebP encoding
     let rgba = img.to_rgba8();
     let (width, height) = (rgba.width(), rgba.height());
 
-    let mut out = Cursor::new(Vec::new());
+    let mut out = IoCursor::new(Vec::new());
     let encoder = WebPEncoder::new_lossless(&mut out);
     encoder
         .encode(&rgba, width, height, ExtendedColorType::Rgba8)

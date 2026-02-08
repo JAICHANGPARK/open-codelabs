@@ -841,6 +841,15 @@
         if (!input.files || !input.files[0] || !attendee) return;
 
         const file = input.files[0];
+
+        // Check for HEIC files and show friendly message
+        const fileName = file.name.toLowerCase();
+        if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
+            alert("HEIC files are not supported directly. Please convert to JPG/PNG format, or take photos in 'Compatibility Mode' on your iPhone (Settings > Camera > Formats > Compatibility).");
+            input.value = "";
+            return;
+        }
+
         if (totalSubmissionSize + file.size > 10 * 1024 * 1024) {
             alert($t("submission.size_limit_exceeded"));
             return;
@@ -1330,7 +1339,6 @@
                 {/each}
 
                 {#if materials.length > 0}
-                    <!-- ... (keep existing materials UI) -->
                     <div
                         class="mt-8 pt-8 border-t border-border dark:border-dark-border px-2"
                     >
@@ -1340,7 +1348,45 @@
                             <Paperclip size={14} />
                             {$t("editor.materials_tab")}
                         </h3>
-                        <!-- ... -->
+                        <div class="space-y-2">
+                            {#each materials as material}
+                                {#if material.material_type === 'link'}
+                                    <a
+                                        href={material.link_url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        class="flex items-center gap-3 p-3 rounded-xl bg-accent/50 dark:bg-white/5 hover:bg-accent dark:hover:bg-white/10 transition-colors group"
+                                    >
+                                        <ExternalLink size={18} class="text-primary flex-shrink-0" />
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-foreground dark:text-dark-text truncate">
+                                                {material.title}
+                                            </p>
+                                            <p class="text-xs text-muted-foreground dark:text-dark-text-muted truncate">
+                                                {material.link_url}
+                                            </p>
+                                        </div>
+                                    </a>
+                                {:else}
+                                    <a
+                                        href={`${assetBaseUrl}${material.file_path}`}
+                                        download
+                                        class="flex items-center gap-3 p-3 rounded-xl bg-accent/50 dark:bg-white/5 hover:bg-accent dark:hover:bg-white/10 transition-colors group"
+                                    >
+                                        <FileText size={18} class="text-primary flex-shrink-0" />
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-sm font-medium text-foreground dark:text-dark-text truncate">
+                                                {material.title}
+                                            </p>
+                                            <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
+                                                {$t("common.file")}
+                                            </p>
+                                        </div>
+                                        <Download size={16} class="text-muted-foreground group-hover:text-primary transition-colors" />
+                                    </a>
+                                {/if}
+                            {/each}
+                        </div>
                     </div>
                 {/if}
 

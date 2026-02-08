@@ -144,18 +144,23 @@
     function handleChatPaste(event: ClipboardEvent) {
         const items = event.clipboardData?.items;
         if (!items) return;
-        const files: File[] = [];
+
+        // Find the first image item
+        let imageFile: File | null = null;
         for (const item of Array.from(items)) {
             if (item.type.startsWith("image/")) {
                 const file = item.getAsFile();
-                if (file) files.push(file);
+                if (file) {
+                    imageFile = file;
+                    break;
+                }
             }
         }
-        if (files.length > 0) {
+
+        // If an image was found, prevent default paste and upload only the first image
+        if (imageFile) {
             event.preventDefault();
-            for (const file of files) {
-                attachImage(file);
-            }
+            attachImage(imageFile);
         }
     }
 </script>

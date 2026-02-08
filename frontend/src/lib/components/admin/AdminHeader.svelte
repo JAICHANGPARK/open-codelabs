@@ -21,6 +21,7 @@
         Trophy,
         FolderGit2,
         Award,
+        Images,
     } from "lucide-svelte";
     import * as NavigationMenu from "$lib/components/ui/navigation-menu/index.js";
     import { t } from "svelte-i18n";
@@ -119,6 +120,12 @@
                     labelKey: "submission.title",
                     descriptionKey: "editor.tab_descriptions.submissions",
                     icon: FileUp,
+                },
+                {
+                    id: "gallery",
+                    labelKey: "gallery.tab_title",
+                    descriptionKey: "editor.tab_descriptions.gallery",
+                    icon: Images,
                 },
                 {
                     id: "certificate",

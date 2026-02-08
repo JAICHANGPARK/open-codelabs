@@ -40,15 +40,9 @@
     import { adminMarked as marked } from "$lib/markdown";
     import DOMPurify from "dompurify";
     import { decrypt } from "$lib/crypto";
-    import { 
-        getQuizzes, 
-        updateQuizzes, 
-        getQuizSubmissions,
-    } from "$lib/api";
+    import { getQuizzes, updateQuizzes, getQuizSubmissions } from "$lib/api";
     // ... icons imports ...
-    import {
-        Plus,
-    } from "lucide-svelte";
+    import { Plus } from "lucide-svelte";
     import { t, locale } from "svelte-i18n";
 
     // Components
@@ -63,15 +57,16 @@
     import SettingsMode from "$lib/components/admin/SettingsMode.svelte";
     import GuideMode from "$lib/components/admin/GuideMode.svelte";
     import SubmissionsMode from "$lib/components/admin/SubmissionsMode.svelte";
+    import ImageGalleryMode from "$lib/components/admin/ImageGalleryMode.svelte";
     import RaffleMode from "$lib/components/admin/RaffleMode.svelte";
     import CertificateMode from "$lib/components/admin/CertificateMode.svelte";
     import AiConversationsMode from "$lib/components/admin/AiConversationsMode.svelte";
     import WorkspaceBrowser from "$lib/components/admin/WorkspaceBrowser.svelte";
     import WorkspaceMode from "$lib/components/admin/WorkspaceMode.svelte";
 
-    import { 
+    import {
         getSubmissions,
-        deleteSubmission as apiDeleteSubmission
+        deleteSubmission as apiDeleteSubmission,
     } from "$lib/api";
 
     let id = page.params.id as string;
@@ -79,7 +74,21 @@
 
     // Initialize mode from URL or default to 'edit'
     let initialMode = page.url.searchParams.get("mode");
-    let mode = $state<"edit" | "preview" | "guide" | "live" | "feedback" | "materials" | "quiz" | "submissions" | "settings" | "workspace" | "raffle" | "certificate">(
+    let mode = $state<
+        | "edit"
+        | "preview"
+        | "guide"
+        | "live"
+        | "feedback"
+        | "materials"
+        | "quiz"
+        | "submissions"
+        | "gallery"
+        | "settings"
+        | "workspace"
+        | "raffle"
+        | "certificate"
+    >(
         initialMode === "preview" ||
             initialMode === "guide" ||
             initialMode === "live" ||
@@ -87,6 +96,7 @@
             initialMode === "materials" ||
             initialMode === "quiz" ||
             initialMode === "submissions" ||
+            initialMode === "gallery" ||
             initialMode === "settings" ||
             initialMode === "workspace" ||
             initialMode === "raffle" ||
@@ -178,12 +188,12 @@
         isScrollingEditor = true;
         const maxEditor = editorEl.scrollHeight - editorEl.clientHeight;
         const maxPreview = previewEl.scrollHeight - previewEl.clientHeight;
-        
+
         if (maxEditor > 0 && maxPreview > 0) {
             const percentage = editorEl.scrollTop / maxEditor;
             previewEl.scrollTop = percentage * maxPreview;
         }
-        
+
         // Debounce to prevent feedback loop
         setTimeout(() => (isScrollingEditor = false), 50);
     }
@@ -193,12 +203,12 @@
         isScrollingPreview = true;
         const maxEditor = editorEl.scrollHeight - editorEl.clientHeight;
         const maxPreview = previewEl.scrollHeight - previewEl.clientHeight;
-        
+
         if (maxEditor > 0 && maxPreview > 0) {
             const percentage = previewEl.scrollTop / maxPreview;
             editorEl.scrollTop = percentage * maxEditor;
         }
-        
+
         // Debounce to prevent feedback loop
         setTimeout(() => (isScrollingPreview = false), 50);
     }
@@ -217,6 +227,8 @@
         } else if (mode === "materials") {
             loadMaterials();
         } else if (mode === "submissions") {
+            loadSubmissions();
+        } else if (mode === "gallery") {
             loadSubmissions();
         } else if (mode === "quiz") {
             loadQuizzes();
@@ -239,11 +251,14 @@
         }
     }
 
-    async function handleDeleteSubmission(attendeeId: string, submissionId: string) {
+    async function handleDeleteSubmission(
+        attendeeId: string,
+        submissionId: string,
+    ) {
         if (!confirm($t("common.confirm_delete"))) return;
         try {
             await apiDeleteSubmission(id, attendeeId, submissionId);
-            submissions = submissions.filter(s => s.id !== submissionId);
+            submissions = submissions.filter((s) => s.id !== submissionId);
         } catch (e) {
             console.error("Failed to delete submission:", e);
         }
@@ -293,7 +308,7 @@
 
     $effect(() => {
         return () => {
-            if (wsCleanup && typeof wsCleanup === 'function') wsCleanup();
+            if (wsCleanup && typeof wsCleanup === "function") wsCleanup();
             if (ws) ws.close();
         };
     });
@@ -409,7 +424,6 @@
         showAiMenu = true;
     }
 
-
     async function improveWithAi(instructionOverride?: string) {
         if (!geminiApiKey) {
             alert($t("ai_generator.api_key_required"));
@@ -504,9 +518,9 @@
     async function loadQuizzes() {
         try {
             const rawQuizzes = await getQuizzes(id);
-            quizzes = rawQuizzes.map(q => ({
+            quizzes = rawQuizzes.map((q) => ({
                 ...q,
-                options: JSON.parse(q.options)
+                options: JSON.parse(q.options),
             }));
         } catch (e) {
             console.error("Failed to load quizzes:", e);
@@ -522,14 +536,17 @@
     }
 
     function addEmptyQuiz() {
-        quizzes = [...quizzes, {
-            id: "",
-            codelab_id: id,
-            question: "",
-            quiz_type: "multiple_choice",
-            options: ["", "", "", ""],
-            correct_answer: 0
-        } as any];
+        quizzes = [
+            ...quizzes,
+            {
+                id: "",
+                codelab_id: id,
+                question: "",
+                quiz_type: "multiple_choice",
+                options: ["", "", "", ""],
+                correct_answer: 0,
+            } as any,
+        ];
     }
 
     function removeQuiz(index: number) {
@@ -540,12 +557,17 @@
         if (!codelab) return;
         isSaving = true;
         try {
-            await updateQuizzes(id, quizzes.map(q => ({
-                question: q.question,
-                quiz_type: q.quiz_type || 'multiple_choice',
-                options: Array.isArray(q.options) ? q.options : JSON.parse(q.options as any),
-                correct_answer: q.correct_answer
-            })));
+            await updateQuizzes(
+                id,
+                quizzes.map((q) => ({
+                    question: q.question,
+                    quiz_type: q.quiz_type || "multiple_choice",
+                    options: Array.isArray(q.options)
+                        ? q.options
+                        : JSON.parse(q.options as any),
+                    correct_answer: q.correct_answer,
+                })),
+            );
             saveSuccess = true;
             setTimeout(() => (saveSuccess = false), 3000);
         } catch (e) {
@@ -562,10 +584,15 @@
             return;
         }
         isQuizGenerating = true;
-        
+
         try {
             const targetLanguage = resolveTargetLanguage();
-            const context = steps.map(s => `Step ${s.step_number}: ${s.title}\n${s.content_markdown}`).join("\n\n");
+            const context = steps
+                .map(
+                    (s) =>
+                        `Step ${s.step_number}: ${s.title}\n${s.content_markdown}`,
+                )
+                .join("\n\n");
             const prompt = `Based on the following codelab content, generate ${numQuizToGenerate} multiple-choice questions. 
             Each question must have exactly 5 options. 
             Write ALL quiz questions and options in ${targetLanguage}.
@@ -575,9 +602,13 @@
             Codelab Content:
             ${context}`;
 
-            const stream = streamGeminiResponseRobust(prompt, `You are a helpful education assistant that generates quizzes. You MUST write everything in ${targetLanguage}.`, {
-                apiKey: geminiApiKey
-            });
+            const stream = streamGeminiResponseRobust(
+                prompt,
+                `You are a helpful education assistant that generates quizzes. You MUST write everything in ${targetLanguage}.`,
+                {
+                    apiKey: geminiApiKey,
+                },
+            );
 
             let responseText = "";
             for await (const chunk of stream) {
@@ -590,11 +621,14 @@
             const jsonMatch = responseText.match(/\[.*\]/s);
             if (jsonMatch) {
                 const newQuizzes = JSON.parse(jsonMatch[0]);
-                quizzes = [...quizzes, ...newQuizzes.map((q: any) => ({
-                    ...q,
-                    id: "",
-                    codelab_id: id
-                }))];
+                quizzes = [
+                    ...quizzes,
+                    ...newQuizzes.map((q: any) => ({
+                        ...q,
+                        id: "",
+                        codelab_id: id,
+                    })),
+                ];
             } else {
                 throw new Error("Failed to parse AI response as JSON");
             }
@@ -959,7 +993,7 @@
         }
         if (isGuideProGenerating) return;
         isGuideGenerating = true;
-        
+
         try {
             const targetLanguage = resolveTargetLanguage();
 
@@ -996,7 +1030,7 @@
 
             const stream = streamGeminiResponseRobust(prompt, systemPrompt, {
                 apiKey: geminiApiKey,
-                model: "gemini-3-flash-preview"
+                model: "gemini-3-flash-preview",
             });
 
             let responseText = "";
@@ -1268,8 +1302,14 @@
             const material = await addMaterial(id, {
                 title: newMaterial.title,
                 material_type: newMaterial.material_type,
-                link_url: newMaterial.material_type === "link" ? newMaterial.link_url : undefined,
-                file_path: newMaterial.material_type === "file" ? newMaterial.file_path : undefined,
+                link_url:
+                    newMaterial.material_type === "link"
+                        ? newMaterial.link_url
+                        : undefined,
+                file_path:
+                    newMaterial.material_type === "file"
+                        ? newMaterial.file_path
+                        : undefined,
             });
             materials = [...materials, material];
             newMaterial = {
@@ -1297,7 +1337,7 @@
     async function handleMaterialFileSelect(e: Event) {
         const input = e.target as HTMLInputElement;
         if (!input.files || input.files.length === 0) return;
-        
+
         const file = input.files[0];
         try {
             const res = await uploadMaterial(file);
@@ -1394,13 +1434,22 @@
         if (isServerlessMode()) {
             return listenToWsReplacement(id, (data) => {
                 if (data.type === "chat") {
-                    if (messages.find(m => m.text === data.message && m.sender === data.sender_name)) return;
+                    if (
+                        messages.find(
+                            (m) =>
+                                m.text === data.message &&
+                                m.sender === data.sender_name,
+                        )
+                    )
+                        return;
                     messages = [
                         ...messages,
                         {
                             sender: data.sender_name,
                             text: data.message,
-                            time: data.created_at?.toDate ? data.created_at.toDate().toLocaleTimeString() : new Date().toLocaleTimeString(),
+                            time: data.created_at?.toDate
+                                ? data.created_at.toDate().toLocaleTimeString()
+                                : new Date().toLocaleTimeString(),
                             self: false,
                             type: "chat",
                         },
@@ -1423,24 +1472,51 @@
             try {
                 const data = JSON.parse(event.data);
                 if (data.type === "chat") {
+                    // Prevent duplicate messages from own broadcasts
+                    if (
+                        messages.find(
+                            (m) =>
+                                m.text === data.message &&
+                                m.sender === data.sender &&
+                                m.time ===
+                                    (data.timestamp ||
+                                        new Date().toLocaleTimeString()),
+                        )
+                    ) {
+                        return;
+                    }
                     messages = [
                         ...messages,
                         {
                             sender: data.sender,
                             text: data.message,
-                            time: data.timestamp || new Date().toLocaleTimeString(),
+                            time:
+                                data.timestamp ||
+                                new Date().toLocaleTimeString(),
                             self: data.sender === "Facilitator",
                             type: "chat",
                         },
                     ];
                     if (chatTab === "public") scrollToBottom();
                 } else if (data.type === "dm") {
+                    // Prevent duplicate DM messages
+                    if (
+                        messages.find(
+                            (m) =>
+                                m.text === data.message &&
+                                m.sender === `[DM] ${data.sender}`,
+                        )
+                    ) {
+                        return;
+                    }
                     messages = [
                         ...messages,
                         {
                             sender: `[DM] ${data.sender}`,
                             text: data.message,
-                            time: data.timestamp || new Date().toLocaleTimeString(),
+                            time:
+                                data.timestamp ||
+                                new Date().toLocaleTimeString(),
                             self: false,
                             type: "dm",
                             senderId: data.sender_id,
@@ -1578,17 +1654,6 @@
                             senderId: dmTarget.id,
                         },
                     ];
-                } else {
-                    messages = [
-                        ...messages,
-                        {
-                            sender: "Facilitator",
-                            text: message,
-                            time: new Date().toLocaleTimeString(),
-                            self: true,
-                            type: "chat",
-                        },
-                    ];
                 }
                 scrollToBottom();
                 return;
@@ -1616,17 +1681,6 @@
                         self: true,
                         type: "dm",
                         senderId: dmTarget.id,
-                    },
-                ];
-            } else {
-                messages = [
-                    ...messages,
-                    {
-                        sender: "Facilitator",
-                        text: message,
-                        time: msg.timestamp,
-                        self: true,
-                        type: "chat",
                     },
                 ];
             }
@@ -1756,8 +1810,8 @@
                     is_public: codelab.is_public,
                     require_quiz: codelab.require_quiz,
                     require_feedback: codelab.require_feedback,
-                    guide_markdown: codelab.guide_markdown
-                })
+                    guide_markdown: codelab.guide_markdown,
+                }),
             ]);
             saveSuccess = true;
             setTimeout(() => (saveSuccess = false), 3000);
@@ -1782,7 +1836,7 @@
                 is_public: newStatus,
                 require_quiz: codelab.require_quiz,
                 require_feedback: codelab.require_feedback,
-                guide_markdown: codelab.guide_markdown
+                guide_markdown: codelab.guide_markdown,
             });
         } catch (e) {
             // Revert on failure
@@ -1803,19 +1857,27 @@
 
     async function handleDownloadWorkspace() {
         try {
-            const { downloadCodeServerWorkspace } = await import('$lib/api');
+            const { downloadCodeServerWorkspace } = await import("$lib/api");
             await downloadCodeServerWorkspace(id);
         } catch (e) {
             if (e instanceof Error) {
-                if (e.message.includes('Not supported')) {
-                    alert($t('workspace.errors.firebase_unavailable'));
-                } else if (e.message.includes('not found')) {
-                    alert($t('workspace.errors.not_found'));
+                if (e.message.includes("Not supported")) {
+                    alert($t("workspace.errors.firebase_unavailable"));
+                } else if (e.message.includes("not found")) {
+                    alert($t("workspace.errors.not_found"));
                 } else {
-                    alert($t('workspace.errors.download_failed', { error: e.message }));
+                    alert(
+                        $t("workspace.errors.download_failed", {
+                            error: e.message,
+                        }),
+                    );
                 }
             } else {
-                alert($t('workspace.errors.download_failed', { error: String(e) }));
+                alert(
+                    $t("workspace.errors.download_failed", {
+                        error: String(e),
+                    }),
+                );
             }
         }
     }
@@ -1927,7 +1989,8 @@
             case "h1":
             case "h2":
             case "h3": {
-                const level = type === "h1" ? "#" : type === "h2" ? "##" : "###";
+                const level =
+                    type === "h1" ? "#" : type === "h2" ? "##" : "###";
                 const placeholder = "Heading";
                 const content = selected || placeholder;
                 replacement = `${level} ${content}`;
@@ -1948,7 +2011,10 @@
                 if (selected) {
                     setCursorToEnd();
                 } else {
-                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                    setSelection(
+                        replacement.length - placeholder.length,
+                        placeholder.length,
+                    );
                 }
                 break;
             }
@@ -1956,13 +2022,18 @@
                 const placeholder = "list item";
                 const lines = selected ? selected.split("\n") : [""];
                 const listText = lines
-                    .map((line, index) => `${index + 1}. ${line || placeholder}`)
+                    .map(
+                        (line, index) => `${index + 1}. ${line || placeholder}`,
+                    )
                     .join("\n");
                 replacement = selected ? listText : `\n${listText}`;
                 if (selected) {
                     setCursorToEnd();
                 } else {
-                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                    setSelection(
+                        replacement.length - placeholder.length,
+                        placeholder.length,
+                    );
                 }
                 break;
             }
@@ -1976,7 +2047,10 @@
                 if (selected) {
                     setCursorToEnd();
                 } else {
-                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                    setSelection(
+                        replacement.length - placeholder.length,
+                        placeholder.length,
+                    );
                 }
                 break;
             }
@@ -1990,7 +2064,10 @@
                 if (selected) {
                     setCursorToEnd();
                 } else {
-                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                    setSelection(
+                        replacement.length - placeholder.length,
+                        placeholder.length,
+                    );
                 }
                 break;
             }
@@ -2024,7 +2101,13 @@
                 return;
         }
 
-        applyEditorReplacement(replacement, start, end, selectionStart, selectionEnd);
+        applyEditorReplacement(
+            replacement,
+            start,
+            end,
+            selectionStart,
+            selectionEnd,
+        );
     }
 
     async function handleFileSelect(e: Event) {
@@ -2065,13 +2148,21 @@
         const items = event.clipboardData?.items;
         if (!items) return;
 
+        // Find the first image item
+        let imageItem: DataTransferItem | null = null;
         for (const item of items) {
             if (item.type.indexOf("image") !== -1) {
-                const file = item.getAsFile();
-                if (file) {
-                    event.preventDefault();
-                    await uploadAndInsertImage(file);
-                }
+                imageItem = item;
+                break;
+            }
+        }
+
+        // If an image was found, prevent default paste and upload
+        if (imageItem) {
+            event.preventDefault();
+            const file = imageItem.getAsFile();
+            if (file) {
+                await uploadAndInsertImage(file);
             }
         }
     }
@@ -2225,7 +2316,9 @@
     }}
 />
 
-<div class="min-h-screen bg-background dark:bg-dark-bg flex flex-col font-sans text-foreground dark:text-dark-text transition-colors">
+<div
+    class="min-h-screen bg-background dark:bg-dark-bg flex flex-col font-sans text-foreground dark:text-dark-text transition-colors"
+>
     <AdminHeader
         {id}
         {codelab}
@@ -2251,7 +2344,7 @@
             class="max-w-screen-2xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2 items-start relative"
         >
             <!-- Sidebar Navigation -->
-            {#if mode !== "live" && mode !== "feedback" && mode !== "materials" && mode !== "quiz" && mode !== "settings" && mode !== "guide" && mode !== "submissions" && mode !== "workspace" && mode !== "raffle"}
+            {#if mode !== "live" && mode !== "feedback" && mode !== "materials" && mode !== "quiz" && mode !== "settings" && mode !== "guide" && mode !== "submissions" && mode !== "gallery" && mode !== "workspace" && mode !== "raffle"}
                 <AdminSidebar
                     bind:steps
                     bind:activeStepIndex
@@ -2273,6 +2366,7 @@
                 mode === "settings" ||
                 mode === "guide" ||
                 mode === "submissions" ||
+                mode === "gallery" ||
                 mode === "workspace" ||
                 mode === "raffle"
                     ? "lg:col-span-12 w-full min-w-0"
@@ -2337,7 +2431,7 @@
                                     {messages}
                                     {handleResolveHelp}
                                     sendChat={sendBroadcast}
-                                    sendDM={sendDM}
+                                    {sendDM}
                                     attachImage={sendChatImage}
                                 />
                             {:else if mode === "feedback"}
@@ -2350,7 +2444,11 @@
                                     handleSave={handleUniversalSave}
                                 />
                             {:else if mode === "workspace"}
-                                <WorkspaceMode codelabId={id} {steps} {geminiApiKey} />
+                                <WorkspaceMode
+                                    codelabId={id}
+                                    {steps}
+                                    {geminiApiKey}
+                                />
                             {:else if mode === "raffle"}
                                 <RaffleMode
                                     {attendees}
@@ -2392,6 +2490,8 @@
                                     {submissions}
                                     onDelete={handleDeleteSubmission}
                                 />
+                            {:else if mode === "gallery"}
+                                <ImageGalleryMode {submissions} />
                             {:else if mode === "quiz"}
                                 <QuizMode
                                     bind:quizzes
@@ -2418,9 +2518,14 @@
                         <div
                             class="w-20 h-20 bg-accent/60 dark:bg-white/5 rounded-full flex items-center justify-center mx-auto mb-8"
                         >
-                            <Plus size={40} class="text-muted-foreground/70 dark:text-dark-text-muted" />
+                            <Plus
+                                size={40}
+                                class="text-muted-foreground/70 dark:text-dark-text-muted"
+                            />
                         </div>
-                        <h3 class="text-2xl font-bold text-foreground dark:text-dark-text mb-3">
+                        <h3
+                            class="text-2xl font-bold text-foreground dark:text-dark-text mb-3"
+                        >
                             {$t("editor.empty_codelab")}
                         </h3>
                         <p
@@ -2441,6 +2546,28 @@
         </main>
     {/if}
 </div>
+
+{#if showWorkspaceBrowser}
+    <div
+        class="modal-overlay"
+        onclick={() => (showWorkspaceBrowser = false)}
+        onkeydown={(e) => e.key === "Escape" && (showWorkspaceBrowser = false)}
+        role="button"
+        tabindex="-1"
+    >
+        <div
+            onclick={(e) => e.stopPropagation()}
+            onkeydown={(e) => e.stopPropagation()}
+            role="button"
+            tabindex="-1"
+        >
+            <WorkspaceBrowser
+                codelabId={id}
+                onClose={() => (showWorkspaceBrowser = false)}
+            />
+        </div>
+    </div>
+{/if}
 
 <style>
     :global(.markdown-body) {
@@ -2507,11 +2634,3 @@
         justify-content: center;
     }
 </style>
-
-{#if showWorkspaceBrowser}
-    <div class="modal-overlay" onclick={() => showWorkspaceBrowser = false} onkeydown={(e) => e.key === 'Escape' && (showWorkspaceBrowser = false)} role="button" tabindex="-1">
-        <div onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="button" tabindex="-1">
-            <WorkspaceBrowser codelabId={id} onClose={() => showWorkspaceBrowser = false} />
-        </div>
-    </div>
-{/if}

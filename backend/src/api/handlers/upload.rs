@@ -5,6 +5,8 @@ use crate::middleware::request_info::RequestInfo;
 use crate::infrastructure::database::AppState;
 use axum::{extract::State, http::StatusCode, response::Json};
 use axum_extra::extract::Multipart;
+use image::ImageReader;
+use std::io::Cursor as IoCursor;
 use std::sync::Arc;
 use tokio::fs;
 use uuid::Uuid;
@@ -48,8 +50,19 @@ pub async fn upload_image(
         let file_path_clone = file_path.clone();
 
         tokio::task::spawn_blocking(move || -> Result<(), String> {
-            let img = image::load_from_memory(&data_clone)
-                .map_err(|e| format!("Failed to load image: {}", e))?;
+            // Use ImageReader to automatically handle EXIF orientation
+            let reader = ImageReader::new(IoCursor::new(&data_clone));
+            let reader = reader.with_guessed_format().map_err(|e| format!("Failed to detect format: {}", e))?;
+
+            let img = match reader.decode() {
+                Ok(img) => img,
+                Err(_) => {
+                    // Fallback to basic loading
+                    let img = image::load_from_memory(&data_clone)
+                        .map_err(|e| format!("Failed to load image: {}", e))?;
+                    img
+                }
+            };
 
             img.save_with_format(&file_path_clone, image::ImageFormat::WebP)
                 .map_err(|e| format!("Failed to save image: {}", e))?;

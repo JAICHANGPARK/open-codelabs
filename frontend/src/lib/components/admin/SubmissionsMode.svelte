@@ -46,7 +46,7 @@
     function isImage(fileName: string, type?: string) {
         if (type === "link") return false;
         const ext = fileName.split('.').pop()?.toLowerCase();
-        return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(ext || '');
+        return ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'heic', 'heif'].includes(ext || '');
     }
 
     function getSubmissionUrl(sub: SubmissionWithAttendee) {
