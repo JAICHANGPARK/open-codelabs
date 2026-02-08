@@ -1,6 +1,6 @@
 use crate::api::handlers::codelabs::get_reference_codelabs;
 use crate::api::handlers::{
-    admin::{get_session, login, logout, update_settings},
+    admin::{check_updates, get_session, login, logout, update_settings},
     backup::{export_backup, inspect_backup, restore_backup},
     ai::{
         add_ai_message, create_ai_thread, delete_ai_thread, get_ai_conversations, get_ai_messages,
@@ -50,6 +50,7 @@ fn auth_routes() -> Router<Arc<AppState>> {
 fn admin_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/api/admin/settings", post(update_settings))
+        .route("/api/admin/updates", get(check_updates))
         .route("/api/admin/audit-logs", get(get_audit_logs))
         .route("/api/admin/backup/export", get(export_backup))
         .route("/api/admin/backup/inspect", post(inspect_backup))
