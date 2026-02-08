@@ -80,6 +80,8 @@
         "create_with_ai": "AIで生成",
         "share_link": "参加者用リンクをコピー",
         "unknown_date": "不明な日付",
+        "update_available": "新しいバージョンがあります",
+        "update_hint": "最新のDockerイメージを取得して更新してください。",
         "backup": {
             "title": "バックアップと復元",
             "note": "Gemini API キーはバックアップに含まれません。",
