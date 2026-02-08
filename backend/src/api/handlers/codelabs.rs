@@ -568,6 +568,69 @@ pub async fn delete_codelab(
     tracing::debug!("Attempting to delete codelab: {}", id);
     let mut tx = state.pool.begin().await.map_err(internal_error)?;
 
+    // Delete AI messages/threads for this codelab
+    sqlx::query(&state.q(
+        "DELETE FROM ai_messages WHERE thread_id IN (SELECT id FROM ai_threads WHERE codelab_id = ?)",
+    ))
+    .bind(&id)
+    .execute(&mut *tx)
+    .await
+    .map_err(internal_error)?;
+
+    sqlx::query(&state.q("DELETE FROM ai_threads WHERE codelab_id = ?"))
+        .bind(&id)
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
+
+    // Delete AI conversations
+    sqlx::query(&state.q("DELETE FROM ai_conversations WHERE codelab_id = ?"))
+        .bind(&id)
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
+
+    // Delete submissions
+    sqlx::query(&state.q("DELETE FROM submissions WHERE codelab_id = ?"))
+        .bind(&id)
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
+
+    // Delete quiz submissions and quizzes
+    sqlx::query(&state.q("DELETE FROM quiz_submissions WHERE codelab_id = ?"))
+        .bind(&id)
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
+
+    sqlx::query(&state.q("DELETE FROM quizzes WHERE codelab_id = ?"))
+        .bind(&id)
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
+
+    // Delete feedback
+    sqlx::query(&state.q("DELETE FROM feedback WHERE codelab_id = ?"))
+        .bind(&id)
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
+
+    // Delete materials
+    sqlx::query(&state.q("DELETE FROM materials WHERE codelab_id = ?"))
+        .bind(&id)
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
+
+    // Delete codeserver workspaces
+    sqlx::query(&state.q("DELETE FROM codeserver_workspaces WHERE codelab_id = ?"))
+        .bind(&id)
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
+
     // Delete steps
     sqlx::query(&state.q("DELETE FROM steps WHERE codelab_id = ?"))
         .bind(&id)
