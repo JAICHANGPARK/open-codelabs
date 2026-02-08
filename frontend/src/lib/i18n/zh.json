@@ -79,6 +79,8 @@
         "create_with_ai": "使用 AI 创建",
         "share_link": "复制参与者链接",
         "unknown_date": "未知日期",
+        "update_available": "有新版本",
+        "update_hint": "拉取最新的 Docker 镜像以更新。",
         "backup": {
             "title": "备份与恢复",
             "note": "Gemini API 密钥不会包含在备份中。",
