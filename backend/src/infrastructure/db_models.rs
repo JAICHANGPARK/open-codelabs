@@ -23,6 +23,8 @@ pub struct SubmissionWithAttendeeRaw {
     pub file_path: String,
     pub file_name: String,
     pub file_size: i64,
+    pub submission_type: String,
+    pub link_url: Option<String>,
     pub created_at: Option<String>,
 }
 
