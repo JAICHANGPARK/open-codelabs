@@ -46,7 +46,9 @@ export const handle: Handle = async ({ event, resolve }) => {
 		'https://play.golang.org',
 		'https://go.dev',
 		'https://pyodide.org',
-		'https://jupyterlite.github.io'
+		'https://jupyterlite.github.io',
+		'https://www.youtube.com',
+		'https://www.youtube-nocookie.com'
 	];
 	const csp = [
 		"default-src 'self'",
