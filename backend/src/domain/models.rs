@@ -259,6 +259,9 @@ pub struct Submission {
     pub file_path: String,
     pub file_name: String,
     pub file_size: i64,
+    #[serde(default = "default_submission_type")]
+    pub submission_type: String,
+    pub link_url: Option<String>,
     pub created_at: Option<String>,
 }
 
@@ -271,7 +274,20 @@ pub struct SubmissionWithAttendee {
     pub file_path: String,
     pub file_name: String,
     pub file_size: i64,
+    #[serde(default = "default_submission_type")]
+    pub submission_type: String,
+    pub link_url: Option<String>,
     pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateSubmissionLink {
+    pub url: String,
+    pub title: Option<String>,
+}
+
+pub fn default_submission_type() -> String {
+    "file".to_string()
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
