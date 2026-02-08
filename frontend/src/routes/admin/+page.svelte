@@ -9,6 +9,7 @@
         createCodelab,
         importCodelab,
         deleteCodelab,
+        getUpdateStatus,
         type Codelab,
     } from "$lib/api";
     import {
@@ -104,6 +105,9 @@
     let backupFileInput = $state<HTMLInputElement | null>(null);
 
     let user = $state<any>(null);
+    let updateStatus = $state<any | null>(null);
+    let updateError = $state("");
+    let checkingUpdates = $state(false);
 
     onMount(async () => {
         onAuthChange((u) => {
@@ -115,6 +119,10 @@
         });
 
         try {
+            if (!isServerlessMode()) {
+                checkingUpdates = true;
+                updateStatus = await getUpdateStatus();
+            }
             if (isServerlessMode()) {
                 // If in firebase mode, listCodelabs might return everything (if admin)
                 // but we might prefer showing only 'My Codelabs' by default.
@@ -135,7 +143,9 @@
             }
         } catch (e) {
             console.error(e);
+            updateError = (e as any)?.message || "";
         } finally {
+            checkingUpdates = false;
             loading = false;
         }
     });
@@ -313,6 +323,37 @@
 <div
     class="min-h-screen bg-muted dark:bg-dark-bg transition-colors duration-200"
 >
+    {#if updateStatus && (updateStatus.frontend?.update_available || updateStatus.backend?.update_available)}
+        <div class="bg-amber-50 dark:bg-amber-500/10 border-b border-amber-200 dark:border-amber-500/20">
+            <div class="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div class="text-sm text-amber-800 dark:text-amber-200 font-medium">
+                    {$t("dashboard.update_available") || "Update available"}:
+                    {#if updateStatus.frontend?.update_available}
+                        <span class="font-bold">Frontend</span>
+                        {#if updateStatus.frontend?.current}
+                            (current {updateStatus.frontend.current})
+                        {/if}
+                        {#if updateStatus.frontend?.latest}
+                            → {updateStatus.frontend.latest}
+                        {/if}
+                    {/if}
+                    {#if updateStatus.backend?.update_available}
+                        {#if updateStatus.frontend?.update_available} | {/if}
+                        <span class="font-bold">Backend</span>
+                        {#if updateStatus.backend?.current}
+                            (current {updateStatus.backend.current})
+                        {/if}
+                        {#if updateStatus.backend?.latest}
+                            → {updateStatus.backend.latest}
+                        {/if}
+                    {/if}
+                </div>
+                <div class="text-xs text-amber-700 dark:text-amber-300">
+                    {$t("dashboard.update_hint") || "Pull the latest Docker images to update."}
+                </div>
+            </div>
+        </div>
+    {/if}
     <div class="max-w-6xl mx-auto p-4 sm:p-8 lg:p-12">
         <header
             class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 mb-8 sm:mb-12"
