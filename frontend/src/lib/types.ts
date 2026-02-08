@@ -117,6 +117,8 @@ export interface Submission {
     file_path: string;
     file_name: string;
     file_size: number;
+    submission_type?: 'file' | 'link';
+    link_url?: string | null;
     created_at?: string;
 }
 
