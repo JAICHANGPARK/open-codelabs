@@ -93,7 +93,6 @@
         <!-- Certificate Content -->
         <div 
             class="certificate-container mt-12 w-full max-w-[210mm] bg-white text-foreground shadow-2xl relative overflow-hidden transition-colors border-[16px] border-border"
-            style="aspect-ratio: 1.414 / 1;"
         >
             <!-- Corner Accents -->
             <div class="absolute top-0 left-0 w-32 h-32 border-t-8 border-l-8 border-primary opacity-20"></div>
@@ -171,11 +170,20 @@
             position: fixed !important;
             top: 0 !important;
             left: 0 !important;
+            aspect-ratio: 1.414 / 1 !important;
         }
     }
     
     .certificate-container {
         font-family: 'Times New Roman', Times, serif;
+        aspect-ratio: 1.5 / 1;
+        min-height: 760px;
+    }
+
+    @media (min-width: 640px) {
+        .certificate-container {
+            min-height: 820px;
+        }
     }
     
     h2, h3, p, span {
