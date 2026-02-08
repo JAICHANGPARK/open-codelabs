@@ -142,6 +142,16 @@ export const submitSubmissionLink = USE_SUPABASE
               throw new Error('Link submission not supported');
           }
         : backend.submitSubmissionLink;
+
+export const getUpdateStatus = USE_SUPABASE
+    ? async () => {
+          throw new Error('Update check not supported');
+      }
+    : USE_FIREBASE
+        ? async () => {
+              throw new Error('Update check not supported');
+          }
+        : backend.getUpdateStatus;
 export const getFeedback = USE_SUPABASE
     ? supabase.getFeedback
     : USE_FIREBASE
