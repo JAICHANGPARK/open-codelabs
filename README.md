@@ -11,6 +11,8 @@
 
 [English](README.md) | [한국어](README.ko.md) | [日本語](README.ja.md) | [中文](README.zh.md)
 
+![Open Codelabs Hero](docs/imgs/20260208-rzac.png)
+
 ---
 
 ## 🚀 Key Features
