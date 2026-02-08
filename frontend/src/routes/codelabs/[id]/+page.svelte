@@ -22,6 +22,7 @@
         sendChatMessage,
         updateAttendeeProgress,
         uploadImage,
+        submitSubmissionLink,
         type Codelab,
         type Step,
         type Attendee,
@@ -56,6 +57,7 @@
         Square,
         Paperclip,
         ExternalLink,
+        Link2,
         Download,
         Info,
         Upload,
@@ -90,6 +92,7 @@
     // Submission State
     let mySubmissions = $state<any[]>([]);
     let submittingFile = $state(false);
+    let submittingLink = $state(false);
     let totalSubmissionSize = $derived(mySubmissions.reduce((acc, s) => acc + s.file_size, 0));
     let submissionProgress = $state(0);
 
@@ -148,6 +151,51 @@
 
     function closeChatImage() {
         chatImageLightboxUrl = null;
+    }
+
+    function extractYoutubeId(rawUrl: string): string | null {
+        try {
+            const url = new URL(rawUrl);
+            const host = url.hostname.replace(/^www\./, "");
+            if (host === "youtu.be") {
+                return url.pathname.replace("/", "").split("/")[0] || null;
+            }
+            if (host === "youtube.com") {
+                if (url.pathname === "/watch") {
+                    return url.searchParams.get("v");
+                }
+                if (url.pathname.startsWith("/embed/")) {
+                    return url.pathname.split("/")[2] || null;
+                }
+                if (url.pathname.startsWith("/shorts/")) {
+                    return url.pathname.split("/")[2] || null;
+                }
+            }
+        } catch (e) {
+            // ignore invalid urls
+        }
+        return null;
+    }
+
+    function injectYoutubeEmbeds(html: string): string {
+        const anchorRegex = /<a[^>]*href="([^"]+)"[^>]*>.*?<\/a>/gi;
+        return html.replace(anchorRegex, (full, href) => {
+            const id = extractYoutubeId(href);
+            if (!id) return full;
+            const embedUrl = `https://www.youtube-nocookie.com/embed/${id}`;
+            return `
+<div class="video-embed video-embed--full" style="width:100%;max-width:100%;display:block;margin:1.25rem 0;">
+  <iframe
+    src="${embedUrl}"
+    title="YouTube video"
+    loading="lazy"
+    style="width:100%;height:auto;aspect-ratio:16/9;display:block;border:0;border-radius:16px;background:#000;"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen
+  ></iframe>
+</div>`;
+        });
     }
     let messages = $state<
         {
@@ -764,6 +812,34 @@
         }
     }
 
+    async function handleLinkSubmit(url: string) {
+        if (!attendee || submittingLink) return;
+        const urls = url
+            .split(/[\s,]+/)
+            .map((item) => item.trim())
+            .filter(Boolean);
+        if (urls.length === 0) return;
+        submittingLink = true;
+        try {
+            const failures: string[] = [];
+            for (const link of urls) {
+                try {
+                    const submission = await submitSubmissionLink(id, attendee.id, link);
+                    mySubmissions = [submission, ...mySubmissions];
+                } catch (err: any) {
+                    failures.push(err?.message || link);
+                }
+            }
+            if (failures.length > 0) {
+                alert(failures.join("\n"));
+            }
+        } catch (err: any) {
+            alert(err.message || $t("submission_panel.upload_failed"));
+        } finally {
+            submittingLink = false;
+        }
+    }
+
     async function handleDeleteSubmission(submissionId: string) {
         if (!attendee || !confirm($t("common.confirm_delete"))) return;
         try {
@@ -883,7 +959,8 @@
         if (!currentStep) return "";
         const html = marked.parse(currentStep.content_markdown) as string;
         if (browser) {
-            return DOMPurify.sanitize(html);
+            const sanitized = DOMPurify.sanitize(html);
+            return injectYoutubeEmbeds(sanitized);
         }
         return html;
     });
@@ -1080,8 +1157,60 @@
                             </div>
                         </div>
                     </div>
-                {/if}
-            </div>
+    {/if}
+</div>
+
+<style>
+    :global(.video-embed) {
+        width: 100%;
+        max-width: 100%;
+        margin: 1.25rem 0;
+    }
+
+    :global(.video-embed iframe) {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        height: auto;
+        border: 0;
+        border-radius: 16px;
+        background: #000;
+    }
+
+    :global(.markdown-body .video-embed) {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    :global(.markdown-body .video-embed iframe) {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    :global(.prose .video-embed) {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    :global(.prose .video-embed iframe) {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+    :global(.markdown-body iframe),
+    :global(.prose iframe) {
+        width: 100% !important;
+        max-width: none !important;
+        aspect-ratio: 16 / 9;
+        height: auto !important;
+    }
+
+    :global(.video-embed--full),
+    :global(.video-embed--full iframe) {
+        width: 100% !important;
+        max-width: none !important;
+    }
+
+</style>
         </div>
     </header>
 
@@ -1170,9 +1299,11 @@
                 <SubmissionPanel
                     submissions={mySubmissions}
                     submitting={submittingFile}
+                    linkSubmitting={submittingLink}
                     totalSize={totalSubmissionSize}
                     onUpload={handleFileUpload}
                     onDelete={handleDeleteSubmission}
+                    onLinkSubmit={handleLinkSubmit}
                 />
             </nav>
         </aside>
@@ -1188,7 +1319,7 @@
 
         <!-- Content Area -->
         <main id="main-content" class="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-12 bg-white dark:bg-dark-bg relative transition-colors" aria-live="polite">
-            <div class="max-w-3xl mx-auto min-h-full">
+            <div class="max-w-5xl mx-auto min-h-full">
                 {#if showGuide && codelab?.guide_markdown}
                     <div
                         class="mb-12 bg-accent/60 dark:bg-dark-surface border border-border dark:border-dark-border rounded-3xl overflow-hidden shadow-sm"
@@ -1210,7 +1341,11 @@
                         </div>
                         <div class="p-8 prose dark:prose-invert max-w-none">
                             <div class="markdown-body">
-                                {@html DOMPurify.sanitize(marked.parse(codelab.guide_markdown))}
+                                {@html injectYoutubeEmbeds(
+                                    DOMPurify.sanitize(
+                                        marked.parse(codelab.guide_markdown),
+                                    ),
+                                )}
                             </div>
                         </div>
                         <div class="bg-accent/60 dark:bg-dark-bg/50 px-8 py-4 flex justify-end">
@@ -1364,21 +1499,42 @@
                                             <div class="flex items-center justify-between p-4 rounded-2xl bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border group">
                                                 <div class="flex items-center gap-3 min-w-0">
                                                     <div class="p-2 bg-white dark:bg-white/10 rounded-lg shadow-sm">
-                                                        <FileText size={18} class="text-primary" />
+                                                        {#if sub.submission_type === "link"}
+                                                            <ExternalLink size={18} class="text-primary" />
+                                                        {:else}
+                                                            <FileText size={18} class="text-primary" />
+                                                        {/if}
                                                     </div>
                                                     <div class="flex flex-col min-w-0">
                                                         <span class="text-sm font-medium truncate text-foreground dark:text-dark-text">{sub.file_name}</span>
-                                                        <span class="text-[10px] text-muted-foreground">{(sub.file_size / 1024).toFixed(1)} KB</span>
+                                                        <span class="text-[10px] text-muted-foreground">
+                                                            {sub.submission_type === "link"
+                                                                ? $t("submission.link_label")
+                                                                : `${(sub.file_size / 1024).toFixed(1)} KB`}
+                                                        </span>
                                                     </div>
                                                 </div>
-                                                <button 
-                                                    type="button"
-                                                    onclick={() => handleDeleteSubmission(sub.id)}
-                                                    class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-all"
-                                                    aria-label={$t("common.delete")}
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
+                                                <div class="flex items-center gap-2">
+                                                    {#if sub.submission_type === "link" && sub.link_url}
+                                                        <a
+                                                            href={sub.link_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            class="p-2 text-muted-foreground hover:text-primary transition-colors"
+                                                            aria-label={$t("submission.open_link")}
+                                                        >
+                                                            <ExternalLink size={18} />
+                                                        </a>
+                                                    {/if}
+                                                    <button 
+                                                        type="button"
+                                                        onclick={() => handleDeleteSubmission(sub.id)}
+                                                        class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-all"
+                                                        aria-label={$t("common.delete")}
+                                                    >
+                                                        <Trash2 size={18} />
+                                                    </button>
+                                                </div>
                                             </div>
                                         {/each}
                                     </div>
@@ -1401,6 +1557,36 @@
                                         </div>
                                         <input type="file" class="hidden" onchange={handleFileUpload} disabled={submittingFile} />
                                     </label>
+
+                                    <div class="mt-4 flex items-start gap-2">
+                                        <div class="flex-1 relative">
+                                            <Link2 size={14} class="absolute left-3 top-3 text-muted-foreground" />
+                                            <textarea
+                                                rows="2"
+                                                placeholder={$t("submission_panel.link_placeholder")}
+                                                class="w-full pl-8 pr-3 py-2 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface text-xs text-foreground dark:text-dark-text outline-none focus:border-primary resize-none"
+                                                onblur={(e) => {
+                                                    const el = e.currentTarget as HTMLTextAreaElement;
+                                                    el.dataset.value = el.value;
+                                                }}
+                                            ></textarea>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            class="px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
+                                            disabled={submittingLink}
+                                            onclick={(e) => {
+                                                const textarea = (e.currentTarget
+                                                    .parentElement?.querySelector("textarea") as HTMLTextAreaElement | null);
+                                                if (!textarea) return;
+                                                const value = textarea.value;
+                                                handleLinkSubmit(value);
+                                                textarea.value = "";
+                                            }}
+                                        >
+                                            {submittingLink ? $t("submission_panel.link_submitting") : $t("submission_panel.link_submit")}
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div
