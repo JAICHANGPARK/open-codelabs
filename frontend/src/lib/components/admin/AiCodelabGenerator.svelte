@@ -294,6 +294,8 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
     let advancedRevisedData = $state<CodelabDraft | null>(null);
     let advancedDraftView = $state<"markdown" | "raw">("markdown");
     let advancedRevisedView = $state<"markdown" | "raw">("markdown");
+    let advancedDraftExpandedSteps = $state<string[]>([]);
+    let draftReviewNotes = $state("");
     let advancedDiffView = $state<"unified" | "split">("unified");
     let advancedUseGoogleSearch = $state(true);
     let advancedUseUrlContext = $state(false);
@@ -574,6 +576,19 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
         }
     }
 
+    function toggleDraftStep(stepId: string) {
+        if (advancedDraftExpandedSteps.includes(stepId)) {
+            advancedDraftExpandedSteps = advancedDraftExpandedSteps.filter(
+                (id) => id !== stepId,
+            );
+        } else {
+            advancedDraftExpandedSteps = [
+                ...advancedDraftExpandedSteps,
+                stepId,
+            ];
+        }
+    }
+
     type DiffLine = {
         type: "equal" | "add" | "remove";
         text: string;
@@ -768,6 +783,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
 
         const facilitatorNoteText = facilitatorNotes.trim()
             ? `Facilitator notes (must follow):\n${facilitatorNotes.trim()}\n\n`
+            : "";
+        const draftReviewNoteText = draftReviewNotes.trim()
+            ? `Draft review notes from facilitator (prioritize):\n${draftReviewNotes.trim()}\n\n`
             : "";
         const promptModeInstruction =
             generationMode === "prompt"
@@ -1392,7 +1410,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
             generationMode === "prompt"
                 ? `${buildPromptOnlyInstructions(advancedTargetLanguage)}\n\n`
                 : "";
-        const reviewPrompt = `Review the draft codelab as a third-party facilitator expert. Use the plan to verify structure and completeness. Write ALL content in ${advancedTargetLanguage}.\n\n${reviewPromptModeInstruction}${facilitatorNoteText}Plan JSON:\n${JSON.stringify(
+        const reviewPrompt = `Review the draft codelab as a third-party facilitator expert. Use the plan to verify structure and completeness. Write ALL content in ${advancedTargetLanguage}.\n\n${reviewPromptModeInstruction}${facilitatorNoteText}${draftReviewNoteText}Plan JSON:\n${JSON.stringify(
             advancedPlanData,
             null,
             2,
@@ -1458,7 +1476,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
             generationMode === "prompt"
                 ? `${buildPromptOnlyInstructions(advancedTargetLanguage)}\n\n`
                 : "";
-        const revisePrompt = `Revise the draft codelab based on the expert review. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\n${revisePromptModeInstruction}${facilitatorNoteText}Plan JSON:\n${JSON.stringify(
+        const revisePrompt = `Revise the draft codelab based on the expert review. ${durationText} Write ALL content in ${advancedTargetLanguage}. ${searchHint}\n\n${revisePromptModeInstruction}${facilitatorNoteText}${draftReviewNoteText}Plan JSON:\n${JSON.stringify(
             advancedPlanData,
             null,
             2,
@@ -2957,7 +2975,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                         </div>
 
                         <div
-                            class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
+                            class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm space-y-6"
                         >
                             <h1
                                 class="text-3xl font-bold text-foreground dark:text-dark-text mb-4"
@@ -2970,16 +2988,48 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 {advancedDraftData.description}
                             </p>
 
+                            <div class="rounded-xl border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-4">
+                                <label
+                                    for="draft-review-notes"
+                                    class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted"
+                                >
+                                    {$t("ai_generator.draft_review_notes_label")}
+                                </label>
+                                <textarea
+                                    id="draft-review-notes"
+                                    bind:value={draftReviewNotes}
+                                    rows="3"
+                                    placeholder={$t("ai_generator.draft_review_notes_placeholder")}
+                                    class="mt-2 w-full rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface px-3 py-2 text-sm text-foreground dark:text-dark-text outline-none focus:border-primary"
+                                ></textarea>
+                                <p class="mt-2 text-[11px] text-muted-foreground dark:text-dark-text-muted">
+                                    {$t("ai_generator.draft_review_notes_desc")}
+                                </p>
+                            </div>
+
                             <div class="space-y-8">
                                 {#each advancedDraftData.steps as step, i}
+                                    {@const stepId = step.id || `${i}`}
+                                    {@const isExpanded = advancedDraftExpandedSteps.includes(stepId)}
                                     <div
                                         class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
                                     >
-                                        <h4
-                                            class="font-bold text-lg text-foreground dark:text-dark-text mb-4"
-                                        >
-                                            {i + 1}. {step.title}
-                                        </h4>
+                                        <div class="flex items-start justify-between gap-4">
+                                            <h4
+                                                class="font-bold text-lg text-foreground dark:text-dark-text mb-4"
+                                            >
+                                                {i + 1}. {step.title}
+                                            </h4>
+                                            <button
+                                                type="button"
+                                                class="text-xs font-bold text-primary hover:underline"
+                                                onclick={() => toggleDraftStep(stepId)}
+                                            >
+                                                {isExpanded
+                                                    ? $t("ai_generator.collapse")
+                                                    : $t("ai_generator.expand")}
+                                            </button>
+                                        </div>
                                         {#if generationMode === "prompt"}
                                             {@const sections =
                                                 extractPromptSections(
@@ -2997,12 +3047,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                         )}
                                                     </div>
                                                     <div
-                                                        class="text-sm text-foreground dark:text-dark-text"
+                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded ? '' : 'line-clamp-3'}"
                                                     >
-                                                        {sections.prompt ||
-                                                            $t(
-                                                                "ai_generator.section_empty",
-                                                            )}
+                                                        {@html renderMarkdown(
+                                                            sections.prompt ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                ),
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div
@@ -3016,12 +3068,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                         )}
                                                     </div>
                                                     <div
-                                                        class="text-sm text-foreground dark:text-dark-text"
+                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded ? '' : 'line-clamp-3'}"
                                                     >
-                                                        {sections.expected ||
-                                                            $t(
-                                                                "ai_generator.section_empty",
-                                                            )}
+                                                        {@html renderMarkdown(
+                                                            sections.expected ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                ),
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div
@@ -3035,12 +3089,14 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                         )}
                                                     </div>
                                                     <div
-                                                        class="text-sm text-foreground dark:text-dark-text"
+                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded ? '' : 'line-clamp-3'}"
                                                     >
-                                                        {sections.tips ||
-                                                            $t(
-                                                                "ai_generator.section_empty",
-                                                            )}
+                                                        {@html renderMarkdown(
+                                                            sections.tips ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                ),
+                                                        )}
                                                     </div>
                                                 </div>
                                                 <div
@@ -3054,20 +3110,22 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                         )}
                                                     </div>
                                                     <div
-                                                        class="text-sm text-foreground dark:text-dark-text"
+                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded ? '' : 'line-clamp-3'}"
                                                     >
-                                                        {sections.timebox ||
-                                                            $t(
-                                                                "ai_generator.section_empty",
-                                                            )}
+                                                        {@html renderMarkdown(
+                                                            sections.timebox ||
+                                                                $t(
+                                                                    "ai_generator.section_empty",
+                                                                ),
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
                                         {:else}
                                             <div
-                                                class="text-foreground dark:text-dark-text-muted text-sm line-clamp-3 opacity-80"
+                                                class="text-foreground dark:text-dark-text text-sm markdown-body {isExpanded ? '' : 'line-clamp-3'}"
                                             >
-                                                {step.content}
+                                                {@html renderMarkdown(step.content)}
                                             </div>
                                         {/if}
                                     </div>
