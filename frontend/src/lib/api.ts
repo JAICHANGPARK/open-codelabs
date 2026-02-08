@@ -133,6 +133,15 @@ export const submitFeedback = USE_SUPABASE
     : USE_FIREBASE
         ? firebase.submitFeedback
         : backend.submitFeedback;
+export const submitSubmissionLink = USE_SUPABASE
+    ? async () => {
+          throw new Error('Link submission not supported');
+      }
+    : USE_FIREBASE
+        ? async () => {
+              throw new Error('Link submission not supported');
+          }
+        : backend.submitSubmissionLink;
 export const getFeedback = USE_SUPABASE
     ? supabase.getFeedback
     : USE_FIREBASE
