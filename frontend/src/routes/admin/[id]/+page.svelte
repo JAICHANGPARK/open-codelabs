@@ -140,6 +140,7 @@
     // AI State
     let geminiApiKey = $state("");
     let showAiMenu = $state(false);
+    let suppressAiMenuClose = $state(false);
     let menuPos = $state({ x: 0, y: 0 });
     let selectedText = $state("");
     let aiInstruction = $state("");
@@ -348,7 +349,7 @@
         let y = e.clientY + offsetY;
 
         const menuWidth = 320;
-        const menuHeight = 360;
+        const menuHeight = Math.min(520, Math.floor(window.innerHeight * 0.7));
 
         if (x + menuWidth > window.innerWidth) {
             x = window.innerWidth - menuWidth - 20;
@@ -362,15 +363,22 @@
 
         menuPos = { x, y };
         showAiMenu = true;
+        // Keep selection highlighted for user clarity
+        setTimeout(() => {
+            try {
+                activeElement.focus();
+                activeElement.setSelectionRange(start, end);
+            } catch (err) {
+                // ignore selection restore errors
+            }
+        }, 0);
         return true;
     }
 
     function handleMouseUp(e: MouseEvent) {
         if (mode !== "edit") return;
-
         setTimeout(() => {
-            if (openAiMenuFromSelection(e)) return;
-
+            if (suppressAiMenuClose) return;
             if (!aiLoading && showAiMenu) {
                 const target = e.target as HTMLElement;
                 if (!target.closest(".ai-menu-container")) {
@@ -385,6 +393,10 @@
         const opened = openAiMenuFromSelection(e, 8);
         if (opened) {
             e.preventDefault();
+            suppressAiMenuClose = true;
+            setTimeout(() => {
+                suppressAiMenuClose = false;
+            }, 200);
         }
     }
 
