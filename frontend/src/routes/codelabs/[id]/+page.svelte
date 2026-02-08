@@ -911,7 +911,7 @@
 </a>
 
 <div
-    class="min-h-screen bg-background dark:bg-dark-bg flex flex-col font-sans text-foreground dark:text-dark-text selection:bg-primary/20 selection:text-primary"
+    class="h-screen bg-background dark:bg-dark-bg flex flex-col font-sans text-foreground dark:text-dark-text selection:bg-primary/20 selection:text-primary"
 >
     <!-- Header -->
     <header
@@ -1093,12 +1093,12 @@
         ></div>
     </div>
 
-    <div class="flex flex-1 relative overflow-hidden">
+    <div class="flex flex-1 relative overflow-hidden min-h-0">
         <!-- Sidebar -->
         <aside
             class="fixed inset-y-0 left-0 transform {showSidebar
                 ? 'translate-x-0'
-                : '-translate-x-full'} lg:relative lg:translate-x-0 transition-transform duration-300 ease-in-out z-20 w-72 bg-background dark:bg-dark-surface border-r border-border dark:border-dark-border overflow-y-auto pt-16 lg:pt-0"
+                : '-translate-x-full'} lg:sticky lg:top-[calc(4rem+0.25rem)] lg:h-[calc(100vh-4rem-0.25rem)] lg:translate-x-0 transition-transform duration-300 ease-in-out z-20 w-72 bg-background dark:bg-dark-surface border-r border-border dark:border-dark-border overflow-y-auto pt-16 lg:pt-0"
         >
             <nav class="p-4 space-y-1">
                 {#if codelab?.guide_markdown}
@@ -1187,7 +1187,7 @@
         {/if}
 
         <!-- Content Area -->
-        <main id="main-content" class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-12 bg-white dark:bg-dark-bg relative transition-colors" aria-live="polite">
+        <main id="main-content" class="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-12 bg-white dark:bg-dark-bg relative transition-colors" aria-live="polite">
             <div class="max-w-3xl mx-auto min-h-full">
                 {#if showGuide && codelab?.guide_markdown}
                     <div
