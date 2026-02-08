@@ -88,6 +88,8 @@
         "create_with_ai": "Create with AI",
         "share_link": "Copy Participant Link",
         "unknown_date": "Unknown Date",
+        "update_available": "Update available",
+        "update_hint": "Pull the latest Docker images to update.",
         "backup": {
             "title": "Backup & Restore",
             "note": "Gemini API keys are not included in backups.",
