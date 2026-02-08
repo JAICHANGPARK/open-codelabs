@@ -384,6 +384,18 @@ export async function submitSubmissionLink(
     return res.json();
 }
 
+export async function getUpdateStatus(): Promise<{
+    frontend: { current?: string | null; latest?: string | null; update_available: boolean; error?: string | null };
+    backend: { current?: string | null; latest?: string | null; update_available: boolean; error?: string | null };
+}> {
+    const res = await apiFetch('/admin/updates');
+    if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || 'Failed to check updates');
+    }
+    return res.json();
+}
+
 export async function completeCodelab(codelabId: string): Promise<void> {
     const res = await apiFetch(`/codelabs/${codelabId}/complete`, { method: 'POST' });
     if (!res.ok) throw new Error('Failed to complete codelab');
