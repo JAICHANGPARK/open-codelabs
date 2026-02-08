@@ -407,9 +407,12 @@ export async function getCertificate(attendeeId: string): Promise<CertificateInf
     return res.json();
 }
 
-export function getWsUrl(codelabId: string): string {
+export function getWsUrl(codelabId: string, roleHint?: 'admin' | 'attendee'): string {
     const url = new URL(API_URL.replace('http', 'ws'));
-    return `${url.protocol}//${url.host}/api/ws/${codelabId}`;
+    const base = `${url.protocol}//${url.host}/api/ws/${codelabId}`;
+    if (!roleHint) return base;
+    const params = new URLSearchParams({ as: roleHint });
+    return `${base}?${params.toString()}`;
 }
 
 export async function getMaterials(codelabId: string): Promise<Material[]> {

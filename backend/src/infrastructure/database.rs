@@ -30,8 +30,8 @@ pub struct AppState {
     pub admin_api_keys: Arc<DashMap<String, String>>,
     // Map of codelab_id -> broadcast sender
     pub channels: Arc<DashMap<String, broadcast::Sender<String>>>,
-    // Map of (codelab_id, attendee_id) -> sender for DMs
-    pub sessions: Arc<DashMap<(String, String), tokio::sync::mpsc::UnboundedSender<Message>>>,
+    // Map of (codelab_id, user_id) -> list of (session_id, sender) for DMs (supports multiple tabs)
+    pub sessions: Arc<DashMap<(String, String), Vec<(String, tokio::sync::mpsc::UnboundedSender<Message>)>>>,
 }
 
 impl AppState {

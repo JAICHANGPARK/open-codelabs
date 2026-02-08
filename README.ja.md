@@ -16,15 +16,16 @@
 ## 🚀 主な特徴
 
 - **ファシリテーターと参加者の分離**: 管理者はコードラボを作成・管理し、参加者は洗練された UI を通じてステップに従うことができます。
-- **AI コードラボ生成器**: Google Gemini AI を使用して、ソースコードや参照ドキュメントからプロフェッショナルなコードラボを自動生成します。
+- **AI コードラボ生成器**: Google Gemini AI を使用して、ソースコードや参照ドキュメントからプロフェッショナルなコードラボを自動生成し、永続的な対話コンテキストをサポートします。
+- **監査ログとバックアップ**: 管理者のアクションを追跡する詳細な監査ログと、システムデータを簡単に管理できるバックアップ/復元機能を提供します。
 - **Code Server ワークスペース（任意）**: コードラボごとの code-server ワークスペースを作成し、ステップごとのスナップショット（ブランチ/フォルダモード）とダウンロードを提供します。
 - **クイズ・フィードバック・修了証**: クイズやフィードバック提出を修了条件に設定し、検証 URL 付きの修了証を自動発行します。
 - **準備ガイド & 資料管理**: 事前準備ガイドを手書きまたは AI 生成し、リンク/ファイルを一括配布できます。
-- **ライブワークショップツール**: ライブチャット/DM、ヘルプリクエストキュー、提出物パネル、修了証保持者だけを対象にするルーレット抽選を提供します。
+- **ライブワークショップツール**: ライブチャット/DM、リアルタイムのヘルプリクエスト解決キュー、提出物パネル、修了証保持者だけを対象にするルーレット抽選を提供します。
 - **マルチランタイムサポート**: ローカル/プライベートセッション用の **Rust (Axum) + SQLite** バックエンド、またはサーバーレス環境用の **Firebase (Firestore/Hosting)** または **Supabase** デプロイをサポートしています。
 - **Google Codelab Look & Feel**: 慣れ親しんだ、読み取りやすい Google スタイルのデザインを採用しています。
 - **簡単な外部公開**: `ngrok`、`bore`、`cloudflared`(Cloudflare Tunnel) 統合スクリプトにより、ローカルサーバーを即座に外部に公開し、参加者が QR コードでアクセスできるようにサポートします。
-- **多言語対応**: グローバルなワークショップ運営のための i18n サポートが組み込まれています。
+- **多言語対応**: グローバルなワークショップ運営のための i18n サポート（日本語、英語、韓国語、中国語）が組み込まれています。
 
 ---
 
@@ -88,7 +89,6 @@ open-codelabs/
 │   ├── src/          # コンポーネント、ルート、ライブラリ
 │   └── static/       # 静的アセット
 ├── docs/             # ドキュメント (MkDocs)
-├── docker-compose.images.yml # 事前ビルドイメージ用 compose
 ├── docker-compose.yml # システムオーケストレーション
 └── run-public.sh     # 公開デプロイスクリプト (ngrok/bore/cloudflare)
 ```
@@ -121,6 +121,7 @@ docker compose up --build
 ```bash
 cd backend
 # .env ファイルを作成 (DATABASE_URL=sqlite:data/sqlite.db?mode=rwc)
+# 必須: ADMIN_ID, ADMIN_PW
 cargo run
 ```
 
@@ -132,7 +133,7 @@ bun install
 bun run dev
 ```
 
-### 3. 環境変数 (.env)
+### 3. 環境設定 (.env)
 
 Docker Compose はリポジトリルートの `.env` を読み込みます。`.env.sample` をコピーして `.env` を作成し、必要な値を変更してください。
 (ローカル開発は `backend/.env.sample` と `frontend/.env.sample` を最小の開始点として使えます。)
@@ -143,9 +144,9 @@ Docker Compose はリポジトリルートの `.env` を読み込みます。`.e
 - `IMAGE_TAG`: 取得するイメージタグ（既定 `latest`）。
 
 **Backend**
-- `DATABASE_URL`: SQLx 接続文字列 (sqlite/postgres/mysql)。例: `sqlite:/app/data/sqlite.db?mode=rwc`。
+- `DATABASE_URL`: SQLx 接続文字列。例: `sqlite:/app/data/sqlite.db?mode=rwc`。
 - `ADMIN_ID`: 管理者ログイン ID。
-- `ADMIN_PW`: 管理者ログインパスワード。フロントで暗号化した Gemini API キーの復号にも使用。
+- `ADMIN_PW`: 管理者ログインパスワード。
 - `AUTH_SECRETS`: JWT 署名用シークレット(カンマ区切り)。先頭が有効キーで、他はローテーション用。未設定時は `ADMIN_PW` を使用。
 - `AUTH_ISSUER`: JWT issuer クレーム。
 - `AUTH_AUDIENCE`: JWT audience クレーム。
@@ -161,13 +162,13 @@ Docker Compose はリポジトリルートの `.env` を読み込みます。`.e
 - `RATE_LIMIT_UPLOAD_PER_MINUTE`: アップロード/提出 POST の分/IP 制限。
 - `CSP_HEADER`: UI 応答の Content-Security-Policy ヘッダー上書き。空なら既定値。
 - `HSTS_HEADER`: Strict-Transport-Security ヘッダー上書き(HTTPS のみ)。
-- `ALLOWED_GEMINI_MODELS`: 許可する Gemini モデル ID の一覧(カンマ区切り)。
+- `ALLOWED_GEMINI_MODELS`: 許可する Gemini モデル ID。
 
 **AI**
-- `GEMINI_API_KEY`: 管理者のキーがない場合に使う既定の Gemini API キー。
+- `GEMINI_API_KEY`: 既定の Gemini API キー。
 
 **Frontend**
-- `VITE_API_URL`: バックエンド API の基底 URL (例: `http://localhost:8080`、Docker では `http://backend:8080`)。
+- `VITE_API_URL`: バックエンド API の基底 URL。
 - `VITE_ADMIN_ENCRYPTION_PASSWORD`: ブラウザで Gemini API キーを暗号化するパスワード。バックエンド `ADMIN_PW` と一致する必要あり。
 - `VITE_USE_SUPABASE`: `true` に設定すると Supabase モード（サーバーレス、Rust バックエンドなし）を有効化します。
 - `VITE_SUPABASE_URL`: Supabase プロジェクト URL。
@@ -193,15 +194,17 @@ Open Codelabs には、コードを構造化されたチュートリアルに変
 1. 設定で Gemini API キーを入力します。
 2. ソースコードまたは技術的な説明を入力します。
 3. AI が各ステップ、説明、検証手順を自動生成します。
+4. **永続的なスレッド**: AI 生成時の対話コンテキストが維持され、より精緻な微調整が可能です。
 
 ---
 
 ## 🧭 ファシリテーターツールキット（新機能）
-- **ライブタブ**: 参加者一覧、リアルタイムチャット/DM、ヘルプリクエスト処理。
-- **クイズ & フィードバック**: 修了条件を設定し、結果を集計。
-- **準備ガイド & 資料**: 事前準備ガイドを作成/AI 生成し、リンク・ファイルを配布。
-- **提出物管理**: 参加者のアップロードファイルを収集・レビュー。
-- **修了証ルーレット抽選**: 修了証が発行された参加者のみを対象に公平に抽選。
+- **ライブモード**: 参加者監視、リアルタイムチャット/DM、ヘルプリクエスト即時解決。
+- **監査ログ**: ログイン、コードラボ作成、設定変更などの管理者操作を記録。
+- **バックアップと復元**: 管理パネルからシステム全体の SQLite データベースを簡単にエクスポート/インポート可能。
+- **クイズ & フィードバック**: 修了条件の設定と結果集計。
+- **準備ガイド & 資料**: 準備ガイドの作成と添付ファイル管理。
+- **修了証ルーレット抽選**: 修了証発行済みの参加者を対象に抽選。
 
 ---
 

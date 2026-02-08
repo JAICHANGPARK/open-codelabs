@@ -129,6 +129,7 @@
             time: string;
             self?: boolean;
             type: "chat" | "dm";
+            senderId?: string;
         }[]
     >([]);
     let chatTab = $state<"public" | "direct">("public");
@@ -1342,6 +1343,7 @@
                             time: timeStr,
                             self: true,
                             type: "dm",
+                            senderId: msg.target_id,
                         };
                     } else {
                         return {
@@ -1350,6 +1352,7 @@
                             time: timeStr,
                             self: false,
                             type: "dm",
+                            senderId: msg.sender_id || msg.sender_name,
                         };
                     }
                 }
@@ -1408,7 +1411,7 @@
             });
         }
 
-        const wsUrl = getWsUrl(id);
+        const wsUrl = getWsUrl(id, "admin");
         const newWs = new WebSocket(wsUrl);
 
         newWs.onopen = () => {
@@ -1440,6 +1443,7 @@
                             time: data.timestamp || new Date().toLocaleTimeString(),
                             self: false,
                             type: "dm",
+                            senderId: data.sender_id,
                         },
                     ];
                     if (chatTab === "direct") scrollToBottom();
@@ -1510,10 +1514,10 @@
                     time: new Date().toLocaleTimeString(),
                     self: true,
                     type: "dm",
+                    senderId: dmTarget.id,
                 },
             ];
             dmMessage = "";
-            dmTarget = null;
             scrollToBottom();
             return;
         }
@@ -1540,11 +1544,11 @@
                 time: msg.timestamp,
                 self: true,
                 type: "dm",
+                senderId: dmTarget.id,
             },
         ];
 
         dmMessage = "";
-        dmTarget = null;
         scrollToBottom();
     }
 
@@ -1571,9 +1575,9 @@
                             time: new Date().toLocaleTimeString(),
                             self: true,
                             type: "dm",
+                            senderId: dmTarget.id,
                         },
                     ];
-                    dmTarget = null;
                 } else {
                     messages = [
                         ...messages,
@@ -1611,9 +1615,9 @@
                         time: msg.timestamp,
                         self: true,
                         type: "dm",
+                        senderId: dmTarget.id,
                     },
                 ];
-                dmTarget = null;
             } else {
                 messages = [
                     ...messages,
@@ -2330,7 +2334,7 @@
                                     bind:dmTarget
                                     bind:dmMessage
                                     bind:chatMessage
-                                    {filteredMessages}
+                                    {messages}
                                     {handleResolveHelp}
                                     sendChat={sendBroadcast}
                                     sendDM={sendDM}

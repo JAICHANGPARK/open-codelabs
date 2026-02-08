@@ -174,6 +174,7 @@ pub struct ChatMessageRow {
     pub message: String,
     pub msg_type: String,
     pub target_id: Option<String>,
+    pub sender_id: Option<String>,
     pub created_at: Option<String>,
 }
 

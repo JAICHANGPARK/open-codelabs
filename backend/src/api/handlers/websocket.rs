@@ -4,7 +4,7 @@ use crate::infrastructure::database::AppState;
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
-        Path, State,
+        Path, Query, State,
     },
     response::IntoResponse,
 };
@@ -15,13 +15,31 @@ use std::sync::Arc;
 use tokio::sync::broadcast;
 use uuid;
 
+/// Generate a unique session ID for each WebSocket connection
+fn generate_session_id() -> String {
+    uuid::Uuid::new_v4().to_string()
+}
+
+#[derive(serde::Deserialize, Default)]
+pub struct WsQuery {
+    #[serde(rename = "as")]
+    role_hint: Option<String>,
+}
+
 pub async fn ws_handler(
     Path(id): Path<String>,
     ws: WebSocketUpgrade,
     State(state): State<Arc<AppState>>,
+    Query(query): Query<WsQuery>,
     session: AuthSession,
 ) -> impl IntoResponse {
-    let claims = match session.claims {
+    let claims = match query.role_hint.as_deref() {
+        Some("admin") => session.admin_claims,
+        Some("attendee") => session.attendee_claims,
+        _ => session.claims,
+    };
+
+    let claims = match claims {
         Some(claims) => claims,
         None => return axum::http::StatusCode::UNAUTHORIZED.into_response(),
     };
@@ -41,6 +59,7 @@ async fn handle_socket(
 ) {
     let (mut sender, mut receiver) = socket.split();
     let (tx_ws, mut rx_ws) = tokio::sync::mpsc::unbounded_channel::<Message>();
+    let session_id = generate_session_id();
 
     let (user_id, sender_name, role) = if Role::from_str(&claims.role) == Some(Role::Admin) {
         (
@@ -63,9 +82,13 @@ async fn handle_socket(
         (attendee_id, display_name, Role::Attendee)
     };
 
+    // Add session to the list of sessions for this user (supports multiple tabs)
+    let session_key = (codelab_id.clone(), user_id.clone());
     state
         .sessions
-        .insert((codelab_id.clone(), user_id.clone()), tx_ws);
+        .entry(session_key.clone())
+        .and_modify(|sessions| sessions.push((session_id.clone(), tx_ws.clone())))
+        .or_insert_with(|| vec![(session_id.clone(), tx_ws.clone())]);
 
     let tx_broadcast = state
         .channels
@@ -138,18 +161,20 @@ async fn handle_socket(
                                 continue;
                             }
 
-                            // Persist to DB
+                            // Persist to DB with sender_id
                             let msg_id = uuid::Uuid::new_v4().to_string();
-                            let _ = sqlx::query(&state_clone.q("INSERT INTO chat_messages (id, codelab_id, sender_name, message, msg_type, target_id) VALUES (?, ?, ?, ?, 'dm', ?)"))
+                            let _ = sqlx::query(&state_clone.q("INSERT INTO chat_messages (id, codelab_id, sender_name, message, msg_type, target_id, sender_id) VALUES (?, ?, ?, ?, 'dm', ?, ?)"))
                                 .bind(&msg_id)
                                 .bind(&codelab_id_clone)
                                 .bind(&sender_name_clone)
                                 .bind(message)
                                 .bind(target_id)
+                                .bind(&user_id_clone)
                                 .execute(&state_clone.pool)
                                 .await;
 
-                            if let Some(target_ws) = state_clone
+                            // Send DM to all sessions of the target user (supports multiple tabs)
+                            if let Some(target_sessions) = state_clone
                                 .sessions
                                 .get(&(codelab_id_clone.clone(), target_id.to_string()))
                             {
@@ -157,10 +182,13 @@ async fn handle_socket(
                                     "type": "dm",
                                     "sender": sender_name_clone.as_str(),
                                     "message": message,
-                                    "target_id": target_id
+                                    "target_id": target_id,
+                                    "sender_id": user_id_clone.as_str()
                                 })
                                 .to_string();
-                                let _ = target_ws.send(Message::Text(payload.into()));
+                                for (_, target_ws) in target_sessions.iter() {
+                                    let _ = target_ws.send(Message::Text(payload.clone().into()));
+                                }
                             }
                         }
                     }
@@ -200,11 +228,29 @@ async fn handle_socket(
     tokio::select! {
         _ = (&mut send_task) => {
             recv_task.abort();
-            state.sessions.remove(&(codelab_id, user_id));
+            cleanup_session(&state, &codelab_id, &user_id, &session_id);
         },
         _ = (&mut recv_task) => {
             send_task.abort();
-            state.sessions.remove(&(codelab_id, user_id));
+            cleanup_session(&state, &codelab_id, &user_id, &session_id);
         },
     };
+}
+
+/// Remove a specific session from the sessions map
+fn cleanup_session(
+    state: &Arc<AppState>,
+    codelab_id: &str,
+    user_id: &str,
+    session_id: &str,
+) {
+    let key = (codelab_id.to_string(), user_id.to_string());
+    if let Some(mut sessions) = state.sessions.get_mut(&key) {
+        // Remove the specific session by session_id
+        sessions.retain(|(sid, _)| sid != session_id);
+        if sessions.is_empty() {
+            drop(sessions);
+            state.sessions.remove(&key);
+        }
+    }
 }

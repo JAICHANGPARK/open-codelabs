@@ -17,15 +17,16 @@
 ## 🚀 주요 특징
 
 - **퍼실리테이터 & 참가자 분리**: 관리자는 코드랩을 생성 및 관리하고, 참가자는 정교하게 설계된 UI를 통해 단계를 따라갈 수 있습니다.
-- **AI 코드랩 생성기**: Google Gemini AI를 사용하여 소스 코드나 참조 문서로부터 전문가 수준의 코드랩을 자동으로 생성합니다.
+- **AI 코드랩 생성기**: Google Gemini AI를 사용하여 소스 코드나 참조 문서로부터 전문가 수준의 코드랩을 자동으로 생성하며, 이전 대화 맥락을 유지하는 기능을 지원합니다.
+- **감사 로그 및 백업**: 관리자의 주요 활동을 상세하게 기록하는 감사 로그(Audit Logs)와 시스템 데이터를 손쉽게 관리할 수 있는 백업 및 복구 기능을 제공합니다.
 - **Code Server 워크스페이스(선택)**: 코드랩별 code-server 워크스페이스를 만들고 단계별 스냅샷(브랜치/폴더 모드)과 다운로드를 지원합니다.
 - **퀴즈·피드백·수료증**: 퀴즈와 피드백 제출을 수료 조건으로 설정하고, 검증 URL이 포함된 수료증을 자동 발급합니다.
 - **준비 가이드 & 자료 관리**: 사전 준비 가이드를 직접 작성하거나 AI로 생성하고, 링크/파일을 한 곳에서 배포합니다.
-- **라이브 워크숍 도구**: 실시간 채팅/DM, 도움 요청 큐, 제출물 패널, 수료증 보유자만 대상인 룰렛 추첨 기능을 제공합니다.
+- **라이브 워크숍 도구**: 실시간 채팅/DM, 실시간 도움 요청 처리 큐, 제출물 패널, 수료증 보유자 전용 룰렛 추첨 기능을 제공합니다.
 - **멀티 런타임 지원**: 로컬/프라이빗 세션을 위한 **Rust (Axum) + SQLite** 백엔드 실행 또는 서버리스 환경을 위한 **Firebase (Firestore/Hosting)** 또는 **Supabase** 배포를 지원합니다.
 - **Google Codelab Look & Feel**: 익숙하고 가독성 높은 구글 스타일의 디자인을 차용했습니다.
 - **간편한 외부 공개**: `ngrok`, `bore`, `cloudflared`(Cloudflare Tunnel) 통합 스크립트를 통해 로컬 서버를 즉시 외부에 공개하고 QR 코드로 접속할 수 있게 지원합니다.
-- **다국어 지원**: 글로벌 워크숍 운영을 위한 i18n 지원이 내장되어 있습니다.
+- **다국어 지원**: 글로벌 워크숍 운영을 위한 i18n 지원이 내장되어 있습니다 (한국어, 영어, 일본어, 중국어).
 
 ---
 
@@ -51,20 +52,6 @@ podman-compose up --build
 ```
 
 또는 Podman의 Docker 호환 레이어를 사용하세요.
-
-### 🧱 사전 빌드 이미지 사용 (GHCR)
-로컬 빌드 없이 실행하려면 퍼블리시된 이미지를 사용할 수 있습니다. 기본적으로 `ghcr.io/jaichangpark/`에서 이미지를 가져옵니다.
-
-```bash
-# 1. 환경 변수 설정
-# (참고: IMAGE_NAMESPACE=jaichangpark 값이 .env에 포함되어야 합니다)
-cp .env.sample .env
-
-# 2. 사전 빌드 이미지로 실행
-docker compose -f docker-compose.images.yml up
-```
-
-더 자세한 옵션은 [환경 변수 (.env)](#3-환경-변수-env) 섹션을 참고하세요.
 
 ---
 
@@ -101,7 +88,6 @@ open-codelabs/
 │   ├── src/          # 컴포넌트, 라우트 및 라이브러리
 │   └── static/       # 정적 에셋
 ├── docs/             # 문서 (MkDocs)
-├── docker-compose.images.yml # 사전 빌드 이미지용 컴포즈
 ├── docker-compose.yml # 전체 시스템 오케스트레이션
 └── run-public.sh     # 공개 배포 스크립트 (ngrok/bore/cloudflare)
 ```
@@ -139,7 +125,6 @@ docker compose up --build
 cd backend
 # .env 파일 생성 (DATABASE_URL=sqlite:data/sqlite.db?mode=rwc)
 # 필수: ADMIN_ID, ADMIN_PW
-# 선택: 아래 "환경 변수 (.env)" 참고
 cargo run
 ```
 
@@ -155,57 +140,19 @@ bun run dev
 ### 3. 환경 변수 (.env)
 
 Docker Compose는 리포지토리 루트의 `.env`를 읽습니다. `.env.sample`을 복사해 `.env`로 만들고 필요한 값만 수정하세요.
-(로컬 개발은 `backend/.env.sample`, `frontend/.env.sample`을 최소 시작점으로 사용할 수 있습니다.)
-
-**이미지 (docker-compose.images.yml)**
-- `IMAGE_REGISTRY`: 사전 빌드 이미지 레지스트리 (기본값 `ghcr.io`).
-- `IMAGE_NAMESPACE`: 이미지 네임스페이스 또는 조직명 (기본값 `jaichangpark`).
-- `IMAGE_TAG`: 가져올 이미지 태그 (기본값 `latest`).
 
 **Backend**
 - `DATABASE_URL`: SQLx 연결 문자열 (sqlite/postgres). 예: `sqlite:/app/data/sqlite.db?mode=rwc`.
 - `ADMIN_ID`: 관리자 로그인 아이디.
 - `ADMIN_PW`: 관리자 로그인 비밀번호; 프론트에서 암호화한 Gemini API 키 복호화에도 사용.
-- `AUTH_SECRETS`: JWT 서명용 시크릿(쉼표 구분). 첫 번째가 활성 키이며, 나머지는 롤링용. 비어있으면 `ADMIN_PW`로 대체.
-- `AUTH_ISSUER`: JWT issuer 클레임.
-- `AUTH_AUDIENCE`: JWT audience 클레임.
-- `ADMIN_SESSION_TTL_SECONDS`: 관리자 세션 TTL(초).
-- `ATTENDEE_SESSION_TTL_SECONDS`: 참가자 세션 TTL(초).
-- `COOKIE_SECURE`: HTTPS일 때 `true` (Secure 쿠키 + `__Host-` 프리픽스). `COOKIE_SAMESITE=none`에는 필수.
-- `COOKIE_SAMESITE`: `lax`(기본), `strict`, `none`.
-- `TRUST_PROXY`: 리버스 프록시 뒤에서 `X-Forwarded-*` 헤더를 신뢰할 때 `true`.
-- `CORS_ALLOWED_ORIGINS`: 허용할 오리진 목록(쉼표 구분). 비어있으면 로컬 기본값 사용.
-- `RATE_LIMIT_GENERAL_PER_MINUTE`: 일반 API 요청 분당/IP 제한.
-- `RATE_LIMIT_LOGIN_PER_5_MIN`: 로그인 요청 5분/IP 제한.
-- `RATE_LIMIT_AI_PER_MINUTE`: AI 프록시 요청 분당/IP 제한.
-- `RATE_LIMIT_UPLOAD_PER_MINUTE`: 업로드 및 제출 POST 분당/IP 제한.
-- `CSP_HEADER`: UI 응답의 Content-Security-Policy 헤더 오버라이드. 비어있으면 기본값 사용.
-- `HSTS_HEADER`: Strict-Transport-Security 헤더 오버라이드(HTTPS일 때만 적용).
 - `ALLOWED_GEMINI_MODELS`: 허용할 Gemini 모델 ID 목록(쉼표 구분).
 
 **AI**
 - `GEMINI_API_KEY`: 관리자 키가 없을 때 사용할 기본 Gemini API 키.
 
 **Frontend**
-- `VITE_API_URL`: 백엔드 API 기본 URL (예: `http://localhost:8080`, Docker에서는 `http://backend:8080`).
-- `VITE_ADMIN_ENCRYPTION_PASSWORD`: 브라우저에서 Gemini API 키를 암호화할 때 사용할 비밀번호. 백엔드 `ADMIN_PW`와 동일해야 복호화 가능.
-- `VITE_USE_SUPABASE`: `true`로 설정하면 Supabase 모드(서버리스, Rust 백엔드 없이)를 사용합니다.
-- `VITE_SUPABASE_URL`: Supabase 프로젝트 URL.
-- `VITE_SUPABASE_ANON_KEY`: Supabase anon 키.
-- `VITE_SUPABASE_STORAGE_BUCKET`: Supabase Storage 버킷 이름 (기본값 `open-codelabs`).
-- `VITE_ADMIN_ID`: Firebase/Supabase 모드용 관리자 로그인 ID.
-- `VITE_ADMIN_PW`: Firebase/Supabase 모드용 관리자 로그인 비밀번호.
-- `FRONTEND_PORT`: 프론트 서버/컨테이너 포트.
-- `FRONTEND_HOST`: 프론트 서버 바인딩 호스트(예: `0.0.0.0`).
-
-### 4. 클라우드 배포 (AWS / GCP / Firebase)
-
-서버리스 환경이나 클라우드 인프라에서 운영하려면 AWS, GCP 또는 Firebase를 사용할 수 있습니다.
-
-- **AWS**: 컨테이너 기반 또는 VM 배포. [AWS 배포 가이드](docs/self-hosting/aws.md) 참조.
-- **GCP (Cloud Run)**: 컨테이너 기반 배포. [GCP 배포 가이드](docs/self-hosting/gcp.md) 참조.
-- **Firebase**: 가장 빠른 서버리스 설정. [Firebase 배포 가이드](docs/self-hosting/firebase.md) 참조.
-- **Supabase**: 서버리스 Postgres + Storage 구성. [Supabase 가이드](docs/self-hosting/supabase.md) 참조.
+- `VITE_API_URL`: 백엔드 API 기본 URL.
+- `VITE_ADMIN_ENCRYPTION_PASSWORD`: 백엔드 `ADMIN_PW`와 동일해야 합니다.
 
 ---
 
@@ -216,15 +163,17 @@ Open Codelabs에는 코드를 구조화된 튜토리얼로 변환하는 AI 생�
 1. 설정에서 Gemini API 키를 입력합니다.
 2. 소스 코드나 기술 설명을 제공합니다.
 3. AI가 각 단계, 설명 및 검증 과정을 자동으로 생성합니다.
+4. **대화 기록 유지**: AI 생성 시 대화 맥락이 유지되어 보다 정교한 품질 수정이 가능합니다.
 
 ---
 
 ## 🧭 퍼실리테이터 툴킷 (신규)
-- **라이브 탭**: 참석자 목록, 실시간 채팅/DM, 도움 요청 처리.
+- **라이브 모드**: 참석자 모니터링, 실시간 채팅/DM, 도움 요청 즉시 처리.
+- **감사 로그**: 로그인, 코드랩 생성, 설정 변경 등 관리자 활동 추적.
+- **백업 및 복구**: 관리자 패널에서 시스템 전체 상태(SQLite DB)를 손쉽게 내보내고 가져올 수 있습니다.
 - **퀴즈 & 피드백**: 수료 조건 설정 및 결과 집계.
-- **준비 가이드 & 자료**: 세션 전 준비 가이드를 작성/AI 생성하고 링크·파일을 배포.
-- **제출물 관리**: 참석자 업로드 파일을 수집·검토.
-- **수료증 룰렛 추첨**: 수료증 발급이 완료된 참석자만 대상으로 공정하게 추첨.
+- **준비 가이드 & 자료**: 세션 전 준비 가이드를 작성하고 자료를 배포.
+- **수료증 룰렛 추첨**: 수료증 발급이 완료된 참석자 대상 추첨.
 
 ---
 

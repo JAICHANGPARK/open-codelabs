@@ -57,6 +57,7 @@ export interface ChatMessage {
     message: string;
     msg_type: 'chat' | 'dm';
     target_id?: string;
+    sender_id?: string;
     created_at?: string;
 }
 

@@ -537,7 +537,7 @@
             });
         }
 
-        const wsUrl = getWsUrl(id);
+        const wsUrl = getWsUrl(id, "attendee");
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -635,6 +635,54 @@
         };
 
         ws.send(JSON.stringify(msg));
+        chatMessage = "";
+        pendingImages = pendingImages.filter((img) => img.status !== "success");
+    }
+
+    function sendDirect() {
+        if (!attendee) return;
+        const text = chatMessage.trim();
+        const imageParts = pendingImages
+            .filter((img) => img.status === "success" && img.url)
+            .map((img) => `![image](${img.url})`);
+        const message = [text, ...imageParts].filter(Boolean).join("\n\n");
+        if (!message) return;
+
+        const time = new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
+
+        if (isServerlessMode()) {
+            sendChatMessage(id, {
+                sender: attendee.name,
+                message,
+                type: "dm",
+                target_id: "facilitator",
+            });
+        } else if (ws) {
+            ws.send(
+                JSON.stringify({
+                    type: "dm",
+                    target_id: "facilitator",
+                    message,
+                    timestamp: time,
+                }),
+            );
+        } else {
+            return;
+        }
+
+        messages = [
+            ...messages,
+            {
+                sender: `[DM] ${attendee.name}`,
+                text: message,
+                time,
+                self: true,
+                type: "dm",
+            },
+        ];
         chatMessage = "";
         pendingImages = pendingImages.filter((img) => img.status !== "success");
     }
@@ -1926,7 +1974,7 @@
                     <form
                         onsubmit={(e) => {
                             e.preventDefault();
-                            sendChat();
+                            chatTab === "public" ? sendChat() : sendDirect();
                         }}
                         class="relative"
                     >

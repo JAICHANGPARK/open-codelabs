@@ -16,15 +16,16 @@
 ## 🚀 Key Features
 
 - **Facilitator & Attendee Separation**: Admins can create and manage codelabs, while participants follow steps through a refined UI.
-- **AI Codelab Generator**: Automatically generate professional-grade codelabs from source code or reference documents using Google Gemini AI.
+- **AI Codelab Generator**: Automatically generate professional-grade codelabs from source code or reference documents using Google Gemini AI, featuring persistent conversation threads.
+- **Audit Logs & Backups**: Track administrative actions with detailed audit logs and manage system data through easy backup and restore functionality.
 - **Code Server Workspaces (Optional)**: Create per-codelab code-server workspaces with step snapshots (branch/folder mode) and downloadable archives.
 - **Quizzes, Feedback, and Certificates**: Gate certificate issuance with quiz scores and feedback submission; auto-generate verification URLs.
 - **Prep Guide & Materials**: Author or AI-generate preparation guides and manage downloadable links/files per codelab.
-- **Live Tools for Workshops**: Live chat/DM, help-queue, submissions panel, and a roulette raffle that draws only from certificate holders.
+- **Live Tools for Workshops**: Live chat/DM, help-queue with real-time resolution, submissions panel, and a roulette raffle that draws only from certificate holders.
 - **Multi-Runtime Support**: Run using a **Rust (Axum) + SQLite** backend for local/private sessions, or deploy with **Firebase (Firestore/Hosting)** or **Supabase** for a serverless experience.
 - **Google Codelab Look & Feel**: Familiar and highly readable design inspired by Google's own codelabs.
 - **Easy Public Access**: Integrated scripts for `ngrok`, `bore`, and `cloudflared` (Cloudflare Tunnel) to instantly expose your local server with QR code support for participants.
-- **Multi-language Support**: Built-in i18n support for global workshops.
+- **Multi-language Support**: Built-in i18n support for global workshops (English, Korean, Japanese, Chinese).
 
 ---
 
@@ -47,20 +48,6 @@ If you are using Podman, you can use `podman-compose`:
 podman-compose up --build
 ```
 Or use the Podman Docker compatibility layer.
-
-### 🧱 Use Prebuilt Images (GHCR)
-If you want to skip local builds, use the published images. By default, these are pulled from `ghcr.io/jaichangpark/`.
-
-```bash
-# 1. Environment variables setup
-# (Note: Set IMAGE_NAMESPACE=jaichangpark if pulling from our registry)
-cp .env.sample .env
-
-# 2. Run with prebuilt images
-docker compose -f docker-compose.images.yml up
-```
-
-For more registry options, see [Environment Variables](#3-environment-variables-env).
 
 ---
 
@@ -94,7 +81,6 @@ open-codelabs/
 │   ├── src/          # Components, Routes, & Libs
 │   └── static/       # Static Assets
 ├── docs/             # Documentation (MkDocs)
-├── docker-compose.images.yml # Prebuilt image compose file
 ├── docker-compose.yml # System Orchestration
 └── run-public.sh     # Public Deployment Script (ngrok/bore/cloudflare)
 ```
@@ -128,7 +114,6 @@ docker compose up --build
 cd backend
 # Create .env (DATABASE_URL=sqlite:data/sqlite.db?mode=rwc)
 # Required: ADMIN_ID, ADMIN_PW
-# Optional: see Environment Variables below
 cargo run
 ```
 
@@ -143,55 +128,19 @@ bun run dev
 ### 3. Environment Variables (.env)
 
 Docker Compose reads `.env` at the repo root. Copy `.env.sample` to `.env` and adjust as needed.
-(For local dev, `backend/.env.sample` and `frontend/.env.sample` are minimal starting points.)
-
-**Images (docker-compose.images.yml)**
-- `IMAGE_REGISTRY`: Container registry for prebuilt images (default `ghcr.io`).
-- `IMAGE_NAMESPACE`: Image namespace or org (default `jaichangpark`).
-- `IMAGE_TAG`: Image tag to pull (default `latest`).
 
 **Backend**
 - `DATABASE_URL`: SQLx connection string (sqlite/postgres). Example: `sqlite:/app/data/sqlite.db?mode=rwc`.
 - `ADMIN_ID`: Admin login username.
 - `ADMIN_PW`: Admin login password; also used to decrypt Gemini API keys from the frontend.
-- `AUTH_SECRETS`: Comma-separated JWT signing secrets (first is active; others allow rotation). Falls back to `ADMIN_PW` if empty.
-- `AUTH_ISSUER`: JWT issuer claim.
-- `AUTH_AUDIENCE`: JWT audience claim.
-- `ADMIN_SESSION_TTL_SECONDS`: Admin session TTL in seconds.
-- `ATTENDEE_SESSION_TTL_SECONDS`: Attendee session TTL in seconds.
-- `COOKIE_SECURE`: Set `true` for HTTPS (Secure cookies + `__Host-` prefix). Required for `COOKIE_SAMESITE=none`.
-- `COOKIE_SAMESITE`: `lax` (default), `strict`, or `none`.
-- `TRUST_PROXY`: Set `true` behind a reverse proxy to trust `X-Forwarded-*` headers.
-- `CORS_ALLOWED_ORIGINS`: Comma-separated list of allowed origins; empty uses localhost defaults.
-- `RATE_LIMIT_GENERAL_PER_MINUTE`: Per-IP limit for general API requests.
-- `RATE_LIMIT_LOGIN_PER_5_MIN`: Per-IP limit for login requests (5-minute window).
-- `RATE_LIMIT_AI_PER_MINUTE`: Per-IP limit for AI proxy requests.
-- `RATE_LIMIT_UPLOAD_PER_MINUTE`: Per-IP limit for upload and submission POSTs.
-- `CSP_HEADER`: Override Content-Security-Policy for UI responses; empty uses the built-in default.
-- `HSTS_HEADER`: Override Strict-Transport-Security; applied only on HTTPS.
 - `ALLOWED_GEMINI_MODELS`: Comma-separated allowlist of Gemini model IDs.
 
 **AI**
 - `GEMINI_API_KEY`: Default Gemini API key if an admin key is not provided.
 
 **Frontend**
-- `VITE_API_URL`: Base URL for the backend API (e.g. `http://localhost:8080` or `http://backend:8080` in Docker).
-- `VITE_ADMIN_ENCRYPTION_PASSWORD`: Password used by the frontend to encrypt Gemini API keys; must match backend `ADMIN_PW`.
-- `VITE_USE_SUPABASE`: Set `true` to enable Supabase mode (serverless, no Rust backend).
-- `VITE_SUPABASE_URL`: Supabase project URL.
-- `VITE_SUPABASE_ANON_KEY`: Supabase anon key.
-- `VITE_SUPABASE_STORAGE_BUCKET`: Supabase Storage bucket name (default `open-codelabs`).
-- `VITE_ADMIN_ID`: Admin login ID for Firebase/Supabase modes.
-- `VITE_ADMIN_PW`: Admin login password for Firebase/Supabase modes.
-- `FRONTEND_PORT`: Port to bind the frontend server/container.
-- `FRONTEND_HOST`: Host interface to bind (e.g. `0.0.0.0`).
-
-### 4. Cloud Deployment (AWS / GCP / Firebase)
-To run in a serverless environment or on the cloud, you can use AWS, GCP or Firebase.
-- **AWS**: Container-based or VM deployment. See [AWS Deployment Guide](docs/self-hosting/aws.md).
-- **GCP (Cloud Run)**: Container-based deployment. See [GCP Deployment Guide](docs/self-hosting/gcp.md).
-- **Firebase**: Quick serverless setup. See [Firebase Deployment Guide](docs/self-hosting/firebase.md).
-- **Supabase**: Serverless Postgres + Storage setup. See [Supabase Guide](docs/self-hosting/supabase.md).
+- `VITE_API_URL`: Base URL for the backend API.
+- `VITE_ADMIN_ENCRYPTION_PASSWORD`: Must match backend `ADMIN_PW`.
 
 ---
 
@@ -199,16 +148,18 @@ To run in a serverless environment or on the cloud, you can use AWS, GCP or Fire
 Open Codelabs features a built-in AI generator that transforms your code into structured tutorials.
 1. Enter your Gemini API Key in the settings.
 2. Provide source code or a technical description.
-3. Let AI generate the steps, explanations, and verification audits for you.
+3. Let AI generate steps, explanations, and verification audits.
+4. **Persistent Threads**: AI-generated content includes conversation history for context-aware refinements.
 
 ---
 
 ## 🧭 Facilitator Toolkit (New)
-- **Live tab**: Monitor attendees, chat/DM, and resolve help requests in real time.
+- **Live Mode**: Monitor attendees, real-time chat/DM, and resolve help requests instantly.
+- **Audit Logs**: Track all administrative actions (login, codelab creation, settings updates) for accountability.
+- **Backup & Restore**: Easily export and import the entire system state (SQLite database) from the admin panel.
 - **Quiz & Feedback**: Configure completion requirements; results are aggregated per attendee.
-- **Prep Guide & Materials**: Draft a preparation guide and attach links/files for the session.
-- **Submissions**: Collect and review uploaded artifacts from attendees.
-- **Certificate Raffle**: Spin a roulette that selects only certificate-issued attendees (fair giveaways).
+- **Prep Guide & Materials**: Draft preparation guides and manage attachments.
+- **Certificate Raffle**: Spin a roulette that selects only certificate-issued attendees.
 
 ---
 

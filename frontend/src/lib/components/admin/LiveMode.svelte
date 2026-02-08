@@ -5,7 +5,8 @@
         Bell,
         Send,
         X,
-        Image
+        Image,
+        ChevronLeft
     } from "lucide-svelte";
     import { slide } from "svelte/transition";
     import { t } from "svelte-i18n";
@@ -21,7 +22,7 @@
         dmTarget = $bindable(),
         dmMessage = $bindable(),
         chatMessage = $bindable(),
-        filteredMessages,
+        messages,
         handleResolveHelp,
         sendChat,
         sendDM,
@@ -34,7 +35,7 @@
         dmTarget: Attendee | null;
         dmMessage: string;
         chatMessage: string;
-        filteredMessages: any[];
+        messages: any[];
         handleResolveHelp: (id: string) => void;
         sendChat: () => void;
         sendDM: () => void;
@@ -49,6 +50,73 @@
         (browser
             ? `${window.location.protocol}//${window.location.hostname}:8080`
             : "");
+
+    // Track which attendees have unread DMs
+    let unreadAttendees = $state<Set<string>>(new Set());
+    // Track the currently selected attendee for DM view
+    let selectedDmAttendee = $state<Attendee | null>(null);
+
+    // Get unique attendees who have DMs
+    let dmAttendees = $derived(
+        Array.from(new Set(
+            messages
+                .filter((m: any) => m.type === "dm" && m.senderId)
+                .map((m: any) => m.senderId as string)
+        ))
+        .map((id: any) => attendees.find((a: Attendee) => a.id === id))
+        .filter(Boolean) as Attendee[]
+    );
+
+    // Filter messages for the selected attendee
+    let filteredDmMessages = $derived(
+        selectedDmAttendee
+            ? messages.filter((m: any) =>
+                m.type === "dm" &&
+                (m.senderId === selectedDmAttendee?.id ||
+                 (m.self && m.senderId === selectedDmAttendee?.id))
+            )
+            : []
+    );
+
+    // Track previous dmTarget to detect changes
+    let prevDmTargetId = $state<string | null>(null);
+
+    // Sync selectedDmAttendee when dmTarget changes from outside
+    $effect(() => {
+        const currentDmTargetId = dmTarget?.id ?? null;
+        if (currentDmTargetId !== prevDmTargetId) {
+            prevDmTargetId = currentDmTargetId;
+            if (dmTarget && dmTarget.id !== selectedDmAttendee?.id) {
+                selectedDmAttendee = dmTarget;
+            }
+        }
+    });
+
+    // Mark attendee as read when selected
+    function selectAttendee(attendee: Attendee) {
+        selectedDmAttendee = attendee;
+        dmTarget = attendee;
+        prevDmTargetId = attendee.id;
+        unreadAttendees.delete(attendee.id);
+        unreadAttendees = new Set(unreadAttendees);
+    }
+
+    // Track last processed message to avoid re-processing
+    let lastProcessedMsgId = $state<string | null>(null);
+
+    // Mark new DMs as unread
+    $effect(() => {
+        const lastMessage = messages[messages.length - 1];
+        if (lastMessage && lastMessage.time !== lastProcessedMsgId) {
+            lastProcessedMsgId = lastMessage.time;
+            if (lastMessage.type === "dm" && lastMessage.senderId && !lastMessage.self) {
+                if (selectedDmAttendee?.id !== lastMessage.senderId) {
+                    unreadAttendees.add(lastMessage.senderId);
+                    unreadAttendees = new Set(unreadAttendees);
+                }
+            }
+        }
+    });
 
     function getImageUrl(text: string) {
         const mdMatch = text.match(/!\[[^\]]*]\(([^)]+)\)/);
@@ -176,7 +244,10 @@
     <div class="bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl overflow-hidden shadow-sm flex flex-col h-full min-h-[500px] lg:min-h-[600px]">
         <div class="flex border-b border-border dark:border-dark-border">
             <button
-                onclick={() => (chatTab = "public")}
+                onclick={() => {
+                    chatTab = "public";
+                    selectedDmAttendee = null;
+                }}
                 class="flex-1 py-3 text-sm font-bold transition-all flex justify-center items-center gap-2 {chatTab === 'public'
                     ? 'text-primary border-b-2 border-primary bg-muted dark:bg-white/5'
                     : 'text-muted-foreground dark:text-dark-text-muted hover:bg-accent/60 dark:hover:bg-white/5'}"
@@ -190,56 +261,48 @@
                     : 'text-muted-foreground dark:text-dark-text-muted hover:bg-accent/60 dark:hover:bg-white/5'}"
             >
                 <MessageSquare size={16} /> Direct Messages
+                {#if unreadAttendees.size > 0}
+                    <span class="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full">
+                        {unreadAttendees.size}
+                    </span>
+                {/if}
             </button>
         </div>
 
-        <div class="flex-1 p-4 space-y-4 overflow-y-auto bg-muted dark:bg-dark-bg/50" id="chat-messages">
-            {#each filteredMessages as msg}
-                <div class="flex flex-col {msg.self ? 'items-end' : 'items-start'}">
-                    <span class="text-[10px] text-muted-foreground dark:text-dark-text-muted font-bold mb-1 mx-1 uppercase">
-                        {msg.sender} &bull; {msg.time}
-                    </span>
-                    <div class="max-w-[85%] p-3 rounded-2xl text-sm shadow-sm {msg.self
-                        ? 'bg-primary text-white rounded-tr-none'
-                        : 'bg-white dark:bg-dark-surface text-foreground dark:text-dark-text rounded-tl-none'}">
-                        {#if getImageUrl(msg.text)}
-                            <img
-                                src={getImageUrl(msg.text)}
-                                alt="chat image"
-                                class="max-w-full rounded-lg border border-white/20 cursor-zoom-in"
-                                onclick={() => openChatImage(getImageUrl(msg.text))}
-                            />
-                        {:else}
-                            {msg.text}
-                        {/if}
-                    </div>
-                </div>
-            {:else}
-                <div class="h-full flex flex-col items-center justify-center text-muted-foreground/60 space-y-2 opacity-60">
-                    <MessageSquare size={48} strokeWidth={1} />
-                    <p class="text-sm font-medium">{$t("editor.no_messages")}</p>
-                </div>
-            {/each}
-        </div>
-
-        <div class="p-4 border-t border-border dark:border-dark-border bg-white dark:bg-dark-surface">
-            <form onsubmit={(e) => { e.preventDefault(); chatTab === "public" ? sendChat() : sendDM(); }}>
-                {#if chatTab === "direct" && !dmTarget}
-                    <div class="mb-3 p-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20 rounded-xl flex items-center gap-3 text-amber-700 dark:text-amber-400 text-xs font-bold">
-                        <MessageSquare size={14} aria-hidden="true" />
-                        {$t("editor.dm_select_prompt")}
-                    </div>
-                {/if}
-
-                <div class="relative flex items-center gap-2">
-                    {#if chatTab === "direct" && dmTarget}
-                        <div class="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-primary text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm">
-                            <span>To: {dmTarget.name}</span>
-                            <button type="button" onclick={() => (dmTarget = null)} class="hover:text-red-200" aria-label={$t("common.close")}><X size={12} /></button>
+        {#if chatTab === "public"}
+            <!-- Public Chat View -->
+            <div class="flex-1 p-4 space-y-4 overflow-y-auto bg-muted dark:bg-dark-bg/50" id="chat-messages">
+                {#each messages.filter((m: any) => m.type === "chat") as msg}
+                    <div class="flex flex-col {msg.self ? 'items-end' : 'items-start'}">
+                        <span class="text-[10px] text-muted-foreground dark:text-dark-text-muted font-bold mb-1 mx-1 uppercase">
+                            {msg.sender} &bull; {msg.time}
+                        </span>
+                        <div class="max-w-[85%] p-3 rounded-2xl text-sm shadow-sm {msg.self
+                            ? 'bg-primary text-white rounded-tr-none'
+                            : 'bg-white dark:bg-dark-surface text-foreground dark:text-dark-text rounded-tl-none'}">
+                            {#if getImageUrl(msg.text)}
+                                <img
+                                    src={getImageUrl(msg.text)}
+                                    alt="chat image"
+                                    class="max-w-full rounded-lg border border-white/20 cursor-zoom-in"
+                                    onclick={() => openChatImage(getImageUrl(msg.text))}
+                                />
+                            {:else}
+                                {msg.text}
+                            {/if}
                         </div>
-                    {/if}
+                    </div>
+                {:else}
+                    <div class="h-full flex flex-col items-center justify-center text-muted-foreground/60 space-y-2 opacity-60">
+                        <MessageSquare size={48} strokeWidth={1} />
+                        <p class="text-sm font-medium">{$t("editor.no_messages")}</p>
+                    </div>
+                {/each}
+            </div>
 
-                    {#if chatTab === "public"}
+            <div class="p-4 border-t border-border dark:border-dark-border bg-white dark:bg-dark-surface">
+                <form onsubmit={(e) => { e.preventDefault(); sendChat(); }}>
+                    <div class="relative flex items-center gap-2">
                         <input
                             type="text"
                             bind:value={chatMessage}
@@ -248,49 +311,179 @@
                             onpaste={handleChatPaste}
                             class="flex-1 pl-4 pr-12 py-3 bg-muted dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary text-sm text-foreground dark:text-dark-text"
                         />
-                    {:else}
                         <input
-                            type="text"
-                            bind:value={dmMessage}
-                            placeholder="Type a message..."
-                            aria-label={$t("editor.chat_placeholder")}
-                            onpaste={handleChatPaste}
-                            class="flex-1 {dmTarget ? 'pl-24' : 'pl-4'} pr-12 py-3 bg-muted dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary text-sm text-foreground dark:text-dark-text"
+                            type="file"
+                            accept="image/*"
+                            bind:this={imageInput}
+                            onchange={(e) => {
+                                const input = e.currentTarget as HTMLInputElement;
+                                const file = input.files?.[0];
+                                if (file) attachImage(file);
+                                input.value = "";
+                            }}
+                            class="hidden"
                         />
+                        <button
+                            type="button"
+                            class="absolute right-10 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-lg transition-all"
+                            onclick={() => imageInput?.click()}
+                            aria-label={$t("common.upload")}
+                            title={$t("common.upload")}
+                        >
+                            <Image size={18} />
+                        </button>
+                        <button
+                            type="submit"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-lg transition-all"
+                            aria-label={$t("editor.send_dm")}
+                        >
+                            <Send size={18} />
+                        </button>
+                    </div>
+                </form>
+            </div>
+        {:else}
+            <!-- Direct Messages View -->
+            {#if !selectedDmAttendee}
+                <!-- Attendee List for DMs -->
+                <div class="flex-1 overflow-y-auto p-4">
+                    {#if dmAttendees.length > 0}
+                        <div class="space-y-2">
+                            {#each dmAttendees as attendee}
+                                <button
+                                    onclick={() => selectAttendee(attendee)}
+                                    class="w-full flex items-center justify-between p-3 hover:bg-accent/60 dark:hover:bg-white/5 rounded-lg transition-colors text-left"
+                                >
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary text-sm font-bold uppercase">
+                                            {attendee.name.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p class="text-sm font-bold text-foreground dark:text-dark-text">
+                                                {attendee.name}
+                                            </p>
+                                            <p class="text-[10px] text-muted-foreground dark:text-dark-text-muted">
+                                                {$t("submission_panel.attendee_code")}: {attendee.code}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    {#if unreadAttendees.has(attendee.id)}
+                                        <span class="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full">
+                                            New
+                                        </span>
+                                    {/if}
+                                </button>
+                            {/each}
+                        </div>
+                    {:else}
+                        <div class="h-full flex flex-col items-center justify-center text-muted-foreground/60 space-y-2 opacity-60">
+                            <MessageSquare size={48} strokeWidth={1} />
+                            <p class="text-sm font-medium">No direct messages yet</p>
+                            <p class="text-xs">Select an attendee from the list to start a conversation</p>
+                        </div>
                     {/if}
-                    <input
-                        type="file"
-                        accept="image/*"
-                        bind:this={imageInput}
-                        onchange={(e) => {
-                            const input = e.currentTarget as HTMLInputElement;
-                            const file = input.files?.[0];
-                            if (file) attachImage(file);
-                            input.value = "";
-                        }}
-                        class="hidden"
-                    />
-                    <button
-                        type="button"
-                        class="absolute right-10 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-lg transition-all"
-                        onclick={() => imageInput?.click()}
-                        disabled={chatTab === "direct" && !dmTarget}
-                        aria-label={$t("common.upload")}
-                        title={$t("common.upload")}
-                    >
-                        <Image size={18} />
-                    </button>
-                    <button
-                        type="submit"
-                        class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-lg transition-all"
-                        disabled={chatTab === "direct" && !dmTarget}
-                        aria-label={$t("editor.send_dm")}
-                    >
-                        <Send size={18} />
-                    </button>
                 </div>
-            </form>
-        </div>
+            {:else}
+                <!-- DM Conversation View -->
+                <div class="flex flex-col h-full">
+                    <div class="p-3 border-b border-border dark:border-dark-border flex items-center gap-3 bg-muted/50 dark:bg-white/5">
+                        <button
+                            onclick={() => {
+                                selectedDmAttendee = null;
+                                dmTarget = null;
+                            }}
+                            class="p-2 hover:bg-accent/70 dark:hover:bg-white/10 rounded-lg transition-colors"
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+                        <div class="w-8 h-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary text-xs font-bold uppercase">
+                            {selectedDmAttendee.name.charAt(0)}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-bold text-foreground dark:text-dark-text truncate">
+                                {selectedDmAttendee.name}
+                            </p>
+                            <p class="text-[10px] text-muted-foreground dark:text-dark-text-muted">
+                                {$t("submission_panel.attendee_code")}: {selectedDmAttendee.code}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 p-4 space-y-4 overflow-y-auto bg-muted dark:bg-dark-bg/50">
+                        {#each filteredDmMessages as msg}
+                            <div class="flex flex-col {msg.self ? 'items-end' : 'items-start'}">
+                                <span class="text-[10px] text-muted-foreground dark:text-dark-text-muted font-bold mb-1 mx-1 uppercase">
+                                    {msg.sender} &bull; {msg.time}
+                                </span>
+                                <div class="max-w-[85%] p-3 rounded-2xl text-sm shadow-sm {msg.self
+                                    ? 'bg-primary text-white rounded-tr-none'
+                                    : 'bg-white dark:bg-dark-surface text-foreground dark:text-dark-text rounded-tl-none'}">
+                                    {#if getImageUrl(msg.text)}
+                                        <img
+                                            src={getImageUrl(msg.text)}
+                                            alt="chat image"
+                                            class="max-w-full rounded-lg border border-white/20 cursor-zoom-in"
+                                            onclick={() => openChatImage(getImageUrl(msg.text))}
+                                        />
+                                    {:else}
+                                        {msg.text}
+                                    {/if}
+                                </div>
+                            </div>
+                        {:else}
+                            <div class="h-full flex flex-col items-center justify-center text-muted-foreground/60 space-y-2 opacity-60">
+                                <MessageSquare size={48} strokeWidth={1} />
+                                <p class="text-sm font-medium">Start a conversation</p>
+                                <p class="text-xs">Send a message to {selectedDmAttendee.name}</p>
+                            </div>
+                        {/each}
+                    </div>
+
+                    <div class="p-4 border-t border-border dark:border-dark-border bg-white dark:bg-dark-surface">
+                        <form onsubmit={(e) => { e.preventDefault(); sendDM(); }}>
+                            <div class="relative flex items-center gap-2">
+                                <input
+                                    type="text"
+                                    bind:value={dmMessage}
+                                    placeholder="Type a message..."
+                                    aria-label={$t("editor.chat_placeholder")}
+                                    onpaste={handleChatPaste}
+                                    class="flex-1 pl-4 pr-12 py-3 bg-muted dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary text-sm text-foreground dark:text-dark-text"
+                                />
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    bind:this={imageInput}
+                                    onchange={(e) => {
+                                        const input = e.currentTarget as HTMLInputElement;
+                                        const file = input.files?.[0];
+                                        if (file) attachImage(file);
+                                        input.value = "";
+                                    }}
+                                    class="hidden"
+                                />
+                                <button
+                                    type="button"
+                                    class="absolute right-10 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-lg transition-all"
+                                    onclick={() => imageInput?.click()}
+                                    aria-label={$t("common.upload")}
+                                    title={$t("common.upload")}
+                                >
+                                    <Image size={18} />
+                                </button>
+                                <button
+                                    type="submit"
+                                    class="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-primary hover:bg-accent/70 dark:hover:bg-primary/10 rounded-lg transition-all"
+                                    aria-label={$t("editor.send_dm")}
+                                >
+                                    <Send size={18} />
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {/if}
+        {/if}
     </div>
 </div>
 {#if chatImageLightboxUrl}

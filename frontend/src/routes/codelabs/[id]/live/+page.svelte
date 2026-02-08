@@ -99,7 +99,7 @@
     }
 
     function initWebSocket() {
-        const wsUrl = getWsUrl(id);
+        const wsUrl = getWsUrl(id, "attendee");
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
