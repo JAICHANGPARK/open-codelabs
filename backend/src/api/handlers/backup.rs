@@ -233,7 +233,7 @@ pub async fn export_backup(
             .await
             .map_err(internal_error)?;
     let submissions = sqlx::query_as::<_, Submission>(&state.q(
-        "SELECT id, codelab_id, attendee_id, file_path, file_name, file_size, CAST(created_at AS TEXT) AS created_at FROM submissions",
+        "SELECT id, codelab_id, attendee_id, file_path, file_name, file_size, submission_type, link_url, CAST(created_at AS TEXT) AS created_at FROM submissions",
     ))
         .fetch_all(&state.pool)
         .await
@@ -586,13 +586,16 @@ pub async fn restore_backup(
     }
 
     for row in &payload.data.submissions {
-        sqlx::query(&state.q("INSERT INTO submissions (id, codelab_id, attendee_id, file_path, file_name, file_size, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)"))
+        let submission_type = row.submission_type.clone();
+        sqlx::query(&state.q("INSERT INTO submissions (id, codelab_id, attendee_id, file_path, file_name, file_size, submission_type, link_url, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"))
             .bind(&row.id)
             .bind(&row.codelab_id)
             .bind(&row.attendee_id)
             .bind(&row.file_path)
             .bind(&row.file_name)
             .bind(row.file_size)
+            .bind(&submission_type)
+            .bind(&row.link_url)
             .bind(&row.created_at)
             .execute(&mut *tx)
             .await
