@@ -23,7 +23,7 @@ use crate::api::handlers::{
     feedback::{get_feedback, submit_feedback},
     materials::{add_material, delete_material, get_materials, upload_material_file},
     quizzes::{get_quiz_submissions, get_quizzes, submit_quiz, update_quizzes},
-    submissions::{delete_submission, get_submissions, submit_file},
+    submissions::{delete_submission, get_submissions, submit_file, submit_link},
     upload::upload_image,
     websocket::ws_handler,
 };
@@ -107,6 +107,10 @@ fn codelab_routes() -> Router<Arc<AppState>> {
         .route(
             "/api/codelabs/{id}/attendees/{attendee_id}/submissions",
             post(submit_file),
+        )
+        .route(
+            "/api/codelabs/{id}/attendees/{attendee_id}/submissions/link",
+            post(submit_link),
         )
         .route(
             "/api/codelabs/{id}/attendees/{attendee_id}/submissions/{submission_id}",
