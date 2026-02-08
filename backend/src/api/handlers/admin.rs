@@ -12,6 +12,7 @@ use crate::middleware::security::ensure_csrf_cookie;
 use crate::infrastructure::database::AppState;
 use axum::{extract::State, http::StatusCode, Json};
 use axum_extra::extract::cookie::CookieJar;
+use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use subtle::ConstantTimeEq;
 
@@ -147,6 +148,126 @@ pub async fn update_settings(
     )
     .await;
     Ok(StatusCode::OK)
+}
+
+#[derive(Debug, Serialize)]
+pub struct UpdateStatus {
+    current: Option<String>,
+    latest: Option<String>,
+    update_available: bool,
+    error: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct UpdateCheckResponse {
+    frontend: UpdateStatus,
+    backend: UpdateStatus,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct GhcrTagsResponse {
+    tags: Option<Vec<String>>,
+}
+
+async fn fetch_latest_tag(image: &str) -> Result<Option<String>, String> {
+    let url = format!("https://ghcr.io/v2/{}/tags/list", image);
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(5))
+        .build()
+        .map_err(|e| format!("http client error: {}", e))?;
+    let res = client
+        .get(url)
+        .send()
+        .await
+        .map_err(|e| format!("request error: {}", e))?;
+    if !res.status().is_success() {
+        return Err(format!("ghcr status {}", res.status()));
+    }
+    let data: GhcrTagsResponse = res.json().await.map_err(|e| e.to_string())?;
+    let tags = data.tags.unwrap_or_default();
+    if tags.is_empty() {
+        return Ok(None);
+    }
+    let mut semver_tags: Vec<(String, (u64, u64, u64))> = tags
+        .iter()
+        .filter_map(|tag| parse_semver(tag).map(|v| (tag.clone(), v)))
+        .collect();
+    if !semver_tags.is_empty() {
+        semver_tags.sort_by(|a, b| a.1.cmp(&b.1));
+        return Ok(Some(semver_tags.last().unwrap().0.clone()));
+    }
+    if tags.iter().any(|t| t == "latest") {
+        return Ok(Some("latest".to_string()));
+    }
+    let mut sorted = tags.clone();
+    sorted.sort();
+    Ok(sorted.last().cloned())
+}
+
+fn parse_semver(tag: &str) -> Option<(u64, u64, u64)> {
+    let cleaned = tag.trim_start_matches('v');
+    let parts: Vec<&str> = cleaned.split('.').collect();
+    if parts.len() < 3 {
+        return None;
+    }
+    let major = parts[0].parse().ok()?;
+    let minor = parts[1].parse().ok()?;
+    let patch = parts[2].parse().ok()?;
+    Some((major, minor, patch))
+}
+
+pub async fn check_updates(
+    State(_state): State<Arc<AppState>>,
+    session: AuthSession,
+) -> Result<Json<UpdateCheckResponse>, (StatusCode, String)> {
+    session.require_admin()?;
+
+    let frontend_current = std::env::var("FRONTEND_IMAGE_TAG").ok();
+    let backend_current = std::env::var("BACKEND_IMAGE_TAG").ok();
+
+    let frontend_latest = fetch_latest_tag("jaichangpark/open-codelabs-frontend").await;
+    let backend_latest = fetch_latest_tag("jaichangpark/open-codelabs-backend").await;
+
+    let frontend_status = match frontend_latest {
+        Ok(latest) => UpdateStatus {
+            current: frontend_current.clone(),
+            latest: latest.clone(),
+            update_available: latest
+                .as_ref()
+                .and_then(|l| frontend_current.as_ref().map(|c| l != c))
+                .unwrap_or(false),
+            error: None,
+        },
+        Err(err) => UpdateStatus {
+            current: frontend_current,
+            latest: None,
+            update_available: false,
+            error: Some(err),
+        },
+    };
+
+    let backend_status = match backend_latest {
+        Ok(latest) => UpdateStatus {
+            current: backend_current.clone(),
+            latest: latest.clone(),
+            update_available: latest
+                .as_ref()
+                .and_then(|l| backend_current.as_ref().map(|c| l != c))
+                .unwrap_or(false),
+            error: None,
+        },
+        Err(err) => UpdateStatus {
+            current: backend_current,
+            latest: None,
+            update_available: false,
+            error: Some(err),
+        },
+    };
+
+    Ok(Json(UpdateCheckResponse {
+        frontend: frontend_status,
+        backend: backend_status,
+    }))
 }
 
 pub async fn logout(
