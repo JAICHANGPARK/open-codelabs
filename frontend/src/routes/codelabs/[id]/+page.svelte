@@ -247,7 +247,8 @@
 
     let canGetCertificate = $derived(
         (!codelab?.require_quiz || isQuizPassed) &&
-            (!codelab?.require_feedback || feedbackSubmitted),
+            (!codelab?.require_feedback || feedbackSubmitted) &&
+            (!codelab?.require_submission || mySubmissions.length > 0),
     );
 
     async function handleCertificateClick(e: MouseEvent) {
@@ -258,6 +259,8 @@
                 missing.push($t("certificate.quiz_required"));
             if (codelab?.require_feedback && !feedbackSubmitted)
                 missing.push($t("certificate.feedback_required"));
+            if (codelab?.require_submission && mySubmissions.length === 0)
+                missing.push($t("certificate.submission_required"));
 
             alert(
                 `${$t("certificate.not_earned")}\n\n${$t("certificate.requirements_guide")}\n- ${missing.join("\n- ")}`,
@@ -1857,6 +1860,13 @@
                                         >
                                             {$t("submission.title")}
                                         </h3>
+                                        {#if codelab?.require_submission && mySubmissions.length === 0}
+                                            <span
+                                                class="ml-auto bg-red-100 dark:bg-red-500/20 text-red-600 dark:text-red-400 text-xs px-2 py-1 rounded-lg font-bold"
+                                            >
+                                                {$t("common.required")}
+                                            </span>
+                                        {/if}
                                     </div>
 
                                     <p

@@ -1,15 +1,15 @@
+use crate::domain::models::{
+    Attendee, CertificateInfo, Codelab, HelpRequest, HelpRequestPayload, RegistrationPayload,
+};
 use crate::infrastructure::audit::{record_audit, AuditEntry};
+use crate::infrastructure::database::AppState;
 use crate::middleware::auth::{
     build_attendee_session_cookie, build_csrf_cookie, now_epoch_seconds, AuthSession, Role,
     SessionClaims,
 };
+use crate::middleware::request_info::RequestInfo;
 use crate::utils::crypto::{decrypt_with_password, encrypt_with_password};
 use crate::utils::error::{bad_request, forbidden, internal_error};
-use crate::domain::models::{
-    Attendee, CertificateInfo, Codelab, HelpRequest, HelpRequestPayload, RegistrationPayload,
-};
-use crate::middleware::request_info::RequestInfo;
-use crate::infrastructure::database::AppState;
 use crate::utils::validation::validate_registration;
 use axum::{
     extract::{Path, State},
@@ -50,9 +50,9 @@ pub async fn register_attendee(
     }
 
     // Check for duplicate name in the same codelab
-    let existing = sqlx::query_as::<_, Attendee>(&state.q(
-        "SELECT * FROM attendees WHERE codelab_id = ? AND name = ?",
-    ))
+    let existing = sqlx::query_as::<_, Attendee>(
+        &state.q("SELECT * FROM attendees WHERE codelab_id = ? AND name = ?"),
+    )
     .bind(&id)
     .bind(&payload.name)
     .fetch_optional(&state.pool)
@@ -148,7 +148,10 @@ pub async fn register_attendee(
     )
     .await;
 
-    Ok((jar, Json(crate::domain::models::AttendeePublic::from(attendee))))
+    Ok((
+        jar,
+        Json(crate::domain::models::AttendeePublic::from(attendee)),
+    ))
 }
 
 pub async fn get_attendees(
@@ -212,13 +215,16 @@ pub async fn request_help(
     }
 
     let attendee = session.require_attendee().map_err(|_| {
-        (StatusCode::UNAUTHORIZED, "You must be registered as an attendee to request help".to_string())
+        (
+            StatusCode::UNAUTHORIZED,
+            "You must be registered as an attendee to request help".to_string(),
+        )
     })?;
 
     if attendee.codelab_id.as_deref() != Some(id.as_str()) {
         return Err((
             StatusCode::FORBIDDEN,
-            "You are not registered for this codelab".to_string()
+            "You are not registered for this codelab".to_string(),
         ));
     }
 
@@ -346,6 +352,29 @@ pub async fn complete_codelab(
         return Err(forbidden());
     }
     let attendee_id = attendee.sub;
+
+    // Check if submission is required
+    let codelab = sqlx::query_as::<_, Codelab>(&state.q("SELECT * FROM codelabs WHERE id = ?"))
+        .bind(&id)
+        .fetch_optional(&state.pool)
+        .await
+        .map_err(internal_error)?
+        .ok_or((StatusCode::NOT_FOUND, "Codelab not found".to_string()))?;
+
+    if codelab.require_submission != 0 {
+        let submission_count: (i64,) = sqlx::query_as(
+            &state.q("SELECT COUNT(*) FROM submissions WHERE attendee_id = ? AND codelab_id = ?"),
+        )
+        .bind(&attendee_id)
+        .bind(&id)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(internal_error)?;
+
+        if submission_count.0 == 0 {
+            return Err((StatusCode::BAD_REQUEST, "SUBMISSION_REQUIRED".to_string()));
+        }
+    }
 
     sqlx::query(&state.q("UPDATE attendees SET is_completed = 1, completed_at = CURRENT_TIMESTAMP WHERE id = ? AND codelab_id = ?"))
         .bind(&attendee_id)

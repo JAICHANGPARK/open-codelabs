@@ -7,6 +7,7 @@ export interface Codelab {
     quiz_enabled: boolean;
     require_quiz: boolean;
     require_feedback: boolean;
+    require_submission?: boolean;
     guide_markdown?: string;
     created_at?: string;
 }
