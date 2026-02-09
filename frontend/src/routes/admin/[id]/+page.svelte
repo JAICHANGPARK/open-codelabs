@@ -317,7 +317,11 @@
         if (mode !== "edit" || aiLoading) return;
 
         const activeElement = document.activeElement as HTMLTextAreaElement;
-        if (activeElement && activeElement.tagName === "TEXTAREA") {
+        if (
+            activeElement &&
+            activeElement.tagName === "TEXTAREA" &&
+            !activeElement.closest(".ai-menu-container")
+        ) {
             const start = activeElement.selectionStart;
             const end = activeElement.selectionEnd;
 
@@ -345,7 +349,9 @@
     function openAiMenuFromSelection(e: MouseEvent, offsetY = -40) {
         const activeElement = document.activeElement as HTMLTextAreaElement;
         const isTextArea =
-            activeElement && activeElement.tagName === "TEXTAREA";
+            activeElement &&
+            activeElement.tagName === "TEXTAREA" &&
+            !activeElement.closest(".ai-menu-container");
 
         if (!isTextArea) return false;
 
@@ -520,7 +526,14 @@
             const rawQuizzes = await getQuizzes(id);
             quizzes = rawQuizzes.map((q) => ({
                 ...q,
-                options: JSON.parse(q.options),
+                options:
+                    typeof q.options === "string"
+                        ? JSON.parse(q.options)
+                        : q.options,
+                correct_answers:
+                    typeof q.correct_answers === "string"
+                        ? JSON.parse(q.correct_answers)
+                        : q.correct_answers || [q.correct_answer],
             }));
         } catch (e) {
             console.error("Failed to load quizzes:", e);
@@ -545,6 +558,7 @@
                 quiz_type: "multiple_choice",
                 options: ["", "", "", ""],
                 correct_answer: 0,
+                correct_answers: [0],
             } as any,
         ];
     }
@@ -564,8 +578,15 @@
                     quiz_type: q.quiz_type || "multiple_choice",
                     options: Array.isArray(q.options)
                         ? q.options
-                        : JSON.parse(q.options as any),
+                        : typeof q.options === "string"
+                          ? JSON.parse(q.options)
+                          : [],
                     correct_answer: q.correct_answer,
+                    correct_answers: Array.isArray(q.correct_answers)
+                        ? q.correct_answers
+                        : typeof q.correct_answers === "string"
+                          ? JSON.parse(q.correct_answers)
+                          : [q.correct_answer],
                 })),
             );
             saveSuccess = true;
@@ -1902,7 +1923,19 @@
         const textarea = editorEl ?? document.querySelector("textarea");
         if (!textarea) return;
 
-        textarea.setRangeText(replacement, start, end, "preserve");
+        // Use execCommand to preserve undo history
+        textarea.focus();
+        textarea.setSelectionRange(start, end);
+        try {
+            document.execCommand("insertText", false, replacement);
+        } catch (e) {
+            console.error(
+                "execCommand failed, falling back to setRangeText",
+                e,
+            );
+            textarea.setRangeText(replacement, start, end, "preserve");
+        }
+
         textarea.dispatchEvent(new Event("input", { bubbles: true }));
 
         setTimeout(() => {
@@ -2341,7 +2374,7 @@
         </div>
     {:else}
         <main
-            class="max-w-screen-2xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-2 items-start relative"
+            class="max-w-screen-2xl mx-auto w-full p-4 sm:p-8 flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 items-start relative"
         >
             <!-- Sidebar Navigation -->
             {#if mode !== "live" && mode !== "feedback" && mode !== "materials" && mode !== "quiz" && mode !== "settings" && mode !== "guide" && mode !== "submissions" && mode !== "gallery" && mode !== "workspace" && mode !== "raffle"}
@@ -2370,7 +2403,7 @@
                 mode === "workspace" ||
                 mode === "raffle"
                     ? "lg:col-span-12 w-full min-w-0"
-                    : "lg:col-span-8 w-full min-w-0"}
+                    : "lg:col-span-9 w-full min-w-0"}
                 in:fade
             >
                 {#if steps.length > 0}

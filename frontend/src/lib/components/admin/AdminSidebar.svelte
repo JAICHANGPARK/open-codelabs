@@ -1,11 +1,5 @@
 <script lang="ts">
-    import { 
-        Plus, 
-        X, 
-        Trash2, 
-        Copy, 
-        Check 
-    } from "lucide-svelte";
+    import { Plus, X, Trash2, Copy, Check } from "lucide-svelte";
     import { t } from "svelte-i18n";
     // @ts-ignore
     import QRCode from "svelte-qrcode";
@@ -19,7 +13,7 @@
         copySuccess = $bindable(),
         addStep,
         removeStep,
-        handleCopyUrl
+        handleCopyUrl,
     } = $props<{
         steps: Step[];
         activeStepIndex: number;
@@ -57,18 +51,24 @@
         const newSteps = [...steps];
         const [removed] = newSteps.splice(draggedStepIndex, 1);
         newSteps.splice(index, 0, removed);
-        
+
         // Update step numbers
         steps = newSteps.map((step, i) => ({
             ...step,
-            step_number: i + 1
+            step_number: i + 1,
         }));
 
         if (activeStepIndex === draggedStepIndex) {
             activeStepIndex = index;
-        } else if (draggedStepIndex < activeStepIndex && index >= activeStepIndex) {
+        } else if (
+            draggedStepIndex < activeStepIndex &&
+            index >= activeStepIndex
+        ) {
             activeStepIndex--;
-        } else if (draggedStepIndex > activeStepIndex && index <= activeStepIndex) {
+        } else if (
+            draggedStepIndex > activeStepIndex &&
+            index <= activeStepIndex
+        ) {
             activeStepIndex++;
         }
 
@@ -83,20 +83,20 @@
 </script>
 
 <div
-    class="fixed inset-0 z-50 lg:z-30 lg:relative lg:inset-auto lg:col-span-4 lg:block transition-all duration-300 {isSidebarOpen
+    class="fixed inset-0 z-50 lg:z-30 lg:relative lg:inset-auto lg:col-span-3 lg:block transition-all duration-300 {isSidebarOpen
         ? 'translate-x-0 opacity-100'
         : '-translate-x-full opacity-0 lg:translate-x-0 lg:opacity-100 lg:sticky lg:top-28'}"
 >
     <!-- Overlay for mobile -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div 
+    <div
         class="absolute inset-0 bg-black/50 backdrop-blur-sm lg:hidden"
         onclick={() => (isSidebarOpen = false)}
     ></div>
 
     <div
-        class="relative bg-white dark:bg-dark-surface rounded-2xl border border-border dark:border-dark-border overflow-hidden shadow-xl lg:shadow-sm w-4/5 max-w-sm h-[90vh] lg:h-auto m-4 lg:m-0 flex flex-col"
+        class="relative bg-white dark:bg-dark-surface rounded-2xl border border-border dark:border-dark-border overflow-hidden shadow-xl lg:shadow-sm w-4/5 lg:w-full max-w-sm lg:max-w-none h-[90vh] lg:h-auto m-4 lg:m-0 flex flex-col"
     >
         <div
             class="p-5 border-b border-border dark:border-dark-border bg-muted dark:bg-white/5 flex justify-between items-center"
@@ -115,7 +115,7 @@
                 >
                     <Plus size={18} />
                 </button>
-                <button 
+                <button
                     type="button"
                     onclick={() => (isSidebarOpen = false)}
                     class="lg:hidden p-1.5 hover:bg-accent/70 dark:hover:bg-white/5 rounded-full transition-colors"
@@ -147,8 +147,7 @@
                         class="w-full text-left px-5 py-4 hover:bg-muted dark:hover:bg-white/5 transition-all flex items-start gap-4 border-l-4 cursor-pointer {activeStepIndex ===
                         i
                             ? 'border-primary bg-accent/30 dark:bg-primary/10'
-                            : 'border-transparent'} {draggedStepIndex ===
-                        i
+                            : 'border-transparent'} {draggedStepIndex === i
                             ? 'opacity-50'
                             : ''}"
                     >
@@ -160,8 +159,7 @@
                             >{i + 1}</span
                         >
                         <span
-                            class="text-sm font-bold {activeStepIndex ===
-                            i
+                            class="text-sm font-bold {activeStepIndex === i
                                 ? 'text-primary dark:text-primary'
                                 : 'text-muted-foreground dark:text-dark-text-muted'} line-clamp-1 pt-0.5 pr-6"
                             >{step.title}</span

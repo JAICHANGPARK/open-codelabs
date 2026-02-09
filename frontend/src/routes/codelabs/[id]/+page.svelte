@@ -48,11 +48,12 @@
         Send,
         HelpCircle,
         AlertCircle,
+        ListChecks,
+        FileText,
         Star,
         Users,
         Sparkles,
         Github,
-        FileText,
         Volume2,
         Square,
         Paperclip,
@@ -71,8 +72,11 @@
     import SubmissionPanel from "$lib/components/codelabs/SubmissionPanel.svelte";
     import { createTtsPlayer } from "$lib/tts";
     import { themeState } from "$lib/theme.svelte";
-    import { submitFile, getSubmissions, deleteSubmission as apiDeleteSubmission } from "$lib/api";
-
+    import {
+        submitFile,
+        getSubmissions,
+        deleteSubmission as apiDeleteSubmission,
+    } from "$lib/api";
 
     let id = page.params.id as string;
     let codelab = $state<Codelab | null>(null);
@@ -93,7 +97,9 @@
     let mySubmissions = $state<any[]>([]);
     let submittingFile = $state(false);
     let submittingLink = $state(false);
-    let totalSubmissionSize = $derived(mySubmissions.reduce((acc, s) => acc + s.file_size, 0));
+    let totalSubmissionSize = $derived(
+        mySubmissions.reduce((acc, s) => acc + s.file_size, 0),
+    );
     let submissionProgress = $state(0);
 
     // Quiz State
@@ -101,7 +107,9 @@
     let quizAnswers = $state<any[]>([]); // number for MC, string for Descriptive
     let quizSubmitted = $state(false);
     let quizCorrectCount = $state(0);
-    let isQuizPassed = $derived(quizSubmitted && quizCorrectCount === quizzes.length);
+    let isQuizPassed = $derived(
+        quizSubmitted && quizCorrectCount === quizzes.length,
+    );
 
     // Feedback State
     let feedbackDifficulty = $state(3);
@@ -239,17 +247,21 @@
 
     let canGetCertificate = $derived(
         (!codelab?.require_quiz || isQuizPassed) &&
-        (!codelab?.require_feedback || feedbackSubmitted)
+            (!codelab?.require_feedback || feedbackSubmitted),
     );
 
     async function handleCertificateClick(e: MouseEvent) {
         if (!canGetCertificate) {
             e.preventDefault();
             let missing = [];
-            if (codelab?.require_quiz && !isQuizPassed) missing.push($t("certificate.quiz_required"));
-            if (codelab?.require_feedback && !feedbackSubmitted) missing.push($t("certificate.feedback_required"));
-            
-            alert(`${$t("certificate.not_earned")}\n\n${$t("certificate.requirements_guide")}\n- ${missing.join("\n- ")}`);
+            if (codelab?.require_quiz && !isQuizPassed)
+                missing.push($t("certificate.quiz_required"));
+            if (codelab?.require_feedback && !feedbackSubmitted)
+                missing.push($t("certificate.feedback_required"));
+
+            alert(
+                `${$t("certificate.not_earned")}\n\n${$t("certificate.requirements_guide")}\n- ${missing.join("\n- ")}`,
+            );
             return;
         }
 
@@ -262,7 +274,11 @@
             console.error("Complete codelab error", e);
         }
 
-        window.open(`/certificate/${attendee.id}`, "_blank", "noopener,noreferrer");
+        window.open(
+            `/certificate/${attendee.id}`,
+            "_blank",
+            "noopener,noreferrer",
+        );
     }
 
     $effect(() => {
@@ -370,26 +386,42 @@
             }
 
             // Load materials
-            getMaterials(id).then((m) => {
-                materials = m;
-            }).catch(e => console.error("Failed to load materials", e));
+            getMaterials(id)
+                .then((m) => {
+                    materials = m;
+                })
+                .catch((e) => console.error("Failed to load materials", e));
 
             // Load Quizzes
-            getQuizzes(id).then(q => {
-                quizzes = q.map(i => ({
-                    ...i, 
-                    quiz_type: i.quiz_type || 'multiple_choice',
-                    options: typeof i.options === 'string' ? JSON.parse(i.options) : i.options
-                }));
-                quizAnswers = quizzes.map(i => i.quiz_type === 'descriptive' ? "" : -1);
-            }).catch(e => console.error("Failed to load quizzes", e));
+            getQuizzes(id)
+                .then((q) => {
+                    quizzes = q.map((i) => ({
+                        ...i,
+                        quiz_type: i.quiz_type || "multiple_choice",
+                        options:
+                            typeof i.options === "string"
+                                ? JSON.parse(i.options)
+                                : i.options,
+                    }));
+                    quizAnswers = quizzes.map((i) => {
+                        if (i.quiz_type === "descriptive") return "";
+                        if (i.quiz_type === "multiple_selection") return [];
+                        return -1;
+                    });
+                })
+                .catch((e) => console.error("Failed to load quizzes", e));
 
             // Load My Submissions
             if (!isFirebaseMode()) {
                 console.log("Fetching submissions for attendee:", attendee?.id);
                 const allSubmissions = await getSubmissions(id);
-                console.log("All submissions for this codelab:", allSubmissions);
-                mySubmissions = allSubmissions.filter(s => s.attendee_id === attendee?.id);
+                console.log(
+                    "All submissions for this codelab:",
+                    allSubmissions,
+                );
+                mySubmissions = allSubmissions.filter(
+                    (s) => s.attendee_id === attendee?.id,
+                );
                 console.log("My filtered submissions:", mySubmissions);
             }
 
@@ -397,7 +429,7 @@
             wsCleanup = initWebSocket();
         } catch (e: any) {
             console.error(e);
-            if (e.message === 'PRIVATE_CODELAB') {
+            if (e.message === "PRIVATE_CODELAB") {
                 goto(`/codelabs/${id}/entry`); // Let entry page handle private error
             }
         } finally {
@@ -407,7 +439,7 @@
 
     $effect(() => {
         return () => {
-            if (wsCleanup && typeof wsCleanup === 'function') wsCleanup();
+            if (wsCleanup && typeof wsCleanup === "function") wsCleanup();
             if (ws) ws.close();
         };
     });
@@ -507,14 +539,23 @@
             return listenToWsReplacement(id, (data) => {
                 if (data.type === "chat") {
                     // Check if it's already in messages to avoid duplicates from history load
-                    if (messages.find(m => m.text === data.message && m.sender === data.sender_name)) return;
+                    if (
+                        messages.find(
+                            (m) =>
+                                m.text === data.message &&
+                                m.sender === data.sender_name,
+                        )
+                    )
+                        return;
 
                     messages = [
                         ...messages,
                         {
                             sender: data.sender_name,
                             text: data.message,
-                            time: data.created_at?.toDate ? data.created_at.toDate().toLocaleTimeString() : new Date().toLocaleTimeString(),
+                            time: data.created_at?.toDate
+                                ? data.created_at.toDate().toLocaleTimeString()
+                                : new Date().toLocaleTimeString(),
                             self: data.sender_name === attendee?.name,
                             type: "chat",
                         },
@@ -561,7 +602,9 @@
                         {
                             sender: data.sender,
                             text: data.message,
-                            time: data.timestamp || new Date().toLocaleTimeString(),
+                            time:
+                                data.timestamp ||
+                                new Date().toLocaleTimeString(),
                             self: data.sender === attendee?.name,
                             type: "chat",
                         },
@@ -581,7 +624,9 @@
                         {
                             sender: `[DM] ${data.sender}`,
                             text: data.message,
-                            time: data.timestamp || new Date().toLocaleTimeString(),
+                            time:
+                                data.timestamp ||
+                                new Date().toLocaleTimeString(),
                             self: false,
                             type: "dm",
                         },
@@ -620,7 +665,9 @@
                 type: "chat",
             });
             chatMessage = "";
-            pendingImages = pendingImages.filter((img) => img.status !== "success");
+            pendingImages = pendingImages.filter(
+                (img) => img.status !== "success",
+            );
             return;
         }
 
@@ -714,7 +761,9 @@
                     ? {
                           ...img,
                           status: "failed",
-                          error: $t("chat.image_too_large", { values: { max: MAX_MB } }),
+                          error: $t("chat.image_too_large", {
+                              values: { max: MAX_MB },
+                          }),
                       }
                     : img,
             );
@@ -728,7 +777,9 @@
                         ? {
                               ...img,
                               status: "failed",
-                              error: $t("chat.image_too_large", { values: { max: MAX_MB } }),
+                              error: $t("chat.image_too_large", {
+                                  values: { max: MAX_MB },
+                              }),
                           }
                         : img,
                 );
@@ -844,8 +895,10 @@
 
         // Check for HEIC files and show friendly message
         const fileName = file.name.toLowerCase();
-        if (fileName.endsWith('.heic') || fileName.endsWith('.heif')) {
-            alert("HEIC files are not supported directly. Please convert to JPG/PNG format, or take photos in 'Compatibility Mode' on your iPhone (Settings > Camera > Formats > Compatibility).");
+        if (fileName.endsWith(".heic") || fileName.endsWith(".heif")) {
+            alert(
+                "HEIC files are not supported directly. Please convert to JPG/PNG format, or take photos in 'Compatibility Mode' on your iPhone (Settings > Camera > Formats > Compatibility).",
+            );
             input.value = "";
             return;
         }
@@ -881,7 +934,11 @@
             const failures: string[] = [];
             for (const link of urls) {
                 try {
-                    const submission = await submitSubmissionLink(id, attendee.id, link);
+                    const submission = await submitSubmissionLink(
+                        id,
+                        attendee.id,
+                        link,
+                    );
                     mySubmissions = [submission, ...mySubmissions];
                 } catch (err: any) {
                     failures.push(err?.message || link);
@@ -901,10 +958,36 @@
         if (!attendee || !confirm($t("common.confirm_delete"))) return;
         try {
             await apiDeleteSubmission(id, attendee.id, submissionId);
-            mySubmissions = mySubmissions.filter(s => s.id !== submissionId);
+            mySubmissions = mySubmissions.filter((s) => s.id !== submissionId);
         } catch (err: any) {
             alert(err.message || $t("submission_panel.delete_failed"));
         }
+    }
+
+    function toggleQuizAnswer(qIndex: number, oIndex: number) {
+        if (quizSubmitted) return;
+        const q = quizzes[qIndex];
+        if (q.quiz_type === "multiple_selection") {
+            const current = (quizAnswers[qIndex] as number[]) || [];
+            if (current.includes(oIndex)) {
+                quizAnswers[qIndex] = current.filter((i) => i !== oIndex);
+            } else {
+                quizAnswers[qIndex] = [...current, oIndex].sort(
+                    (a, b) => a - b,
+                );
+            }
+        } else {
+            quizAnswers[qIndex] = oIndex;
+        }
+    }
+
+    function isAnswerSelected(qIndex: number, oIndex: number) {
+        const q = quizzes[qIndex];
+        if (q.quiz_type === "multiple_selection") {
+            const current = (quizAnswers[qIndex] as number[]) || [];
+            return current.includes(oIndex);
+        }
+        return quizAnswers[qIndex] === oIndex;
     }
 
     async function handleQuizSubmit() {
@@ -912,9 +995,36 @@
         const submissions = quizzes.map((q, i) => {
             let is_correct = false;
             let answer = "";
-            if (q.quiz_type === 'descriptive') {
+            if (q.quiz_type === "descriptive") {
                 answer = quizAnswers[i] || "";
                 if (answer.trim().length > 0) {
+                    is_correct = true;
+                    correct++;
+                }
+            } else if (q.quiz_type === "multiple_selection") {
+                const selected = (quizAnswers[i] as number[]) || [];
+                answer = JSON.stringify(selected);
+
+                // Parse correct_answers from JSON if needed
+                let correctAnswers: number[] = [];
+                if (q.correct_answers) {
+                    try {
+                        correctAnswers =
+                            typeof q.correct_answers === "string"
+                                ? JSON.parse(q.correct_answers)
+                                : q.correct_answers;
+                    } catch (e) {
+                        correctAnswers = [q.correct_answer];
+                    }
+                } else {
+                    correctAnswers = [q.correct_answer];
+                }
+
+                // Check if selected matches correct exactly
+                if (
+                    selected.length === correctAnswers.length &&
+                    selected.every((val) => correctAnswers.includes(val))
+                ) {
                     is_correct = true;
                     correct++;
                 }
@@ -928,24 +1038,24 @@
             return {
                 quiz_id: q.id,
                 answer: answer,
-                is_correct: is_correct
+                is_correct: is_correct,
             };
         });
 
         quizCorrectCount = correct;
         quizSubmitted = true;
-        
+
         // Send to backend
         if (attendee) {
             try {
                 await submitQuiz(id, {
-                    submissions: submissions
+                    submissions: submissions,
                 });
             } catch (e) {
                 console.error("Failed to submit quiz results", e);
             }
         }
-        
+
         if (correct === quizzes.length) {
             window.scrollTo({ top: 0, behavior: "smooth" });
         }
@@ -960,7 +1070,7 @@
                 satisfaction: feedbackSatisfaction,
                 comments: feedbackComment,
             });
-            
+
             // Mark as completed in backend
             try {
                 await completeCodelab(id);
@@ -1040,7 +1150,10 @@
     );
 </script>
 
-<a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white dark:focus:bg-dark-surface focus:text-foreground dark:focus:text-dark-text focus:p-3 focus:rounded-lg focus:shadow-lg">
+<a
+    href="#main-content"
+    class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:bg-white dark:focus:bg-dark-surface focus:text-foreground dark:focus:text-dark-text focus:p-3 focus:rounded-lg focus:shadow-lg"
+>
     {$t("common.skip_to_main") || "Skip to main content"}
 </a>
 
@@ -1057,7 +1170,10 @@
                 class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full lg:hidden transition-colors"
                 aria-label="Toggle sidebar"
             >
-                {#if showSidebar}<X size={20} class="dark:text-dark-text" />{:else}<Menu size={20} class="dark:text-dark-text" />{/if}
+                {#if showSidebar}<X
+                        size={20}
+                        class="dark:text-dark-text"
+                    />{:else}<Menu size={20} class="dark:text-dark-text" />{/if}
             </button>
             <div class="flex items-center gap-3">
                 <div
@@ -1065,14 +1181,18 @@
                 >
                     OC
                 </div>
-                <h1 class="font-bold text-lg hidden sm:block text-muted-foreground dark:text-dark-text-muted">
+                <h1
+                    class="font-bold text-lg hidden sm:block text-muted-foreground dark:text-dark-text-muted"
+                >
                     Open-Codelabs
                 </h1>
             </div>
         </div>
 
         <div class="flex-1 max-w-2xl px-8 text-center hidden md:block">
-            <h2 class="font-medium text-foreground dark:text-dark-text truncate text-base">
+            <h2
+                class="font-medium text-foreground dark:text-dark-text truncate text-base"
+            >
                 {codelab?.title || "Loading..."}
             </h2>
         </div>
@@ -1081,7 +1201,9 @@
             {#if codelab?.guide_markdown}
                 <button
                     onclick={() => (showGuide = !showGuide)}
-                    class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full transition-all {showGuide ? 'text-primary bg-accent/80 dark:bg-primary/20' : 'text-muted-foreground dark:text-dark-text-muted'}"
+                    class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full transition-all {showGuide
+                        ? 'text-primary bg-accent/80 dark:bg-primary/20'
+                        : 'text-muted-foreground dark:text-dark-text-muted'}"
                     title={$t("editor.guide_tab")}
                     aria-label={$t("editor.guide_tab")}
                 >
@@ -1090,9 +1212,15 @@
             {/if}
             <button
                 onclick={() => (showPlayground = !showPlayground)}
-                class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full transition-all relative {showPlayground ? 'text-primary bg-accent/80 dark:bg-primary/20' : 'text-muted-foreground dark:text-dark-text-muted'}"
-                title={showPlayground ? $t("playground.toggle_close") : $t("playground.toggle_open")}
-                aria-label={showPlayground ? $t("playground.toggle_close") : $t("playground.toggle_open")}
+                class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full transition-all relative {showPlayground
+                    ? 'text-primary bg-accent/80 dark:bg-primary/20'
+                    : 'text-muted-foreground dark:text-dark-text-muted'}"
+                title={showPlayground
+                    ? $t("playground.toggle_close")
+                    : $t("playground.toggle_open")}
+                aria-label={showPlayground
+                    ? $t("playground.toggle_close")
+                    : $t("playground.toggle_open")}
             >
                 <Code size={20} />
                 {#if !showPlayground && playgrounds.length > 0}
@@ -1106,10 +1234,16 @@
                 class="hidden sm:flex items-center gap-2 text-muted-foreground dark:text-dark-text-muted text-[11px] font-bold uppercase tracking-wider"
             >
                 <Clock size={14} />
-                <span>{$t("editor.mins_remaining", { values: { mins: steps.length * 5 } })}</span>
+                <span
+                    >{$t("editor.mins_remaining", {
+                        values: { mins: steps.length * 5 },
+                    })}</span
+                >
             </div>
 
-            <div class="h-6 w-px bg-border dark:bg-dark-border hidden md:block mx-1"></div>
+            <div
+                class="h-6 w-px bg-border dark:bg-dark-border hidden md:block mx-1"
+            ></div>
 
             <div class="hidden md:flex items-center gap-1">
                 <a
@@ -1143,7 +1277,9 @@
             >
                 <MessageSquare
                     size={20}
-                    class={showChat ? "text-primary" : "text-muted-foreground dark:text-dark-text-muted"}
+                    class={showChat
+                        ? "text-primary"
+                        : "text-muted-foreground dark:text-dark-text-muted"}
                 />
                 {#if !showChat && messages.length > 0}
                     <span
@@ -1167,18 +1303,29 @@
                     <div
                         class="absolute right-0 mt-3 w-72 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-2xl z-40 overflow-hidden"
                     >
-                        <div class="p-4 border-b border-border dark:border-dark-border">
+                        <div
+                            class="p-4 border-b border-border dark:border-dark-border"
+                        >
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
+                                <div
+                                    class="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold"
+                                >
                                     {attendee?.name
-                                        ? attendee.name.slice(0, 2).toUpperCase()
+                                        ? attendee.name
+                                              .slice(0, 2)
+                                              .toUpperCase()
                                         : "?"}
                                 </div>
                                 <div class="min-w-0">
-                                    <div class="font-bold text-foreground dark:text-dark-text truncate">
-                                        {attendee?.name || $t("attendee.anonymous_user")}
+                                    <div
+                                        class="font-bold text-foreground dark:text-dark-text truncate"
+                                    >
+                                        {attendee?.name ||
+                                            $t("attendee.anonymous_user")}
                                     </div>
-                                    <div class="text-xs text-muted-foreground dark:text-dark-text-muted truncate">
+                                    <div
+                                        class="text-xs text-muted-foreground dark:text-dark-text-muted truncate"
+                                    >
                                         {codelab?.title || $t("common.title")}
                                     </div>
                                 </div>
@@ -1186,27 +1333,46 @@
                         </div>
 
                         <div class="p-4 space-y-3 text-sm">
-                            <div class="flex items-center justify-between gap-4">
-                                <span class="text-muted-foreground dark:text-dark-text-muted">
+                            <div
+                                class="flex items-center justify-between gap-4"
+                            >
+                                <span
+                                    class="text-muted-foreground dark:text-dark-text-muted"
+                                >
                                     {$t("profile.email")}
                                 </span>
-                                <span class="text-foreground dark:text-dark-text text-right truncate max-w-[160px]">
-                                    {attendee?.email || $t("profile.not_available")}
+                                <span
+                                    class="text-foreground dark:text-dark-text text-right truncate max-w-[160px]"
+                                >
+                                    {attendee?.email ||
+                                        $t("profile.not_available")}
                                 </span>
                             </div>
-                            <div class="flex items-center justify-between gap-4">
-                                <span class="text-muted-foreground dark:text-dark-text-muted">
+                            <div
+                                class="flex items-center justify-between gap-4"
+                            >
+                                <span
+                                    class="text-muted-foreground dark:text-dark-text-muted"
+                                >
                                     {$t("profile.attendee_id")}
                                 </span>
-                                <span class="text-foreground dark:text-dark-text text-right truncate max-w-[160px]">
+                                <span
+                                    class="text-foreground dark:text-dark-text text-right truncate max-w-[160px]"
+                                >
                                     {attendee?.id || "-"}
                                 </span>
                             </div>
-                            <div class="flex items-center justify-between gap-4">
-                                <span class="text-muted-foreground dark:text-dark-text-muted">
+                            <div
+                                class="flex items-center justify-between gap-4"
+                            >
+                                <span
+                                    class="text-muted-foreground dark:text-dark-text-muted"
+                                >
                                     {$t("profile.registered_at")}
                                 </span>
-                                <span class="text-foreground dark:text-dark-text text-right truncate max-w-[160px]">
+                                <span
+                                    class="text-foreground dark:text-dark-text text-right truncate max-w-[160px]"
+                                >
                                     {attendee?.created_at
                                         ? formatTimestamp(attendee.created_at)
                                         : $t("profile.not_available")}
@@ -1214,68 +1380,75 @@
                             </div>
                         </div>
                     </div>
-    {/if}
-</div>
+                {/if}
+            </div>
 
-<style>
-    :global(.video-embed) {
-        width: 100%;
-        max-width: 100%;
-        margin: 1.25rem 0;
-    }
+            <style>
+                :global(.video-embed) {
+                    width: 100%;
+                    max-width: 100%;
+                    margin: 1.25rem 0;
+                }
 
-    :global(.video-embed iframe) {
-        width: 100%;
-        aspect-ratio: 16 / 9;
-        height: auto;
-        border: 0;
-        border-radius: 16px;
-        background: #000;
-    }
+                :global(.video-embed iframe) {
+                    width: 100%;
+                    aspect-ratio: 16 / 9;
+                    height: auto;
+                    border: 0;
+                    border-radius: 16px;
+                    background: #000;
+                }
 
-    :global(.markdown-body .video-embed) {
-        width: 100% !important;
-        max-width: none !important;
-    }
+                :global(.markdown-body .video-embed) {
+                    width: 100% !important;
+                    max-width: none !important;
+                }
 
-    :global(.markdown-body .video-embed iframe) {
-        width: 100% !important;
-        max-width: none !important;
-    }
+                :global(.markdown-body .video-embed iframe) {
+                    width: 100% !important;
+                    max-width: none !important;
+                }
 
-    :global(.prose .video-embed) {
-        width: 100% !important;
-        max-width: none !important;
-    }
+                :global(.prose .video-embed) {
+                    width: 100% !important;
+                    max-width: none !important;
+                }
 
-    :global(.prose .video-embed iframe) {
-        width: 100% !important;
-        max-width: none !important;
-    }
+                :global(.prose .video-embed iframe) {
+                    width: 100% !important;
+                    max-width: none !important;
+                }
 
-    :global(.markdown-body iframe),
-    :global(.prose iframe) {
-        width: 100% !important;
-        max-width: none !important;
-        aspect-ratio: 16 / 9;
-        height: auto !important;
-    }
+                :global(.markdown-body iframe),
+                :global(.prose iframe) {
+                    width: 100% !important;
+                    max-width: none !important;
+                    aspect-ratio: 16 / 9;
+                    height: auto !important;
+                }
 
-    :global(.video-embed--full),
-    :global(.video-embed--full iframe) {
-        width: 100% !important;
-        max-width: none !important;
-    }
-
-</style>
+                :global(.video-embed--full),
+                :global(.video-embed--full iframe) {
+                    width: 100% !important;
+                    max-width: none !important;
+                }
+            </style>
         </div>
     </header>
 
     <!-- Progress Bar -->
-    <div class="h-1 bg-accent/70 dark:bg-dark-border transition-all sticky top-16 z-30">
+    <div
+        class="h-1 bg-accent/70 dark:bg-dark-border transition-all sticky top-16 z-30"
+    >
         <div
-            class="h-full bg-primary transition-all duration-700 ease-out {themeState.isColorblind ? 'opacity-80' : ''}"
-            style="width: {isFinished ? 100 : progressPercent}%; {themeState.isColorblind ? 'background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.3) 10px, rgba(255,255,255,0.3) 20px); border-bottom: 2px solid #000;' : ''}"
+            class="h-full bg-primary transition-all duration-700 ease-out {themeState.isColorblind
+                ? 'opacity-80'
+                : ''}"
+            style="width: {isFinished
+                ? 100
+                : progressPercent}%; {themeState.isColorblind
+                ? 'background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.3) 10px, rgba(255,255,255,0.3) 20px); border-bottom: 2px solid #000;'
+                : ''}"
         ></div>
     </div>
 
@@ -1295,12 +1468,14 @@
                             if (window.innerWidth < 1024) showSidebar = false;
                             window.scrollTo({ top: 0, behavior: "smooth" });
                         }}
-                        class="w-full text-left p-3 rounded-lg flex items-start gap-4 transition-all duration-200 {showGuide && !isFinished
+                        class="w-full text-left p-3 rounded-lg flex items-start gap-4 transition-all duration-200 {showGuide &&
+                        !isFinished
                             ? 'bg-primary/10 dark:bg-primary/20 text-primary'
                             : 'hover:bg-accent/60 dark:hover:bg-white/5 text-muted-foreground dark:text-dark-text-muted'}"
                     >
                         <span
-                            class="text-xs font-bold mt-1 w-5 h-5 rounded-full flex items-center justify-center shrink-0 {showGuide && !isFinished
+                            class="text-xs font-bold mt-1 w-5 h-5 rounded-full flex items-center justify-center shrink-0 {showGuide &&
+                            !isFinished
                                 ? 'bg-primary text-primary-foreground'
                                 : 'bg-accent/80 dark:bg-white/10 text-muted-foreground dark:text-dark-text-muted'}"
                         >
@@ -1311,7 +1486,9 @@
                         >
                     </button>
 
-                    <div class="h-px bg-border dark:bg-dark-border my-4 mx-2"></div>
+                    <div
+                        class="h-px bg-border dark:bg-dark-border my-4 mx-2"
+                    ></div>
                 {/if}
 
                 {#each steps as step, i}
@@ -1322,7 +1499,9 @@
                             jumpToStep(i);
                         }}
                         class="w-full text-left p-3 rounded-lg flex items-start gap-4 transition-all duration-200 {currentStepIndex ===
-                            i && !isFinished && !showGuide
+                            i &&
+                        !isFinished &&
+                        !showGuide
                             ? 'bg-accent/80 dark:bg-primary/20 text-primary'
                             : 'hover:bg-accent/60 dark:hover:bg-white/5 text-muted-foreground dark:text-dark-text-muted'}"
                     >
@@ -1330,7 +1509,8 @@
                             class="text-xs font-bold mt-1 w-5 h-5 rounded-full flex items-center justify-center shrink-0 {currentStepIndex ===
                                 i && !isFinished
                                 ? 'bg-primary text-primary-foreground'
-                                : 'bg-accent/80 dark:bg-white/10 text-muted-foreground dark:text-dark-text-muted'}">{i + 1}</span
+                                : 'bg-accent/80 dark:bg-white/10 text-muted-foreground dark:text-dark-text-muted'}"
+                            >{i + 1}</span
                         >
                         <span class="text-sm font-medium leading-tight pt-1"
                             >{step.title}</span
@@ -1350,19 +1530,26 @@
                         </h3>
                         <div class="space-y-2">
                             {#each materials as material}
-                                {#if material.material_type === 'link'}
+                                {#if material.material_type === "link"}
                                     <a
                                         href={material.link_url}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         class="flex items-center gap-3 p-3 rounded-xl bg-accent/50 dark:bg-white/5 hover:bg-accent dark:hover:bg-white/10 transition-colors group"
                                     >
-                                        <ExternalLink size={18} class="text-primary flex-shrink-0" />
+                                        <ExternalLink
+                                            size={18}
+                                            class="text-primary flex-shrink-0"
+                                        />
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-foreground dark:text-dark-text truncate">
+                                            <p
+                                                class="text-sm font-medium text-foreground dark:text-dark-text truncate"
+                                            >
                                                 {material.title}
                                             </p>
-                                            <p class="text-xs text-muted-foreground dark:text-dark-text-muted truncate">
+                                            <p
+                                                class="text-xs text-muted-foreground dark:text-dark-text-muted truncate"
+                                            >
                                                 {material.link_url}
                                             </p>
                                         </div>
@@ -1373,16 +1560,26 @@
                                         download
                                         class="flex items-center gap-3 p-3 rounded-xl bg-accent/50 dark:bg-white/5 hover:bg-accent dark:hover:bg-white/10 transition-colors group"
                                     >
-                                        <FileText size={18} class="text-primary flex-shrink-0" />
+                                        <FileText
+                                            size={18}
+                                            class="text-primary flex-shrink-0"
+                                        />
                                         <div class="flex-1 min-w-0">
-                                            <p class="text-sm font-medium text-foreground dark:text-dark-text truncate">
+                                            <p
+                                                class="text-sm font-medium text-foreground dark:text-dark-text truncate"
+                                            >
                                                 {material.title}
                                             </p>
-                                            <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
+                                            <p
+                                                class="text-xs text-muted-foreground dark:text-dark-text-muted"
+                                            >
                                                 {$t("common.file")}
                                             </p>
                                         </div>
-                                        <Download size={16} class="text-muted-foreground group-hover:text-primary transition-colors" />
+                                        <Download
+                                            size={16}
+                                            class="text-muted-foreground group-hover:text-primary transition-colors"
+                                        />
                                     </a>
                                 {/if}
                             {/each}
@@ -1412,17 +1609,25 @@
         {/if}
 
         <!-- Content Area -->
-        <main id="main-content" class="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-12 bg-white dark:bg-dark-bg relative transition-colors" aria-live="polite">
+        <main
+            id="main-content"
+            class="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-12 bg-white dark:bg-dark-bg relative transition-colors"
+            aria-live="polite"
+        >
             <div class="max-w-5xl mx-auto min-h-full">
                 {#if showGuide && codelab?.guide_markdown}
                     <div
                         class="mb-12 bg-accent/60 dark:bg-dark-surface border border-border dark:border-dark-border rounded-3xl overflow-hidden shadow-sm"
                         in:slide
                     >
-                        <div class="bg-primary px-8 py-4 flex items-center justify-between text-primary-foreground">
+                        <div
+                            class="bg-primary px-8 py-4 flex items-center justify-between text-primary-foreground"
+                        >
                             <div class="flex items-center gap-3">
                                 <Info size={20} />
-                                <h3 class="font-bold">{$t("editor.guide_tab")}</h3>
+                                <h3 class="font-bold">
+                                    {$t("editor.guide_tab")}
+                                </h3>
                             </div>
                             <button
                                 type="button"
@@ -1442,7 +1647,9 @@
                                 )}
                             </div>
                         </div>
-                        <div class="bg-accent/60 dark:bg-dark-bg/50 px-8 py-4 flex justify-end">
+                        <div
+                            class="bg-accent/60 dark:bg-dark-bg/50 px-8 py-4 flex justify-end"
+                        >
                             <button
                                 onclick={() => (showGuide = false)}
                                 class="bg-primary text-primary-foreground px-6 py-2 rounded-full font-bold text-sm shadow-md hover:bg-primary/90 transition-all"
@@ -1481,40 +1688,58 @@
                     >
                         <!-- ... (keep check circle and text) -->
                         <div
-                        class="w-24 h-24 bg-emerald-50 dark:bg-green-500/10 text-emerald-600 dark:text-green-400 rounded-full flex items-center justify-center mb-8"
+                            class="w-24 h-24 bg-emerald-50 dark:bg-green-500/10 text-emerald-600 dark:text-green-400 rounded-full flex items-center justify-center mb-8"
                         >
                             <CheckCircle2 size={48} />
                         </div>
-                        <h1 class="text-4xl font-extrabold text-foreground dark:text-dark-text mb-4">
+                        <h1
+                            class="text-4xl font-extrabold text-foreground dark:text-dark-text mb-4"
+                        >
                             {$t("feedback.done_title")}
                         </h1>
                         <p
                             class="text-muted-foreground dark:text-dark-text-muted text-xl max-w-lg mb-12 leading-relaxed"
                         >
-                            {$t("feedback.done_desc", { values: { title: codelab?.title } })}
+                            {$t("feedback.done_desc", {
+                                values: { title: codelab?.title },
+                            })}
                         </p>
 
                         {#if quizzes.length > 0 && !isQuizPassed}
-                            <div class="max-w-2xl w-full bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-3xl p-8 mb-12 text-left shadow-lg transition-all">
+                            <div
+                                class="max-w-2xl w-full bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-3xl p-8 mb-12 text-left shadow-lg transition-all"
+                            >
                                 <div class="flex items-center gap-3 mb-8">
-                                    <div class="p-2 bg-primary/10 rounded-xl text-primary">
+                                    <div
+                                        class="p-2 bg-primary/10 rounded-xl text-primary"
+                                    >
                                         <Sparkles size={24} />
                                     </div>
-                                    <h2 class="text-2xl font-bold text-foreground dark:text-dark-text">{$t("editor.quiz_tab")}</h2>
+                                    <h2
+                                        class="text-2xl font-bold text-foreground dark:text-dark-text"
+                                    >
+                                        {$t("editor.quiz_tab")}
+                                    </h2>
                                 </div>
-                                
+
                                 <div class="space-y-10">
                                     {#each quizzes as q, i}
                                         <div class="space-y-4">
-                                            <p class="font-bold text-lg text-foreground dark:text-dark-text flex gap-3">
-                                                <span class="text-primary">Q{i+1}.</span>
+                                            <p
+                                                class="font-bold text-lg text-foreground dark:text-dark-text flex gap-3"
+                                            >
+                                                <span class="text-primary"
+                                                    >Q{i + 1}.</span
+                                                >
                                                 {q.question}
                                             </p>
-                                            
-                                            {#if q.quiz_type === 'descriptive'}
+
+                                            {#if q.quiz_type === "descriptive"}
                                                 <div class="pl-8">
                                                     <textarea
-                                                        bind:value={quizAnswers[i]}
+                                                        bind:value={
+                                                            quizAnswers[i]
+                                                        }
                                                         disabled={quizSubmitted}
                                                         placeholder="Type your answer here..."
                                                         aria-label={q.question}
@@ -1522,47 +1747,89 @@
                                                     ></textarea>
                                                 </div>
                                             {:else}
-                                                <div class="grid grid-cols-1 gap-3 pl-8">
+                                                <div
+                                                    class="grid grid-cols-1 gap-3 pl-8"
+                                                >
                                                     {#each q.options as opt, oi}
-                                                        <button 
-                                                            onclick={() => { if(!quizSubmitted) quizAnswers[i] = oi }}
-                                                            class="w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-4 {quizAnswers[i] === oi ? 'border-primary bg-accent/60 dark:bg-primary/10 text-primary' : 'border-border dark:border-dark-border hover:border-border/80 dark:hover:border-dark-border'}"
+                                                        <button
+                                                            onclick={() =>
+                                                                toggleQuizAnswer(
+                                                                    i,
+                                                                    oi,
+                                                                )}
+                                                            class="w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-4 {isAnswerSelected(
+                                                                i,
+                                                                oi,
+                                                            )
+                                                                ? 'border-primary bg-accent/60 dark:bg-primary/10 text-primary'
+                                                                : 'border-border dark:border-dark-border hover:border-border/80 dark:hover:border-dark-border'}"
                                                             disabled={quizSubmitted}
                                                         >
-                                                            <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 {quizAnswers[i] === oi ? 'border-primary bg-primary text-primary-foreground' : 'border-border dark:border-dark-border text-transparent'}">
-                                                                <Check size={14} />
+                                                            <div
+                                                                class="w-6 h-6 {q.quiz_type ===
+                                                                'multiple_selection'
+                                                                    ? 'rounded-lg'
+                                                                    : 'rounded-full'} border-2 flex items-center justify-center shrink-0 {isAnswerSelected(
+                                                                    i,
+                                                                    oi,
+                                                                )
+                                                                    ? 'border-primary bg-primary text-primary-foreground'
+                                                                    : 'border-border dark:border-dark-border text-transparent'}"
+                                                            >
+                                                                <Check
+                                                                    size={14}
+                                                                />
                                                             </div>
-                                                            <span class="font-medium">{opt}</span>
+                                                            <span
+                                                                class="font-medium"
+                                                                >{opt}</span
+                                                            >
                                                         </button>
                                                     {/each}
                                                 </div>
                                             {/if}
 
-                                            {#if quizSubmitted && q.quiz_type !== 'descriptive' && quizAnswers[i] !== q.correct_answer}
-                                                <p class="text-red-500 text-sm font-bold pl-8 flex items-center gap-2">
+                                            {#if quizSubmitted && q.quiz_type !== "descriptive" && quizAnswers[i] !== q.correct_answer}
+                                                <p
+                                                    class="text-red-500 text-sm font-bold pl-8 flex items-center gap-2"
+                                                >
                                                     <AlertCircle size={16} />
-                                                    Correct answer: {q.options[q.correct_answer]}
+                                                    Correct answer: {q.options[
+                                                        q.correct_answer
+                                                    ]}
                                                 </p>
                                             {/if}
                                         </div>
                                     {/each}
                                 </div>
 
-                                <div class="mt-12 flex flex-col items-center gap-4">
-                                    <button 
+                                <div
+                                    class="mt-12 flex flex-col items-center gap-4"
+                                >
+                                    <button
                                         onclick={handleQuizSubmit}
-                                        disabled={quizAnswers.includes(-1) || quizSubmitted}
+                                        disabled={quizAnswers.includes(-1) ||
+                                            quizSubmitted}
                                         class="bg-primary text-primary-foreground px-12 py-4 rounded-full font-bold text-lg shadow-md hover:bg-primary/90 disabled:opacity-50 transition-all active:scale-95 flex items-center gap-2"
                                     >
                                         <CheckCircle2 size={24} />
                                         Submit Answers
                                     </button>
                                     {#if quizSubmitted && !isQuizPassed}
-                                        <p class="text-red-500 font-bold">You got {quizCorrectCount} / {quizzes.length} correct. Please try again!</p>
-                                        <button 
-                                            onclick={() => { 
-                                                quizSubmitted = false; 
-                                                quizAnswers = quizzes.map(i => i.quiz_type === 'descriptive' ? "" : -1);
+                                        <p class="text-red-500 font-bold">
+                                            You got {quizCorrectCount} / {quizzes.length}
+                                            correct. Please try again!
+                                        </p>
+                                        <button
+                                            onclick={() => {
+                                                quizSubmitted = false;
+                                                quizAnswers = quizzes.map(
+                                                    (i) =>
+                                                        i.quiz_type ===
+                                                        "descriptive"
+                                                            ? ""
+                                                            : -1,
+                                                );
                                             }}
                                             class="text-primary font-bold hover:underline"
                                         >
@@ -1576,55 +1843,98 @@
                         {#if !feedbackSubmitted}
                             {#if isQuizPassed || quizzes.length === 0 || !codelab?.require_quiz}
                                 <!-- Submission Card -->
-                                <div class="max-w-md w-full bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-3xl p-8 mb-8 text-left shadow-lg transition-all">
+                                <div
+                                    class="max-w-md w-full bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-3xl p-8 mb-8 text-left shadow-lg transition-all"
+                                >
                                     <div class="flex items-center gap-3 mb-6">
-                                        <div class="p-2 bg-emerald-100/80 rounded-xl text-emerald-600">
+                                        <div
+                                            class="p-2 bg-emerald-100/80 rounded-xl text-emerald-600"
+                                        >
                                             <FileUp size={24} />
                                         </div>
-                                        <h3 class="text-xl font-bold text-foreground dark:text-dark-text">{$t("submission.title")}</h3>
+                                        <h3
+                                            class="text-xl font-bold text-foreground dark:text-dark-text"
+                                        >
+                                            {$t("submission.title")}
+                                        </h3>
                                     </div>
-                                    
-                                    <p class="text-sm text-muted-foreground dark:text-dark-text-muted mb-6">
+
+                                    <p
+                                        class="text-sm text-muted-foreground dark:text-dark-text-muted mb-6"
+                                    >
                                         {$t("submission.description")}
                                     </p>
 
                                     <div class="space-y-3 mb-6">
                                         {#each mySubmissions as sub}
-                                            <div class="flex items-center justify-between p-4 rounded-2xl bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border group">
-                                                <div class="flex items-center gap-3 min-w-0">
-                                                    <div class="p-2 bg-white dark:bg-white/10 rounded-lg shadow-sm">
+                                            <div
+                                                class="flex items-center justify-between p-4 rounded-2xl bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border group"
+                                            >
+                                                <div
+                                                    class="flex items-center gap-3 min-w-0"
+                                                >
+                                                    <div
+                                                        class="p-2 bg-white dark:bg-white/10 rounded-lg shadow-sm"
+                                                    >
                                                         {#if sub.submission_type === "link"}
-                                                            <ExternalLink size={18} class="text-primary" />
+                                                            <ExternalLink
+                                                                size={18}
+                                                                class="text-primary"
+                                                            />
                                                         {:else}
-                                                            <FileText size={18} class="text-primary" />
+                                                            <FileText
+                                                                size={18}
+                                                                class="text-primary"
+                                                            />
                                                         {/if}
                                                     </div>
-                                                    <div class="flex flex-col min-w-0">
-                                                        <span class="text-sm font-medium truncate text-foreground dark:text-dark-text">{sub.file_name}</span>
-                                                        <span class="text-[10px] text-muted-foreground">
-                                                            {sub.submission_type === "link"
-                                                                ? $t("submission.link_label")
+                                                    <div
+                                                        class="flex flex-col min-w-0"
+                                                    >
+                                                        <span
+                                                            class="text-sm font-medium truncate text-foreground dark:text-dark-text"
+                                                            >{sub.file_name}</span
+                                                        >
+                                                        <span
+                                                            class="text-[10px] text-muted-foreground"
+                                                        >
+                                                            {sub.submission_type ===
+                                                            "link"
+                                                                ? $t(
+                                                                      "submission.link_label",
+                                                                  )
                                                                 : `${(sub.file_size / 1024).toFixed(1)} KB`}
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <div class="flex items-center gap-2">
+                                                <div
+                                                    class="flex items-center gap-2"
+                                                >
                                                     {#if sub.submission_type === "link" && sub.link_url}
                                                         <a
                                                             href={sub.link_url}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
                                                             class="p-2 text-muted-foreground hover:text-primary transition-colors"
-                                                            aria-label={$t("submission.open_link")}
+                                                            aria-label={$t(
+                                                                "submission.open_link",
+                                                            )}
                                                         >
-                                                            <ExternalLink size={18} />
+                                                            <ExternalLink
+                                                                size={18}
+                                                            />
                                                         </a>
                                                     {/if}
-                                                    <button 
+                                                    <button
                                                         type="button"
-                                                        onclick={() => handleDeleteSubmission(sub.id)}
+                                                        onclick={() =>
+                                                            handleDeleteSubmission(
+                                                                sub.id,
+                                                            )}
                                                         class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-full transition-all"
-                                                        aria-label={$t("common.delete")}
+                                                        aria-label={$t(
+                                                            "common.delete",
+                                                        )}
                                                     >
                                                         <Trash2 size={18} />
                                                     </button>
@@ -1633,34 +1943,72 @@
                                         {/each}
                                     </div>
 
-                                    <label class="flex flex-col items-center justify-center w-full p-8 border-2 border-dashed border-border dark:border-dark-border rounded-3xl hover:bg-accent/60 dark:hover:bg-white/5 transition-all cursor-pointer group relative overflow-hidden">
+                                    <label
+                                        class="flex flex-col items-center justify-center w-full p-8 border-2 border-dashed border-border dark:border-dark-border rounded-3xl hover:bg-accent/60 dark:hover:bg-white/5 transition-all cursor-pointer group relative overflow-hidden"
+                                    >
                                         {#if submittingFile}
-                                            <div class="absolute inset-0 bg-white/80 dark:bg-dark-surface/80 flex flex-col items-center justify-center z-10">
-                                                <div class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
-                                                <p class="text-sm font-bold text-primary">{$t("submission.uploading")}</p>
+                                            <div
+                                                class="absolute inset-0 bg-white/80 dark:bg-dark-surface/80 flex flex-col items-center justify-center z-10"
+                                            >
+                                                <div
+                                                    class="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"
+                                                ></div>
+                                                <p
+                                                    class="text-sm font-bold text-primary"
+                                                >
+                                                    {$t("submission.uploading")}
+                                                </p>
                                             </div>
                                         {/if}
-                                        <div class="flex flex-col items-center justify-center">
-                                            <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                                <Upload size={32} class="text-primary" />
+                                        <div
+                                            class="flex flex-col items-center justify-center"
+                                        >
+                                            <div
+                                                class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform"
+                                            >
+                                                <Upload
+                                                    size={32}
+                                                    class="text-primary"
+                                                />
                                             </div>
-                                            <p class="text-base font-bold text-foreground dark:text-dark-text mb-1">{$t("submission.upload_btn")}</p>
-                                            <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
-                                                {(totalSubmissionSize / 1024 / 1024).toFixed(1)}MB / 10MB
+                                            <p
+                                                class="text-base font-bold text-foreground dark:text-dark-text mb-1"
+                                            >
+                                                {$t("submission.upload_btn")}
+                                            </p>
+                                            <p
+                                                class="text-xs text-muted-foreground dark:text-dark-text-muted"
+                                            >
+                                                {(
+                                                    totalSubmissionSize /
+                                                    1024 /
+                                                    1024
+                                                ).toFixed(1)}MB / 10MB
                                             </p>
                                         </div>
-                                        <input type="file" class="hidden" onchange={handleFileUpload} disabled={submittingFile} />
+                                        <input
+                                            type="file"
+                                            class="hidden"
+                                            onchange={handleFileUpload}
+                                            disabled={submittingFile}
+                                        />
                                     </label>
 
                                     <div class="mt-4 flex items-start gap-2">
                                         <div class="flex-1 relative">
-                                            <Link2 size={14} class="absolute left-3 top-3 text-muted-foreground" />
+                                            <Link2
+                                                size={14}
+                                                class="absolute left-3 top-3 text-muted-foreground"
+                                            />
                                             <textarea
                                                 rows="2"
-                                                placeholder={$t("submission_panel.link_placeholder")}
+                                                placeholder={$t(
+                                                    "submission_panel.link_placeholder",
+                                                )}
                                                 class="w-full pl-8 pr-3 py-2 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface text-xs text-foreground dark:text-dark-text outline-none focus:border-primary resize-none"
                                                 onblur={(e) => {
-                                                    const el = e.currentTarget as HTMLTextAreaElement;
+                                                    const el =
+                                                        e.currentTarget as HTMLTextAreaElement;
                                                     el.dataset.value = el.value;
                                                 }}
                                             ></textarea>
@@ -1670,15 +2018,23 @@
                                             class="px-3 py-2 rounded-xl bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-all disabled:opacity-50"
                                             disabled={submittingLink}
                                             onclick={(e) => {
-                                                const textarea = (e.currentTarget
-                                                    .parentElement?.querySelector("textarea") as HTMLTextAreaElement | null);
+                                                const textarea =
+                                                    e.currentTarget.parentElement?.querySelector(
+                                                        "textarea",
+                                                    ) as HTMLTextAreaElement | null;
                                                 if (!textarea) return;
                                                 const value = textarea.value;
                                                 handleLinkSubmit(value);
                                                 textarea.value = "";
                                             }}
                                         >
-                                            {submittingLink ? $t("submission_panel.link_submitting") : $t("submission_panel.link_submit")}
+                                            {submittingLink
+                                                ? $t(
+                                                      "submission_panel.link_submitting",
+                                                  )
+                                                : $t(
+                                                      "submission_panel.link_submit",
+                                                  )}
                                         </button>
                                     </div>
                                 </div>
@@ -1701,10 +2057,17 @@
                                             {#each [1, 2, 3, 4, 5] as s}
                                                 <button
                                                     onclick={() =>
-                                                        (feedbackSatisfaction = s)}
+                                                        (feedbackSatisfaction =
+                                                            s)}
                                                     class="p-1 rounded-lg transition-all hover:bg-yellow-50 dark:hover:bg-yellow-500/10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                                                    aria-label={$t("feedback.satisfaction") + " " + s + "/5"}
-                                                    aria-pressed={feedbackSatisfaction >= s}
+                                                    aria-label={$t(
+                                                        "feedback.satisfaction",
+                                                    ) +
+                                                        " " +
+                                                        s +
+                                                        "/5"}
+                                                    aria-pressed={feedbackSatisfaction >=
+                                                        s}
                                                 >
                                                     <Star
                                                         size={28}
@@ -1741,9 +2104,17 @@
                                         <div
                                             class="flex justify-between text-xs text-muted-foreground dark:text-dark-text-muted mt-2 font-medium"
                                         >
-                                            <span>{$t("feedback.too_easy")}</span>
-                                            <span>{$t("feedback.just_right")}</span>
-                                            <span>{$t("feedback.too_hard")}</span>
+                                            <span
+                                                >{$t("feedback.too_easy")}</span
+                                            >
+                                            <span
+                                                >{$t(
+                                                    "feedback.just_right",
+                                                )}</span
+                                            >
+                                            <span
+                                                >{$t("feedback.too_hard")}</span
+                                            >
                                         </div>
                                     </div>
 
@@ -1751,14 +2122,18 @@
                                         <label
                                             for="feedback-comments"
                                             class="block text-sm font-bold text-muted-foreground dark:text-dark-text-muted mb-2"
-                                            >{$t("feedback.comments_optional")}</label
+                                            >{$t(
+                                                "feedback.comments_optional",
+                                            )}</label
                                         >
                                         <textarea
                                             id="feedback-comments"
                                             bind:value={feedbackComment}
                                             class="w-full bg-transparent border border-border dark:border-dark-border rounded-lg p-3 text-sm text-foreground dark:text-dark-text focus:border-primary outline-none transition-colors"
                                             rows="3"
-                                            placeholder={$t("feedback.comments_placeholder")}
+                                            placeholder={$t(
+                                                "feedback.comments_placeholder",
+                                            )}
                                         ></textarea>
                                     </div>
 
@@ -1790,7 +2165,9 @@
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 onclick={handleCertificateClick}
-                                class="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2 {!canGetCertificate ? 'opacity-70' : ''}"
+                                class="bg-primary text-primary-foreground hover:bg-primary/90 px-8 py-3 rounded-full font-bold shadow-sm hover:shadow-md transition-all flex items-center gap-2 {!canGetCertificate
+                                    ? 'opacity-70'
+                                    : ''}"
                             >
                                 <FileText size={20} />
                                 {$t("feedback.get_certificate")}
@@ -1812,12 +2189,20 @@
                         <h1
                             class="text-[32px] leading-tight font-bold text-foreground dark:text-dark-text border-b border-border dark:border-dark-border pb-6 mb-10 transition-colors flex items-center justify-between"
                         >
-                            <span>{currentStepIndex + 1}. {currentStep.title}</span>
+                            <span
+                                >{currentStepIndex + 1}. {currentStep.title}</span
+                            >
                             <button
                                 onclick={handleTtsToggle}
-                                class="p-2 rounded-full hover:bg-accent/60 dark:hover:bg-white/10 transition-all {isSpeaking ? 'text-primary bg-accent/80 dark:bg-primary/20' : 'text-muted-foreground dark:text-dark-text-muted'}"
-                                title={isSpeaking ? $t("common.tts_stop") : $t("common.tts_read")}
-                                aria-label={isSpeaking ? $t("common.tts_stop") : $t("common.tts_read")}
+                                class="p-2 rounded-full hover:bg-accent/60 dark:hover:bg-white/10 transition-all {isSpeaking
+                                    ? 'text-primary bg-accent/80 dark:bg-primary/20'
+                                    : 'text-muted-foreground dark:text-dark-text-muted'}"
+                                title={isSpeaking
+                                    ? $t("common.tts_stop")
+                                    : $t("common.tts_read")}
+                                aria-label={isSpeaking
+                                    ? $t("common.tts_stop")
+                                    : $t("common.tts_read")}
                             >
                                 {#if isSpeaking}
                                     <Square size={20} fill="currentColor" />
@@ -1830,7 +2215,9 @@
                             {@html renderedContent}
                         </div>
                         {#if showPlayground}
-                            <PlaygroundPanel playgrounds={playgroundsForPanel} />
+                            <PlaygroundPanel
+                                playgrounds={playgroundsForPanel}
+                            />
                         {/if}
                     </div>
                 {/if}
@@ -1857,11 +2244,14 @@
                         {/if}
                     </div>
                     {#if helpSent}
-                        <span class="pr-1 sm:pr-2 text-xs sm:text-sm font-bold animate-pulse"
+                        <span
+                            class="pr-1 sm:pr-2 text-xs sm:text-sm font-bold animate-pulse"
                             >{$t("help.requested")} ✓</span
                         >
                     {:else}
-                        <span class="pr-1 sm:pr-2 text-xs sm:text-sm font-bold">{$t("help.request")}</span>
+                        <span class="pr-1 sm:pr-2 text-xs sm:text-sm font-bold"
+                            >{$t("help.request")}</span
+                        >
                     {/if}
                 </button>
             {/if}
@@ -1898,7 +2288,9 @@
                 transition:fly={{ x: 320, duration: 300 }}
                 class="fixed inset-y-0 right-0 z-40 w-full sm:w-80 bg-white dark:bg-dark-surface border-l border-border dark:border-dark-border flex flex-col pt-16 lg:pt-0"
             >
-                <div class="border-b border-border dark:border-dark-border bg-accent/60 dark:bg-white/5">
+                <div
+                    class="border-b border-border dark:border-dark-border bg-accent/60 dark:bg-white/5"
+                >
                     <div class="p-4 flex items-center justify-between pb-2">
                         <h3
                             class="font-bold text-foreground dark:text-dark-text flex items-center gap-2"
@@ -1921,7 +2313,7 @@
                         <button
                             onclick={() => (chatTab = "public")}
                             role="tab"
-                            aria-selected={chatTab === 'public'}
+                            aria-selected={chatTab === "public"}
                             class="pb-2 text-sm font-bold transition-all relative {chatTab ===
                             'public'
                                 ? 'text-primary border-b-2 border-primary'
@@ -1935,7 +2327,7 @@
                                 hasNewDm = false;
                             }}
                             role="tab"
-                            aria-selected={chatTab === 'direct'}
+                            aria-selected={chatTab === "direct"}
                             class="pb-2 text-sm font-bold transition-all relative {chatTab ===
                             'direct'
                                 ? 'text-primary border-b-2 border-primary'
@@ -1986,12 +2378,20 @@
                                       : 'bg-accent/70 dark:bg-dark-surface text-foreground dark:text-dark-text rounded-tl-none border border-transparent dark:border-dark-border'}"
                             >
                                 {#if getChatImageUrl(msg.text)}
-                                    <img
-                                        src={getChatImageUrl(msg.text)}
-                                        alt="chat image"
-                                        class="max-w-full rounded-lg border border-white/20 cursor-zoom-in"
-                                        onclick={() => openChatImage(getChatImageUrl(msg.text))}
-                                    />
+                                    <button
+                                        type="button"
+                                        class="p-0 border-none bg-transparent block"
+                                        onclick={() =>
+                                            openChatImage(
+                                                getChatImageUrl(msg.text),
+                                            )}
+                                    >
+                                        <img
+                                            src={getChatImageUrl(msg.text)}
+                                            alt="Uploaded in chat"
+                                            class="max-w-full rounded-lg border border-white/20 cursor-zoom-in"
+                                        />
+                                    </button>
                                 {:else}
                                     {msg.text}
                                 {/if}
@@ -2016,7 +2416,9 @@
                     {/if}
                 </div>
 
-                <div class="p-4 border-t border-border dark:border-dark-border bg-white dark:bg-dark-surface">
+                <div
+                    class="p-4 border-t border-border dark:border-dark-border bg-white dark:bg-dark-surface"
+                >
                     <form
                         onsubmit={(e) => {
                             e.preventDefault();
@@ -2031,7 +2433,8 @@
                             bind:this={chatImageInput}
                             class="hidden"
                             onchange={(e) => {
-                                const input = e.currentTarget as HTMLInputElement;
+                                const input =
+                                    e.currentTarget as HTMLInputElement;
                                 if (input.files && input.files.length > 0) {
                                     handleChatImagesSelect(input.files);
                                 }
@@ -2068,15 +2471,21 @@
                         </button>
                     </form>
                     {#if chatImageError}
-                        <div class="mt-2 text-xs text-red-600 dark:text-red-400">
+                        <div
+                            class="mt-2 text-xs text-red-600 dark:text-red-400"
+                        >
                             {chatImageError}
                         </div>
                     {/if}
                     {#if pendingImages.length > 0}
                         <div class="mt-2 space-y-2">
                             {#each pendingImages as image (image.id)}
-                                <div class="flex items-center justify-between gap-2 text-xs bg-accent/60 dark:bg-white/10 px-3 py-2 rounded-lg">
-                                    <div class="flex items-center gap-2 text-muted-foreground dark:text-dark-text-muted">
+                                <div
+                                    class="flex items-center justify-between gap-2 text-xs bg-accent/60 dark:bg-white/10 px-3 py-2 rounded-lg"
+                                >
+                                    <div
+                                        class="flex items-center gap-2 text-muted-foreground dark:text-dark-text-muted"
+                                    >
                                         {#if image.previewUrl}
                                             <img
                                                 src={image.previewUrl}
@@ -2084,14 +2493,20 @@
                                                 class="w-10 h-10 rounded-md object-cover border border-white/20"
                                             />
                                         {:else}
-                                            <div class="w-10 h-10 rounded-md bg-accent/80 dark:bg-white/10 flex items-center justify-center">
+                                            <div
+                                                class="w-10 h-10 rounded-md bg-accent/80 dark:bg-white/10 flex items-center justify-center"
+                                            >
                                                 <FileText size={16} />
                                             </div>
                                         {/if}
                                         <div class="flex flex-col">
-                                            <span class="truncate max-w-[160px]">{image.name || "image.webp"}</span>
+                                            <span class="truncate max-w-[160px]"
+                                                >{image.name ||
+                                                    "image.webp"}</span
+                                            >
                                             <span
-                                                class="text-[10px] font-semibold uppercase tracking-wide {image.status === 'success'
+                                                class="text-[10px] font-semibold uppercase tracking-wide {image.status ===
+                                                'success'
                                                     ? 'text-emerald-600 dark:text-emerald-300'
                                                     : image.status === 'failed'
                                                       ? 'text-red-600 dark:text-red-300'
@@ -2110,7 +2525,8 @@
                                             <button
                                                 type="button"
                                                 class="text-xs font-semibold text-red-700 dark:text-red-300 hover:underline"
-                                                onclick={() => retryChatImage(image.id)}
+                                                onclick={() =>
+                                                    retryChatImage(image.id)}
                                             >
                                                 {$t("chat.retry_upload")}
                                             </button>
@@ -2118,14 +2534,17 @@
                                         <button
                                             type="button"
                                             class="text-xs font-medium text-foreground hover:text-red-600 dark:hover:text-red-400"
-                                            onclick={() => removePendingImage(image.id)}
+                                            onclick={() =>
+                                                removePendingImage(image.id)}
                                         >
                                             {$t("chat.remove_image")}
                                         </button>
                                     </div>
                                 </div>
                                 {#if image.status === "failed" && image.error}
-                                    <div class="-mt-1 ml-2 text-[11px] text-red-600 dark:text-red-400">
+                                    <div
+                                        class="-mt-1 ml-2 text-[11px] text-red-600 dark:text-red-400"
+                                    >
                                         {image.error}
                                     </div>
                                 {/if}
@@ -2141,14 +2560,21 @@
             class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-6"
             role="dialog"
             aria-modal="true"
+            tabindex="-1"
             onclick={closeChatImage}
+            onkeydown={(e) => e.key === "Escape" && closeChatImage()}
         >
-            <img
-                src={chatImageLightboxUrl}
-                alt="chat image enlarged"
-                class="max-h-[90vh] max-w-[90vw] rounded-xl shadow-2xl border border-white/10"
+            <button
+                type="button"
+                class="p-0 border-none bg-transparent block"
                 onclick={(e) => e.stopPropagation()}
-            />
+            >
+                <img
+                    src={chatImageLightboxUrl}
+                    alt="Uploaded in chat enlarged"
+                    class="max-h-[90vh] max-w-[90vw] rounded-xl shadow-2xl border border-white/10"
+                />
+            </button>
             <button
                 type="button"
                 class="absolute top-4 right-4 text-white/80 hover:text-white text-2xl font-bold"

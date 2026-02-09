@@ -102,6 +102,7 @@
     let geminiApiKey = $state("");
     let apiKeySaved = $state(false);
     let showConsultant = $state(false);
+    let initialGeneratorContext = $state("");
     let backupFileInput = $state<HTMLInputElement | null>(null);
 
     let user = $state<any>(null);
@@ -318,15 +319,26 @@
             alert($t("editor.copy_url") + " " + $t("common.failed"));
         }
     }
+
+    function handleGeneratorClose() {
+        showAiGenerator = false;
+        initialGeneratorContext = "";
+    }
 </script>
 
 <div
     class="min-h-screen bg-muted dark:bg-dark-bg transition-colors duration-200"
 >
     {#if updateStatus && (updateStatus.frontend?.update_available || updateStatus.backend?.update_available)}
-        <div class="bg-amber-50 dark:bg-amber-500/10 border-b border-amber-200 dark:border-amber-500/20">
-            <div class="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div class="text-sm text-amber-800 dark:text-amber-200 font-medium">
+        <div
+            class="bg-amber-50 dark:bg-amber-500/10 border-b border-amber-200 dark:border-amber-500/20"
+        >
+            <div
+                class="max-w-6xl mx-auto px-4 sm:px-8 lg:px-12 py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
+            >
+                <div
+                    class="text-sm text-amber-800 dark:text-amber-200 font-medium"
+                >
                     {$t("dashboard.update_available") || "Update available"}:
                     {#if updateStatus.frontend?.update_available}
                         <span class="font-bold">Frontend</span>
@@ -338,7 +350,9 @@
                         {/if}
                     {/if}
                     {#if updateStatus.backend?.update_available}
-                        {#if updateStatus.frontend?.update_available} | {/if}
+                        {#if updateStatus.frontend?.update_available}
+                            |
+                        {/if}
                         <span class="font-bold">Backend</span>
                         {#if updateStatus.backend?.current}
                             (current {updateStatus.backend.current})
@@ -349,7 +363,8 @@
                     {/if}
                 </div>
                 <div class="text-xs text-amber-700 dark:text-amber-300">
-                    {$t("dashboard.update_hint") || "Pull the latest Docker images to update."}
+                    {$t("dashboard.update_hint") ||
+                        "Pull the latest Docker images to update."}
                 </div>
             </div>
         </div>
@@ -513,9 +528,7 @@
                 {#each groupedCodelabs as [date, list]}
                     <section>
                         <div class="flex items-center gap-2 mb-6">
-                            <div
-                                class="h-8 w-1 bg-primary rounded-full"
-                            ></div>
+                            <div class="h-8 w-1 bg-primary rounded-full"></div>
                             <h2
                                 class="text-xl font-bold text-foreground dark:text-dark-text"
                             >
@@ -831,9 +844,13 @@
                         {$t("dashboard.settings.api_key_desc")}
                     </p>
                 </div>
-                <div class="pt-4 border-t border-border dark:border-dark-border">
+                <div
+                    class="pt-4 border-t border-border dark:border-dark-border"
+                >
                     <div class="flex items-center justify-between mb-2">
-                        <h4 class="text-sm font-bold text-foreground dark:text-dark-text">
+                        <h4
+                            class="text-sm font-bold text-foreground dark:text-dark-text"
+                        >
                             {$t("dashboard.backup.title")}
                         </h4>
                     </div>
@@ -892,14 +909,22 @@
 {#if showAiGenerator}
     <AiCodelabGenerator
         apiKey={geminiApiKey}
-        onClose={() => (showAiGenerator = false)}
+        initialContext={initialGeneratorContext}
+        onClose={handleGeneratorClose}
         onCodelabCreated={(codelab) => {
             codelabs = [codelab, ...codelabs];
-            showAiGenerator = false;
+            handleGeneratorClose();
         }}
     />
 {/if}
 
 {#if showConsultant}
-    <FacilitatorConsultant onClose={() => (showConsultant = false)} />
+    <FacilitatorConsultant
+        onClose={() => (showConsultant = false)}
+        onGenerateCodelab={(transcript: string) => {
+            initialGeneratorContext = transcript;
+            showConsultant = false;
+            showAiGenerator = true;
+        }}
+    />
 {/if}

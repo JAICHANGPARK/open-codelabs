@@ -73,7 +73,7 @@ export async function getCodelab(id: string): Promise<[Codelab, Step[]]> {
 export async function createCodelab(payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean, guide_markdown?: string }): Promise<Codelab> {
     const res = await apiFetch(`/codelabs`, {
         method: 'POST',
-        headers: { 
+        headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
@@ -85,7 +85,7 @@ export async function createCodelab(payload: { title: string; description: strin
 export async function updateCodelab(id: string, payload: { title: string; description: string; author: string; is_public?: boolean, quiz_enabled?: boolean, require_quiz?: boolean, require_feedback?: boolean, guide_markdown?: string }): Promise<Codelab> {
     const res = await apiFetch(`/codelabs/${id}`, {
         method: 'PUT',
-        headers: { 
+        headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(payload),
@@ -184,7 +184,7 @@ export async function saveAdminSettings(payload: { gemini_api_key: string }): Pr
 
     const res = await apiFetch(`/admin/settings`, {
         method: 'POST',
-        headers: { 
+        headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(finalPayload),
@@ -442,7 +442,7 @@ export async function getQuizSubmissions(codelabId: string): Promise<QuizSubmiss
     return res.json();
 }
 
-export async function updateQuizzes(codelabId: string, quizzes: { question: string, options: string[], correct_answer: number }[]): Promise<void> {
+export async function updateQuizzes(codelabId: string, quizzes: { question: string, options: string[], correct_answer: number, correct_answers?: number[], quiz_type?: string }[]): Promise<void> {
     const res = await apiFetch(`/codelabs/${codelabId}/quizzes`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -454,7 +454,7 @@ export async function updateQuizzes(codelabId: string, quizzes: { question: stri
 export async function addMaterial(codelabId: string, payload: { title: string; material_type: 'link' | 'file'; link_url?: string; file_path?: string }): Promise<Material> {
     const res = await apiFetch(`/codelabs/${codelabId}/materials`, {
         method: 'POST',
-        headers: { 
+        headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload),

@@ -83,8 +83,9 @@ pub async fn create_codelab(
     let quiz_enabled = payload.quiz_enabled.unwrap_or(false);
     let require_quiz = payload.require_quiz.unwrap_or(false);
     let require_feedback = payload.require_feedback.unwrap_or(false);
+    let require_submission = payload.require_submission.unwrap_or(false);
 
-    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public, quiz_enabled, require_quiz, require_feedback, guide_markdown) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"))
+    sqlx::query(&state.q("INSERT INTO codelabs (id, title, description, author, is_public, quiz_enabled, require_quiz, require_feedback, require_submission, guide_markdown) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"))
         .bind(&id)
         .bind(&payload.title)
         .bind(&payload.description)
@@ -93,6 +94,7 @@ pub async fn create_codelab(
         .bind(quiz_enabled as i32)
         .bind(require_quiz as i32)
         .bind(require_feedback as i32)
+        .bind(require_submission as i32)
         .bind(&payload.guide_markdown)
         .execute(&state.pool)
         .await
@@ -158,6 +160,7 @@ pub async fn copy_codelab(
         .bind(codelab.quiz_enabled)
         .bind(codelab.require_quiz)
         .bind(codelab.require_feedback)
+        .bind(codelab.require_submission)
         .bind(&codelab.guide_markdown)
         .execute(&mut *tx)
         .await
@@ -217,8 +220,9 @@ pub async fn update_codelab_info(
     let quiz_enabled = payload.quiz_enabled.unwrap_or(false);
     let require_quiz = payload.require_quiz.unwrap_or(false);
     let require_feedback = payload.require_feedback.unwrap_or(false);
+    let require_submission = payload.require_submission.unwrap_or(false);
 
-    sqlx::query(&state.q("UPDATE codelabs SET title = ?, description = ?, author = ?, is_public = ?, quiz_enabled = ?, require_quiz = ?, require_feedback = ?, guide_markdown = ? WHERE id = ?"))
+    sqlx::query(&state.q("UPDATE codelabs SET title = ?, description = ?, author = ?, is_public = ?, quiz_enabled = ?, require_quiz = ?, require_feedback = ?, require_submission = ?, guide_markdown = ? WHERE id = ?"))
         .bind(&payload.title)
         .bind(&payload.description)
         .bind(&payload.author)
@@ -226,6 +230,7 @@ pub async fn update_codelab_info(
         .bind(quiz_enabled as i32)
         .bind(require_quiz as i32)
         .bind(require_feedback as i32)
+        .bind(require_submission as i32)
         .bind(&payload.guide_markdown)
         .bind(&id)
         .execute(&state.pool)
@@ -464,6 +469,7 @@ pub async fn import_codelab(
         quiz_enabled: Some(codelab.quiz_enabled != 0),
         require_quiz: Some(codelab.require_quiz != 0),
         require_feedback: Some(codelab.require_feedback != 0),
+        require_submission: Some(codelab.require_submission != 0), // Added this line
         guide_markdown: codelab.guide_markdown.clone(),
     };
     validate_codelab(&create)?;

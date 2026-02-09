@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { fade, fly } from "svelte/transition";
     import {
         X,
@@ -25,8 +26,9 @@
     import JSZip from "jszip";
     import UploadedFileList from "$lib/components/admin/UploadedFileList.svelte";
 
-    let { apiKey, onClose, onCodelabCreated } = $props<{
+    let { apiKey, initialContext, onClose, onCodelabCreated } = $props<{
         apiKey: string;
+        initialContext?: string;
         onClose: () => void;
         onCodelabCreated: (codelab: Codelab) => void;
     }>();
@@ -50,6 +52,13 @@
     let totalInputTokens = $state(0);
     let totalOutputTokens = $state(0);
     let totalCost = $state(0);
+
+    onMount(() => {
+        if (initialContext) {
+            generationMode = "prompt";
+            sourceCode = initialContext;
+        }
+    });
 
     // Gemini 3 Flash Preview pricing (per 1M tokens)
     const INPUT_PRICE_PER_1M = 0.5; // $0.50
@@ -283,7 +292,7 @@ Review Criteria (Be specific and critical):
 Provide actionable improvements for every issue found (e.g., "Step 3 lacks a filename header", not just "Fix formatting").
 `;
 
-    let generationMode = $state<GenerationMode>("basic");
+    let generationMode: GenerationMode = $state("basic");
     let advancedStep = $state<AdvancedStep>("input");
     let advancedLoading = $state(false);
     let advancedStreamContent = $state("");
@@ -1410,6 +1419,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
             generationMode === "prompt"
                 ? `${buildPromptOnlyInstructions(advancedTargetLanguage)}\n\n`
                 : "";
+        const draftReviewNoteText = draftReviewNotes.trim()
+            ? `Review notes from facilitator (must incorporate):\n${draftReviewNotes.trim()}\n\n`
+            : "";
         const reviewPrompt = `Review the draft codelab as a third-party facilitator expert. Use the plan to verify structure and completeness. Write ALL content in ${advancedTargetLanguage}.\n\n${reviewPromptModeInstruction}${facilitatorNoteText}${draftReviewNoteText}Plan JSON:\n${JSON.stringify(
             advancedPlanData,
             null,
@@ -2569,11 +2581,16 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             </div>
                         </div>
 
+                        <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+                        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
                         <div
                             bind:this={planContainerRef}
                             onmouseup={handlePlanSelection}
                             onkeyup={handlePlanSelection}
                             onscroll={clearPlanSelection}
+                            role="region"
+                            aria-label="Step planning"
+                            tabindex="0"
                             class="flex-1 overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border p-8 shadow-sm"
                         >
                             <div class="space-y-6">
@@ -2988,21 +3005,29 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                 {advancedDraftData.description}
                             </p>
 
-                            <div class="rounded-xl border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-4">
+                            <div
+                                class="rounded-xl border border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg p-4"
+                            >
                                 <label
                                     for="draft-review-notes"
                                     class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted"
                                 >
-                                    {$t("ai_generator.draft_review_notes_label")}
+                                    {$t(
+                                        "ai_generator.draft_review_notes_label",
+                                    )}
                                 </label>
                                 <textarea
                                     id="draft-review-notes"
                                     bind:value={draftReviewNotes}
                                     rows="3"
-                                    placeholder={$t("ai_generator.draft_review_notes_placeholder")}
+                                    placeholder={$t(
+                                        "ai_generator.draft_review_notes_placeholder",
+                                    )}
                                     class="mt-2 w-full rounded-lg border border-border dark:border-dark-border bg-white dark:bg-dark-surface px-3 py-2 text-sm text-foreground dark:text-dark-text outline-none focus:border-primary"
                                 ></textarea>
-                                <p class="mt-2 text-[11px] text-muted-foreground dark:text-dark-text-muted">
+                                <p
+                                    class="mt-2 text-[11px] text-muted-foreground dark:text-dark-text-muted"
+                                >
                                     {$t("ai_generator.draft_review_notes_desc")}
                                 </p>
                             </div>
@@ -3010,11 +3035,16 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                             <div class="space-y-8">
                                 {#each advancedDraftData.steps as step, i}
                                     {@const stepId = step.id || `${i}`}
-                                    {@const isExpanded = advancedDraftExpandedSteps.includes(stepId)}
+                                    {@const isExpanded =
+                                        advancedDraftExpandedSteps.includes(
+                                            stepId,
+                                        )}
                                     <div
                                         class="border border-border dark:border-dark-border rounded-lg p-6 hover:shadow-sm transition-shadow"
                                     >
-                                        <div class="flex items-start justify-between gap-4">
+                                        <div
+                                            class="flex items-start justify-between gap-4"
+                                        >
                                             <h4
                                                 class="font-bold text-lg text-foreground dark:text-dark-text mb-4"
                                             >
@@ -3023,10 +3053,13 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                             <button
                                                 type="button"
                                                 class="text-xs font-bold text-primary hover:underline"
-                                                onclick={() => toggleDraftStep(stepId)}
+                                                onclick={() =>
+                                                    toggleDraftStep(stepId)}
                                             >
                                                 {isExpanded
-                                                    ? $t("ai_generator.collapse")
+                                                    ? $t(
+                                                          "ai_generator.collapse",
+                                                      )
                                                     : $t("ai_generator.expand")}
                                             </button>
                                         </div>
@@ -3047,7 +3080,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                         )}
                                                     </div>
                                                     <div
-                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded ? '' : 'line-clamp-3'}"
+                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded
+                                                            ? ''
+                                                            : 'line-clamp-3'}"
                                                     >
                                                         {@html renderMarkdown(
                                                             sections.prompt ||
@@ -3068,7 +3103,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                         )}
                                                     </div>
                                                     <div
-                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded ? '' : 'line-clamp-3'}"
+                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded
+                                                            ? ''
+                                                            : 'line-clamp-3'}"
                                                     >
                                                         {@html renderMarkdown(
                                                             sections.expected ||
@@ -3089,7 +3126,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                         )}
                                                     </div>
                                                     <div
-                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded ? '' : 'line-clamp-3'}"
+                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded
+                                                            ? ''
+                                                            : 'line-clamp-3'}"
                                                     >
                                                         {@html renderMarkdown(
                                                             sections.tips ||
@@ -3110,7 +3149,9 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                         )}
                                                     </div>
                                                     <div
-                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded ? '' : 'line-clamp-3'}"
+                                                        class="text-sm text-foreground dark:text-dark-text markdown-body {isExpanded
+                                                            ? ''
+                                                            : 'line-clamp-3'}"
                                                     >
                                                         {@html renderMarkdown(
                                                             sections.timebox ||
@@ -3123,9 +3164,13 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                             </div>
                                         {:else}
                                             <div
-                                                class="text-foreground dark:text-dark-text text-sm markdown-body {isExpanded ? '' : 'line-clamp-3'}"
+                                                class="text-foreground dark:text-dark-text text-sm markdown-body {isExpanded
+                                                    ? ''
+                                                    : 'line-clamp-3'}"
                                             >
-                                                {@html renderMarkdown(step.content)}
+                                                {@html renderMarkdown(
+                                                    step.content,
+                                                )}
                                             </div>
                                         {/if}
                                     </div>

@@ -30,8 +30,9 @@
     import FocusTrap from "$lib/components/FocusTrap.svelte";
     import referenceCodelabs from "$lib/data/codelabs.csv?raw";
 
-    let { onClose } = $props<{
+    let { onClose, onGenerateCodelab } = $props<{
         onClose: () => void;
+        onGenerateCodelab?: (transcript: string) => void;
     }>();
 
     type Message = {
@@ -351,6 +352,21 @@
             })
             .filter(Boolean);
     }
+    function formatTranscript() {
+        return messages
+            .map((m) => {
+                const role =
+                    m.role === "user" ? "Facilitator" : "Gemini Consultant";
+                return `**${role}**: ${m.content}`;
+            })
+            .join("\n\n");
+    }
+
+    function handleGenerateFromDiscussion() {
+        if (messages.length === 0) return;
+        const transcript = formatTranscript();
+        onGenerateCodelab?.(transcript);
+    }
 </script>
 
 <div
@@ -420,6 +436,15 @@
                             title={$t("admin.consultant.new_chat")}
                         >
                             <Plus size={20} />
+                        </button>
+                    {/if}
+                    {#if messages.length > 0 && !showHistory && onGenerateCodelab}
+                        <button
+                            onclick={handleGenerateFromDiscussion}
+                            class="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-600/10 rounded-full text-emerald-600 transition-colors"
+                            title={$t("dashboard.create_with_ai")}
+                        >
+                            <Sparkles size={20} />
                         </button>
                     {/if}
                     <button

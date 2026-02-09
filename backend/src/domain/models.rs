@@ -14,6 +14,8 @@ pub struct Codelab {
     pub require_quiz: i32,
     #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
     pub require_feedback: i32,
+    #[serde(serialize_with = "to_bool", deserialize_with = "from_bool")]
+    pub require_submission: i32,
     pub guide_markdown: Option<String>,
     pub created_at: Option<String>,
 }
@@ -26,6 +28,7 @@ pub struct Quiz {
     pub quiz_type: Option<String>,
     pub options: String, // JSON string
     pub correct_answer: i32,
+    pub correct_answers: Option<String>, // JSON array of indices
     pub created_at: Option<String>,
 }
 
@@ -35,6 +38,7 @@ pub struct CreateQuiz {
     pub quiz_type: Option<String>,
     pub options: Vec<String>,
     pub correct_answer: i32,
+    pub correct_answers: Option<Vec<i32>>,
 }
 
 fn to_bool<S>(v: &i32, s: S) -> Result<S::Ok, S::Error>
@@ -71,6 +75,7 @@ pub struct CreateCodelab {
     pub quiz_enabled: Option<bool>,
     pub require_quiz: Option<bool>,
     pub require_feedback: Option<bool>,
+    pub require_submission: Option<bool>,
     pub guide_markdown: Option<String>,
 }
 
@@ -371,6 +376,7 @@ mod tests {
             quiz_enabled: 0,
             require_quiz: 0,
             require_feedback: 0,
+            require_submission: 0,
             guide_markdown: None,
             created_at: Some("2023-01-01".to_string()),
         };

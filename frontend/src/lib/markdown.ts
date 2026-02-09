@@ -1,6 +1,7 @@
 import { Marked } from "marked";
 import { markedHighlight } from "marked-highlight";
 import hljs from "highlight.js";
+import markedKatex from "marked-katex-extension";
 
 /**
  * Creates a configured Marked instance.
@@ -8,7 +9,7 @@ import hljs from "highlight.js";
  */
 export function createMarkdownParser(options: { highlight?: boolean } = {}) {
     const marked = new Marked();
-    
+
     if (options.highlight) {
         marked.use(
             markedHighlight({
@@ -24,12 +25,16 @@ export function createMarkdownParser(options: { highlight?: boolean } = {}) {
             })
         );
     }
-    
+
     marked.use({
         gfm: true,
         breaks: true,
     });
-    
+
+    marked.use(markedKatex({
+        throwOnError: false
+    }));
+
     return marked;
 }
 

@@ -26,7 +26,7 @@
         Columns2,
         BookOpen,
         Terminal,
-        X
+        X,
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
     import { adminMarked as marked } from "$lib/markdown";
@@ -37,10 +37,10 @@
     // @ts-ignore
     import { asBlob } from "html-docx-js-typescript";
 
-    let { 
-        guide_markdown = $bindable(), 
+    let {
+        guide_markdown = $bindable(),
         codelab_title = $t("editor.guide_tab"),
-        isSaving, 
+        isSaving,
         handleSave,
         generateGuideWithAi,
         generateGuideWithAiPro,
@@ -50,7 +50,7 @@
         guideProPlanOutput,
         guideProDraftOutput,
         guideProReviewOutput,
-        guideProRevisedOutput
+        guideProRevisedOutput,
     } = $props<{
         guide_markdown: string;
         codelab_title?: string;
@@ -106,8 +106,7 @@
 
     const toolbarButtonClass =
         "p-2 rounded-lg transition-colors text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-white dark:hover:bg-white/10";
-    const toolbarDividerClass =
-        "w-px h-6 bg-border dark:bg-dark-border mx-1";
+    const toolbarDividerClass = "w-px h-6 bg-border dark:bg-dark-border mx-1";
     const quickBlockClass =
         "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-white dark:bg-dark-surface border border-border dark:border-dark-border text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:border-primary/40 transition-colors";
 
@@ -222,7 +221,9 @@
         }
     };
 
-    let guideProDraftHtml = $derived.by(() => renderMarkdown(guideProDraftOutput));
+    let guideProDraftHtml = $derived.by(() =>
+        renderMarkdown(guideProDraftOutput),
+    );
     let guideProRevisedHtml = $derived.by(() =>
         renderMarkdown(guideProRevisedOutput),
     );
@@ -457,7 +458,8 @@
             case "h1":
             case "h2":
             case "h3": {
-                const level = type === "h1" ? "#" : type === "h2" ? "##" : "###";
+                const level =
+                    type === "h1" ? "#" : type === "h2" ? "##" : "###";
                 const placeholder = "Heading";
                 const content = selected || placeholder;
                 replacement = `${level} ${content}`;
@@ -478,7 +480,10 @@
                 if (selected) {
                     setCursorToEnd();
                 } else {
-                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                    setSelection(
+                        replacement.length - placeholder.length,
+                        placeholder.length,
+                    );
                 }
                 break;
             }
@@ -486,13 +491,18 @@
                 const placeholder = "list item";
                 const lines = selected ? selected.split("\n") : [""];
                 const listText = lines
-                    .map((line, index) => `${index + 1}. ${line || placeholder}`)
+                    .map(
+                        (line, index) => `${index + 1}. ${line || placeholder}`,
+                    )
                     .join("\n");
                 replacement = selected ? listText : `\n${listText}`;
                 if (selected) {
                     setCursorToEnd();
                 } else {
-                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                    setSelection(
+                        replacement.length - placeholder.length,
+                        placeholder.length,
+                    );
                 }
                 break;
             }
@@ -506,7 +516,10 @@
                 if (selected) {
                     setCursorToEnd();
                 } else {
-                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                    setSelection(
+                        replacement.length - placeholder.length,
+                        placeholder.length,
+                    );
                 }
                 break;
             }
@@ -520,7 +533,10 @@
                 if (selected) {
                     setCursorToEnd();
                 } else {
-                    setSelection(replacement.length - placeholder.length, placeholder.length);
+                    setSelection(
+                        replacement.length - placeholder.length,
+                        placeholder.length,
+                    );
                 }
                 break;
             }
@@ -562,7 +578,19 @@
                 return;
         }
 
-        textarea.setRangeText(replacement, start, end, "preserve");
+        // Use execCommand to preserve undo history
+        textarea.focus();
+        textarea.setSelectionRange(start, end);
+        try {
+            document.execCommand("insertText", false, replacement);
+        } catch (e) {
+            console.error(
+                "execCommand failed, falling back to setRangeText",
+                e,
+            );
+            textarea.setRangeText(replacement, start, end, "preserve");
+        }
+
         textarea.dispatchEvent(new Event("input", { bubbles: true }));
 
         setTimeout(() => {
@@ -607,9 +635,16 @@
         }
     }
 
-    function downloadFile(content: Blob | string, fileName: string, contentType: string) {
+    function downloadFile(
+        content: Blob | string,
+        fileName: string,
+        contentType: string,
+    ) {
         const a = document.createElement("a");
-        const file = content instanceof Blob ? content : new Blob([content], { type: contentType });
+        const file =
+            content instanceof Blob
+                ? content
+                : new Blob([content], { type: contentType });
         a.href = URL.createObjectURL(file);
         a.download = fileName;
         a.click();
@@ -618,7 +653,11 @@
 
     function exportToMd() {
         if (!guide_markdown) return;
-        downloadFile(guide_markdown, `${codelab_title}_Preparation_Guide.md`, "text/markdown");
+        downloadFile(
+            guide_markdown,
+            `${codelab_title}_Preparation_Guide.md`,
+            "text/markdown",
+        );
         showExportMenu = false;
     }
 
@@ -630,9 +669,9 @@
         const opt = {
             margin: 1,
             filename: `${codelab_title}_Preparation_Guide.pdf`,
-            image: { type: 'jpeg', quality: 0.98 },
+            image: { type: "jpeg", quality: 0.98 },
             html2canvas: { scale: 2 },
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
         };
 
         try {
@@ -646,7 +685,7 @@
 
     async function exportToDocx() {
         if (!guide_markdown) return;
-        
+
         try {
             // Basic HTML structure for DOCX
             const htmlString = `
@@ -672,7 +711,11 @@
 
             const docxBlob = await asBlob(htmlString);
 
-            downloadFile(docxBlob, `${codelab_title}_Preparation_Guide.docx`, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            downloadFile(
+                docxBlob,
+                `${codelab_title}_Preparation_Guide.docx`,
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            );
         } catch (e) {
             console.error("DOCX Export failed", e);
             alert($t("editor.docx_export_failed"));
@@ -682,107 +725,127 @@
 </script>
 
 <div class="space-y-6" in:fade>
-    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div
+        class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
+    >
         <div>
-            <h2 class="text-2xl font-bold text-foreground dark:text-dark-text">{$t("editor.guide_tab")}</h2>
-            <p class="text-muted-foreground dark:text-dark-text-muted text-sm">{$t("editor.guide_description")}</p>
+            <h2 class="text-2xl font-bold text-foreground dark:text-dark-text">
+                {$t("editor.guide_tab")}
+            </h2>
+            <p class="text-muted-foreground dark:text-dark-text-muted text-sm">
+                {$t("editor.guide_description")}
+            </p>
         </div>
-        
+
         <div class="flex flex-col items-start sm:items-end gap-2">
             <div class="flex flex-wrap items-center gap-2">
-            <div class="relative">
-                <button
-                    onclick={() => (showExportMenu = !showExportMenu)}
-                    class="bg-white dark:bg-dark-surface hover:bg-muted dark:hover:bg-white/5 text-muted-foreground dark:text-dark-text-muted px-4 py-2.5 rounded-full flex items-center gap-2 transition-all border border-border dark:border-dark-border font-bold text-sm shadow-sm"
-                >
-                    <FileDown size={18} />
-                    {$t("common.export")}
-                    <ChevronDown size={14} class="transition-transform {showExportMenu ? 'rotate-180' : ''}" />
-                </button>
-
-                {#if showExportMenu}
-                    <div 
-                        class="absolute right-0 mt-2 w-56 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-xl z-50 overflow-hidden"
-                        transition:slide={{ duration: 200 }}
+                <div class="relative">
+                    <button
+                        onclick={() => (showExportMenu = !showExportMenu)}
+                        class="bg-white dark:bg-dark-surface hover:bg-muted dark:hover:bg-white/5 text-muted-foreground dark:text-dark-text-muted px-4 py-2.5 rounded-full flex items-center gap-2 transition-all border border-border dark:border-dark-border font-bold text-sm shadow-sm"
                     >
-                        <div class="p-2 space-y-1">
-                            <button
-                                onclick={exportToMd}
-                                class="w-full text-left px-4 py-3 hover:bg-muted dark:hover:bg-white/5 rounded-xl flex items-center gap-3 transition-colors text-sm font-medium text-foreground dark:text-dark-text"
-                            >
-                                <FileCode size={18} class="text-muted-foreground" />
-                                <span>Markdown (.md)</span>
-                            </button>
-                            <button
-                                onclick={exportToPdf}
-                                class="w-full text-left px-4 py-3 hover:bg-muted dark:hover:bg-white/5 rounded-xl flex items-center gap-3 transition-colors text-sm font-medium text-foreground dark:text-dark-text"
-                            >
-                                <FileText size={18} class="text-red-500" />
-                                <span>PDF Document (.pdf)</span>
-                            </button>
-                            <button
-                                onclick={exportToDocx}
-                                class="w-full text-left px-4 py-3 hover:bg-muted dark:hover:bg-white/5 rounded-xl flex items-center gap-3 transition-colors text-sm font-medium text-foreground dark:text-dark-text"
-                            >
-                                <FileType size={18} class="text-primary" />
-                                <span>MS Word / Google Docs (.docx)</span>
-                            </button>
+                        <FileDown size={18} />
+                        {$t("common.export")}
+                        <ChevronDown
+                            size={14}
+                            class="transition-transform {showExportMenu
+                                ? 'rotate-180'
+                                : ''}"
+                        />
+                    </button>
+
+                    {#if showExportMenu}
+                        <div
+                            class="absolute right-0 mt-2 w-56 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-xl z-50 overflow-hidden"
+                            transition:slide={{ duration: 200 }}
+                        >
+                            <div class="p-2 space-y-1">
+                                <button
+                                    onclick={exportToMd}
+                                    class="w-full text-left px-4 py-3 hover:bg-muted dark:hover:bg-white/5 rounded-xl flex items-center gap-3 transition-colors text-sm font-medium text-foreground dark:text-dark-text"
+                                >
+                                    <FileCode
+                                        size={18}
+                                        class="text-muted-foreground"
+                                    />
+                                    <span>Markdown (.md)</span>
+                                </button>
+                                <button
+                                    onclick={exportToPdf}
+                                    class="w-full text-left px-4 py-3 hover:bg-muted dark:hover:bg-white/5 rounded-xl flex items-center gap-3 transition-colors text-sm font-medium text-foreground dark:text-dark-text"
+                                >
+                                    <FileText size={18} class="text-red-500" />
+                                    <span>PDF Document (.pdf)</span>
+                                </button>
+                                <button
+                                    onclick={exportToDocx}
+                                    class="w-full text-left px-4 py-3 hover:bg-muted dark:hover:bg-white/5 rounded-xl flex items-center gap-3 transition-colors text-sm font-medium text-foreground dark:text-dark-text"
+                                >
+                                    <FileType size={18} class="text-primary" />
+                                    <span>MS Word / Google Docs (.docx)</span>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                {/if}
-            </div>
+                    {/if}
+                </div>
 
-            <button
-                onclick={generateGuideWithAi}
-                disabled={isGenerating || isGuideProGenerating}
-                class="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-full flex items-center gap-2 transition-all font-bold text-sm shadow-sm disabled:opacity-50"
-            >
-                {#if isGenerating}
-                    <Loader2 size={18} class="animate-spin" />
-                    {$t("editor.generating_guide")}
-                {:else}
-                    <Sparkles size={18} />
-                    {$t("editor.generate_guide")}
-                {/if}
-            </button>
-
-            <button
-                onclick={handleProGenerate}
-                disabled={isGenerating || isGuideProGenerating}
-                class="bg-foreground hover:bg-foreground/90 text-background px-5 py-2.5 rounded-full flex items-center gap-2 transition-all font-bold text-sm shadow-sm disabled:opacity-50"
-            >
-                {#if isGuideProGenerating}
-                    <Loader2 size={18} class="animate-spin" />
-                    {$t("editor.generating_guide_pro")}
-                {:else}
-                    <Terminal size={18} />
-                    {$t("editor.generate_guide_pro")}
-                {/if}
-            </button>
-            {#if guideProHasOutput || isGuideProGenerating}
                 <button
-                    onclick={openGuideProModal}
-                    class="bg-white dark:bg-dark-surface border border-border dark:border-dark-border text-muted-foreground dark:text-dark-text-muted px-4 py-2.5 rounded-full flex items-center gap-2 transition-all font-bold text-xs hover:border-primary hover:text-primary"
+                    onclick={generateGuideWithAi}
+                    disabled={isGenerating || isGuideProGenerating}
+                    class="bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-full flex items-center gap-2 transition-all font-bold text-sm shadow-sm disabled:opacity-50"
                 >
-                    {$t("editor.guide_pro_view_results")}
+                    {#if isGenerating}
+                        <Loader2 size={18} class="animate-spin" />
+                        {$t("editor.generating_guide")}
+                    {:else}
+                        <Sparkles size={18} />
+                        {$t("editor.generate_guide")}
+                    {/if}
                 </button>
-            {/if}
+
+                <button
+                    onclick={handleProGenerate}
+                    disabled={isGenerating || isGuideProGenerating}
+                    class="bg-foreground hover:bg-foreground/90 text-background px-5 py-2.5 rounded-full flex items-center gap-2 transition-all font-bold text-sm shadow-sm disabled:opacity-50"
+                >
+                    {#if isGuideProGenerating}
+                        <Loader2 size={18} class="animate-spin" />
+                        {$t("editor.generating_guide_pro")}
+                    {:else}
+                        <Terminal size={18} />
+                        {$t("editor.generate_guide_pro")}
+                    {/if}
+                </button>
+                {#if guideProHasOutput || isGuideProGenerating}
+                    <button
+                        onclick={openGuideProModal}
+                        class="bg-white dark:bg-dark-surface border border-border dark:border-dark-border text-muted-foreground dark:text-dark-text-muted px-4 py-2.5 rounded-full flex items-center gap-2 transition-all font-bold text-xs hover:border-primary hover:text-primary"
+                    >
+                        {$t("editor.guide_pro_view_results")}
+                    </button>
+                {/if}
             </div>
 
             {#if isGuideProGenerating}
-                <div class="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground dark:text-dark-text-muted">
+                <div
+                    class="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground dark:text-dark-text-muted"
+                >
                     {#each guideProStages as stage, index}
                         <span
-                            class="px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider {index < guideProStageIndex
+                            class="px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider {index <
+                            guideProStageIndex
                                 ? 'bg-accent/70 text-primary border-primary/30'
                                 : index === guideProStageIndex
-                                    ? 'bg-primary text-white border-primary'
-                                    : 'bg-white dark:bg-dark-surface border-border dark:border-dark-border'}"
+                                  ? 'bg-primary text-white border-primary'
+                                  : 'bg-white dark:bg-dark-surface border-border dark:border-dark-border'}"
                         >
                             {$t(guideProStageLabels[stage])}
                         </span>
                         {#if index < guideProStages.length - 1}
-                            <span class="text-muted-foreground/40 dark:text-dark-border">&gt;</span>
+                            <span
+                                class="text-muted-foreground/40 dark:text-dark-border"
+                                >&gt;</span
+                            >
                         {/if}
                     {/each}
                 </div>
@@ -803,9 +866,14 @@
                 class="bg-white dark:bg-dark-surface w-full max-w-5xl h-[85vh] rounded-3xl shadow-2xl border border-border dark:border-dark-border flex flex-col overflow-hidden"
                 onclick={(e) => e.stopPropagation()}
             >
-                <div class="flex items-center justify-between px-6 py-4 bg-foreground text-background">
+                <div
+                    class="flex items-center justify-between px-6 py-4 bg-foreground text-background"
+                >
                     <div>
-                        <h3 id="guide-pro-modal-title" class="text-lg font-bold">
+                        <h3
+                            id="guide-pro-modal-title"
+                            class="text-lg font-bold"
+                        >
                             {$t("editor.guide_pro_modal_title")}
                         </h3>
                         <p class="text-xs opacity-80">
@@ -820,71 +888,121 @@
                         <X size={18} />
                     </button>
                 </div>
-                <div class="flex-1 overflow-y-auto p-6 bg-muted dark:bg-dark-bg">
-                    <div class="flex flex-wrap items-center gap-2 mb-4 text-[10px] text-muted-foreground dark:text-dark-text-muted">
+                <div
+                    class="flex-1 overflow-y-auto p-6 bg-muted dark:bg-dark-bg"
+                >
+                    <div
+                        class="flex flex-wrap items-center gap-2 mb-4 text-[10px] text-muted-foreground dark:text-dark-text-muted"
+                    >
                         {#each guideProStages as stage, index}
                             <span
-                                class="px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider {index < guideProStageIndex
+                                class="px-2 py-1 rounded-full border text-[10px] font-bold uppercase tracking-wider {index <
+                                guideProStageIndex
                                     ? 'bg-accent/70 text-primary border-primary/30'
                                     : index === guideProStageIndex
-                                        ? 'bg-primary text-white border-primary'
-                                        : 'bg-white dark:bg-dark-surface border-border dark:border-dark-border'}"
+                                      ? 'bg-primary text-white border-primary'
+                                      : 'bg-white dark:bg-dark-surface border-border dark:border-dark-border'}"
                             >
                                 {$t(guideProStageLabels[stage])}
                             </span>
                             {#if index < guideProStages.length - 1}
-                                <span class="text-muted-foreground/40 dark:text-dark-border">&gt;</span>
+                                <span
+                                    class="text-muted-foreground/40 dark:text-dark-border"
+                                    >&gt;</span
+                                >
                             {/if}
                         {/each}
                     </div>
 
-                    <div class="rounded-2xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface/60 p-4 shadow-sm">
-                        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                    <div
+                        class="rounded-2xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface/60 p-4 shadow-sm"
+                    >
+                        <div
+                            class="flex flex-wrap items-center justify-between gap-3 mb-3"
+                        >
                             <div>
-                                <div class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider">
+                                <div
+                                    class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
+                                >
                                     {$t("editor.guide_pro_results")}
                                 </div>
-                                <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
+                                <p
+                                    class="text-xs text-muted-foreground dark:text-dark-text-muted"
+                                >
                                     {$t("editor.guide_pro_results_desc")}
                                 </p>
                             </div>
                             {#if isGuideProGenerating}
-                                <span class="text-[10px] font-bold text-primary uppercase tracking-wider">
+                                <span
+                                    class="text-[10px] font-bold text-primary uppercase tracking-wider"
+                                >
                                     {$t("editor.generating_guide_pro")}
                                 </span>
                             {/if}
                         </div>
                         <div class="grid gap-3">
                             <details open={guideProDisplayStage === "plan"}>
-                                <summary class="cursor-pointer list-none flex items-center justify-between rounded-xl border border-border dark:border-dark-border px-3 py-2 text-xs font-bold text-foreground dark:text-dark-text bg-muted dark:bg-dark-bg">
-                                    <span>{$t("editor.guide_pro_result_plan")}</span>
+                                <summary
+                                    class="cursor-pointer list-none flex items-center justify-between rounded-xl border border-border dark:border-dark-border px-3 py-2 text-xs font-bold text-foreground dark:text-dark-text bg-muted dark:bg-dark-bg"
+                                >
+                                    <span
+                                        >{$t(
+                                            "editor.guide_pro_result_plan",
+                                        )}</span
+                                    >
                                 </summary>
-                                <div class="mt-2 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 max-h-64 overflow-y-auto">
+                                <div
+                                    class="mt-2 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 max-h-64 overflow-y-auto"
+                                >
                                     {#if guideProPlanOutput}
-                                        <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{guideProPlanOutput}</pre>
+                                        <pre
+                                            class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{guideProPlanOutput}</pre>
                                     {:else}
-                                        <p class="text-[11px] text-muted-foreground/80 dark:text-dark-text-muted">{$t("editor.guide_pro_result_empty")}</p>
+                                        <p
+                                            class="text-[11px] text-muted-foreground/80 dark:text-dark-text-muted"
+                                        >
+                                            {$t(
+                                                "editor.guide_pro_result_empty",
+                                            )}
+                                        </p>
                                     {/if}
                                 </div>
                             </details>
 
                             <details open={guideProDisplayStage === "draft"}>
-                                <summary class="cursor-pointer list-none flex items-center justify-between rounded-xl border border-border dark:border-dark-border px-3 py-2 text-xs font-bold text-foreground dark:text-dark-text bg-muted dark:bg-dark-bg">
-                                    <span>{$t("editor.guide_pro_result_draft")}</span>
+                                <summary
+                                    class="cursor-pointer list-none flex items-center justify-between rounded-xl border border-border dark:border-dark-border px-3 py-2 text-xs font-bold text-foreground dark:text-dark-text bg-muted dark:bg-dark-bg"
+                                >
+                                    <span
+                                        >{$t(
+                                            "editor.guide_pro_result_draft",
+                                        )}</span
+                                    >
                                 </summary>
-                                <div class="mt-2 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 max-h-64 overflow-y-auto">
-                                    <div class="flex items-center justify-end gap-1 mb-3">
+                                <div
+                                    class="mt-2 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 max-h-64 overflow-y-auto"
+                                >
+                                    <div
+                                        class="flex items-center justify-end gap-1 mb-3"
+                                    >
                                         <button
-                                            onclick={() => (guideProDraftView = "markdown")}
-                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDraftView === 'markdown'
+                                            onclick={() =>
+                                                (guideProDraftView =
+                                                    "markdown")}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDraftView ===
+                                            'markdown'
                                                 ? 'bg-primary text-white border-primary'
                                                 : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                         >
-                                            {$t("editor.guide_pro_view_markdown")}
+                                            {$t(
+                                                "editor.guide_pro_view_markdown",
+                                            )}
                                         </button>
                                         <button
-                                            onclick={() => (guideProDraftView = "raw")}
-                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDraftView === 'raw'
+                                            onclick={() =>
+                                                (guideProDraftView = "raw")}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDraftView ===
+                                            'raw'
                                                 ? 'bg-primary text-white border-primary'
                                                 : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                         >
@@ -897,44 +1015,83 @@
                                                 {@html guideProDraftHtml}
                                             </div>
                                         {:else}
-                                            <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{guideProDraftOutput}</pre>
+                                            <pre
+                                                class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{guideProDraftOutput}</pre>
                                         {/if}
                                     {:else}
-                                        <p class="text-[11px] text-muted-foreground/80 dark:text-dark-text-muted">{$t("editor.guide_pro_result_empty")}</p>
+                                        <p
+                                            class="text-[11px] text-muted-foreground/80 dark:text-dark-text-muted"
+                                        >
+                                            {$t(
+                                                "editor.guide_pro_result_empty",
+                                            )}
+                                        </p>
                                     {/if}
                                 </div>
                             </details>
 
                             <details open={guideProDisplayStage === "review"}>
-                                <summary class="cursor-pointer list-none flex items-center justify-between rounded-xl border border-border dark:border-dark-border px-3 py-2 text-xs font-bold text-foreground dark:text-dark-text bg-muted dark:bg-dark-bg">
-                                    <span>{$t("editor.guide_pro_result_review")}</span>
+                                <summary
+                                    class="cursor-pointer list-none flex items-center justify-between rounded-xl border border-border dark:border-dark-border px-3 py-2 text-xs font-bold text-foreground dark:text-dark-text bg-muted dark:bg-dark-bg"
+                                >
+                                    <span
+                                        >{$t(
+                                            "editor.guide_pro_result_review",
+                                        )}</span
+                                    >
                                 </summary>
-                                <div class="mt-2 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 max-h-64 overflow-y-auto">
+                                <div
+                                    class="mt-2 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 max-h-64 overflow-y-auto"
+                                >
                                     {#if guideProReviewOutput}
-                                        <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{guideProReviewOutput}</pre>
+                                        <pre
+                                            class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{guideProReviewOutput}</pre>
                                     {:else}
-                                        <p class="text-[11px] text-muted-foreground/80 dark:text-dark-text-muted">{$t("editor.guide_pro_result_empty")}</p>
+                                        <p
+                                            class="text-[11px] text-muted-foreground/80 dark:text-dark-text-muted"
+                                        >
+                                            {$t(
+                                                "editor.guide_pro_result_empty",
+                                            )}
+                                        </p>
                                     {/if}
                                 </div>
                             </details>
 
                             <details open={guideProDisplayStage === "revise"}>
-                                <summary class="cursor-pointer list-none flex items-center justify-between rounded-xl border border-border dark:border-dark-border px-3 py-2 text-xs font-bold text-foreground dark:text-dark-text bg-muted dark:bg-dark-bg">
-                                    <span>{$t("editor.guide_pro_result_revise")}</span>
+                                <summary
+                                    class="cursor-pointer list-none flex items-center justify-between rounded-xl border border-border dark:border-dark-border px-3 py-2 text-xs font-bold text-foreground dark:text-dark-text bg-muted dark:bg-dark-bg"
+                                >
+                                    <span
+                                        >{$t(
+                                            "editor.guide_pro_result_revise",
+                                        )}</span
+                                    >
                                 </summary>
-                                <div class="mt-2 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 max-h-64 overflow-y-auto">
-                                    <div class="flex items-center justify-end gap-1 mb-3">
+                                <div
+                                    class="mt-2 rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface p-3 max-h-64 overflow-y-auto"
+                                >
+                                    <div
+                                        class="flex items-center justify-end gap-1 mb-3"
+                                    >
                                         <button
-                                            onclick={() => (guideProRevisedView = "markdown")}
-                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProRevisedView === 'markdown'
+                                            onclick={() =>
+                                                (guideProRevisedView =
+                                                    "markdown")}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProRevisedView ===
+                                            'markdown'
                                                 ? 'bg-primary text-white border-primary'
                                                 : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                         >
-                                            {$t("editor.guide_pro_view_markdown")}
+                                            {$t(
+                                                "editor.guide_pro_view_markdown",
+                                            )}
                                         </button>
                                         <button
-                                            onclick={() => (guideProRevisedView = "raw")}
-                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProRevisedView === 'raw'
+                                            onclick={() =>
+                                                (guideProRevisedView = "raw")}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProRevisedView ===
+                                            'raw'
                                                 ? 'bg-primary text-white border-primary'
                                                 : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                         >
@@ -947,30 +1104,47 @@
                                                 {@html guideProRevisedHtml}
                                             </div>
                                         {:else}
-                                            <pre class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{guideProRevisedOutput}</pre>
+                                            <pre
+                                                class="text-[11px] leading-relaxed font-mono whitespace-pre-wrap text-foreground dark:text-dark-text">{guideProRevisedOutput}</pre>
                                         {/if}
                                     {:else}
-                                        <p class="text-[11px] text-muted-foreground/80 dark:text-dark-text-muted">{$t("editor.guide_pro_result_empty")}</p>
+                                        <p
+                                            class="text-[11px] text-muted-foreground/80 dark:text-dark-text-muted"
+                                        >
+                                            {$t(
+                                                "editor.guide_pro_result_empty",
+                                            )}
+                                        </p>
                                     {/if}
                                 </div>
                             </details>
                         </div>
                     </div>
 
-                    <div class="mt-6 rounded-2xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface/60 p-4 shadow-sm">
-                        <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+                    <div
+                        class="mt-6 rounded-2xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface/60 p-4 shadow-sm"
+                    >
+                        <div
+                            class="flex flex-wrap items-center justify-between gap-3 mb-3"
+                        >
                             <div>
-                                <div class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider">
+                                <div
+                                    class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
+                                >
                                     {$t("editor.guide_pro_diff_title")}
                                 </div>
-                                <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
+                                <p
+                                    class="text-xs text-muted-foreground dark:text-dark-text-muted"
+                                >
                                     {$t("editor.guide_pro_diff_desc")}
                                 </p>
                             </div>
                             <div class="flex items-center gap-1">
                                 <button
-                                    onclick={() => (guideProDiffView = "unified")}
-                                    class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDiffView === 'unified'
+                                    onclick={() =>
+                                        (guideProDiffView = "unified")}
+                                    class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDiffView ===
+                                    'unified'
                                         ? 'bg-primary text-white border-primary'
                                         : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                 >
@@ -978,7 +1152,8 @@
                                 </button>
                                 <button
                                     onclick={() => (guideProDiffView = "split")}
-                                    class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDiffView === 'split'
+                                    class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDiffView ===
+                                    'split'
                                         ? 'bg-primary text-white border-primary'
                                         : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                 >
@@ -987,32 +1162,45 @@
                             </div>
                         </div>
                         {#if !guideProDraftOutput || !guideProRevisedOutput}
-                            <p class="text-xs text-muted-foreground/80 dark:text-dark-text-muted">
+                            <p
+                                class="text-xs text-muted-foreground/80 dark:text-dark-text-muted"
+                            >
                                 {$t("editor.guide_pro_diff_empty")}
                             </p>
                         {:else if guideProDiff.truncated}
-                            <p class="text-xs text-muted-foreground/80 dark:text-dark-text-muted">
+                            <p
+                                class="text-xs text-muted-foreground/80 dark:text-dark-text-muted"
+                            >
                                 {$t("editor.guide_pro_diff_too_large")}
                             </p>
                         {:else if guideProDiffView === "unified"}
-                            <div class="rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto">
-                                <div class="font-mono text-[11px] leading-relaxed">
+                            <div
+                                class="rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto"
+                            >
+                                <div
+                                    class="font-mono text-[11px] leading-relaxed"
+                                >
                                     {#each guideProDiff.lines as line}
                                         <div
-                                            class="flex items-start gap-2 px-3 py-1 {line.type === 'add'
+                                            class="flex items-start gap-2 px-3 py-1 {line.type ===
+                                            'add'
                                                 ? 'bg-emerald-50 text-emerald-700'
                                                 : line.type === 'remove'
-                                                    ? 'bg-red-50 text-red-600'
-                                                    : 'text-foreground dark:text-dark-text'}"
+                                                  ? 'bg-red-50 text-red-600'
+                                                  : 'text-foreground dark:text-dark-text'}"
                                         >
-                                            <span class="w-4 text-[10px] font-bold">
+                                            <span
+                                                class="w-4 text-[10px] font-bold"
+                                            >
                                                 {line.type === "add"
                                                     ? "+"
                                                     : line.type === "remove"
-                                                        ? "-"
-                                                        : " "}
+                                                      ? "-"
+                                                      : " "}
                                             </span>
-                                            <span class="whitespace-pre-wrap break-words flex-1">
+                                            <span
+                                                class="whitespace-pre-wrap break-words flex-1"
+                                            >
                                                 {line.text || " "}
                                             </span>
                                         </div>
@@ -1020,36 +1208,58 @@
                                 </div>
                             </div>
                         {:else}
-                            <div class="rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto">
-                                <div class="grid grid-cols-2 font-mono text-[11px] leading-relaxed">
-                                    <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-muted dark:bg-dark-bg border-b border-border dark:border-dark-border">
+                            <div
+                                class="rounded-xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface max-h-72 overflow-y-auto"
+                            >
+                                <div
+                                    class="grid grid-cols-2 font-mono text-[11px] leading-relaxed"
+                                >
+                                    <div
+                                        class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-muted dark:bg-dark-bg border-b border-border dark:border-dark-border"
+                                    >
                                         {$t("editor.guide_pro_diff_left")}
                                     </div>
-                                    <div class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-muted dark:bg-dark-bg border-b border-l border-border dark:border-dark-border">
+                                    <div
+                                        class="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-muted dark:bg-dark-bg border-b border-l border-border dark:border-dark-border"
+                                    >
                                         {$t("editor.guide_pro_diff_right")}
                                     </div>
                                     {#each guideProDiffRows as row}
                                         <div
-                                            class="flex items-start gap-2 px-3 py-1 border-r border-border dark:border-dark-border {row.leftType === 'remove'
+                                            class="flex items-start gap-2 px-3 py-1 border-r border-border dark:border-dark-border {row.leftType ===
+                                            'remove'
                                                 ? 'bg-red-50 text-red-600'
                                                 : 'text-foreground dark:text-dark-text'}"
                                         >
-                                            <span class="w-4 text-[10px] font-bold">
-                                                {row.leftType === "remove" ? "-" : " "}
+                                            <span
+                                                class="w-4 text-[10px] font-bold"
+                                            >
+                                                {row.leftType === "remove"
+                                                    ? "-"
+                                                    : " "}
                                             </span>
-                                            <span class="whitespace-pre-wrap break-words flex-1">
+                                            <span
+                                                class="whitespace-pre-wrap break-words flex-1"
+                                            >
                                                 {row.leftText || " "}
                                             </span>
                                         </div>
                                         <div
-                                            class="flex items-start gap-2 px-3 py-1 {row.rightType === 'add'
+                                            class="flex items-start gap-2 px-3 py-1 {row.rightType ===
+                                            'add'
                                                 ? 'bg-emerald-50 text-emerald-700'
                                                 : 'text-foreground dark:text-dark-text'}"
                                         >
-                                            <span class="w-4 text-[10px] font-bold">
-                                                {row.rightType === "add" ? "+" : " "}
+                                            <span
+                                                class="w-4 text-[10px] font-bold"
+                                            >
+                                                {row.rightType === "add"
+                                                    ? "+"
+                                                    : " "}
                                             </span>
-                                            <span class="whitespace-pre-wrap break-words flex-1">
+                                            <span
+                                                class="whitespace-pre-wrap break-words flex-1"
+                                            >
                                                 {row.rightText || " "}
                                             </span>
                                         </div>
@@ -1063,7 +1273,9 @@
         </div>
     {/if}
 
-    <div class="flex flex-col gap-2 p-2 bg-muted/90 dark:bg-white/5 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border">
+    <div
+        class="flex flex-col gap-2 p-2 bg-muted/90 dark:bg-white/5 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border"
+    >
         <div class="flex flex-wrap items-center gap-2">
             <div class="flex items-center gap-1">
                 <button
@@ -1163,8 +1375,12 @@
             </div>
             <div class={toolbarDividerClass}></div>
             <div class="flex flex-wrap items-center gap-2">
-                <div class="flex items-center gap-1 rounded-lg border border-border dark:border-dark-border bg-white/80 dark:bg-dark-surface/60 px-2 py-1">
-                    <span class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider">
+                <div
+                    class="flex items-center gap-1 rounded-lg border border-border dark:border-dark-border bg-white/80 dark:bg-dark-surface/60 px-2 py-1"
+                >
+                    <span
+                        class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
+                    >
                         {$t("editor.toolbar.code_language")}
                     </span>
                     <select
@@ -1174,12 +1390,17 @@
                     >
                         <option value="">({$t("editor.toolbar.auto")})</option>
                         {#each languageOptions as language}
-                            <option value={language.value}>{language.label}</option>
+                            <option value={language.value}
+                                >{language.label}</option
+                            >
                         {/each}
                     </select>
                 </div>
                 <button
-                    onclick={() => insertMarkdown("code_block", { language: codeLanguage })}
+                    onclick={() =>
+                        insertMarkdown("code_block", {
+                            language: codeLanguage,
+                        })}
                     class={toolbarButtonClass}
                     title={$t("editor.toolbar.code_block")}
                     aria-label={$t("editor.toolbar.code_block")}
@@ -1206,7 +1427,9 @@
             <div class="ml-auto flex items-center gap-2">
                 <button
                     onclick={() => (isSplitView = !isSplitView)}
-                    class="flex items-center gap-2 px-3 py-2 rounded-full transition-colors border border-border dark:border-dark-border {isSplitView ? 'text-primary bg-white dark:bg-white/10 shadow-sm' : 'text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-white dark:hover:bg-white/10'}"
+                    class="flex items-center gap-2 px-3 py-2 rounded-full transition-colors border border-border dark:border-dark-border {isSplitView
+                        ? 'text-primary bg-white dark:bg-white/10 shadow-sm'
+                        : 'text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-white dark:hover:bg-white/10'}"
                     title={$t("editor.split_view")}
                     aria-label={$t("editor.split_view")}
                 >
@@ -1226,12 +1449,21 @@
                             {$t("editor.markdown_cheatsheet")}
                         </span>
                     </summary>
-                    <div class="absolute right-0 mt-2 w-80 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-xl p-4 text-xs text-foreground dark:text-dark-text z-30">
-                        <div class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider mb-2">
+                    <div
+                        class="absolute right-0 mt-2 w-80 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-xl p-4 text-xs text-foreground dark:text-dark-text z-30"
+                    >
+                        <div
+                            class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider mb-2"
+                        >
                             {$t("editor.markdown_cheatsheet")}
                         </div>
-                        <pre class="font-mono text-[11px] leading-relaxed bg-muted dark:bg-dark-bg rounded-lg p-3 border border-border dark:border-dark-border whitespace-pre-wrap"># {$t("editor.toolbar.heading1")}
-**{$t("editor.toolbar.bold")}** *{$t("editor.toolbar.italic")}* `{$t("editor.toolbar.inline_code")}`
+                        <pre
+                            class="font-mono text-[11px] leading-relaxed bg-muted dark:bg-dark-bg rounded-lg p-3 border border-border dark:border-dark-border whitespace-pre-wrap"># {$t(
+                                "editor.toolbar.heading1",
+                            )}
+**{$t("editor.toolbar.bold")}** *{$t("editor.toolbar.italic")}* `{$t(
+                                "editor.toolbar.inline_code",
+                            )}`
 - {$t("editor.toolbar.bullet_list")}
 1. {$t("editor.toolbar.numbered_list")}
 > {$t("editor.toolbar.quote")}
@@ -1244,32 +1476,46 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 pt-1">
-            <span class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider">
+            <span
+                class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
+            >
                 {$t("editor.snippets.label")}
             </span>
             <button
-                onclick={() => insertMarkdown("snippet", { snippet: $t("editor.snippets.step_outline") })}
+                onclick={() =>
+                    insertMarkdown("snippet", {
+                        snippet: $t("editor.snippets.step_outline"),
+                    })}
                 class={quickBlockClass}
             >
                 <ListOrdered size={12} />
                 <span>{$t("editor.snippets.step_outline_label")}</span>
             </button>
             <button
-                onclick={() => insertMarkdown("snippet", { snippet: $t("editor.snippets.checklist") })}
+                onclick={() =>
+                    insertMarkdown("snippet", {
+                        snippet: $t("editor.snippets.checklist"),
+                    })}
                 class={quickBlockClass}
             >
                 <CheckSquare size={12} />
                 <span>{$t("editor.snippets.checklist_label")}</span>
             </button>
             <button
-                onclick={() => insertMarkdown("snippet", { snippet: $t("editor.snippets.callout") })}
+                onclick={() =>
+                    insertMarkdown("snippet", {
+                        snippet: $t("editor.snippets.callout"),
+                    })}
                 class={quickBlockClass}
             >
                 <Quote size={12} />
                 <span>{$t("editor.snippets.callout_label")}</span>
             </button>
             <button
-                onclick={() => insertMarkdown("snippet", { snippet: $t("editor.snippets.command_block") })}
+                onclick={() =>
+                    insertMarkdown("snippet", {
+                        snippet: $t("editor.snippets.command_block"),
+                    })}
                 class={quickBlockClass}
             >
                 <Terminal size={12} />
@@ -1278,11 +1524,17 @@
         </div>
     </div>
 
-    <div class="grid grid-cols-1 {isSplitView ? 'lg:grid-cols-2' : ''} gap-8 min-h-[60vh]">
+    <div
+        class="grid grid-cols-1 {isSplitView
+            ? 'lg:grid-cols-2'
+            : ''} gap-8 min-h-[60vh]"
+    >
         <!-- Editor Side -->
         <div class="flex flex-col gap-3">
             <div class="flex items-center justify-between px-2">
-                <span class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider">
+                <span
+                    class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
+                >
                     {$t("editor.markdown_editor")}
                 </span>
             </div>
@@ -1300,7 +1552,9 @@
         {#if isSplitView}
             <div class="flex flex-col gap-3">
                 <div class="flex items-center justify-between px-2">
-                    <span class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider">
+                    <span
+                        class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
+                    >
                         {$t("editor.live_preview")}
                     </span>
                 </div>
@@ -1314,7 +1568,9 @@
                             {@html renderedContent}
                         </div>
                     {:else}
-                        <div class="h-full flex flex-col items-center justify-center text-center p-8 opacity-40">
+                        <div
+                            class="h-full flex flex-col items-center justify-center text-center p-8 opacity-40"
+                        >
                             <Info size={48} class="mb-4" />
                             <p>{$t("editor.guide_empty_preview")}</p>
                         </div>
@@ -1324,13 +1580,29 @@
         {/if}
     </div>
 
-    <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground dark:text-dark-text-muted">
+    <div
+        class="mt-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground dark:text-dark-text-muted"
+    >
         <div class="flex items-center gap-3">
-            <span>{$t("editor.stats.words", { values: { count: wordCount } })}</span>
-            <span>{$t("editor.stats.chars", { values: { count: charCount } })}</span>
-            <span>{$t("editor.stats.lines", { values: { count: lineCount } })}</span>
+            <span
+                >{$t("editor.stats.words", {
+                    values: { count: wordCount },
+                })}</span
+            >
+            <span
+                >{$t("editor.stats.chars", {
+                    values: { count: charCount },
+                })}</span
+            >
+            <span
+                >{$t("editor.stats.lines", {
+                    values: { count: lineCount },
+                })}</span
+            >
         </div>
-        <div class="hidden xl:flex items-center gap-2 text-muted-foreground/80 dark:text-dark-text-muted">
+        <div
+            class="hidden xl:flex items-center gap-2 text-muted-foreground/80 dark:text-dark-text-muted"
+        >
             <span>{$t("editor.shortcut_hint")}</span>
         </div>
     </div>

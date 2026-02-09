@@ -16,8 +16,9 @@ export interface Quiz {
     codelab_id: string;
     question: string;
     quiz_type: 'multiple_choice' | 'descriptive';
-    options: string; // JSON string
+    options: string[];
     correct_answer: number;
+    correct_answers?: number[];
     created_at?: string;
 }
 

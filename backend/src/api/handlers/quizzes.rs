@@ -1,9 +1,11 @@
+use crate::domain::models::{
+    Codelab, CreateQuiz, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee,
+};
 use crate::infrastructure::audit::{record_audit, AuditEntry};
-use crate::middleware::auth::AuthSession;
-use crate::utils::error::{bad_request, forbidden, internal_error};
-use crate::domain::models::{Codelab, CreateQuiz, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee};
-use crate::middleware::request_info::RequestInfo;
 use crate::infrastructure::database::AppState;
+use crate::middleware::auth::AuthSession;
+use crate::middleware::request_info::RequestInfo;
+use crate::utils::error::{bad_request, forbidden, internal_error};
 use crate::utils::validation::validate_quiz;
 use axum::{
     extract::{Path, State},
@@ -63,8 +65,15 @@ pub async fn update_quizzes(
         let id = Uuid::new_v4().to_string();
         let options_json = serde_json::to_string(&quiz.options).map_err(internal_error)?;
 
+        let correct_answers_json = if let Some(ref answers) = quiz.correct_answers {
+            Some(serde_json::to_string(answers).map_err(internal_error)?)
+        } else {
+            // Default to single correct answer if multiple not provided
+            Some(serde_json::to_string(&vec![quiz.correct_answer]).map_err(internal_error)?)
+        };
+
         sqlx::query(
-            &state.q("INSERT INTO quizzes (id, codelab_id, question, quiz_type, options, correct_answer) VALUES (?, ?, ?, ?, ?, ?)")
+            &state.q("INSERT INTO quizzes (id, codelab_id, question, quiz_type, options, correct_answer, correct_answers) VALUES (?, ?, ?, ?, ?, ?, ?)")
         )
         .bind(&id)
         .bind(&codelab_id)
@@ -72,6 +81,7 @@ pub async fn update_quizzes(
         .bind(quiz.quiz_type.unwrap_or_else(|| "multiple_choice".to_string()))
         .bind(&options_json)
         .bind(quiz.correct_answer)
+        .bind(correct_answers_json)
         .execute(&state.pool)
         .await
         .map_err(internal_error)?;
