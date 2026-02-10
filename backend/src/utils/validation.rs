@@ -140,6 +140,7 @@ mod tests {
             quiz_enabled: Some(false),
             require_quiz: Some(false),
             require_feedback: Some(false),
+            require_submission: Some(false),
             guide_markdown: None,
         };
         assert!(validate_codelab(&payload).is_ok());
@@ -173,6 +174,7 @@ mod tests {
             quiz_type: Some("multiple_choice".to_string()),
             options: vec!["A".to_string()],
             correct_answer: 0,
+            correct_answers: None,
         };
         assert!(validate_quiz(&quiz).is_err());
     }

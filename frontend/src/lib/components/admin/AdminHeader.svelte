@@ -22,8 +22,10 @@
         FolderGit2,
         Award,
         Images,
+        Monitor,
     } from "lucide-svelte";
     import * as NavigationMenu from "$lib/components/ui/navigation-menu/index.js";
+    import ScreenShareFacilitator from "./ScreenShareFacilitator.svelte";
     import { t } from "svelte-i18n";
     import type { Codelab } from "$lib/api";
 
@@ -39,6 +41,7 @@
         handleSave,
         handleDownloadWorkspace,
         handleBrowseWorkspace,
+        ws,
     } = $props<{
         id: string;
         codelab: Codelab | null;
@@ -49,6 +52,7 @@
         toggleVisibility: () => void;
         handleExport: () => void;
         handleSave: () => void;
+        ws?: WebSocket | null;
         handleDownloadWorkspace?: () => void;
         handleBrowseWorkspace?: () => void;
     }>();
@@ -103,6 +107,12 @@
                     labelKey: "editor.raffle_tab",
                     descriptionKey: "editor.tab_descriptions.raffle",
                     icon: Trophy,
+                },
+                {
+                    id: "monitoring",
+                    labelKey: "screen_share.monitoring_title",
+                    descriptionKey: "editor.tab_descriptions.live", // Reusing live desc or new one? Let's use live for now or add a new key.
+                    icon: Monitor,
                 },
             ],
         },
@@ -280,7 +290,21 @@
                         title={$t("workspace.actions.browse")}
                         aria-label={$t("workspace.actions.browse")}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sm:w-5 sm:h-5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="sm:w-5 sm:h-5"
+                            ><path
+                                d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"
+                            /></svg
+                        >
                     </button>
                 {/if}
 
@@ -295,6 +319,8 @@
                         <FileUp size={18} class="sm:w-5 sm:h-5" />
                     </button>
                 {/if}
+
+                <ScreenShareFacilitator {ws} codelabId={id} />
 
                 <button
                     onclick={handleSave}
@@ -332,7 +358,9 @@
                 {#each tabGroups as group}
                     <NavigationMenu.Item>
                         <NavigationMenu.Trigger
-                            class="!h-7 sm:!h-8 !px-3 sm:!px-4 !rounded-full text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider border border-border dark:border-dark-border bg-accent/60 dark:bg-white/5 text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text data-[state=open]:bg-white data-[state=open]:text-primary data-[state=open]:shadow-sm dark:data-[state=open]:bg-dark-surface {group.items.some((item) => item.id === mode)
+                            class="!h-7 sm:!h-8 !px-3 sm:!px-4 !rounded-full text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider border border-border dark:border-dark-border bg-accent/60 dark:bg-white/5 text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text data-[state=open]:bg-white data-[state=open]:text-primary data-[state=open]:shadow-sm dark:data-[state=open]:bg-dark-surface {group.items.some(
+                                (item) => item.id === mode,
+                            )
                                 ? '!bg-white dark:!bg-dark-surface text-primary shadow-sm'
                                 : ''}"
                         >
@@ -349,24 +377,23 @@
                                             event.preventDefault();
                                             mode = item.id;
                                         }}
-                                        aria-current={mode === item.id ? "page" : undefined}
+                                        aria-current={mode === item.id
+                                            ? "page"
+                                            : undefined}
                                         class="flex flex-row items-start gap-2 rounded-lg px-3 py-2 text-[11px] sm:text-sm font-semibold transition-colors {mode ===
                                         item.id
                                             ? 'bg-accent/70 dark:bg-primary/10 text-primary'
                                             : 'text-muted-foreground dark:text-dark-text-muted hover:bg-accent/60 dark:hover:bg-white/5 hover:text-foreground dark:hover:text-dark-text'}"
                                     >
-                                        <svelte:component
-                                            this={item.icon}
-                                            size={14}
-                                            class="mt-0.5"
-                                        />
+                                        {@const Icon = item.icon}
+                                        <Icon size={14} class="mt-0.5" />
                                         <span class="flex-1">
                                             <span class="block">
-                                                {item.labelKey
-                                                    ? $t(item.labelKey)
-                                                    : item.label}
+                                                {$t(item.labelKey)}
                                             </span>
-                                            <span class="block text-[10px] font-normal text-muted-foreground dark:text-dark-text-muted">
+                                            <span
+                                                class="block text-[10px] font-normal text-muted-foreground dark:text-dark-text-muted"
+                                            >
                                                 {$t(item.descriptionKey)}
                                             </span>
                                         </span>

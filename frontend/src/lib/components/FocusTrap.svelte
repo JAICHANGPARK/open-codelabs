@@ -1,5 +1,9 @@
 <script lang="ts">
-    let { active = true } = $props<{ active?: boolean }>();
+    import type { Snippet } from "svelte";
+    let { active = true, children } = $props<{
+        active?: boolean;
+        children: Snippet;
+    }>();
     let container: HTMLElement;
 
     function handleKeydown(event: KeyboardEvent) {
@@ -26,6 +30,6 @@
     }
 </script>
 
-<div bind:this={container} onkeydown={handleKeydown}>
-    <slot />
+<div bind:this={container} onkeydown={handleKeydown} role="presentation">
+    {@render children()}
 </div>

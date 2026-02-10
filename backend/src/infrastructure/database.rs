@@ -31,7 +31,12 @@ pub struct AppState {
     // Map of codelab_id -> broadcast sender
     pub channels: Arc<DashMap<String, broadcast::Sender<String>>>,
     // Map of (codelab_id, user_id) -> list of (session_id, sender) for DMs (supports multiple tabs)
-    pub sessions: Arc<DashMap<(String, String), Vec<(String, tokio::sync::mpsc::UnboundedSender<Message>)>>>,
+    pub sessions:
+        Arc<DashMap<(String, String), Vec<(String, tokio::sync::mpsc::UnboundedSender<Message>)>>>,
+    // Map of codelab_id -> is_screen_sharing
+    pub active_screen_shares: Arc<DashMap<String, bool>>,
+    // Map of (codelab_id, attendee_id) -> is_sharing
+    pub attendee_sharing: Arc<DashMap<(String, String), bool>>,
 }
 
 impl AppState {
@@ -55,6 +60,8 @@ impl AppState {
             admin_api_keys: Arc::new(DashMap::new()),
             channels: Arc::new(DashMap::new()),
             sessions: Arc::new(DashMap::new()),
+            active_screen_shares: Arc::new(DashMap::new()),
+            attendee_sharing: Arc::new(DashMap::new()),
         }
     }
 
@@ -233,14 +240,8 @@ mod tests {
         let nested = temp_dir.path().join("nested/sqlite.db");
         let database_url = format!("sqlite:{}", nested.to_string_lossy());
 
-        assert!(!nested
-            .parent()
-            .expect("missing parent")
-            .exists());
+        assert!(!nested.parent().expect("missing parent").exists());
         ensure_sqlite_directory(&database_url).expect("failed to create sqlite directory");
-        assert!(nested
-            .parent()
-            .expect("missing parent")
-            .exists());
+        assert!(nested.parent().expect("missing parent").exists());
     }
 }

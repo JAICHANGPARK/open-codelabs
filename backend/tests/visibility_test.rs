@@ -101,6 +101,7 @@ async fn test_codelab_visibility() {
         quiz_enabled: None,
         require_quiz: None,
         require_feedback: None,
+        require_submission: None,
         guide_markdown: None,
     };
     test_app
@@ -128,6 +129,7 @@ async fn test_codelab_visibility() {
         quiz_enabled: None,
         require_quiz: None,
         require_feedback: None,
+        require_submission: None,
         guide_markdown: None,
     };
     let res = test_app

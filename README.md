@@ -23,7 +23,8 @@
 - **Code Server Workspaces (Optional)**: Create per-codelab code-server workspaces with step snapshots (branch/folder mode) and downloadable archives.
 - **Quizzes, Feedback, and Certificates**: Gate certificate issuance with quiz scores and feedback submission; auto-generate verification URLs.
 - **Prep Guide & Materials**: Author or AI-generate preparation guides and manage downloadable links/files per codelab.
-- **Live Tools for Workshops**: Live chat/DM, help-queue with real-time resolution, submissions panel, and a roulette raffle that draws only from certificate holders.
+- **Live Tools for Workshops**: Live chat/DM, help-queue with real-time resolution, and a roulette raffle that draws only from certificate holders.
+- **Bi-directional Live Screen Sharing**: Facilitators can broadcast their screen to all attendees, while simultaneously monitoring all attendee screens in a real-time grid view. Supports resizable PiP for attendees and full-screen enlargement for facilitators.
 - **Multi-Runtime Support**: Run using a **Rust (Axum) + SQLite** backend for local/private sessions, or deploy with **Firebase (Firestore/Hosting)** or **Supabase** for a serverless experience.
 - **Google Codelab Look & Feel**: Familiar and highly readable design inspired by Google's own codelabs.
 - **Easy Public Access**: Integrated scripts for `ngrok`, `bore`, and `cloudflared` (Cloudflare Tunnel) to instantly expose your local server with QR code support for participants.
@@ -156,7 +157,8 @@ Open Codelabs features a built-in AI generator that transforms your code into st
 ---
 
 ## 🧭 Facilitator Toolkit (New)
-- **Live Mode**: Monitor attendees, real-time chat/DM, and resolve help requests instantly.
+- **Live Mode**: Real-time participant progress tracking, chat/DM, and help request resolution.
+- **Screen Share Monitoring**: Watch all attendee screens in a customizable grid. Enlarge specific streams for detailed guidance and provide real-time technical support.
 - **Audit Logs**: Track all administrative actions (login, codelab creation, settings updates) for accountability.
 - **Backup & Restore**: Easily export and import the entire system state (SQLite database) from the admin panel.
 - **Quiz & Feedback**: Configure completion requirements; results are aggregated per attendee.

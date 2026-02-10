@@ -20,7 +20,7 @@
         Sparkles,
         Info,
         Loader2,
-        Send
+        Send,
     } from "lucide-svelte";
     import { tick } from "svelte";
     import { t } from "svelte-i18n";
@@ -49,7 +49,7 @@
         improveWithAi,
         openAiMenuForFullDoc,
         syncEditorScroll,
-        syncPreviewScroll
+        syncPreviewScroll,
     } = $props<{
         step: Step;
         isSplitView: boolean;
@@ -65,7 +65,7 @@
         geminiApiKey: string;
         insertMarkdown: (
             type: string,
-            options?: { language?: string; snippet?: string; url?: string }
+            options?: { language?: string; snippet?: string; url?: string },
         ) => void;
         handleFileSelect: (e: Event) => void;
         handleKeydown: (e: KeyboardEvent) => void;
@@ -120,14 +120,15 @@
 
     const toolbarButtonClass =
         "p-2 rounded-lg transition-colors text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-white dark:hover:bg-white/10";
-    const toolbarDividerClass =
-        "w-px h-6 bg-border dark:bg-dark-border mx-1";
+    const toolbarDividerClass = "w-px h-6 bg-border dark:bg-dark-border mx-1";
     const quickBlockClass =
         "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold bg-white dark:bg-dark-surface border border-border dark:border-dark-border text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:border-primary/40 transition-colors";
 </script>
 
 <div class="sticky top-[166px] z-20 mb-4">
-    <div class="flex flex-col gap-2 p-2 bg-accent/60 dark:bg-white/5 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border">
+    <div
+        class="flex flex-col gap-2 p-2 bg-accent/60 dark:bg-white/5 backdrop-blur-sm rounded-2xl border border-border dark:border-dark-border"
+    >
         <div class="flex flex-wrap items-center gap-2">
             <div class="flex items-center gap-1">
                 <button
@@ -227,8 +228,12 @@
             </div>
             <div class={toolbarDividerClass}></div>
             <div class="flex flex-wrap items-center gap-2">
-                <div class="flex items-center gap-1 rounded-lg border border-border dark:border-dark-border bg-white/80 dark:bg-dark-surface/60 px-2 py-1">
-                    <span class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider">
+                <div
+                    class="flex items-center gap-1 rounded-lg border border-border dark:border-dark-border bg-white/80 dark:bg-dark-surface/60 px-2 py-1"
+                >
+                    <span
+                        class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
+                    >
                         {$t("editor.toolbar.code_language")}
                     </span>
                     <select
@@ -238,12 +243,17 @@
                     >
                         <option value="">({$t("editor.toolbar.auto")})</option>
                         {#each languageOptions as language}
-                            <option value={language.value}>{language.label}</option>
+                            <option value={language.value}
+                                >{language.label}</option
+                            >
                         {/each}
                     </select>
                 </div>
                 <button
-                    onclick={() => insertMarkdown("code_block", { language: codeLanguage })}
+                    onclick={() =>
+                        insertMarkdown("code_block", {
+                            language: codeLanguage,
+                        })}
                     class={toolbarButtonClass}
                     title={$t("editor.toolbar.code_block")}
                     aria-label={$t("editor.toolbar.code_block")}
@@ -271,13 +281,24 @@
                 <div class="flex items-center gap-1">
                     <button
                         onclick={(e) => {
-                            const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                            const x = Math.min(rect.left, window.innerWidth - 360);
-                            const y = Math.min(rect.bottom + 8, window.innerHeight - 260);
+                            const rect = (
+                                e.currentTarget as HTMLElement
+                            ).getBoundingClientRect();
+                            const x = Math.min(
+                                rect.left,
+                                window.innerWidth - 360,
+                            );
+                            const y = Math.min(
+                                rect.bottom + 8,
+                                window.innerHeight - 260,
+                            );
                             openAiMenuForFullDoc({ x, y });
                         }}
                         disabled={aiLoading || !geminiApiKey}
-                        class="flex items-center gap-2 px-3 py-2 rounded-full transition-colors border border-border dark:border-dark-border {aiLoading || !geminiApiKey ? 'text-muted-foreground dark:text-dark-text-muted cursor-not-allowed' : 'text-primary bg-white dark:bg-dark-surface hover:bg-accent/60 dark:hover:bg-white/10'}"
+                        class="flex items-center gap-2 px-3 py-2 rounded-full transition-colors border border-border dark:border-dark-border {aiLoading ||
+                        !geminiApiKey
+                            ? 'text-muted-foreground dark:text-dark-text-muted cursor-not-allowed'
+                            : 'text-primary bg-white dark:bg-dark-surface hover:bg-accent/60 dark:hover:bg-white/10'}"
                         title={$t("editor.toolbar.improve_with_gemini")}
                         aria-label={$t("editor.toolbar.improve_with_gemini")}
                     >
@@ -289,14 +310,18 @@
                     <span
                         class="text-muted-foreground dark:text-dark-text-muted"
                         title={$t("editor.toolbar.improve_with_gemini_hint")}
-                        aria-label={$t("editor.toolbar.improve_with_gemini_hint")}
+                        aria-label={$t(
+                            "editor.toolbar.improve_with_gemini_hint",
+                        )}
                     >
                         <Info size={14} />
                     </span>
                 </div>
                 <button
                     onclick={() => (isSplitView = !isSplitView)}
-                    class="flex items-center gap-2 px-3 py-2 rounded-full transition-colors border border-border dark:border-dark-border {isSplitView ? 'text-primary bg-white dark:bg-white/10 shadow-sm' : 'text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-white dark:hover:bg-white/10'}"
+                    class="flex items-center gap-2 px-3 py-2 rounded-full transition-colors border border-border dark:border-dark-border {isSplitView
+                        ? 'text-primary bg-white dark:bg-white/10 shadow-sm'
+                        : 'text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-white dark:hover:bg-white/10'}"
                     title={$t("editor.split_view")}
                     aria-label={$t("editor.split_view")}
                 >
@@ -316,12 +341,21 @@
                             {$t("editor.markdown_cheatsheet")}
                         </span>
                     </summary>
-                    <div class="absolute right-0 mt-2 w-80 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-xl p-4 text-xs text-foreground dark:text-dark-text z-30">
-                        <div class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider mb-2">
+                    <div
+                        class="absolute right-0 mt-2 w-80 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-xl p-4 text-xs text-foreground dark:text-dark-text z-30"
+                    >
+                        <div
+                            class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider mb-2"
+                        >
                             {$t("editor.markdown_cheatsheet")}
                         </div>
-                        <pre class="font-mono text-[11px] leading-relaxed bg-accent/60 dark:bg-dark-bg rounded-lg p-3 border border-border dark:border-dark-border whitespace-pre-wrap"># {$t("editor.toolbar.heading1")}
-**{$t("editor.toolbar.bold")}** *{$t("editor.toolbar.italic")}* `{$t("editor.toolbar.inline_code")}`
+                        <pre
+                            class="font-mono text-[11px] leading-relaxed bg-accent/60 dark:bg-dark-bg rounded-lg p-3 border border-border dark:border-dark-border whitespace-pre-wrap"># {$t(
+                                "editor.toolbar.heading1",
+                            )}
+**{$t("editor.toolbar.bold")}** *{$t("editor.toolbar.italic")}* `{$t(
+                                "editor.toolbar.inline_code",
+                            )}`
 - {$t("editor.toolbar.bullet_list")}
 1. {$t("editor.toolbar.numbered_list")}
 > {$t("editor.toolbar.quote")}
@@ -334,32 +368,46 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2 pt-1">
-            <span class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider">
+            <span
+                class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
+            >
                 {$t("editor.snippets.label")}
             </span>
             <button
-                onclick={() => insertMarkdown("snippet", { snippet: $t("editor.snippets.step_outline") })}
+                onclick={() =>
+                    insertMarkdown("snippet", {
+                        snippet: $t("editor.snippets.step_outline"),
+                    })}
                 class={quickBlockClass}
             >
                 <ListOrdered size={12} />
                 <span>{$t("editor.snippets.step_outline_label")}</span>
             </button>
             <button
-                onclick={() => insertMarkdown("snippet", { snippet: $t("editor.snippets.checklist") })}
+                onclick={() =>
+                    insertMarkdown("snippet", {
+                        snippet: $t("editor.snippets.checklist"),
+                    })}
                 class={quickBlockClass}
             >
                 <CheckSquare size={12} />
                 <span>{$t("editor.snippets.checklist_label")}</span>
             </button>
             <button
-                onclick={() => insertMarkdown("snippet", { snippet: $t("editor.snippets.callout") })}
+                onclick={() =>
+                    insertMarkdown("snippet", {
+                        snippet: $t("editor.snippets.callout"),
+                    })}
                 class={quickBlockClass}
             >
                 <Quote size={12} />
                 <span>{$t("editor.snippets.callout_label")}</span>
             </button>
             <button
-                onclick={() => insertMarkdown("snippet", { snippet: $t("editor.snippets.command_block") })}
+                onclick={() =>
+                    insertMarkdown("snippet", {
+                        snippet: $t("editor.snippets.command_block"),
+                    })}
                 class={quickBlockClass}
             >
                 <Terminal size={12} />
@@ -378,10 +426,16 @@
 />
 
 <div class="flex-1 flex flex-col min-h-[60vh] relative">
-        <div class="flex-1 grid {isSplitView ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'} gap-6 relative">
+    <div
+        class="flex-1 grid {isSplitView
+            ? 'grid-cols-1 lg:grid-cols-2'
+            : 'grid-cols-1'} gap-6 relative"
+    >
         <div class="flex flex-col gap-2">
             <div class="flex items-center justify-between px-1">
-                <span class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider">
+                <span
+                    class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
+                >
                     {$t("editor.markdown_editor")}
                 </span>
             </div>
@@ -397,7 +451,11 @@
                     onpaste={handlePaste}
                     readonly={aiLoading || showAiMenu}
                     class="h-full w-full p-6 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl font-mono text-sm sm:text-base leading-relaxed resize-none outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all text-foreground dark:text-dark-text"
-                    style={aiLoading ? "cursor: wait;" : showAiMenu ? "cursor: not-allowed;" : ""}
+                    style={aiLoading
+                        ? "cursor: wait;"
+                        : showAiMenu
+                          ? "cursor: not-allowed;"
+                          : ""}
                     placeholder={$t("editor.start_writing")}
                     onmouseup={handleMouseUp}
                     oncontextmenu={handleContextMenu}
@@ -408,7 +466,9 @@
         {#if isSplitView}
             <div class="flex flex-col gap-2">
                 <div class="flex items-center justify-between px-1">
-                    <span class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider">
+                    <span
+                        class="text-xs font-bold text-muted-foreground dark:text-dark-text-muted uppercase tracking-wider"
+                    >
                         {$t("editor.live_preview")}
                     </span>
                 </div>
@@ -417,7 +477,9 @@
                     onscroll={syncPreviewScroll}
                     class="flex-1 w-full p-6 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl overflow-y-auto shadow-inner"
                 >
-                    <div class="prose dark:prose-invert prose-blue max-w-none markdown-body">
+                    <div
+                        class="prose dark:prose-invert prose-blue max-w-none markdown-body"
+                    >
                         {@html renderedContent}
                     </div>
                 </div>
@@ -425,16 +487,36 @@
         {/if}
     </div>
 
-    <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground dark:text-dark-text-muted">
+    <div
+        class="mt-4 flex flex-wrap items-center justify-between gap-2 text-[11px] text-muted-foreground dark:text-dark-text-muted"
+    >
         <div class="flex items-center gap-3">
-            <span>{$t("editor.stats.words", { values: { count: wordCount } })}</span>
-            <span>{$t("editor.stats.chars", { values: { count: charCount } })}</span>
-            <span>{$t("editor.stats.lines", { values: { count: lineCount } })}</span>
+            <span
+                >{$t("editor.stats.words", {
+                    values: { count: wordCount },
+                })}</span
+            >
+            <span
+                >{$t("editor.stats.chars", {
+                    values: { count: charCount },
+                })}</span
+            >
+            <span
+                >{$t("editor.stats.lines", {
+                    values: { count: lineCount },
+                })}</span
+            >
             {#if selectionCount > 0}
-                <span>{$t("editor.stats.selection", { values: { count: selectionCount } })}</span>
+                <span
+                    >{$t("editor.stats.selection", {
+                        values: { count: selectionCount },
+                    })}</span
+                >
             {/if}
         </div>
-        <div class="hidden xl:flex items-center gap-2 text-muted-foreground dark:text-dark-text-muted">
+        <div
+            class="hidden xl:flex items-center gap-2 text-muted-foreground dark:text-dark-text-muted"
+        >
             <span>{$t("editor.shortcut_hint")}</span>
         </div>
     </div>
@@ -444,16 +526,25 @@
     <div
         class="fixed z-50 ai-menu-container ai-menu-enter"
         style="top: {menuPos.y}px; left: {menuPos.x}px;"
+        role="presentation"
         onkeydown={(e) => e.stopPropagation()}
     >
-        <div class="bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-border dark:border-dark-border p-4 w-80 max-h-[70vh] overflow-y-auto flex flex-col gap-3">
+        <div
+            class="bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-border dark:border-dark-border p-4 w-80 max-h-[70vh] overflow-y-auto flex flex-col gap-3"
+        >
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2 text-primary">
                     <Sparkles size={18} />
-                    <span class="font-bold text-sm">{$t("gemini.improve_with_gemini")}</span>
+                    <span class="font-bold text-sm"
+                        >{$t("gemini.improve_with_gemini")}</span
+                    >
                 </div>
-                <span class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted">
-                    {$t("editor.ai_menu.selection", { values: { count: selectionCount } })}
+                <span
+                    class="text-[10px] font-bold text-muted-foreground dark:text-dark-text-muted"
+                >
+                    {$t("editor.ai_menu.selection", {
+                        values: { count: selectionCount },
+                    })}
                 </span>
             </div>
 
@@ -465,7 +556,9 @@
                     {$t("gemini.improvement_instruction")}
                 </label>
                 {#if selectedText}
-                    <div class="text-[11px] text-muted-foreground dark:text-dark-text-muted bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border rounded-lg p-2 max-h-24 overflow-y-auto">
+                    <div
+                        class="text-[11px] text-muted-foreground dark:text-dark-text-muted bg-accent/60 dark:bg-white/5 border border-border dark:border-dark-border rounded-lg p-2 max-h-24 overflow-y-auto"
+                    >
                         {selectedText}
                     </div>
                 {/if}
@@ -483,7 +576,9 @@
                         }
                     }}
                 ></textarea>
-                <p class="text-[10px] text-muted-foreground dark:text-dark-text-muted">
+                <p
+                    class="text-[10px] text-muted-foreground dark:text-dark-text-muted"
+                >
                     {$t("editor.ai_menu.submit_hint")}
                 </p>
             </div>
@@ -499,42 +594,58 @@
 
             <div class="grid grid-cols-2 gap-1.5">
                 <button
-                    onclick={() => improveWithAi("Explain this for a developer new to the topic.")}
+                    onclick={() =>
+                        improveWithAi(
+                            "Explain this for a developer new to the topic.",
+                        )}
                     disabled={aiLoading || !geminiApiKey}
                     class="py-1.5 px-2 bg-accent/60 dark:bg-white/5 hover:bg-accent/90 dark:hover:bg-primary/10 text-muted-foreground dark:text-dark-text-muted hover:text-primary rounded-lg text-[10px] font-bold transition-all text-left"
                 >
                     {$t("editor.ai_menu.explain")}
                 </button>
                 <button
-                    onclick={() => improveWithAi("Summarize this in 3-5 concise bullets.")}
+                    onclick={() =>
+                        improveWithAi("Summarize this in 3-5 concise bullets.")}
                     disabled={aiLoading || !geminiApiKey}
                     class="py-1.5 px-2 bg-accent/60 dark:bg-white/5 hover:bg-accent/90 dark:hover:bg-primary/10 text-muted-foreground dark:text-dark-text-muted hover:text-primary rounded-lg text-[10px] font-bold transition-all text-left"
                 >
                     {$t("editor.ai_menu.summarize")}
                 </button>
                 <button
-                    onclick={() => improveWithAi("Fix grammar, spelling, and punctuation.")}
+                    onclick={() =>
+                        improveWithAi(
+                            "Fix grammar, spelling, and punctuation.",
+                        )}
                     disabled={aiLoading || !geminiApiKey}
                     class="py-1.5 px-2 bg-accent/60 dark:bg-white/5 hover:bg-accent/90 dark:hover:bg-primary/10 text-muted-foreground dark:text-dark-text-muted hover:text-primary rounded-lg text-[10px] font-bold transition-all text-left"
                 >
                     {$t("editor.ai_menu.fix_grammar")}
                 </button>
                 <button
-                    onclick={() => improveWithAi("Improve clarity and structure for a technical audience.")}
+                    onclick={() =>
+                        improveWithAi(
+                            "Improve clarity and structure for a technical audience.",
+                        )}
                     disabled={aiLoading || !geminiApiKey}
                     class="py-1.5 px-2 bg-accent/60 dark:bg-white/5 hover:bg-accent/90 dark:hover:bg-primary/10 text-muted-foreground dark:text-dark-text-muted hover:text-primary rounded-lg text-[10px] font-bold transition-all text-left"
                 >
                     {$t("editor.ai_menu.improve_writing")}
                 </button>
                 <button
-                    onclick={() => improveWithAi("Convert this into step-by-step instructions in Markdown.")}
+                    onclick={() =>
+                        improveWithAi(
+                            "Convert this into step-by-step instructions in Markdown.",
+                        )}
                     disabled={aiLoading || !geminiApiKey}
                     class="py-1.5 px-2 bg-accent/60 dark:bg-white/5 hover:bg-accent/90 dark:hover:bg-primary/10 text-muted-foreground dark:text-dark-text-muted hover:text-primary rounded-lg text-[10px] font-bold transition-all text-left"
                 >
                     {$t("editor.ai_menu.steps")}
                 </button>
                 <button
-                    onclick={() => improveWithAi("Add concise code comments where helpful without changing meaning.")}
+                    onclick={() =>
+                        improveWithAi(
+                            "Add concise code comments where helpful without changing meaning.",
+                        )}
                     disabled={aiLoading || !geminiApiKey}
                     class="py-1.5 px-2 bg-accent/60 dark:bg-white/5 hover:bg-accent/90 dark:hover:bg-primary/10 text-muted-foreground dark:text-dark-text-muted hover:text-primary rounded-lg text-[10px] font-bold transition-all text-left"
                 >
@@ -567,7 +678,8 @@
             rgba(66, 133, 244, 0.2)
         );
         background-size: 220% 220%;
-        -webkit-mask: linear-gradient(#000 0 0) content-box,
+        -webkit-mask:
+            linear-gradient(#000 0 0) content-box,
             linear-gradient(#000 0 0);
         -webkit-mask-composite: xor;
         mask-composite: exclude;

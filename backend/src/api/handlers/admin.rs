@@ -1,15 +1,15 @@
+use crate::api::dto::SettingsPayload;
+use crate::domain::models::LoginPayload;
 use crate::infrastructure::audit::{record_audit, AuditEntry};
+use crate::infrastructure::database::AppState;
 use crate::middleware::auth::{
     build_csrf_cookie, build_session_cookie, clear_cookie, now_epoch_seconds, AuthSession, Role,
     SessionClaims,
 };
-use crate::utils::crypto::decrypt_with_password;
-use crate::utils::error::{bad_request, internal_error, unauthorized};
-use crate::api::dto::SettingsPayload;
-use crate::domain::models::LoginPayload;
 use crate::middleware::request_info::RequestInfo;
 use crate::middleware::security::ensure_csrf_cookie;
-use crate::infrastructure::database::AppState;
+use crate::utils::crypto::decrypt_with_password;
+use crate::utils::error::{bad_request, internal_error, unauthorized};
 use axum::{extract::State, http::StatusCode, Json};
 use axum_extra::extract::cookie::CookieJar;
 use serde::{Deserialize, Serialize};
@@ -71,7 +71,7 @@ pub async fn login(
     let jar = jar
         .add(build_session_cookie(
             &state.auth,
-            token,
+            token.clone(),
             state.auth.admin_ttl,
         ))
         .add(build_csrf_cookie(
@@ -95,7 +95,10 @@ pub async fn login(
     )
     .await;
 
-    Ok((jar, Json(serde_json::json!({ "status": "ok" }))))
+    Ok((
+        jar,
+        Json(serde_json::json!({ "status": "ok", "token": token })),
+    ))
 }
 
 pub async fn update_settings(

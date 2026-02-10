@@ -767,7 +767,11 @@ mod tests {
             is_public: 1,
             ..Default::default()
         };
-        let session = AuthSession { claims: None };
+        let session = AuthSession {
+            claims: None,
+            admin_claims: None,
+            attendee_claims: None,
+        };
         assert!(can_access_codelab(&codelab, &session));
     }
 
@@ -788,6 +792,8 @@ mod tests {
                 iat: 0,
                 exp: 0,
             }),
+            admin_claims: None,
+            attendee_claims: None,
         };
         assert!(can_access_codelab(&codelab, &session));
     }
@@ -809,6 +815,8 @@ mod tests {
                 iat: 0,
                 exp: 0,
             }),
+            admin_claims: None,
+            attendee_claims: None,
         };
         assert!(can_access_codelab(&codelab, &session));
     }
@@ -830,6 +838,8 @@ mod tests {
                 iat: 0,
                 exp: 0,
             }),
+            admin_claims: None,
+            attendee_claims: None,
         };
         assert!(!can_access_codelab(&codelab, &session));
     }

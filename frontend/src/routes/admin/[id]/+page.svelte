@@ -63,6 +63,7 @@
     import AiConversationsMode from "$lib/components/admin/AiConversationsMode.svelte";
     import WorkspaceBrowser from "$lib/components/admin/WorkspaceBrowser.svelte";
     import WorkspaceMode from "$lib/components/admin/WorkspaceMode.svelte";
+    import MonitoringDashboard from "$lib/components/admin/MonitoringDashboard.svelte";
 
     import {
         getSubmissions,
@@ -88,6 +89,7 @@
         | "workspace"
         | "raffle"
         | "certificate"
+        | "monitoring"
     >(
         initialMode === "preview" ||
             initialMode === "guide" ||
@@ -100,7 +102,8 @@
             initialMode === "settings" ||
             initialMode === "workspace" ||
             initialMode === "raffle" ||
-            initialMode === "certificate"
+            initialMode === "certificate" ||
+            initialMode === "monitoring"
             ? (initialMode as any)
             : "edit",
     );
@@ -1481,7 +1484,8 @@
             });
         }
 
-        const wsUrl = getWsUrl(id, "admin");
+        const adminToken = localStorage.getItem("adminToken");
+        const wsUrl = getWsUrl(id, "admin", adminToken || undefined);
         const newWs = new WebSocket(wsUrl);
 
         newWs.onopen = () => {
@@ -1489,7 +1493,7 @@
             newWs.send(JSON.stringify({ type: "facilitator" }));
         };
 
-        newWs.onmessage = (event) => {
+        newWs.addEventListener("message", (event) => {
             try {
                 const data = JSON.parse(event.data);
                 if (data.type === "chat") {
@@ -1555,11 +1559,20 @@
                             ? { ...a, current_step: data.step_number }
                             : a,
                     );
+                } else if (data.type === "attendee_screen_status") {
+                    attendees = attendees.map((a) =>
+                        a.id === data.attendee_id
+                            ? {
+                                  ...a,
+                                  is_sharing_screen: data.status === "started",
+                              }
+                            : a,
+                    );
                 }
             } catch (e) {
                 console.error("WS error:", e);
             }
-        };
+        });
 
         newWs.onclose = () => {
             setTimeout(initWebSocket, 3000);
@@ -2364,6 +2377,7 @@
         handleSave={handleUniversalSave}
         {handleDownloadWorkspace}
         {handleBrowseWorkspace}
+        {ws}
     />
 
     {#if loading}
@@ -2540,6 +2554,8 @@
                                 />
                             {:else if mode === "ai"}
                                 <AiConversationsMode codelabId={id} />
+                            {:else if mode === "monitoring"}
+                                <MonitoringDashboard {ws} {attendees} />
                             {/if}
                         </div>
                     </div>

@@ -1,41 +1,39 @@
 import { db, auth, storage, rtdb } from './firebase';
-import { 
-    ref as rtdbRef, 
-    push, 
-    set, 
-    onValue, 
-    onChildAdded, 
-    remove, 
+import {
+    ref as rtdbRef,
+    push,
+    set,
+    onValue,
+    onChildAdded,
     update,
     serverTimestamp as rtdbTimestamp
 } from "firebase/database";
-import { 
+import {
     GoogleAuthProvider,
     signInWithPopup,
     signOut,
     onAuthStateChanged,
     type User
 } from "firebase/auth";
-import { 
-    collection, 
-    getDocs, 
-    getDoc, 
-    doc, 
-    addDoc, 
-    updateDoc, 
-    setDoc, 
-    deleteDoc, 
-    query, 
-    where, 
-    orderBy, 
+import {
+    collection,
+    getDocs,
+    getDoc,
+    doc,
+    addDoc,
+    updateDoc,
+    setDoc,
+    deleteDoc,
+    query,
+    where,
+    orderBy,
     serverTimestamp,
-    type DocumentData,
-    onSnapshot
+    type DocumentData
 } from "firebase/firestore";
-import { 
-    ref, 
-    uploadBytes, 
-    getDownloadURL 
+import {
+    ref,
+    uploadBytes,
+    getDownloadURL
 } from "firebase/storage";
 import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback } from './types';
 
@@ -49,7 +47,7 @@ function isAdmin() {
 export async function listCodelabs(): Promise<Codelab[]> {
     const user = auth.currentUser;
     let q = query(collection(db, CODELABS_COLLECTION), orderBy("created_at", "desc"));
-    
+
     // If not admin, only show public ones
     // Note: In Firebase mode, 'admin' can be anyone logged in or specific users.
     // For now, let's keep it simple: if logged in, you see your own + public.
@@ -57,7 +55,7 @@ export async function listCodelabs(): Promise<Codelab[]> {
     if (!user && !isAdmin()) {
         q = query(collection(db, CODELABS_COLLECTION), where("is_public", "==", true), orderBy("created_at", "desc"));
     }
-    
+
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(d => ({ id: d.id, is_public: true, ...d.data() } as Codelab));
 }
@@ -65,9 +63,9 @@ export async function listCodelabs(): Promise<Codelab[]> {
 export async function getMyCodelabs(): Promise<Codelab[]> {
     const user = auth.currentUser;
     if (!user) return [];
-    
+
     const q = query(
-        collection(db, CODELABS_COLLECTION), 
+        collection(db, CODELABS_COLLECTION),
         where("owner_id", "==", user.uid),
         orderBy("created_at", "desc")
     );
@@ -78,10 +76,10 @@ export async function getMyCodelabs(): Promise<Codelab[]> {
 export async function getJoinedCodelabs(): Promise<Codelab[]> {
     const user = auth.currentUser;
     if (!user) return [];
-    
+
     const q = query(collection(db, `users/${user.uid}/participations`), orderBy("joined_at", "desc"));
     const snapshot = await getDocs(q);
-    
+
     const codelabs: Codelab[] = [];
     for (const d of snapshot.docs) {
         const codelabId = d.data().codelab_id;
@@ -100,16 +98,16 @@ export async function getJoinedCodelabs(): Promise<Codelab[]> {
 export async function getCodelab(id: string): Promise<[Codelab, Step[]]> {
     const codelabDoc = await getDoc(doc(db, CODELABS_COLLECTION, id));
     if (!codelabDoc.exists()) throw new Error('Codelab not found');
-    
+
     const codelab = { id: codelabDoc.id, is_public: true, ...codelabDoc.data() } as Codelab;
-    
+
     if (!codelab.is_public && !isAdmin()) {
         throw new Error('PRIVATE_CODELAB');
     }
-    
+
     const stepsSnapshot = await getDocs(query(collection(db, `${CODELABS_COLLECTION}/${id}/steps`), orderBy("step_number", "asc")));
     const steps = stepsSnapshot.docs.map(d => ({ id: d.id, ...d.data() } as Step));
-    
+
     return [codelab, steps];
 }
 
@@ -125,13 +123,13 @@ export async function createCodelab(payload: { title: string; description: strin
         created_at: serverTimestamp()
     };
     const docRef = await addDoc(collection(db, CODELABS_COLLECTION), data);
-    return { 
-        id: docRef.id, 
-        is_public: data.is_public, 
+    return {
+        id: docRef.id,
+        is_public: data.is_public,
         quiz_enabled: data.quiz_enabled,
         require_quiz: data.require_quiz,
         require_feedback: data.require_feedback,
-        ...payload 
+        ...payload
     } as Codelab;
 }
 
@@ -145,25 +143,25 @@ export async function updateCodelab(id: string, payload: { title: string; descri
         require_feedback: payload.require_feedback ?? false,
     };
     await updateDoc(docRef, data);
-    return { 
-        id, 
-        is_public: data.is_public, 
+    return {
+        id,
+        is_public: data.is_public,
         quiz_enabled: data.quiz_enabled,
         require_quiz: data.require_quiz,
         require_feedback: data.require_feedback,
-        ...payload 
+        ...payload
     } as Codelab;
 }
 
 export async function saveSteps(codelabId: string, steps: { title: string, content_markdown: string }[]): Promise<void> {
     const stepsCollection = collection(db, `${CODELABS_COLLECTION}/${codelabId}/steps`);
-    
+
     // Delete existing steps first (simple approach)
     const existingSteps = await getDocs(stepsCollection);
     for (const d of existingSteps.docs) {
         await deleteDoc(d.ref);
     }
-    
+
     // Add new steps
     for (let i = 0; i < steps.length; i++) {
         await addDoc(stepsCollection, {
@@ -238,7 +236,7 @@ export async function registerAttendee(codelabId: string, name: string, code: st
         current_step: 1,
         registered_at: serverTimestamp()
     };
-    
+
     const docRef = await addDoc(attendeesCollection, attendeeData);
 
     // If user is logged in, also record in user's participations
@@ -266,7 +264,7 @@ export async function registerAttendee(codelabId: string, name: string, code: st
     } catch (e) {
         console.error("RTDB registerAttendee error:", e);
     }
-    
+
     return attendee;
 }
 
@@ -372,7 +370,7 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
 
 export async function submitFeedback(codelabId: string, payload: { difficulty: number; satisfaction: number; comments: string; attendee_id?: string }): Promise<void> {
     const feedbackCollection = collection(db, `${CODELABS_COLLECTION}/${codelabId}/feedback`);
-    
+
     // Check if already submitted
     const attendeeId = payload.attendee_id || getStoredAttendeeId(codelabId);
     if (!attendeeId) throw new Error('ATTENDEE_REQUIRED');

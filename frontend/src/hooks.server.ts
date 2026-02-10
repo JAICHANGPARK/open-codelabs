@@ -38,7 +38,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		imgSrc.add('http://localhost:8080');
 		imgSrc.add('http://127.0.0.1:8080');
 		imgSrc.add('http://0.0.0.0:8080');
-		imgSrc.add('http://[::1]:8080');
+		imgSrc.add('http://0.0.0.0:8080');
 	}
 	const frameSrc = [
 		"'self'",
@@ -58,7 +58,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		`img-src ${Array.from(imgSrc).join(' ')}`,
 		"script-src 'self' 'unsafe-inline'",
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-		"font-src 'self' https://fonts.gstatic.com",
+		"font-src 'self' data: https://fonts.gstatic.com",
 		`frame-src ${frameSrc.join(' ')}`,
 		`connect-src ${Array.from(connectSrc).join(' ')}`,
 		"form-action 'self'"
@@ -75,7 +75,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 			headers.set('referrer-policy', 'strict-origin-when-cross-origin');
 		}
 		if (!headers.has('permissions-policy')) {
-			headers.set('permissions-policy', 'camera=(), microphone=(), geolocation=()');
+			headers.set('permissions-policy', 'camera=(self), microphone=(self), geolocation=(self), display-capture=(self)');
 		}
 		if (isHttps && !headers.has('strict-transport-security')) {
 			headers.set('strict-transport-security', 'max-age=63072000; includeSubDomains; preload');
@@ -108,12 +108,12 @@ export const handle: Handle = async ({ event, resolve }) => {
 			}
 
 			const response = await fetch(targetUrl.toString(), requestInit);
-			
+
 			// We need to create a new Response object to return, 
 			// because the original response headers might be immutable or need adjustment
 			const responseHeaders = new Headers(response.headers);
 			applySecurityHeaders(responseHeaders, true);
-			
+
 			return new Response(response.body, {
 				status: response.status,
 				statusText: response.statusText,

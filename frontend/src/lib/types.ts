@@ -41,6 +41,7 @@ export interface Attendee {
     is_completed?: boolean;
     completed_at?: string;
     created_at?: string;
+    token?: string;
 }
 
 export interface HelpRequest {

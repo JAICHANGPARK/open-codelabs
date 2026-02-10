@@ -686,5 +686,30 @@
         "prev": "上一页",
         "next": "下一页",
         "error_load": "无法加载审计日志: {error}"
+    },
+    "screen_share": {
+        "share_screen": "共享屏幕",
+        "stop_sharing": "停止共享",
+        "start": "开始共享",
+        "stop": "停止共享",
+        "sharing": "共享中...",
+        "share_with_facilitator": "与协调员共享屏幕",
+        "stop_sharing_facilitator": "停止与协调员共享",
+        "attendee_pip_title": "协调员屏幕",
+        "no_participants_sharing": "没有参与者正在共享屏幕。",
+        "connecting": "连接中...",
+        "stop_watching": "停止收看",
+        "watch": "收看",
+        "monitoring_title": "监控",
+        "monitoring_desc": "实时查看参与者屏幕并进行互动。",
+        "click_to_view": "点击“查看”以观看",
+        "enlarge": "放大查看",
+        "shrink": "缩小查看",
+        "resize": "调整大小",
+        "quality": "画质",
+        "quality_auto": "自动",
+        "quality_low": "低",
+        "quality_medium": "中",
+        "quality_high": "高"
     }
 }

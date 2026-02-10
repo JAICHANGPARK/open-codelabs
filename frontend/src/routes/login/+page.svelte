@@ -1,8 +1,23 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { login, loginWithGoogle, isSupabaseMode, isServerlessMode, getSession } from "$lib/api";
+    import {
+        login,
+        loginWithGoogle,
+        isSupabaseMode,
+        isServerlessMode,
+        getSession,
+    } from "$lib/api";
     import { goto } from "$app/navigation";
-    import { Lock, User, LogIn, AlertCircle, Github, FileText as FileIcon, Chrome, X } from "lucide-svelte";
+    import {
+        Lock,
+        User,
+        LogIn,
+        AlertCircle,
+        Github,
+        FileText as FileIcon,
+        Chrome,
+        X,
+    } from "lucide-svelte";
     import { fade, fly } from "svelte/transition";
     import { t } from "svelte-i18n";
 
@@ -39,7 +54,7 @@
         error = "";
         try {
             const result = await login(admin_id, admin_pw);
-            if (isServerlessMode() && (result as any)?.token) {
+            if ((result as any)?.token) {
                 localStorage.setItem("adminToken", (result as any).token);
             }
             sessionStorage.setItem("adminPassword", admin_pw);
@@ -66,18 +81,21 @@
             const { token, user } = await loginWithGoogle();
             localStorage.setItem("adminToken", token);
             // Store user info if needed
-            localStorage.setItem("user", JSON.stringify({
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL
-            }));
+            localStorage.setItem(
+                "user",
+                JSON.stringify({
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
+                }),
+            );
             if (typeof window !== "undefined") {
                 window.dispatchEvent(new Event("session-changed"));
             }
             goto("/admin");
         } catch (e: any) {
-            if (e.code !== 'auth/popup-closed-by-user') {
+            if (e.code !== "auth/popup-closed-by-user") {
                 error = "Google login failed: " + e.message;
             }
         } finally {
@@ -86,7 +104,9 @@
     }
 </script>
 
-<div class="min-h-screen bg-background dark:bg-dark-bg flex items-center justify-center p-6 transition-colors">
+<div
+    class="min-h-screen bg-background dark:bg-dark-bg flex items-center justify-center p-6 transition-colors"
+>
     <div class="w-full max-w-md" in:fly={{ y: 20, duration: 600 }}>
         <div
             class="bg-white dark:bg-dark-surface rounded-[2rem] shadow-2xl overflow-hidden border border-border dark:border-dark-border"
@@ -98,7 +118,9 @@
                     <LogIn size={32} />
                 </div>
                 <h1 class="text-3xl font-bold mb-2">{$t("login.title")}</h1>
-                <p class="text-primary-foreground/80 font-medium">{$t("login.subtitle")}</p>
+                <p class="text-primary-foreground/80 font-medium">
+                    {$t("login.subtitle")}
+                </p>
             </div>
 
             <div class="p-8 sm:p-10 space-y-6 sm:space-y-8">
@@ -182,10 +204,17 @@
                 {#if isServerlessMode()}
                     <div class="relative py-2">
                         <div class="absolute inset-0 flex items-center">
-                            <div class="w-full border-t border-border dark:border-dark-border"></div>
+                            <div
+                                class="w-full border-t border-border dark:border-dark-border"
+                            ></div>
                         </div>
-                        <div class="relative flex justify-center text-xs uppercase">
-                            <span class="bg-white dark:bg-dark-surface px-4 text-muted-foreground font-bold">{$t("common.or")}</span>
+                        <div
+                            class="relative flex justify-center text-xs uppercase"
+                        >
+                            <span
+                                class="bg-white dark:bg-dark-surface px-4 text-muted-foreground font-bold"
+                                >{$t("common.or")}</span
+                            >
                         </div>
                     </div>
 
@@ -211,24 +240,37 @@
         </div>
 
         {#if showTrouble}
-            <div class="fixed inset-0 z-40 flex items-center justify-center px-4" role="dialog" aria-modal="true">
+            <div
+                class="fixed inset-0 z-40 flex items-center justify-center px-4"
+                role="dialog"
+                aria-modal="true"
+            >
                 <button
                     class="absolute inset-0 bg-black/40"
                     aria-label={$t("common.close")}
                     onclick={() => (showTrouble = false)}
                 ></button>
-                <div class="relative w-full max-w-lg bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-border dark:border-dark-border p-6" in:fade>
+                <div
+                    class="relative w-full max-w-lg bg-white dark:bg-dark-surface rounded-2xl shadow-2xl border border-border dark:border-dark-border p-6"
+                    in:fade
+                >
                     <div class="flex items-start justify-between gap-4 mb-4">
                         <div>
-                            <h2 class="text-lg font-bold text-foreground dark:text-dark-text">
+                            <h2
+                                class="text-lg font-bold text-foreground dark:text-dark-text"
+                            >
                                 {$t("login.trouble_title")}
                             </h2>
                             {#if isServerlessMode()}
-                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1">
+                                <p
+                                    class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1"
+                                >
                                     {$t("login.trouble_serverless_desc")}
                                 </p>
                             {:else}
-                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1">
+                                <p
+                                    class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1"
+                                >
                                     {$t("login.trouble_local_desc")}
                                 </p>
                             {/if}
@@ -243,33 +285,47 @@
                     </div>
 
                     {#if isServerlessMode()}
-                        <div class="text-sm text-muted-foreground dark:text-dark-text-muted">
+                        <div
+                            class="text-sm text-muted-foreground dark:text-dark-text-muted"
+                        >
                             {$t("login.trouble_serverless_hint")}
                         </div>
                     {:else}
                         <div class="space-y-4">
                             <div>
-                                <div class="text-xs font-bold uppercase tracking-widest text-muted-foreground dark:text-dark-text-muted">
+                                <div
+                                    class="text-xs font-bold uppercase tracking-widest text-muted-foreground dark:text-dark-text-muted"
+                                >
                                     {$t("login.trouble_local_env_title")}
                                 </div>
-                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1">
+                                <p
+                                    class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1"
+                                >
                                     {$t("login.trouble_local_env_desc")}
                                 </p>
-                                <pre class="mt-2 text-xs bg-accent/60 dark:bg-dark-bg text-foreground dark:text-dark-text rounded-xl p-3 overflow-auto border border-border dark:border-dark-border">ADMIN_ID=your_admin_id
+                                <pre
+                                    class="mt-2 text-xs bg-accent/60 dark:bg-dark-bg text-foreground dark:text-dark-text rounded-xl p-3 overflow-auto border border-border dark:border-dark-border">ADMIN_ID=your_admin_id
 ADMIN_PW=your_admin_pw
 DATABASE_URL=sqlite://backend.db</pre>
                             </div>
                             <div>
-                                <div class="text-xs font-bold uppercase tracking-widest text-muted-foreground dark:text-dark-text-muted">
+                                <div
+                                    class="text-xs font-bold uppercase tracking-widest text-muted-foreground dark:text-dark-text-muted"
+                                >
                                     {$t("login.trouble_local_commands_title")}
                                 </div>
-                                <p class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1">
+                                <p
+                                    class="text-sm text-muted-foreground dark:text-dark-text-muted mt-1"
+                                >
                                     {$t("login.trouble_local_commands_desc")}
                                 </p>
-                                <pre class="mt-2 text-xs bg-accent/60 dark:bg-dark-bg text-foreground dark:text-dark-text rounded-xl p-3 overflow-auto border border-border dark:border-dark-border">cd backend && cargo run
+                                <pre
+                                    class="mt-2 text-xs bg-accent/60 dark:bg-dark-bg text-foreground dark:text-dark-text rounded-xl p-3 overflow-auto border border-border dark:border-dark-border">cd backend && cargo run
 cd frontend && bun run dev</pre>
                             </div>
-                            <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
+                            <p
+                                class="text-xs text-muted-foreground dark:text-dark-text-muted"
+                            >
                                 {$t("login.trouble_local_note")}
                             </p>
                         </div>
@@ -300,7 +356,9 @@ cd frontend && bun run dev</pre>
                     Docs
                 </a>
             </div>
-            <p class="text-muted-foreground dark:text-dark-text-muted text-sm font-medium">
+            <p
+                class="text-muted-foreground dark:text-dark-text-muted text-sm font-medium"
+            >
                 {$t("common.title")} &copy; 2026
             </p>
         </div>

@@ -99,7 +99,7 @@
     }
 
     function initWebSocket() {
-        const wsUrl = getWsUrl(id, "attendee");
+        const wsUrl = getWsUrl(id, "attendee", attendee?.token);
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -172,23 +172,37 @@
     }
 </script>
 
-<div class="min-h-screen bg-background dark:bg-dark-bg flex flex-col font-sans text-foreground dark:text-dark-text">
+<div
+    class="min-h-screen bg-background dark:bg-dark-bg flex flex-col font-sans text-foreground dark:text-dark-text"
+>
     <!-- Header -->
     <header
         class="bg-white dark:bg-dark-surface border-b border-border dark:border-dark-border py-4 px-8 sticky top-0 z-30 shadow-sm"
     >
         <div class="max-w-screen-2xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <a href="/codelabs" class="text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text" aria-label={$t("common.title")}>
+                <a
+                    href="/codelabs"
+                    class="text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text"
+                    aria-label={$t("common.title")}
+                >
                     <Home size={24} />
                 </a>
-                <h1 class="text-xl font-bold text-foreground dark:text-dark-text">
+                <h1
+                    class="text-xl font-bold text-foreground dark:text-dark-text"
+                >
                     {codelab?.title} - {$t("live.status_title")}
                 </h1>
             </div>
-            <div class="flex items-center gap-2 text-sm text-muted-foreground dark:text-dark-text-muted">
+            <div
+                class="flex items-center gap-2 text-sm text-muted-foreground dark:text-dark-text-muted"
+            >
                 <Users size={18} />
-                <span class="font-bold">{$t("live.participants", { values: { count: attendees.length } })}</span>
+                <span class="font-bold"
+                    >{$t("live.participants", {
+                        values: { count: attendees.length },
+                    })}</span
+                >
             </div>
         </div>
     </header>
@@ -200,7 +214,9 @@
         <div
             class="lg:col-span-2 bg-white dark:bg-dark-surface rounded-2xl border border-border dark:border-dark-border shadow-sm overflow-hidden min-h-[500px]"
         >
-            <div class="p-6 border-b border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg/50">
+            <div
+                class="p-6 border-b border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg/50"
+            >
                 <h2
                     class="font-bold text-lg text-foreground dark:text-dark-text flex items-center gap-2"
                 >
@@ -213,14 +229,21 @@
                     {#each attendees as att}
                         <div>
                             <div class="flex justify-between text-sm mb-2">
-                                <span class="font-bold text-foreground dark:text-dark-text"
+                                <span
+                                    class="font-bold text-foreground dark:text-dark-text"
                                     >{att.name}
                                     {att.id === attendee?.id
                                         ? $t("live.you")
                                         : ""}</span
                                 >
-                                <span class="text-muted-foreground dark:text-dark-text-muted"
-                                    >{$t("live.step_progress", { values: { current: att.current_step || 0, total: steps.length } })}</span
+                                <span
+                                    class="text-muted-foreground dark:text-dark-text-muted"
+                                    >{$t("live.step_progress", {
+                                        values: {
+                                            current: att.current_step || 0,
+                                            total: steps.length,
+                                        },
+                                    })}</span
                                 >
                             </div>
                             <div
@@ -245,7 +268,9 @@
         <div
             class="bg-white dark:bg-dark-surface rounded-2xl border border-border dark:border-dark-border shadow-sm overflow-hidden h-[600px] flex flex-col"
         >
-            <div class="p-4 border-b border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg/50">
+            <div
+                class="p-4 border-b border-border dark:border-dark-border bg-accent/60 dark:bg-dark-bg/50"
+            >
                 <h2
                     class="font-bold text-lg text-foreground dark:text-dark-text flex items-center gap-2"
                 >
@@ -281,7 +306,9 @@
                 {/each}
             </div>
 
-            <div class="p-4 border-t border-border dark:border-dark-border bg-white dark:bg-dark-surface">
+            <div
+                class="p-4 border-t border-border dark:border-dark-border bg-white dark:bg-dark-surface"
+            >
                 <form
                     onsubmit={(e) => {
                         e.preventDefault();

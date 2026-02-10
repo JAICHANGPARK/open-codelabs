@@ -115,6 +115,9 @@ pub struct Attendee {
     pub is_completed: i32,
     pub completed_at: Option<String>,
     pub created_at: Option<String>,
+    #[serde(default)]
+    #[sqlx(default)]
+    pub is_sharing_screen: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -128,6 +131,9 @@ pub struct AttendeePublic {
     pub is_completed: i32,
     pub completed_at: Option<String>,
     pub created_at: Option<String>,
+    pub token: Option<String>,
+    #[serde(default)]
+    pub is_sharing_screen: bool,
 }
 
 impl From<Attendee> for AttendeePublic {
@@ -141,6 +147,8 @@ impl From<Attendee> for AttendeePublic {
             is_completed: attendee.is_completed,
             completed_at: attendee.completed_at,
             created_at: attendee.created_at,
+            token: None,
+            is_sharing_screen: attendee.is_sharing_screen,
         }
     }
 }

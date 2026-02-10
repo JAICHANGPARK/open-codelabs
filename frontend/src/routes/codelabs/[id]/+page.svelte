@@ -23,6 +23,7 @@
         updateAttendeeProgress,
         uploadImage,
         submitSubmissionLink,
+        getAttendees,
         type Codelab,
         type Step,
         type Attendee,
@@ -66,10 +67,11 @@
         FileUp,
         Loader2,
     } from "lucide-svelte";
-    import { t, locale } from "svelte-i18n";
+    import { t, locale, locales } from "svelte-i18n";
     import AskGemini from "$lib/components/codelabs/AskGemini.svelte";
     import PlaygroundPanel from "$lib/components/codelabs/PlaygroundPanel.svelte";
     import SubmissionPanel from "$lib/components/codelabs/SubmissionPanel.svelte";
+    import ScreenShareAttendee from "$lib/components/codelabs/ScreenShareAttendee.svelte";
     import { createTtsPlayer } from "$lib/tts";
     import { themeState } from "$lib/theme.svelte";
     import {
@@ -152,6 +154,10 @@
         return "";
     }
 
+    function getChatTextOnly(text: string) {
+        return text.replace(/!\[[^\]]*]\(([^)]+)\)/g, "").trim();
+    }
+
     function openChatImage(url: string) {
         if (!url) return;
         chatImageLightboxUrl = url;
@@ -212,11 +218,16 @@
             time: string;
             self?: boolean;
             type: "chat" | "dm";
+            sender_id?: string;
+            target_id?: string;
+            timestamp: number;
         }[]
     >([]);
     let ws = $state<WebSocket | null>(null);
     let helpSent = $state(false);
-    let chatTab = $state<"public" | "direct">("public");
+    let chatTab = $state<"public" | "direct" | "participants">("participants");
+    let selectedParticipantId = $state<string>("");
+    let allAttendees = $state<Attendee[]>([]);
     let hasNewDm = $state(false);
     let lastStepId = $state<string | null>(null);
     let profileRef = $state<HTMLDivElement | null>(null);
@@ -242,7 +253,51 @@
     let filteredMessages = $derived(
         chatTab === "public"
             ? messages.filter((m) => m.type === "chat")
-            : messages.filter((m) => m.type === "dm"),
+            : messages.filter(
+                  (m) =>
+                      m.type === "dm" &&
+                      ((m.sender_id === attendee?.id &&
+                          m.target_id === selectedParticipantId) ||
+                          (m.sender_id === selectedParticipantId &&
+                              m.target_id === attendee?.id)),
+              ),
+    );
+
+    let conversations = $derived.by(() => {
+        const groups = new Map<string, any>();
+        messages
+            .filter((m) => m.type === "dm")
+            .forEach((m) => {
+                const otherId =
+                    m.sender_id === attendee?.id ? m.target_id : m.sender_id;
+                if (!otherId) return;
+                const existing = groups.get(otherId);
+                if (!existing || m.timestamp > existing.timestamp) {
+                    groups.set(otherId, {
+                        id: otherId,
+                        name:
+                            otherId === "facilitator"
+                                ? "Facilitator"
+                                : allAttendees.find((a) => a.id === otherId)
+                                      ?.name || "User",
+                        lastMessage: getChatImageUrl(m.text)
+                            ? `📷 ${$t("common.photo") || "Photo"}`
+                            : m.text,
+                        time: m.time,
+                        timestamp: m.timestamp,
+                    });
+                }
+            });
+        return Array.from(groups.values()).sort(
+            (a, b) => b.timestamp - a.timestamp,
+        );
+    });
+
+    let selectedParticipantName = $derived(
+        selectedParticipantId === "facilitator"
+            ? "Facilitator"
+            : allAttendees.find((a) => a.id === selectedParticipantId)?.name ||
+                  "User",
     );
 
     let canGetCertificate = $derived(
@@ -430,6 +485,9 @@
 
             await loadChatHistory();
             wsCleanup = initWebSocket();
+            getAttendees(id).then((list) => {
+                allAttendees = list;
+            });
         } catch (e: any) {
             console.error(e);
             if (e.message === "PRIVATE_CODELAB") {
@@ -510,18 +568,26 @@
                             time: timeStr,
                             self: msg.sender_name === attendee?.name,
                             type: "chat",
+                            timestamp: msg.created_at
+                                ? new Date(msg.created_at).getTime()
+                                : Date.now(),
                         };
                     } else {
                         // DM for or from me
                         const isSelf = msg.sender_name === attendee?.name;
                         return {
                             sender: isSelf
-                                ? `To: ${$t("common.facilitator")}`
+                                ? `${$t("common.to")}: ${msg.target_id === "facilitator" ? $t("common.facilitator") : allAttendees.find((a) => a.id === msg.target_id)?.name || msg.target_id}`
                                 : `[DM] ${msg.sender_name}`,
                             text: msg.message,
                             time: timeStr,
                             self: isSelf,
                             type: "dm",
+                            sender_id: msg.sender_id,
+                            target_id: msg.target_id,
+                            timestamp: msg.created_at
+                                ? new Date(msg.created_at).getTime()
+                                : Date.now(),
                         };
                     }
                 });
@@ -561,6 +627,7 @@
                                 : new Date().toLocaleTimeString(),
                             self: data.sender_name === attendee?.name,
                             type: "chat",
+                            timestamp: Date.now(),
                         },
                     ];
                 } else if (data.type === "dm") {
@@ -573,15 +640,20 @@
                             time: new Date().toLocaleTimeString(),
                             self: false,
                             type: "dm",
+                            timestamp: Date.now(),
                         },
                     ];
                     if (chatTab !== "direct") hasNewDm = true;
                     showChat = true;
                 }
             });
+
+            getAttendees(id).then((list) => {
+                allAttendees = list;
+            });
         }
 
-        const wsUrl = getWsUrl(id, "attendee");
+        const wsUrl = getWsUrl(id, "attendee", attendee?.token);
         ws = new WebSocket(wsUrl);
 
         ws.onopen = () => {
@@ -596,10 +668,11 @@
             }
         };
 
-        ws.onmessage = (event) => {
+        ws.addEventListener("message", (event) => {
             try {
                 const data = JSON.parse(event.data);
                 if (data.type === "chat") {
+                    // ... (rest of chat logic)
                     messages = [
                         ...messages,
                         {
@@ -610,6 +683,7 @@
                                 new Date().toLocaleTimeString(),
                             self: data.sender === attendee?.name,
                             type: "chat",
+                            timestamp: Date.now(),
                         },
                     ];
                     // Scroll to bottom of chat
@@ -632,19 +706,51 @@
                                 new Date().toLocaleTimeString(),
                             self: false,
                             type: "dm",
+                            sender_id: data.sender_id,
+                            target_id: data.target_id,
+                            timestamp: Date.now(),
                         },
                     ];
-                    if (chatTab !== "direct") {
+                    if (
+                        chatTab !== "direct" ||
+                        selectedParticipantId !== data.sender_id
+                    ) {
                         hasNewDm = true;
                     }
                     showChat = true; // Auto-open chat for DM
+                } else if (data.type === "step_progress") {
+                    // Update peer progress
+                    const idx = allAttendees.findIndex(
+                        (a) => a.id === data.attendee_id,
+                    );
+                    if (idx !== -1) {
+                        allAttendees[idx].current_step = data.step_number;
+                    }
+                } else if (data.type === "attendee_joined") {
+                    const idx = allAttendees.findIndex(
+                        (a) => a.id === data.attendee.id,
+                    );
+                    if (idx === -1) {
+                        allAttendees = [data.attendee, ...allAttendees].sort(
+                            (a, b) => {
+                                if (a.id === attendee?.id) return -1;
+                                if (b.id === attendee?.id) return 1;
+                                return (
+                                    new Date(b.created_at).getTime() -
+                                    new Date(a.created_at).getTime()
+                                );
+                            },
+                        );
+                    }
+                } else if (data.type === "attendee_left") {
+                    // Optional: Remove from list or mark offline
                 } else if (data.type === "help_resolved") {
                     helpSent = false;
                 }
             } catch (e) {
                 console.error("WS Message error:", e);
             }
-        };
+        });
 
         ws.onclose = () => {
             console.log("WS closed, retrying...");
@@ -708,13 +814,13 @@
                 sender: attendee.name,
                 message,
                 type: "dm",
-                target_id: "facilitator",
+                target_id: selectedParticipantId,
             });
         } else if (ws) {
             ws.send(
                 JSON.stringify({
                     type: "dm",
-                    target_id: "facilitator",
+                    target_id: selectedParticipantId,
                     message,
                     timestamp: time,
                 }),
@@ -731,6 +837,9 @@
                 time,
                 self: true,
                 type: "dm",
+                sender_id: attendee.id,
+                target_id: selectedParticipantId,
+                timestamp: Date.now(),
             },
         ];
         chatMessage = "";
@@ -1189,6 +1298,7 @@
                 >
                     Open-Codelabs
                 </h1>
+                <ScreenShareAttendee {ws} codelabId={id} />
             </div>
         </div>
 
@@ -1643,11 +1753,11 @@
                         </div>
                         <div class="p-8 prose dark:prose-invert max-w-none">
                             <div class="markdown-body">
-                                {@html injectYoutubeEmbeds(
-                                    DOMPurify.sanitize(
-                                        marked.parse(codelab.guide_markdown),
-                                    ),
-                                )}
+                                {#await marked.parse(codelab.guide_markdown) then parsed}
+                                    {@html injectYoutubeEmbeds(
+                                        DOMPurify.sanitize(parsed as string),
+                                    )}
+                                {/await}
                             </div>
                         </div>
                         <div
@@ -2303,28 +2413,49 @@
                 >
                     <div class="p-4 flex items-center justify-between pb-2">
                         <h3
-                            class="font-bold text-foreground dark:text-dark-text flex items-center gap-2"
+                            class="font-bold text-foreground dark:text-dark-text flex items-center gap-2 truncate pr-2"
                         >
-                            <MessageSquare size={18} />
-                            {chatTab === "public"
-                                ? $t("editor.public_chat")
-                                : $t("editor.direct_messages")}
+                            <MessageSquare size={18} class="shrink-0" />
+                            <span class="truncate">
+                                {chatTab === "public"
+                                    ? $t("editor.public_chat")
+                                    : chatTab === "participants"
+                                      ? $t("editor.participants")
+                                      : $t("editor.direct_messages") +
+                                        (selectedParticipantId !== "facilitator"
+                                            ? ` (${selectedParticipantName})`
+                                            : "")}
+                            </span>
                         </h3>
                         <button
                             onclick={() => (showChat = false)}
-                            class="p-1 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full dark:text-dark-text"
+                            class="p-1 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full dark:text-dark-text shrink-0"
                             aria-label="Close chat"
                         >
                             <X size={18} />
                         </button>
                     </div>
 
-                    <div class="flex px-4 pb-2 gap-4" role="tablist">
+                    <div
+                        class="flex px-4 pb-2 gap-4 overflow-x-auto no-scrollbar scroll-smooth"
+                        role="tablist"
+                    >
+                        <button
+                            onclick={() => (chatTab = "participants")}
+                            role="tab"
+                            aria-selected={chatTab === "participants"}
+                            class="pb-2 text-sm font-bold transition-all whitespace-nowrap relative {chatTab ===
+                            'participants'
+                                ? 'text-primary border-b-2 border-primary'
+                                : 'text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text'}"
+                        >
+                            {$t("editor.participants")}
+                        </button>
                         <button
                             onclick={() => (chatTab = "public")}
                             role="tab"
                             aria-selected={chatTab === "public"}
-                            class="pb-2 text-sm font-bold transition-all relative {chatTab ===
+                            class="pb-2 text-sm font-bold transition-all whitespace-nowrap relative {chatTab ===
                             'public'
                                 ? 'text-primary border-b-2 border-primary'
                                 : 'text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text'}"
@@ -2338,7 +2469,7 @@
                             }}
                             role="tab"
                             aria-selected={chatTab === "direct"}
-                            class="pb-2 text-sm font-bold transition-all relative {chatTab ===
+                            class="pb-2 text-sm font-bold transition-all whitespace-nowrap relative {chatTab ===
                             'direct'
                                 ? 'text-primary border-b-2 border-primary'
                                 : 'text-muted-foreground dark:text-dark-text-muted hover:text-foreground dark:hover:text-dark-text'}"
@@ -2359,70 +2490,238 @@
                     class="flex-1 overflow-y-auto p-4 space-y-4 bg-white dark:bg-dark-bg/50"
                     aria-live="polite"
                 >
-                    {#each filteredMessages as msg}
-                        <div
-                            class="flex flex-col {msg.self
-                                ? 'items-end'
-                                : 'items-start'}"
-                        >
-                            {#if chatTab === "public"}
-                                <span
-                                    class="text-[10px] text-muted-foreground dark:text-dark-text-muted font-bold mb-1 ml-1 mr-1 uppercase tracking-tight"
+                    {#if chatTab === "participants"}
+                        <div class="space-y-2">
+                            <button
+                                onclick={() => {
+                                    selectedParticipantId = "facilitator";
+                                    chatTab = "direct";
+                                }}
+                                class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/60 dark:hover:bg-white/5 transition-colors text-left border {selectedParticipantId ===
+                                'facilitator'
+                                    ? 'border-primary bg-primary/5'
+                                    : 'border-transparent'}"
+                            >
+                                <div
+                                    class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary"
                                 >
-                                    {msg.sender} &bull; {msg.time}
-                                </span>
-                            {:else}
+                                    <Sparkles size={18} />
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="font-bold text-sm truncate">
+                                        Facilitator
+                                    </div>
+                                    <div class="text-xs text-muted-foreground">
+                                        {$t("common.facilitator")}
+                                    </div>
+                                </div>
+                                <MessageSquare
+                                    size={16}
+                                    class="text-muted-foreground"
+                                />
+                            </button>
+
+                            <div
+                                class="h-px bg-border dark:border-dark-border my-2"
+                            ></div>
+
+                            {#each allAttendees.filter((a) => a.id !== attendee?.id) as peer}
+                                <button
+                                    onclick={() => {
+                                        selectedParticipantId = peer.id;
+                                        chatTab = "direct";
+                                    }}
+                                    class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/60 dark:hover:bg-white/5 transition-colors text-left border {selectedParticipantId ===
+                                    peer.id
+                                        ? 'border-primary bg-primary/5'
+                                        : 'border-transparent'}"
+                                >
+                                    <div
+                                        class="w-10 h-10 rounded-full bg-accent/60 dark:bg-white/10 flex items-center justify-center text-foreground dark:text-dark-text"
+                                    >
+                                        <User size={18} />
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-bold text-sm truncate">
+                                            {peer.name}
+                                        </div>
+                                        <div
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            {$t("editor.current_step", {
+                                                values: {
+                                                    step:
+                                                        peer.current_step || 1,
+                                                },
+                                            })}
+                                        </div>
+                                    </div>
+                                    <MessageSquare
+                                        size={16}
+                                        class="text-muted-foreground"
+                                    />
+                                </button>
+                            {/each}
+
+                            {#if allAttendees.filter((a) => a.id !== attendee?.id).length === 0}
+                                <div
+                                    class="py-8 text-center text-muted-foreground text-sm"
+                                >
+                                    No other participants yet.
+                                </div>
+                            {/if}
+                        </div>
+                    {:else if chatTab === "direct" && !selectedParticipantId}
+                        <!-- Conversation List (WhatsApp style) -->
+                        <div class="space-y-1">
+                            {#each conversations as conv}
+                                <button
+                                    onclick={() =>
+                                        (selectedParticipantId = conv.id)}
+                                    class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/60 dark:hover:bg-white/5 transition-colors text-left border border-transparent"
+                                >
+                                    <div
+                                        class="w-12 h-12 rounded-full bg-accent/60 dark:bg-white/10 flex items-center justify-center text-foreground dark:text-dark-text shrink-0"
+                                    >
+                                        {#if conv.id === "facilitator"}
+                                            <Sparkles
+                                                size={20}
+                                                class="text-primary"
+                                            />
+                                        {:else}
+                                            <User size={20} />
+                                        {/if}
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div
+                                            class="flex justify-between items-baseline gap-2"
+                                        >
+                                            <div
+                                                class="font-bold text-sm truncate"
+                                            >
+                                                {conv.name}
+                                            </div>
+                                            <div
+                                                class="text-[10px] text-muted-foreground whitespace-nowrap"
+                                            >
+                                                {conv.time}
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="text-xs text-muted-foreground truncate"
+                                        >
+                                            {conv.lastMessage}
+                                        </div>
+                                    </div>
+                                </button>
+                            {/each}
+
+                            {#if conversations.length === 0}
+                                <div class="py-12 text-center">
+                                    <div
+                                        class="inline-flex p-3 rounded-full bg-accent/60 dark:bg-white/5 mb-3"
+                                    >
+                                        <MessageSquare
+                                            size={24}
+                                            class="text-muted-foreground"
+                                        />
+                                    </div>
+                                    <p class="text-sm text-muted-foreground">
+                                        {$t("editor.no_conversations")}
+                                    </p>
+                                    <button
+                                        onclick={() =>
+                                            (chatTab = "participants")}
+                                        class="mt-4 text-xs text-primary font-bold hover:underline"
+                                    >
+                                        {$t("editor.start_new_chat")}
+                                    </button>
+                                </div>
+                            {/if}
+                        </div>
+                    {:else}
+                        <!-- Message Thread -->
+                        {#if chatTab === "direct"}
+                            <div class="flex items-center gap-2 mb-4">
+                                <button
+                                    onclick={() => (selectedParticipantId = "")}
+                                    class="p-1 hover:bg-accent/60 dark:hover:bg-white/10 rounded-lg text-muted-foreground"
+                                >
+                                    <ChevronLeft size={18} />
+                                </button>
+                                <div
+                                    class="font-bold text-sm text-foreground dark:text-dark-text"
+                                >
+                                    {selectedParticipantName}
+                                </div>
+                            </div>
+                        {/if}
+                        {#each filteredMessages as msg}
+                            <div
+                                class="flex flex-col {msg.self
+                                    ? 'items-end'
+                                    : 'items-start'}"
+                            >
                                 <span
-                                    class="text-[10px] text-muted-foreground dark:text-dark-text-muted font-bold mb-1 ml-1 mr-1 uppercase tracking-tight {msg.self
+                                    class="text-[10px] text-muted-foreground dark:text-dark-text-muted font-bold mb-1 ml-1 mr-1 uppercase tracking-tight {msg.self ||
+                                    msg.type === 'chat'
                                         ? ''
                                         : 'text-red-600'}"
                                 >
                                     {msg.sender} &bull; {msg.time}
                                 </span>
-                            {/if}
-                            <div
-                                class="max-w-[90%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm {msg.self
-                                    ? 'bg-primary text-primary-foreground rounded-tr-none'
-                                    : msg.type === 'dm'
-                                      ? 'bg-amber-100/80 dark:bg-yellow-500/20 text-foreground dark:text-yellow-200 rounded-tl-none border border-amber-200 dark:border-yellow-500/30'
-                                      : 'bg-accent/70 dark:bg-dark-surface text-foreground dark:text-dark-text rounded-tl-none border border-transparent dark:border-dark-border'}"
-                            >
-                                {#if getChatImageUrl(msg.text)}
-                                    <button
-                                        type="button"
-                                        class="p-0 border-none bg-transparent block"
-                                        onclick={() =>
-                                            openChatImage(
-                                                getChatImageUrl(msg.text),
-                                            )}
-                                    >
-                                        <img
-                                            src={getChatImageUrl(msg.text)}
-                                            alt="Uploaded in chat"
-                                            class="max-w-full rounded-lg border border-white/20 cursor-zoom-in"
-                                        />
-                                    </button>
-                                {:else}
-                                    {msg.text}
-                                {/if}
+                                <div
+                                    class="max-w-[90%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm {msg.self
+                                        ? 'bg-primary text-primary-foreground rounded-tr-none'
+                                        : msg.type === 'dm'
+                                          ? 'bg-amber-100/80 dark:bg-yellow-500/20 text-foreground dark:text-yellow-200 rounded-tl-none border border-amber-200 dark:border-yellow-500/30'
+                                          : 'bg-accent/70 dark:bg-dark-surface text-foreground dark:text-dark-text rounded-tl-none border border-transparent dark:border-dark-border'}"
+                                >
+                                    {#if getChatImageUrl(msg.text)}
+                                        <button
+                                            type="button"
+                                            class="p-0 border-none bg-transparent block"
+                                            onclick={() =>
+                                                openChatImage(
+                                                    getChatImageUrl(msg.text),
+                                                )}
+                                        >
+                                            <img
+                                                src={getChatImageUrl(msg.text)}
+                                                alt="Uploaded in chat"
+                                                class="max-w-full rounded-lg border border-white/20 cursor-zoom-in"
+                                            />
+                                        </button>
+                                        {#if getChatTextOnly(msg.text)}
+                                            <div class="mt-2 text-sm">
+                                                {getChatTextOnly(msg.text)}
+                                            </div>
+                                        {/if}
+                                    {:else}
+                                        {msg.text}
+                                    {/if}
+                                </div>
                             </div>
-                        </div>
-                    {/each}
-                    {#if filteredMessages.length === 0}
-                        <div
-                            class="flex flex-col items-center justify-center h-full text-center text-muted-foreground dark:text-dark-text-muted px-6"
-                        >
+                        {/each}
+                        {#if filteredMessages.length === 0}
                             <div
-                                class="w-12 h-12 bg-accent/60 dark:bg-white/5 rounded-full flex items-center justify-center mb-4"
+                                class="flex flex-col items-center justify-center h-full text-center text-muted-foreground dark:text-dark-text-muted px-6"
                             >
-                                <MessageSquare size={20} />
+                                <div
+                                    class="w-12 h-12 bg-accent/60 dark:bg-white/5 rounded-full flex items-center justify-center mb-4"
+                                >
+                                    <MessageSquare size={20} />
+                                </div>
+                                <p class="text-xs font-medium">
+                                    {chatTab === "public"
+                                        ? "No public messages yet. Say hi!"
+                                        : selectedParticipantId ===
+                                            "facilitator"
+                                          ? "No direct messages from the facilitator yet."
+                                          : `No messages with ${selectedParticipantName} yet.`}
+                                </p>
                             </div>
-                            <p class="text-xs font-medium">
-                                {chatTab === "public"
-                                    ? "No public messages yet. Say hi!"
-                                    : "No direct messages from the facilitator yet."}
-                            </p>
-                        </div>
+                        {/if}
                     {/if}
                 </div>
 
@@ -2454,7 +2753,9 @@
                         <input
                             type="text"
                             bind:value={chatMessage}
-                            placeholder="Type a message..."
+                            placeholder={chatTab === "public"
+                                ? $t("editor.chat_placeholder")
+                                : `Messaging ${selectedParticipantName}...`}
                             aria-label="Chat message"
                             onpaste={handleChatPaste}
                             class="w-full pl-12 pr-12 py-3 bg-background dark:bg-dark-bg border border-border dark:border-dark-border rounded-xl outline-none focus:border-primary transition-all text-sm text-foreground dark:text-dark-text"
@@ -2463,7 +2764,9 @@
                             type="button"
                             class="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all disabled:opacity-50"
                             aria-label={$t("chat.upload_image")}
-                            disabled={chatImageUploading}
+                            disabled={chatImageUploading ||
+                                (chatTab === "direct" &&
+                                    !selectedParticipantId)}
                             onclick={() => chatImageInput?.click()}
                         >
                             {#if chatImageUploading}

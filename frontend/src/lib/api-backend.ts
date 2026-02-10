@@ -116,7 +116,7 @@ export async function copyCodelab(id: string): Promise<Codelab> {
     return res.json();
 }
 
-export async function login(admin_id: string, admin_pw: string): Promise<{ status: string }> {
+export async function login(admin_id: string, admin_pw: string): Promise<{ status: string; token?: string }> {
     const res = await apiFetch(`/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -407,12 +407,14 @@ export async function getCertificate(attendeeId: string): Promise<CertificateInf
     return res.json();
 }
 
-export function getWsUrl(codelabId: string, roleHint?: 'admin' | 'attendee'): string {
+export function getWsUrl(codelabId: string, roleHint?: 'admin' | 'attendee', token?: string): string {
     const url = new URL(API_URL.replace('http', 'ws'));
     const base = `${url.protocol}//${url.host}/api/ws/${codelabId}`;
-    if (!roleHint) return base;
-    const params = new URLSearchParams({ as: roleHint });
-    return `${base}?${params.toString()}`;
+    const params = new URLSearchParams();
+    if (roleHint) params.append('as', roleHint);
+    if (token) params.append('token', token);
+    const queryString = params.toString();
+    return queryString ? `${base}?${queryString}` : base;
 }
 
 export async function getMaterials(codelabId: string): Promise<Material[]> {

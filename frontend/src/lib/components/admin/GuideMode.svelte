@@ -857,14 +857,18 @@
         <div
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
             role="dialog"
+            tabindex="-1"
             aria-modal="true"
             aria-labelledby="guide-pro-modal-title"
             onclick={() => (showGuideProModal = false)}
+            onkeydown={(e) => e.key === "Escape" && (showGuideProModal = false)}
             in:fade
         >
             <div
                 class="bg-white dark:bg-dark-surface w-full max-w-5xl h-[85vh] rounded-3xl shadow-2xl border border-border dark:border-dark-border flex flex-col overflow-hidden"
+                role="none"
                 onclick={(e) => e.stopPropagation()}
+                onkeydown={(e) => e.stopPropagation()}
             >
                 <div
                     class="flex items-center justify-between px-6 py-4 bg-foreground text-background"

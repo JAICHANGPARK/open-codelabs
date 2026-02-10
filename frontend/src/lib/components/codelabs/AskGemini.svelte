@@ -119,6 +119,7 @@
     class="fixed inset-0 bg-black/5 z-50 flex justify-end"
     transition:fade={{ duration: 200 }}
     onkeydown={handleKeydown}
+    role="presentation"
 >
     <button
         class="absolute inset-0"
@@ -178,9 +179,9 @@
                         class="flex flex-col items-center justify-center h-full text-center space-y-6"
                     >
                         <div
-                        class="w-16 h-16 bg-accent/70 dark:bg-primary/10 rounded-full flex items-center justify-center text-primary"
-                        aria-hidden="true"
-                    >
+                            class="w-16 h-16 bg-accent/70 dark:bg-primary/10 rounded-full flex items-center justify-center text-primary"
+                            aria-hidden="true"
+                        >
                             <Key size={32} />
                         </div>
                         <div>

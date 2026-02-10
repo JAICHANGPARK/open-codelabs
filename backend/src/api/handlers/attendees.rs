@@ -120,7 +120,7 @@ pub async fn register_attendee(
     let jar = jar
         .add(build_attendee_session_cookie(
             &state.auth,
-            token,
+            token.clone(),
             state.auth.attendee_ttl,
         ))
         .add(build_csrf_cookie(
@@ -148,10 +148,13 @@ pub async fn register_attendee(
     )
     .await;
 
-    Ok((
-        jar,
-        Json(crate::domain::models::AttendeePublic::from(attendee)),
-    ))
+    let attendee_public = {
+        let mut p = crate::domain::models::AttendeePublic::from(attendee);
+        p.token = Some(token);
+        p
+    };
+
+    Ok((jar, Json(attendee_public)))
 }
 
 pub async fn get_attendees(
@@ -187,6 +190,13 @@ pub async fn get_attendees(
         for attendee in attendees.iter_mut() {
             if let Ok(decrypted) = decrypt_with_password(&attendee.code, &state.admin_pw) {
                 attendee.code = decrypted;
+            }
+            // Populate sharing status from AppState
+            if let Some(is_sharing) = state
+                .attendee_sharing
+                .get(&(id.clone(), attendee.id.clone()))
+            {
+                attendee.is_sharing_screen = *is_sharing;
             }
         }
     } else {

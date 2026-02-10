@@ -1,6 +1,6 @@
+use crate::infrastructure::database::AppState;
 use crate::middleware::auth::{AuthSession, Role};
 use crate::utils::error::forbidden;
-use crate::infrastructure::database::AppState;
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
@@ -23,7 +23,8 @@ fn generate_session_id() -> String {
 #[derive(serde::Deserialize, Default)]
 pub struct WsQuery {
     #[serde(rename = "as")]
-    role_hint: Option<String>,
+    pub role_hint: Option<String>,
+    pub token: Option<String>,
 }
 
 pub async fn ws_handler(
@@ -39,10 +40,35 @@ pub async fn ws_handler(
         _ => session.claims,
     };
 
+    // If session claims are missing, try the token from query string
+    let claims = match claims {
+        Some(c) => Some(c),
+        None => query.token.as_ref().and_then(|t| {
+            state.auth.verify_token(t).filter(|c| {
+                // Ensure the token role matches the requested role hint if provided
+                match query.role_hint.as_deref() {
+                    Some("admin") => c.role == Role::Admin.as_str(),
+                    Some("attendee") => {
+                        c.role == Role::Attendee.as_str()
+                            && c.codelab_id.as_deref() == Some(id.as_str())
+                    }
+                    _ => true,
+                }
+            })
+        }),
+    };
+
     let claims = match claims {
         Some(claims) => claims,
-        None => return axum::http::StatusCode::UNAUTHORIZED.into_response(),
+        None => {
+            eprintln!(
+                "WebSocket: Unauthorized connection attempt to codelab {}",
+                id
+            );
+            return axum::http::StatusCode::UNAUTHORIZED.into_response();
+        }
     };
+
     if claims.role == Role::Attendee.as_str() {
         if claims.codelab_id.as_deref() != Some(id.as_str()) {
             return forbidden().into_response();
@@ -101,6 +127,18 @@ async fn handle_socket(
 
     let mut rx_broadcast = tx_broadcast.subscribe();
 
+    // Check if screen sharing is active and notify the new connection
+    if let Some(is_active) = state.active_screen_shares.get(&codelab_id) {
+        if *is_active {
+            let payload = serde_json::json!({
+                "type": "screen_share_status",
+                "status": "facilitator_started"
+            })
+            .to_string();
+            let _ = tx_ws.send(Message::Text(payload.into()));
+        }
+    }
+
     let mut send_task = tokio::spawn(async move {
         loop {
             tokio::select! {
@@ -124,6 +162,8 @@ async fn handle_socket(
     let codelab_id_clone = codelab_id.clone();
     let sender_name_clone = sender_name.clone();
     let user_id_clone = user_id.clone();
+    let role_clone = role.clone();
+    let tx_broadcast_clone = tx_broadcast.clone();
     let mut recv_task = tokio::spawn(async move {
         while let Some(Ok(Message::Text(text))) = receiver.next().await {
             if let Ok(val) = serde_json::from_str::<serde_json::Value>(&text) {
@@ -151,7 +191,7 @@ async fn handle_socket(
                             "message": message
                         })
                         .to_string();
-                        let _ = tx_broadcast.send(payload);
+                        let _ = tx_broadcast_clone.send(payload);
                     }
                     Some("dm") => {
                         // Direct message
@@ -194,7 +234,7 @@ async fn handle_socket(
                     }
                     Some("step_progress") => {
                         // Persist to DB
-                        if role == Role::Attendee {
+                        if role_clone == Role::Attendee {
                             let step_number = val.get("step_number").and_then(|v| v.as_i64());
                             if let Some(step_number) = step_number {
                                 if step_number < 1 {
@@ -215,7 +255,90 @@ async fn handle_socket(
                                     "step_number": step_number
                                 })
                                 .to_string();
-                                let _ = tx_broadcast.send(payload);
+                                let _ = tx_broadcast_clone.send(payload);
+                            }
+                        }
+                    }
+                    Some("webrtc_signal") => {
+                        // WebRTC signaling (Offer/Answer/ICE)
+                        if let Some(target_id) = val.get("target_id").and_then(|v| v.as_str()) {
+                            // Direct signaling
+                            if let Some(target_sessions) = state_clone
+                                .sessions
+                                .get(&(codelab_id_clone.clone(), target_id.to_string()))
+                            {
+                                let payload = serde_json::json!({
+                                    "type": "webrtc_signal",
+                                    "sender_id": user_id_clone.as_str(),
+                                    "sender_name": sender_name_clone.as_str(),
+                                    "signal": val.get("signal"),
+                                    "stream_type": val.get("stream_type")
+                                })
+                                .to_string();
+                                for (_, target_ws) in target_sessions.iter() {
+                                    let _ = target_ws.send(Message::Text(payload.clone().into()));
+                                }
+                            }
+                        } else {
+                            // Broadcast signaling (Facilitator to all)
+                            let payload = serde_json::json!({
+                                "type": "webrtc_signal",
+                                "sender_id": user_id_clone.as_str(),
+                                "sender_name": sender_name_clone.as_str(),
+                                "signal": val.get("signal"),
+                                "stream_type": val.get("stream_type")
+                            })
+                            .to_string();
+                            let _ = tx_broadcast_clone.send(payload);
+                        }
+                    }
+                    Some("screen_share_status") => {
+                        // Broadcast screen share status
+                        let status = val.get("status").and_then(|v| v.as_str()).unwrap_or("");
+
+                        if status == "facilitator_started" {
+                            state_clone
+                                .active_screen_shares
+                                .insert(codelab_id_clone.clone(), true);
+                        } else if status == "facilitator_stopped" {
+                            state_clone
+                                .active_screen_shares
+                                .insert(codelab_id_clone.clone(), false);
+                        }
+
+                        let payload = serde_json::json!({
+                            "type": "screen_share_status",
+                            "sender_id": user_id_clone.as_str(),
+                            "status": status
+                        })
+                        .to_string();
+                        let _ = tx_broadcast_clone.send(payload);
+                    }
+                    Some("attendee_screen_status") => {
+                        // Attendee notifies facilitator about their screen sharing status
+                        if role_clone == Role::Attendee {
+                            let status = val.get("status").and_then(|v| v.as_str()).unwrap_or("");
+                            let is_sharing = status == "started";
+                            state_clone.attendee_sharing.insert(
+                                (codelab_id_clone.clone(), user_id_clone.clone()),
+                                is_sharing,
+                            );
+
+                            if let Some(facilitator_sessions) = state_clone
+                                .sessions
+                                .get(&(codelab_id_clone.clone(), "facilitator".to_string()))
+                            {
+                                let payload = serde_json::json!({
+                                    "type": "attendee_screen_status",
+                                    "attendee_id": user_id_clone.as_str(),
+                                    "attendee_name": sender_name_clone.as_str(),
+                                    "status": status
+                                })
+                                .to_string();
+                                for (_, facilitator_ws) in facilitator_sessions.iter() {
+                                    let _ =
+                                        facilitator_ws.send(Message::Text(payload.clone().into()));
+                                }
                             }
                         }
                     }
@@ -225,25 +348,59 @@ async fn handle_socket(
         }
     });
 
+    // Broadcast join event if it's an attendee
+    if role == Role::Attendee {
+        // Fetch latest step to be accurate
+        let current_step: i32 =
+            sqlx::query_scalar(&state.q("SELECT current_step FROM attendees WHERE id = ?"))
+                .bind(&user_id)
+                .fetch_one(&state.pool)
+                .await
+                .unwrap_or(0);
+
+        let payload = serde_json::json!({
+            "type": "attendee_joined",
+            "attendee": {
+                "id": user_id,
+                "name": sender_name,
+                "created_at": chrono::Utc::now().to_rfc3339(),
+                "current_step": current_step
+            }
+        })
+        .to_string();
+        let _ = tx_broadcast.send(payload);
+    }
+
     tokio::select! {
         _ = (&mut send_task) => {
             recv_task.abort();
-            cleanup_session(&state, &codelab_id, &user_id, &session_id);
         },
         _ = (&mut recv_task) => {
             send_task.abort();
-            cleanup_session(&state, &codelab_id, &user_id, &session_id);
         },
     };
+
+    // Cleanup and broadcast leave
+    cleanup_session(&state, &codelab_id, &user_id, &session_id);
+
+    // Check if this was the last session for this user before broadcasting leave
+    // (To avoid "left" message on tab refresh if another tab is open, though checking session count is tricky here due to async race,
+    // but we can check if sessions map is empty for this user)
+    let session_key = (codelab_id.clone(), user_id.clone());
+    let is_last_session = !state.sessions.contains_key(&session_key);
+
+    if role == Role::Attendee && is_last_session {
+        let payload = serde_json::json!({
+            "type": "attendee_left",
+            "attendee_id": user_id
+        })
+        .to_string();
+        let _ = tx_broadcast.send(payload);
+    }
 }
 
 /// Remove a specific session from the sessions map
-fn cleanup_session(
-    state: &Arc<AppState>,
-    codelab_id: &str,
-    user_id: &str,
-    session_id: &str,
-) {
+fn cleanup_session(state: &Arc<AppState>, codelab_id: &str, user_id: &str, session_id: &str) {
     let key = (codelab_id.to_string(), user_id.to_string());
     if let Some(mut sessions) = state.sessions.get_mut(&key) {
         // Remove the specific session by session_id
@@ -251,6 +408,8 @@ fn cleanup_session(
         if sessions.is_empty() {
             drop(sessions);
             state.sessions.remove(&key);
+            // Also cleanup sharing status
+            state.attendee_sharing.remove(&key);
         }
     }
 }
