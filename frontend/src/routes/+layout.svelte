@@ -6,9 +6,25 @@
     import { locale, waitLocale, t } from "svelte-i18n";
     import "$lib/i18n";
     import "../app.css";
-    import { Languages, LogOut, Sun, Moon, Github, FileText as FileIcon, Accessibility, Palette } from "lucide-svelte";
+    import {
+        Languages,
+        LogOut,
+        Sun,
+        Moon,
+        Github,
+        FileText as FileIcon,
+        Accessibility,
+        Palette,
+    } from "lucide-svelte";
     import { themeState } from "$lib/theme.svelte";
-    import { logout, onAuthChange, isFirebaseMode, isSupabaseMode, isServerlessMode, getSession } from "$lib/api";
+    import {
+        logout,
+        onAuthChange,
+        isFirebaseMode,
+        isSupabaseMode,
+        isServerlessMode,
+        getSession,
+    } from "$lib/api";
 
     let { children } = $props();
     let i18nLoaded = $state(false);
@@ -40,14 +56,17 @@
                     goto("/login");
                 } else if (user) {
                     // Sync token if needed
-                    user.getIdToken().then(token => {
+                    user.getIdToken().then((token) => {
                         localStorage.setItem("adminToken", token);
-                        localStorage.setItem("user", JSON.stringify({
-                            uid: user.uid,
-                            email: user.email,
-                            displayName: user.displayName,
-                            photoURL: user.photoURL
-                        }));
+                        localStorage.setItem(
+                            "user",
+                            JSON.stringify({
+                                uid: user.uid,
+                                email: user.email,
+                                displayName: user.displayName,
+                                photoURL: user.photoURL,
+                            }),
+                        );
                     });
                 }
             });
@@ -69,7 +88,8 @@
                 refreshSession();
             };
             window.addEventListener("session-changed", handler);
-            cleanup = () => window.removeEventListener("session-changed", handler);
+            cleanup = () =>
+                window.removeEventListener("session-changed", handler);
         }
         try {
             const savedLocale = localStorage.getItem("locale");
@@ -98,9 +118,13 @@
     $effect(() => {
         if (!i18nLoaded) return;
 
-        // Update html lang attribute
+        // Update html lang and dir attributes
         if (browser && $locale) {
             document.documentElement.lang = $locale;
+            const rtlLocales = ["ar", "fa", "he"];
+            document.documentElement.dir = rtlLocales.includes($locale)
+                ? "rtl"
+                : "ltr";
         }
 
         // Track pathname for reactivity
@@ -149,7 +173,24 @@
         { code: "en", name: "English" },
         { code: "ko", name: "한국어" },
         { code: "ja", name: "日本語" },
-        { code: "zh", name: "中文" },
+        { code: "zh", name: "中文(简体)" },
+        { code: "zh-TW", name: "中文(繁體)" },
+        { code: "de", name: "Deutsch" },
+        { code: "es", name: "Español" },
+        { code: "fr", name: "Français" },
+        { code: "it", name: "Italiano" },
+        { code: "pt", name: "Português" },
+        { code: "pl", name: "Polski" },
+        { code: "tr", name: "Türkçe" },
+        { code: "ru", name: "Русский" },
+        { code: "id", name: "Bahasa Indonesia" },
+        { code: "vi", name: "Tiếng Việt" },
+        { code: "th", name: "ไทย" },
+        { code: "hi", name: "हिन्दी" },
+        { code: "bn", name: "বাংলা" },
+        { code: "ar", name: "العربية" },
+        { code: "fa", name: "فارسی" },
+        { code: "he", name: "עברית" },
     ];
 
     let langMenuOpen = $state(false);
@@ -176,7 +217,9 @@
         themeMenuOpen = false;
     }
 
-    function selectThemePreset(presetId: "default" | "mint" | "ocean" | "sunset") {
+    function selectThemePreset(
+        presetId: "default" | "mint" | "ocean" | "sunset",
+    ) {
         themeState.setPreset(presetId);
         themeMenuOpen = false;
     }
@@ -202,33 +245,33 @@
     <div
         class="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3 print:hidden"
     >
-<!--        &lt;!&ndash; External Links &ndash;&gt;-->
-<!--        <div class="flex flex-col items-end gap-3 mb-2">-->
-<!--            <a-->
-<!--                href="https://github.com/JAICHANGPARK/open-codelabs"-->
-<!--                target="_blank"-->
-<!--                rel="noopener noreferrer"-->
-<!--                class="w-10 h-10 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary dark:hover:text-primary transition-all"-->
-<!--                title={$t("common.github_repo")}-->
-<!--                aria-label={$t("common.github_repo")}-->
-<!--            >-->
-<!--                <Github size={18} />-->
-<!--            </a>-->
-<!--            <a-->
-<!--                href="https://jaichangpark.github.io/open-codelabs/"-->
-<!--                target="_blank"-->
-<!--                rel="noopener noreferrer"-->
-<!--                class="w-10 h-10 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary dark:hover:text-primary transition-all"-->
-<!--                title={$t("common.documentation")}-->
-<!--                aria-label={$t("common.documentation")}-->
-<!--            >-->
-<!--                <FileIcon size={18} />-->
-<!--            </a>-->
-<!--        </div>-->
+        <!--        &lt;!&ndash; External Links &ndash;&gt;-->
+        <!--        <div class="flex flex-col items-end gap-3 mb-2">-->
+        <!--            <a-->
+        <!--                href="https://github.com/JAICHANGPARK/open-codelabs"-->
+        <!--                target="_blank"-->
+        <!--                rel="noopener noreferrer"-->
+        <!--                class="w-10 h-10 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary dark:hover:text-primary transition-all"-->
+        <!--                title={$t("common.github_repo")}-->
+        <!--                aria-label={$t("common.github_repo")}-->
+        <!--            >-->
+        <!--                <Github size={18} />-->
+        <!--            </a>-->
+        <!--            <a-->
+        <!--                href="https://jaichangpark.github.io/open-codelabs/"-->
+        <!--                target="_blank"-->
+        <!--                rel="noopener noreferrer"-->
+        <!--                class="w-10 h-10 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary dark:hover:text-primary transition-all"-->
+        <!--                title={$t("common.documentation")}-->
+        <!--                aria-label={$t("common.documentation")}-->
+        <!--            >-->
+        <!--                <FileIcon size={18} />-->
+        <!--            </a>-->
+        <!--        </div>-->
 
         <div class="relative">
             <button
-                onclick={() => langMenuOpen = !langMenuOpen}
+                onclick={() => (langMenuOpen = !langMenuOpen)}
                 class="w-12 h-12 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
                 title={$t("common.change_language")}
                 aria-label={$t("common.change_language")}
@@ -239,12 +282,12 @@
             </button>
             {#if langMenuOpen}
                 <div
-                    class="absolute bottom-full right-0 mb-3 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-2xl overflow-hidden min-w-[120px]"
+                    class="absolute bottom-full right-0 mb-3 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-2xl overflow-hidden min-w-[160px] max-h-[360px] overflow-y-auto"
                 >
                     {#each availableLocales as loc}
                         <button
                             onclick={() => changeLanguage(loc.code)}
-                            class="w-full text-left px-4 py-3 text-sm font-bold hover:bg-accent/60 dark:hover:bg-accent/40 transition-colors {loc.code ===
+                            class="w-full text-left px-4 py-2.5 text-sm font-bold hover:bg-accent/60 dark:hover:bg-accent/40 transition-colors {loc.code ===
                             $locale
                                 ? 'text-primary bg-accent'
                                 : 'text-muted-foreground dark:text-dark-text-muted'}"
@@ -258,7 +301,7 @@
 
         <div class="relative">
             <button
-                onclick={() => themeMenuOpen = !themeMenuOpen}
+                onclick={() => (themeMenuOpen = !themeMenuOpen)}
                 class="w-12 h-12 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
                 title={$t("theme.menu_label")}
                 aria-label={$t("theme.menu_label")}
@@ -271,26 +314,32 @@
                 <div
                     class="absolute bottom-full right-0 mb-3 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-2xl shadow-2xl overflow-hidden min-w-[180px]"
                 >
-                    <div class="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/70 dark:bg-accent/40 border-b border-border dark:border-dark-border">
+                    <div
+                        class="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/70 dark:bg-accent/40 border-b border-border dark:border-dark-border"
+                    >
                         {$t("theme.mode_label")}
                     </div>
                     {#each availableThemeModes as mode}
                         <button
                             onclick={() => selectThemeMode(mode.id)}
-                            class="w-full text-left px-4 py-2 text-sm font-bold hover:bg-accent/60 dark:hover:bg-accent/40 transition-colors {themeState.modeId === mode.id
+                            class="w-full text-left px-4 py-2 text-sm font-bold hover:bg-accent/60 dark:hover:bg-accent/40 transition-colors {themeState.modeId ===
+                            mode.id
                                 ? 'text-primary bg-accent'
                                 : 'text-muted-foreground dark:text-dark-text-muted'}"
                         >
                             {$t(mode.labelKey)}
                         </button>
                     {/each}
-                    <div class="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/70 dark:bg-accent/40 border-b border-t border-border dark:border-dark-border">
+                    <div
+                        class="px-4 py-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground dark:text-dark-text-muted bg-accent/70 dark:bg-accent/40 border-b border-t border-border dark:border-dark-border"
+                    >
                         {$t("theme.preset_label")}
                     </div>
                     {#each themeState.presets as preset}
                         <button
                             onclick={() => selectThemePreset(preset.id)}
-                            class="w-full text-left px-4 py-2 text-sm font-bold hover:bg-accent/60 dark:hover:bg-accent/40 transition-colors {themeState.presetId === preset.id
+                            class="w-full text-left px-4 py-2 text-sm font-bold hover:bg-accent/60 dark:hover:bg-accent/40 transition-colors {themeState.presetId ===
+                            preset.id
                                 ? 'text-primary bg-accent'
                                 : 'text-muted-foreground dark:text-dark-text-muted'}"
                         >
@@ -300,17 +349,22 @@
                 </div>
             {/if}
         </div>
-        
+
         <!-- Colorblind Mode Toggle -->
         <button
             onclick={() => themeState.toggleColorblind()}
-            class="w-12 h-12 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg {themeState.isColorblind ? 'ring-2 ring-ring border-transparent' : ''}"
+            class="w-12 h-12 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg {themeState.isColorblind
+                ? 'ring-2 ring-ring border-transparent'
+                : ''}"
             title={$t("common.toggle_colorblind")}
             aria-label={$t("common.toggle_colorblind")}
             aria-pressed={themeState.isColorblind}
         >
             <span class="sr-only">{$t("common.toggle_colorblind")}</span>
-            <Accessibility size={20} class={themeState.isColorblind ? "text-primary" : ""} />
+            <Accessibility
+                size={20}
+                class={themeState.isColorblind ? "text-primary" : ""}
+            />
         </button>
 
         <!-- Theme Toggle -->
@@ -343,7 +397,9 @@
         {/if}
     </div>
 {:else}
-    <div class="min-h-screen flex items-center justify-center bg-background dark:bg-dark-bg">
+    <div
+        class="min-h-screen flex items-center justify-center bg-background dark:bg-dark-bg"
+    >
         <div
             class="animate-spin rounded-full h-12 w-12 border-4 border-border dark:border-dark-border border-t-primary dark:border-t-primary"
         ></div>
