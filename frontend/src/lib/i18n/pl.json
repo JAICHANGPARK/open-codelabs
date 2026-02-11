@@ -249,10 +249,10 @@
             "checklist_label": "Lista kontrolna",
             "callout_label": "Wyróżnienie (Callout)",
             "command_block_label": "Polecenie + Wynik",
-            "step_outline": "## Objective\n- \n\n## Prerequisites\n- \n\n## Steps\n1. \n2. \n\n## Checkpoint\n- ",
-            "checklist": "- [ ] Task\n- [ ] Task",
-            "callout": "> **Note**\n> ",
-            "command_block": "```bash\n# command\n```\n\nOutput:\n```\n\n```"
+            "step_outline": "## Cele\n- \n\n## Wymagania\n- \n\n## Kroki\n1. \n2. \n\n## Punkt kontrolny\n- ",
+            "checklist": "- [ ] Zadanie",
+            "callout": "> **Notatka**",
+            "command_block": "```bash\n# Polecenie\n```"
         },
         "stats": {
             "words": "{count} słów",
@@ -263,11 +263,11 @@
         "guide_description": "Stwórz przewodnik dla uczestników dotyczący tego, co powinni przygotować przed rozpoczęciem sesji (np. narzędzia, oprogramowanie, środowisko).",
         "markdown_editor": "Edytor Markdown",
         "live_preview": "Podgląd na żywo",
-        "parse_error": "Błąd przetwarzania treści",
-        "pdf_export_failed": "Eksport do PDF nie powiódł się",
-        "docx_export_failed": "Eksport do DOCX nie powiódł się. Spróbuj skopiować treść bezpośrednio do edytora tekstu.",
-        "generate_guide": "Generuj przewodnik za pomocą AI",
-        "generating_guide": "Generowanie przewodnika...",
+        "parse_error": "Błąd parsowania",
+        "pdf_export_failed": "Eksport PDF nieudany",
+        "docx_export_failed": "Eksport DOCX nieudany",
+        "generate_guide": "Generuj poradnik",
+        "generating_guide": "Generowanie...",
         "generate_guide_pro": "Generuj przewodnik Pro",
         "generating_guide_pro": "Uruchamianie przepływu pracy Pro...",
         "guide_pro_stage": {
@@ -336,7 +336,7 @@
             "steps": "Kroki",
             "branch": "Gałąź",
             "folder": "Folder",
-            "branches": "gałęzie",
+            "branches": "Gałęzie",
             "folders": "foldery"
         },
         "steps_summary": "{count} kroki × 2 ({unit}) = {total} łącznie",
@@ -406,7 +406,7 @@
         "ai_step_summary": "Krok {step} {phase}: {updated} zaktualizowano, {deleted} usunięto",
         "ai_phase_start": "start",
         "ai_phase_end": "end",
-        "copy_title": "Copy Step Code",
+        "copy_title": "Kopiuj kod kroku",
         "copy_desc": "Copy the end code from the previous step to the next step's start code.",
         "copy_button": "Copy Step {source} End → Step {target} Start",
         "copy_success": "Copied step {source} end code to step {target} start code.",
@@ -455,7 +455,8 @@
         "codelab": "Codelab",
         "attendee_id": "ID Uczestnika",
         "registered_at": "Zarejestrowano",
-        "not_available": "Niedostępne"
+        "not_available": "Niedostępne",
+        "total_steps": "Wszystkie kroki"
     },
     "feedback": {
         "done_title": "Ukończono!",
@@ -485,18 +486,18 @@
         "link_submit": "Wyślij link",
         "link_submitting": "Wysyłanie...",
         "open_link": "Otwórz link",
-        "size_label": "{used}MB / 10MB",
+        "size_label": "Rozmiar",
         "delete": "Usuń",
         "download": "Pobierz",
         "open_new_tab": "Nowa karta",
         "upload_failed": "Błąd przesyłania",
         "delete_failed": "Błąd usuwania",
-        "upload_failed_material": "File upload failed",
-        "add_material_failed": "Failed to add material",
-        "attendee_code": "Code"
+        "upload_failed_material": "Nie udało się przesłać",
+        "add_material_failed": "Nie udało się dodać",
+        "attendee_code": "Kod"
     },
     "playground": {
-        "title": "Browser Playground",
+        "title": "Piaskownica",
         "subtitle": "Uruchom kod w przeglądarce bez serwera.",
         "code_label": "Fragment kodu",
         "copied": "Skopiowano",
@@ -504,15 +505,15 @@
         "embed_unavailable": "Nie można osadzić.",
         "toggle_open": "Otwórz",
         "toggle_close": "Zamknij",
-        "iframe_title": "Playground: {name}"
+        "iframe_title": "Podgląd piaskownicy"
     },
     "certificate": {
-        "title": "CERTYFIKAT",
+        "title": "Certyfikat ukończenia",
         "subtitle": "CERTYFIKAT UCZESTNICTWA",
-        "issued_to": "Wydany dla",
-        "codelab_title": "Tytuł Kursu",
-        "completion_date": "Data Ukończenia",
-        "verify_desc": "Dokument wydany oficjalnie przez Open-Codelabs.",
+        "issued_to": "Wystawiono dla",
+        "codelab_title": "Tytuł Codelab",
+        "completion_date": "Data ukończenia",
+        "verify_desc": "Zeskanuj, aby zweryfikować autentyczność",
         "download_pdf": "Zapisz jako PDF / Drukuj",
         "verified_at": "Zweryfikowano",
         "verify_status": "Status Weryfikacji",
@@ -531,7 +532,7 @@
         "no_completed": "Nikt nie ukończył",
         "no_search_results": "Brak wyników",
         "completed_at": "Ukończono",
-        "download": "Pobierz Certyfikat"
+        "download": "Pobierz certyfikat"
     },
     "help": {
         "request": "Poproś o pomoc",
@@ -551,7 +552,7 @@
     "login": {
         "title": "Logowanie facylitatora",
         "subtitle": "Dostęp do panelu",
-        "admin_id": "Admin ID",
+        "admin_id": "ID Administratora",
         "password": "Hasło",
         "sign_in": "Zaloguj się",
         "connecting": "Łączenie...",
@@ -567,7 +568,10 @@
         "trouble_local_commands_desc": "Uruchom serwery:",
         "trouble_local_note": "Zrestartuj backend po zmianach.",
         "trouble_serverless_desc": "Użyj logowania Google.",
-        "trouble_serverless_hint": "Sprawdź blokery popup."
+        "trouble_serverless_hint": "Sprawdź blokery popup.",
+        "admin_pw": "Hasło",
+        "facilitator_title": "Logowanie Prowadzącego",
+        "attendee_title": "Dołącz jako Uczestnik"
     },
     "home": {
         "subtitle": "Idealne sesje praktyczne z interaktywnymi przewodnikami.",
@@ -767,9 +771,9 @@
         "masonry_view": "Masonry View"
     },
     "audit": {
-        "title": "Logi audytowe",
+        "title": "Dzienniki audytu",
         "back_to_admin": "Powrót do admina",
-        "filter_action": "Akcja",
+        "filter_action": "Działanie",
         "filter_codelab_id": "ID Codelab",
         "placeholder_action": "np. codelab_create",
         "placeholder_codelab": "Filtruj po codelab",
@@ -777,18 +781,20 @@
         "loading": "Ładowanie logów...",
         "no_logs": "Nie znaleziono logów audytowych",
         "col_time": "Czas",
-        "col_action": "Akcja",
+        "col_action": "Działanie",
         "col_actor": "Aktor",
         "col_target": "Cel",
         "col_ip": "IP",
         "col_details": "Szczegóły",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "Docelowy Codelab",
         "col_target_id": "Cel",
         "view_details": "Pokaż",
         "pagination_info": "Pokazuje {start} do {end} (limit: {limit})",
         "prev": "Poprzedni",
         "next": "Następny",
-        "error_load": "Błąd ładowania logów: {error}"
+        "error_load": "Błąd ładowania logów: {error}",
+        "filter_admin": "Admin",
+        "col_timestamp": "Sygnatura czasowa"
     },
     "screen_share": {
         "share_screen": "Udostępnij ekran",
