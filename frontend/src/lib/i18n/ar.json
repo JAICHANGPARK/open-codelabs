@@ -1,7 +1,7 @@
 {
     "common": {
         "title": "أوبن كودلاب (Open Codelabs)",
-        "actions": "الإجراءات",
+        "actions": "إجراءات",
         "status": "الحالة",
         "required": "مطلوب",
         "description": "تجربة تعلم تفاعلية",
@@ -262,11 +262,11 @@
         "guide_description": "أنشئ دليلاً للحضور حول ما يجب تحضيره قبل بدء الجلسة (مثل الأدوات، البرامج، البيئة).",
         "markdown_editor": "محرر Markdown",
         "live_preview": "معاينة مباشرة",
-        "parse_error": "خطأ في تحليل المحتوى",
+        "parse_error": "خطأ في التحليل",
         "pdf_export_failed": "فشل تصدير PDF",
-        "docx_export_failed": "فشل تصدير DOCX. حاول نسخ المحتوى مباشرة إلى محرر المستندات الخاص بك.",
-        "generate_guide": "توليد دليل بالذكاء الاصطناعي",
-        "generating_guide": "جاري توليد الدليل...",
+        "docx_export_failed": "فشل تصدير DOCX",
+        "generate_guide": "توليد الدليل",
+        "generating_guide": "جاري التوليد...",
         "generate_guide_pro": "توليد دليل احترافي",
         "generating_guide_pro": "جاري تشغيل سير العمل الاحترافي...",
         "guide_pro_stage": {
