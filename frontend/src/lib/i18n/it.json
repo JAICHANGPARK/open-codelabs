@@ -325,8 +325,8 @@
         "require_feedback_desc": "Richiedi feedback costante.",
         "require_submission_desc": "Richiedi un risultato finale.",
         "settings_tab": "Impostazioni",
-        "settings_description": "Configure codelab behavior and certificate issuance requirements.",
-        "materials_tab": "Materials",
+        "settings_description": "Impostazioni generali del codelab.",
+        "materials_tab": "Materiali",
         "publish": "Pubblica"
     },
     "workspace": {
@@ -367,7 +367,7 @@
         "no_files": "Nessun file trovato",
         "select_file": "Seleziona un file per vederne il contenuto",
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "Anteprima Markdown",
             "code_label": "Codice",
             "empty": "Nessuna cella trovata.",
             "invalid": "File notebook non valido."
@@ -410,13 +410,13 @@
         "ai_phase_start": "Inizio",
         "ai_phase_end": "Fine",
         "copy_title": "Copia codice passaggio",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
+        "copy_desc": "Copia il codice finale del passaggio precedente come codice iniziale per il successivo.",
         "copy_button": "Copia fine passaggio {source} → inizio passaggio {target}",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_success": "Codice del passaggio {source} copiato nel passaggio {target}.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "Sfoglia file",
+            "download": "Scarica area di lavoro"
         }
     },
     "attendee": {
@@ -455,7 +455,7 @@
         "title": "Il tuo profilo",
         "name": "Nome",
         "email": "Email",
-        "codelab": "Codelab",
+        "codelab": "Laboratorio",
         "attendee_id": "ID Partecipante",
         "registered_at": "Registrato il",
         "not_available": "Non disponibile",
@@ -547,7 +547,7 @@
         "status_title": "Stato In Diretta",
         "participants": "{count} partecipanti",
         "realtime_progress": "Progresso in tempo reale",
-        "step_progress": "Step {current} / {total}",
+        "step_progress": "Progresso del passaggio",
         "you": "(Tu)",
         "live_chat": "Chat in diretta",
         "say_hello": "Saluta..."
@@ -556,7 +556,7 @@
         "title": "Login facilitatore",
         "subtitle": "Accedi al tuo pannello",
         "admin_id": "ID Amministratore",
-        "password": "Password",
+        "password": "Password (Segreta)",
         "sign_in": "Accedi",
         "connecting": "Connessione...",
         "error_fields": "Compila tutti i campi",
@@ -606,10 +606,10 @@
         "mode_prompt": "Solo Prompt",
         "mode_basic_desc": "Generazione rapida in un unico passaggio basata sul codice e sui file forniti.",
         "mode_prompt_desc": "Generazione di flussi a tappe tramite prompt per sessioni di codifica rapide.",
-        "prompt_section": "Prompt",
+        "prompt_section": "Sezione prompt",
         "expected_output_section": "Output atteso",
         "facilitator_tips_section": "Suggerimenti facilitatore",
-        "timebox_section": "Timebox",
+        "timebox_section": "Sezione limite di tempo",
         "section_empty": "Nessun contenuto fornito",
         "mode_advanced_star_message": "Modalità avanzata attiva.",
         "mode_advanced_star_button": "Genera",
@@ -677,7 +677,7 @@
         "diff_too_large": "Le differenze sono troppo grandi per essere mostrate. Controlla i risultati direttamente.",
         "draft_markdown_title": "Output bozza (Markdown)",
         "revised_markdown_title": "Output revisionato (Markdown)",
-        "view_markdown": "Markdown",
+        "view_markdown": "Visualizza Markdown",
         "saving": "Salvataggio...",
         "upload_files": "File contesto",
         "upload_limits": "Limite: max {maxFiles} file per prompt, ognuno {maxSizeMb} MB. File ZIP: max {maxZipFiles} file, no audio/video.",
