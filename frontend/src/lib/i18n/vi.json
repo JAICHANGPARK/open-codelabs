@@ -363,7 +363,7 @@
         "no_files": "Không tìm thấy tệp",
         "select_file": "Chọn tệp để xem nội dung",
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "Trình soạn thảo Markdown",
             "code_label": "Mã",
             "empty": "Không tìm thấy ô.",
             "invalid": "Tệp notebook không hợp lệ."
@@ -495,7 +495,7 @@
         "attendee_code": "Code"
     },
     "playground": {
-        "title": "Browser Playground",
+        "title": "Sân chơi",
         "subtitle": "Chạy mã trong trình duyệt không cần máy chủ.",
         "code_label": "Đoạn mã",
         "copied": "Đã sao chép",
@@ -550,7 +550,7 @@
     "login": {
         "title": "Đăng nhập người hướng dẫn",
         "subtitle": "Truy cập bảng điều khiển",
-        "admin_id": "Admin ID",
+        "admin_id": "ID quản trị",
         "password": "Mật khẩu",
         "sign_in": "Đăng nhập",
         "connecting": "Đang kết nối...",
@@ -566,7 +566,8 @@
         "trouble_local_commands_desc": "Khởi động server:",
         "trouble_local_note": "Khởi động lại backend sau khi thay đổi.",
         "trouble_serverless_desc": "Sử dụng đăng nhập Google.",
-        "trouble_serverless_hint": "Kiểm tra trình chặn popup."
+        "trouble_serverless_hint": "Kiểm tra trình chặn popup.",
+        "admin_pw": "Mật khẩu"
     },
     "home": {
         "subtitle": "Phiên thực hành hoàn hảo với hướng dẫn tương tác.",
