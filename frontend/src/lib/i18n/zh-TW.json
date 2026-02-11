@@ -504,7 +504,7 @@
         "embed_unavailable": "此 Playground 無法嵌入。",
         "toggle_open": "開啟 Playground",
         "toggle_close": "關閉 Playground",
-        "iframe_title": "Playground: {name}"
+        "iframe_title": "遊樂場預覽"
     },
     "certificate": {
         "title": "結業證書",
@@ -554,7 +554,7 @@
     "login": {
         "title": "講師登入",
         "subtitle": "存取控制台",
-        "admin_id": "Admin ID",
+        "admin_id": "管理員 ID",
         "password": "密碼",
         "sign_in": "登入",
         "connecting": "連線中...",
@@ -783,7 +783,7 @@
         "title": "審核日誌",
         "back_to_admin": "返回管理中心",
         "filter_action": "動作",
-        "filter_codelab_id": "Codelab ID",
+        "filter_codelab_id": "實驗室 ID",
         "placeholder_action": "例如：codelab_create",
         "placeholder_codelab": "依 Codelab 篩選",
         "apply_filters": "套用篩選",
@@ -795,7 +795,7 @@
         "col_target": "目標",
         "col_ip": "IP 位址",
         "col_details": "詳細資訊",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "目標實驗室",
         "col_target_id": "目標 ID",
         "view_details": "檢視",
         "pagination_info": "顯示第 {start} 至 {end} 筆 (限制: {limit})",
