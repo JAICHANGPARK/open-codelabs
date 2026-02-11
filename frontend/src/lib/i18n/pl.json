@@ -364,7 +364,7 @@
         "no_files": "Brak plików",
         "select_file": "Wybierz plik, aby zobaczyć treść",
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "Edytor Markdown",
             "code_label": "Kod",
             "empty": "Brak komórek.",
             "invalid": "Nieprawidłowy plik."
@@ -407,8 +407,8 @@
         "ai_phase_start": "start",
         "ai_phase_end": "end",
         "copy_title": "Kopiuj kod kroku",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
-        "copy_button": "Copy Step {source} End → Step {target} Start",
+        "copy_desc": "Skopiuj kod ostatniego kroku jako startowy dla następnego.",
+        "copy_button": "Kopiuj koniec kroku {source} ← początek kroku {target}",
         "copy_success": "Copied step {source} end code to step {target} start code.",
         "copy_phase": "copy",
         "actions": {
