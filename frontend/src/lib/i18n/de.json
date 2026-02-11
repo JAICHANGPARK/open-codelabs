@@ -454,7 +454,8 @@
         "codelab": "Codelab",
         "attendee_id": "Teilnehmer-ID",
         "registered_at": "Registriert",
-        "not_available": "Nicht angegeben"
+        "not_available": "Nicht angegeben",
+        "total_steps": "Gesamtstufen"
     },
     "feedback": {
         "done_title": "Geschafft!",
@@ -484,18 +485,18 @@
         "link_submit": "Link senden",
         "link_submitting": "Senden...",
         "open_link": "Link öffnen",
-        "size_label": "{used}MB / 10MB",
+        "size_label": "Größe",
         "delete": "Löschen",
         "download": "Herunterladen",
         "open_new_tab": "In neuem Tab öffnen",
         "upload_failed": "Upload fehlgeschlagen",
         "delete_failed": "Löschen fehlgeschlagen",
-        "upload_failed_material": "File upload failed",
-        "add_material_failed": "Failed to add material",
+        "upload_failed_material": "Upload fehlgeschlagen",
+        "add_material_failed": "Hinzufügen fehlgeschlagen",
         "attendee_code": "Code"
     },
     "playground": {
-        "title": "Browser-Playground",
+        "title": "Spielplatz",
         "subtitle": "Führen Sie Code ohne Server im Browser aus.",
         "code_label": "Code-Snippet",
         "copied": "Kopiert",
@@ -503,15 +504,15 @@
         "embed_unavailable": "Dieser Playground kann nicht eingebettet werden.",
         "toggle_open": "Playground öffnen",
         "toggle_close": "Playground schließen",
-        "iframe_title": "Playground: {name}"
+        "iframe_title": "Spielplatz-Vorschau"
     },
     "certificate": {
-        "title": "ZERTIFIKAT",
+        "title": "Abschlusszertifikat",
         "subtitle": "TEILNAHMEBESTÄTIGUNG",
         "issued_to": "Ausgestellt für",
-        "codelab_title": "Kurstitel",
+        "codelab_title": "Codelab-Titel",
         "completion_date": "Abschlussdatum",
-        "verify_desc": "Dieses Dokument wird offiziell durch Open-Codelabs ausgestellt.",
+        "verify_desc": "Scannen zur Echtheitsprüfung",
         "download_pdf": "Als PDF speichern / Drucken",
         "verified_at": "Verifiziert am",
         "verify_status": "Verifizierungsstatus",
@@ -566,7 +567,10 @@
         "trouble_local_commands_desc": "Server starten:",
         "trouble_local_note": "Nach dem Ändern Backend neu starten.",
         "trouble_serverless_desc": "Google-Anmeldung nutzen.",
-        "trouble_serverless_hint": "Popup-Blocker prüfen."
+        "trouble_serverless_hint": "Popup-Blocker prüfen.",
+        "admin_pw": "Passwort",
+        "facilitator_title": "Facilitator-Anmeldung",
+        "attendee_title": "Als Teilnehmer beitreten"
     },
     "home": {
         "subtitle": "Perfekte Praxis-Sessions mit interaktiven Anleitungen.",
@@ -781,13 +785,15 @@
         "col_target": "Ziel",
         "col_ip": "IP",
         "col_details": "Details",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "Ziel-Codelab",
         "col_target_id": "Ziel",
         "view_details": "Ansehen",
         "pagination_info": "Zeige {start} bis {end} (Limit: {limit})",
         "prev": "Vorherige",
         "next": "Nächste",
-        "error_load": "Fehler beim Laden der Protokolle: {error}"
+        "error_load": "Fehler beim Laden der Protokolle: {error}",
+        "filter_admin": "Admin",
+        "col_timestamp": "Zeitstempel"
     },
     "screen_share": {
         "share_screen": "Bildschirm teilen",
