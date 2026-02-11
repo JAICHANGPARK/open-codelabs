@@ -246,10 +246,10 @@
             "checklist_label": "Lista de Verificação",
             "callout_label": "Destaque (Callout)",
             "command_block_label": "Comando + Output",
-            "step_outline": "## Objective\n- \n\n## Prerequisites\n- \n\n## Steps\n1. \n2. \n\n## Checkpoint\n- ",
-            "checklist": "- [ ] Task\n- [ ] Task",
-            "callout": "> **Note**\n> ",
-            "command_block": "```bash\n# command\n```\n\nOutput:\n```\n\n```"
+            "step_outline": "## Objetivos\n- \n\n## Pré-requisitos\n- \n\n## Passos\n1. \n2. \n\n## Ponto de controle\n- ",
+            "checklist": "- [ ] Tarefa",
+            "callout": "> **Nota**",
+            "command_block": "```bash\n# Comando\n```"
         },
         "stats": {
             "words": "{count} palavras",
