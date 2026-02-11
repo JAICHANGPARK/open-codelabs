@@ -710,10 +710,10 @@
             "placeholder": "سوال خود را اینجا بنویسید...",
             "api_key_desc": "کلید Gemini برای اجرای ویژگی‌های هوش مصنوعی استفاده می‌شود.",
             "sources": "منابع",
-            "history": "Your History",
-            "new_chat": "Start New Chat",
-            "no_history": "No conversation history yet.",
-            "role_consultant": "Consultant",
+            "history": "تاریخچه",
+            "new_chat": "گفتگوی جدید",
+            "no_history": "هنوز تاریخچه‌ای وجود ندارد.",
+            "role_consultant": "مشاور",
             "role_you": "You"
         }
     },
@@ -733,7 +733,7 @@
         "eligible_badge": "واجد شرایط",
         "waiting_for_completion": "هنوز کسی تمام نکرده است. برای پیوستن به قرعه‌کشی، گواهی صادر کنید.",
         "recent_winners": "برندگان اخیر",
-        "refresh": "Refresh list"
+        "refresh": "بروزرسانی"
     },
     "submission": {
         "title": "ارسال‌ها",
