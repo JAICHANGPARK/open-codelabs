@@ -837,8 +837,8 @@
         "completed_count": "完成数量",
         "search_placeholder": "按姓名或邮箱搜索...",
         "no_completed": "尚无完成的参与者。",
-        "no_search_results": "No results found",
-        "completed_at": "Completed at",
-        "download": "Download Certificate"
+        "no_search_results": "未找到搜索结果。",
+        "completed_at": "完成时间",
+        "download": "下载"
     }
 }
