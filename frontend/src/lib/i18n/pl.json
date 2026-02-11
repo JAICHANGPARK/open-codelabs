@@ -2,7 +2,7 @@
     "common": {
         "title": "Open Codelabs",
         "actions": "Akcje",
-        "status": "Status",
+        "status": "Status (Stan)",
         "required": "Wymagane",
         "description": "Interaktywne doświadczenie edukacyjne",
         "facilitator": "Facylitator",
@@ -708,10 +708,10 @@
     },
     "admin": {
         "consultant": {
-            "title": "Hands-on Design Consultant",
-            "subtitle": "Your AI partner for session success",
-            "button": "Design Consultant",
-            "how_can_i_help": "How can I help you today?",
+            "title": "Konsultant Projektowy",
+            "subtitle": "Twój asystent AI do tworzenia treści.",
+            "button": "Rozpocznij konsultację",
+            "how_can_i_help": "W czym mogę Ci dzisiaj pomóc przy projekcie?",
             "help_desc": "Ask about codelab structure, choosing a topic, or technical implementation details.",
             "placeholder": "Ask for advice on your codelab...",
             "api_key_desc": "Please configure your Gemini API key in the dashboard settings to use the consultant.",
