@@ -757,11 +757,11 @@
         "title": "گالری",
         "search_placeholder": "جستجو...",
         "no_images": "بدون تصویر",
-        "tab_title": "Image Gallery",
-        "image_count": "images",
-        "no_search_results": "No images match your search.",
-        "waiting_images": "Waiting for attendees to upload images.",
-        "grid_view": "Grid View",
+        "tab_title": "گالری",
+        "image_count": "{count} تصویر",
+        "no_search_results": "تصویری پیدا نشد.",
+        "waiting_images": "در حال بارگذاری تصاویر...",
+        "grid_view": "نمای شبکه‌ای",
         "masonry_view": "Masonry View"
     },
     "audit": {
