@@ -293,13 +293,14 @@
         "docx_export_failed": "DOCXのエクスポートに失敗しました。エディタに直接コピーしてください。",
         "generate_guide": "AIでガイドを生成",
         "generating_guide": "ガイドを生成中...",
-        "generate_guide_pro": "プロモードでガイドを生成",
-        "generating_guide_pro": "プロモード実行中...",
+        "generate_guide_pro": "プロガイドを作成",
+        "generating_guide_pro": "プロガイドを作成中...",
         "guide_pro_stage": {
             "plan": "計画",
-            "draft": "下書き作成",
+            "draft": "ドラフト",
             "review": "レビュー",
-            "revise": "反映"
+            "revise": "反映",
+            "finalize": "完了"
         },
         "guide_pro_modal_title": "プロガイドワークフロー",
         "guide_pro_modal_desc": "各ステージの結果とAI応答を確認できます。",
@@ -344,13 +345,13 @@
         "descriptive": "記述式",
         "descriptive_hint": "答えのヒントを入力してください",
         "add_option": "選択肢を追加",
-        "require_feedback_desc": "Participants must submit feedback to receive a certificate.",
-        "settings_tab": "Settings",
-        "settings_description": "Configure codelab behavior and certificate issuance requirements."
+        "require_feedback_desc": "参加者に各ステップのフィードバックを要求します。",
+        "settings_tab": "設定",
+        "settings_description": "コデラボの全般設定を構成します。"
     },
     "workspace": {
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "Markdown エディタ",
             "code_label": "コード",
             "empty": "ノートブックセルが見つかりません。",
             "invalid": "無効なノートブックファイルです。"
@@ -536,20 +537,21 @@
         "codelab_title": "修了コース",
         "completion_date": "修了日",
         "verify_desc": "この文書は Open-Codelabs 시스템を通じて公式に発行されました。",
-        "download_pdf": "PDFとして保存 / 印刷",
-        "verified_at": "認証日時",
+        "download_pdf": "PDFをダウンロード",
+        "verified_at": "認証日",
         "verify_status": "認証ステータス",
-        "valid": "有効な修了証です",
-        "requirements_guide": "To receive a certificate, you must complete the following:",
-        "return_to_codelab": "Return to Codelab",
-        "management_title": "Certificate Management",
-        "management_desc": "Manage certificates for attendees who completed the codelab",
-        "completed_count": "Completed",
-        "search_placeholder": "Search by name or email...",
-        "no_completed": "No attendees have completed the codelab yet",
-        "no_search_results": "No results found",
-        "completed_at": "Completed at",
-        "download": "Download Certificate"
+        "valid": "有効",
+        "requirements_guide": "要件ガイド",
+        "return_to_codelab": "コデラボに戻る",
+        "management_title": "証明書管理",
+        "management_desc": "参加者の完了ステータスと発行された証明書を管理します。",
+        "completed_count": "完了数",
+        "search_placeholder": "名前またはメールで検索...",
+        "no_completed": "完了した参加者はまだいません。",
+        "no_search_results": "検索結果が見つかりませんでした。",
+        "completed_at": "修了日",
+        "download": "ダウンロード",
+        "management_account": "管理アカウント"
     },
     "help": {
         "request": "ヘルプを求める",
