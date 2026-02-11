@@ -1,6 +1,6 @@
 {
     "common": {
-        "title": "Open-Codelabs",
+        "title": "Open Codelabs",
         "actions": "Ações",
         "status": "Status",
         "required": "Obrigatório",
@@ -405,11 +405,11 @@
         "copy_title": "Copiar código da etapa",
         "copy_desc": "Copie o código final da etapa anterior como código inicial para a próxima.",
         "copy_button": "Copiar fim da etapa {source} ← início da etapa {target}",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_success": "O código da etapa {source} foi copiado para a etapa {target}.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "Navegar pelos arquivos",
+            "download": "Baixar espaço de trabalho"
         }
     },
     "attendee": {
@@ -448,7 +448,7 @@
         "title": "Seu perfil",
         "name": "Nome",
         "email": "Email",
-        "codelab": "Codelab",
+        "codelab": "Laboratório (Codelab)",
         "attendee_id": "ID do Participante",
         "registered_at": "Registrado em",
         "not_available": "Não disponível",
@@ -540,7 +540,7 @@
         "status_title": "Status Ao Vivo",
         "participants": "{count} participantes",
         "realtime_progress": "Progresso em tempo real",
-        "step_progress": "Step {current} / {total}",
+        "step_progress": "Progresso da etapa",
         "you": "(Você)",
         "live_chat": "Chat ao vivo",
         "say_hello": "Diga olá..."
@@ -602,15 +602,15 @@
         "mode_prompt": "Apenas Prompt",
         "mode_basic_desc": "Geração rápida de passagem única a partir do código e ficheiros fornecidos.",
         "mode_prompt_desc": "Crie um fluxo de passos baseado em prompts para sessões rápidas de codificação e prototipagem.",
-        "prompt_section": "Prompt",
+        "prompt_section": "Secção de prompt",
         "expected_output_section": "Resultado Esperado",
         "facilitator_tips_section": "Dicas para o Facilitador",
-        "timebox_section": "Timebox",
+        "timebox_section": "Secção de limite de tempo",
         "section_empty": "Nenhum conteúdo fornecido",
-        "mode_advanced_star_message": "If Pro mode helped you, please consider starring the project on GitHub.",
-        "mode_advanced_star_button": "Star on GitHub",
-        "input_label": "Paste your source code here",
-        "google_search": "Google Search (Real-time data)",
+        "mode_advanced_star_message": "Por favor, apoie-nos com uma estrela no GitHub!",
+        "mode_advanced_star_button": "Dê-nos uma estrela",
+        "input_label": "Insira o seu código aqui",
+        "google_search": "Pesquisa Google",
         "url_context": "URL Context",
         "show_thinking": "Show AI Thinking",
         "billing_notice": "Billing Notice:",
