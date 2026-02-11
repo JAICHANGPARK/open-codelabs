@@ -715,9 +715,9 @@
             "api_key_desc": "AI özelliklerini çalıştırmak için Gemini anahtarı kullanılır.",
             "sources": "Kaynaklar",
             "history": "Geçmiş",
-            "new_chat": "Start New Chat",
-            "no_history": "No conversation history yet.",
-            "role_consultant": "Consultant",
+            "new_chat": "Yeni Sohbet",
+            "no_history": "Henüz geçmiş yok.",
+            "role_consultant": "Danışman",
             "role_you": "You"
         }
     },
@@ -737,7 +737,7 @@
         "eligible_badge": "Uygun",
         "waiting_for_completion": "Henüz kimse tamamlamadı. Çekilişe katılmak için sertifika düzenleyin.",
         "recent_winners": "Son Kazananlar",
-        "refresh": "Refresh list"
+        "refresh": "Yenile"
     },
     "submission": {
         "title": "Gönderimler",
@@ -761,12 +761,12 @@
         "title": "Galeri",
         "search_placeholder": "Ara...",
         "no_images": "Resim yok",
-        "tab_title": "Image Gallery",
-        "image_count": "images",
-        "no_search_results": "No images match your search.",
-        "waiting_images": "Waiting for attendees to upload images.",
-        "grid_view": "Grid View",
-        "masonry_view": "Masonry View"
+        "tab_title": "Galeri",
+        "image_count": "{count} resim",
+        "no_search_results": "Resim bulunamadı.",
+        "waiting_images": "Resimler yükleniyor...",
+        "grid_view": "Izgara Görünümü",
+        "masonry_view": "Masonry Görünümü"
     },
     "audit": {
         "title": "Denetim Kayıtları",
@@ -784,7 +784,7 @@
         "col_target": "Hedef",
         "col_ip": "IP Adresi",
         "col_details": "Detaylar",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "Hedef Kod Laboratuvarı",
         "col_target_id": "Hedef Kimliği",
         "view_details": "Görüntüle",
         "pagination_info": "{start} ile {end} arası gösteriliyor (limit: {limit})",
