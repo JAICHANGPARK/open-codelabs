@@ -269,24 +269,25 @@
         "guide_description": "Descrizione della guida",
         "markdown_editor": "Editor Markdown",
         "live_preview": "Anteprima dal vivo",
-        "parse_error": "Error parsing content",
-        "pdf_export_failed": "PDF export failed",
-        "docx_export_failed": "DOCX export failed. Try copying the content directly to your document editor.",
-        "generate_guide": "Generate Guide with AI",
-        "generating_guide": "Generating Guide...",
-        "generate_guide_pro": "Generate Pro Guide",
-        "generating_guide_pro": "Running Pro workflow...",
+        "parse_error": "Errore di analisi",
+        "pdf_export_failed": "Esportazione PDF fallita",
+        "docx_export_failed": "Esportazione DOCX fallita",
+        "generate_guide": "Genera guida",
+        "generating_guide": "Generazione...",
+        "generate_guide_pro": "Genera Guida Pro",
+        "generating_guide_pro": "Generazione Guida Pro...",
         "guide_pro_stage": {
-            "plan": "Planning",
-            "draft": "Drafting",
-            "review": "Reviewing",
-            "revise": "Revising"
+            "plan": "Pianificazione",
+            "draft": "Bozza",
+            "review": "Revisione",
+            "revise": "Revisionare",
+            "finalize": "Finalizzazione"
         },
-        "guide_pro_modal_title": "Pro Guide Workflow",
-        "guide_pro_modal_desc": "Review each stage output and AI response.",
-        "guide_pro_view_results": "View Pro Results",
-        "guide_pro_results": "Pro Workflow Outputs",
-        "guide_pro_results_desc": "View each stage result from the latest run.",
+        "guide_pro_modal_title": "Configura Guida Pro",
+        "guide_pro_modal_desc": "Fornisci il contesto per generare una guida pro con l'IA.",
+        "guide_pro_view_results": "Visualizza risultati",
+        "guide_pro_results": "Risultati della guida",
+        "guide_pro_results_desc": "Risultati della generazione della guida Pro.",
         "guide_pro_view_markdown": "Visualizza Markdown",
         "guide_pro_view_raw": "Raw",
         "guide_pro_diff_title": "Draft vs Revised Diff",
@@ -457,7 +458,8 @@
         "codelab": "Codelab",
         "attendee_id": "ID Partecipante",
         "registered_at": "Registrato il",
-        "not_available": "Non disponibile"
+        "not_available": "Non disponibile",
+        "total_steps": "Passaggi totali"
     },
     "feedback": {
         "done_title": "Fatto!",
@@ -487,18 +489,18 @@
         "link_submit": "Invia link",
         "link_submitting": "Invio...",
         "open_link": "Apri link",
-        "size_label": "{used}MB / 10MB",
+        "size_label": "Dimensione",
         "delete": "Elimina",
         "download": "Scarica",
         "open_new_tab": "Apri in nuova scheda",
         "upload_failed": "Caricamento fallito",
         "delete_failed": "Eliminazione fallita",
-        "upload_failed_material": "File upload failed",
-        "add_material_failed": "Failed to add material",
-        "attendee_code": "Code"
+        "upload_failed_material": "Caricamento fallito",
+        "add_material_failed": "Aggiunta fallita",
+        "attendee_code": "Codice"
     },
     "playground": {
-        "title": "Playground Browser",
+        "title": "Area giochi",
         "subtitle": "Esegui codice nel browser senza server.",
         "code_label": "Snippet di codice",
         "copied": "Copiato",
@@ -506,15 +508,15 @@
         "embed_unavailable": "Impossibile incorporare questo playground.",
         "toggle_open": "Apri playground",
         "toggle_close": "Chiudi playground",
-        "iframe_title": "Playground: {name}"
+        "iframe_title": "Anteprima area giochi"
     },
     "certificate": {
-        "title": "CERTIFICATO",
+        "title": "Certificato di completamento",
         "subtitle": "CERTIFICATO DI PARTECIPAZIONE",
         "issued_to": "Rilasciato a",
-        "codelab_title": "Titolo del Corso",
-        "completion_date": "Data di Completamento",
-        "verify_desc": "Questo documento è emesso ufficialmente tramite Open-Codelabs.",
+        "codelab_title": "Titolo Codelab",
+        "completion_date": "Data di completamento",
+        "verify_desc": "Scansiona per verificare l'autenticità",
         "download_pdf": "Salva come PDF / Stampa",
         "verified_at": "Verificato il",
         "verify_status": "Stato Verifica",
@@ -533,7 +535,7 @@
         "no_completed": "Nessuno ha completato",
         "no_search_results": "Nessun risultato",
         "completed_at": "Completato il",
-        "download": "Scarica Certificato"
+        "download": "Scarica certificato"
     },
     "help": {
         "request": "Chiedi aiuto",
@@ -553,7 +555,7 @@
     "login": {
         "title": "Login facilitatore",
         "subtitle": "Accedi al tuo pannello",
-        "admin_id": "Admin ID",
+        "admin_id": "ID Amministratore",
         "password": "Password",
         "sign_in": "Accedi",
         "connecting": "Connessione...",
@@ -569,7 +571,10 @@
         "trouble_local_commands_desc": "Avvia i server:",
         "trouble_local_note": "Riavvia il backend dopo le modifiche.",
         "trouble_serverless_desc": "Usa l'accesso Google.",
-        "trouble_serverless_hint": "Controlla i blocchi popup."
+        "trouble_serverless_hint": "Controlla i blocchi popup.",
+        "admin_pw": "Password",
+        "facilitator_title": "Login Facilitatore",
+        "attendee_title": "Partecipa come Allievo"
     },
     "home": {
         "subtitle": "Sessioni pratiche perfette con guide interattive.",
@@ -777,7 +782,7 @@
         "masonry_view": "Masonry"
     },
     "audit": {
-        "title": "Registri di controllo",
+        "title": "Registri di audit",
         "back_to_admin": "Torna ad admin",
         "filter_action": "Azione",
         "filter_codelab_id": "ID Codelab",
@@ -792,13 +797,15 @@
         "col_target": "Obiettivo",
         "col_ip": "IP",
         "col_details": "Dettagli",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "Codelab di destinazione",
         "col_target_id": "Obiettivo",
         "view_details": "Visualizza",
         "pagination_info": "Visualizzazione da {start} a {end} (limite: {limit})",
         "prev": "Precedente",
         "next": "Successivo",
-        "error_load": "Errore nel caricamento dei log: {error}"
+        "error_load": "Errore nel caricamento dei log: {error}",
+        "filter_admin": "Admin",
+        "col_timestamp": "Timestamp"
     },
     "screen_share": {
         "share_screen": "Condividi schermo",
