@@ -762,7 +762,7 @@
         "no_search_results": "تصویری پیدا نشد.",
         "waiting_images": "در حال بارگذاری تصاویر...",
         "grid_view": "نمای شبکه‌ای",
-        "masonry_view": "Masonry View"
+        "masonry_view": "نمای آجری"
     },
     "audit": {
         "title": "گزارش‌های حسابرسی",
@@ -780,7 +780,7 @@
         "col_target": "هدف",
         "col_ip": "IP",
         "col_details": "جزئیات",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "کدلب هدف",
         "col_target_id": "هدف",
         "view_details": "مشاهده",
         "pagination_info": "نمایش {start} تا {end} (محدودیت: {limit})",
