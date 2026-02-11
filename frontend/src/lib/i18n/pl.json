@@ -335,7 +335,7 @@
             "path": "Ścieżka",
             "steps": "Kroki",
             "branch": "Gałąź",
-            "folder": "Folder",
+            "folder": "Katalog",
             "branches": "Gałęzie",
             "folders": "foldery"
         },
@@ -409,11 +409,11 @@
         "copy_title": "Kopiuj kod kroku",
         "copy_desc": "Skopiuj kod ostatniego kroku jako startowy dla następnego.",
         "copy_button": "Kopiuj koniec kroku {source} ← początek kroku {target}",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_success": "Kod kroku {source} został skopiowany do kroku {target}.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "Przeglądaj pliki",
+            "download": "Pobierz obszar roboczy"
         }
     },
     "attendee": {
