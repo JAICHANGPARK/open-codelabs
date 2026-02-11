@@ -234,13 +234,14 @@
         "docx_export_failed": "DOCX 匯出失敗。請嘗試直接將內容複製到您的文件編輯器中。",
         "generate_guide": "用 AI 生成指南",
         "generating_guide": "正在生成指南...",
-        "generate_guide_pro": "生成進階指南",
-        "generating_guide_pro": "正在執行進階工作流...",
+        "generate_guide_pro": "生成專業指南",
+        "generating_guide_pro": "正在生成專業指南...",
         "guide_pro_stage": {
-            "plan": "規劃中",
-            "draft": "草擬中",
-            "review": "審閱中",
-            "revise": "修正中"
+            "plan": "計劃",
+            "draft": "草案",
+            "review": "審查",
+            "revise": "修正中",
+            "finalize": "完成"
         },
         "no_messages_desc": "主辦者尚未發送訊息。",
         "no_conversations": "尚無對話。",
@@ -384,7 +385,7 @@
         "no_files": "找不到檔案",
         "select_file": "選擇檔案以檢視內容",
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "Markdown 編輯器",
             "code_label": "程式碼",
             "empty": "找不到筆記本單元。",
             "invalid": "無效的筆記本檔案。"
