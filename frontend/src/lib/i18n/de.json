@@ -405,13 +405,13 @@
         "ai_step_summary": "Schritt {step} {phase}: {updated} aktualisiert, {deleted} gelöscht",
         "ai_phase_start": "start",
         "ai_phase_end": "end",
-        "copy_title": "Copy Step Code",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
-        "copy_button": "Copy Step {source} End → Step {target} Start",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_title": "Schritt-Code kopieren",
+        "copy_desc": "Kopieren Sie den Code des vorherigen Schritts als Startcode für den nächsten.",
+        "copy_button": "Schritt {source} Ende kopieren → Schritt {target} Anfang",
+        "copy_success": "Code von Schritt {source} nach Schritt {target} kopiert.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
+            "browse": "Dateien durchsuchen",
             "download": "Download Workspace"
         }
     },
