@@ -712,10 +712,10 @@
             "placeholder": "Escreva a sua pergunta aqui...",
             "api_key_desc": "A chave Gemini é usada para funcionalidades de IA.",
             "sources": "Fontes",
-            "history": "Your History",
-            "new_chat": "Start New Chat",
-            "no_history": "No conversation history yet.",
-            "role_consultant": "Consultant",
+            "history": "Histórico de Chat",
+            "new_chat": "Nova Conversa",
+            "no_history": "Sem histórico disponível.",
+            "role_consultant": "Consultor",
             "role_you": "You"
         }
     },
@@ -735,7 +735,7 @@
         "eligible_badge": "Elegível",
         "waiting_for_completion": "Ninguém concluiu ainda. Emita certificados para participar do sorteio.",
         "recent_winners": "Vencedores recentes",
-        "refresh": "Refresh list"
+        "refresh": "Atualizar Sorteio"
     },
     "submission": {
         "title": "Envios",
@@ -759,12 +759,12 @@
         "title": "Galeria",
         "search_placeholder": "Buscar...",
         "no_images": "Sem imagens",
-        "tab_title": "Image Gallery",
-        "image_count": "images",
-        "no_search_results": "No images match your search.",
-        "waiting_images": "Waiting for attendees to upload images.",
-        "grid_view": "Grid View",
-        "masonry_view": "Masonry View"
+        "tab_title": "Galeria de Mídias",
+        "image_count": "{count} Imagens",
+        "no_search_results": "Nenhuma imagem encontrada.",
+        "waiting_images": "Carregando mídia...",
+        "grid_view": "Ver em Grelha",
+        "masonry_view": "Ver em Mosaico"
     },
     "audit": {
         "title": "Logs de auditoria",
