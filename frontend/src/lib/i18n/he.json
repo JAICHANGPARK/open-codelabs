@@ -762,10 +762,10 @@
         "no_images": "אין תמונות",
         "tab_title": "גלריה",
         "image_count": "{count} תמונות",
-        "no_search_results": "No images match your search.",
-        "waiting_images": "Waiting for attendees to upload images.",
-        "grid_view": "Grid View",
-        "masonry_view": "Masonry View"
+        "no_search_results": "לא נמצאו תמונות.",
+        "waiting_images": "טוען תמונות...",
+        "grid_view": "תצוגת רשת",
+        "masonry_view": "תצוגת פסיפס"
     },
     "audit": {
         "title": "יומני ביקורת",
@@ -783,7 +783,7 @@
         "col_target": "יעד",
         "col_ip": "IP",
         "col_details": "פרטים",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "קודלב יעד",
         "col_target_id": "יעד",
         "view_details": "צפה",
         "pagination_info": "מציג {start} עד {end} (מגבלה: {limit})",
