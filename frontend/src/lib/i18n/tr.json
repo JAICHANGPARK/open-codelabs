@@ -492,7 +492,7 @@
         "upload_failed": "Yükleme başarısız",
         "delete_failed": "Silme başarısız",
         "upload_failed_material": "Yükleme başarısız",
-        "add_material_failed": "Failed to add material",
+        "add_material_failed": "Materyal ekleme başarısız",
         "attendee_code": "Code"
     },
     "playground": {
@@ -504,7 +504,7 @@
         "embed_unavailable": "Bu playground gömülemez.",
         "toggle_open": "Aç",
         "toggle_close": "Kapat",
-        "iframe_title": "Playground: {name}"
+        "iframe_title": "Uygulama Alanı Önizlemesi"
     },
     "certificate": {
         "title": "SERTİFİKA",
