@@ -715,8 +715,8 @@
             "sources": "מקורות",
             "history": "היסטוריה",
             "new_chat": "שיחה חדשה",
-            "no_history": "No conversation history yet.",
-            "role_consultant": "Consultant",
+            "no_history": "עדיין אין היסטוריה.",
+            "role_consultant": "יועץ",
             "role_you": "You"
         }
     },
@@ -736,7 +736,7 @@
         "eligible_badge": "זכאי",
         "waiting_for_completion": "אף אחד עוד לא סיים. הפק תעודות כדי להצטרף להגרלה.",
         "recent_winners": "זוכים אחרונים",
-        "refresh": "Refresh list"
+        "refresh": "רענון"
     },
     "submission": {
         "title": "הגשות",
@@ -760,8 +760,8 @@
         "title": "גלריה",
         "search_placeholder": "חפש...",
         "no_images": "אין תמונות",
-        "tab_title": "Image Gallery",
-        "image_count": "images",
+        "tab_title": "גלריה",
+        "image_count": "{count} תמונות",
         "no_search_results": "No images match your search.",
         "waiting_images": "Waiting for attendees to upload images.",
         "grid_view": "Grid View",
