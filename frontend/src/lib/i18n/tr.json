@@ -364,7 +364,7 @@
         "no_files": "Dosya bulunamadı",
         "select_file": "İçeriği görmek için dosya seçin",
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "Markdown Düzenleyici",
             "code_label": "Kod",
             "empty": "Hücre bulunamadı.",
             "invalid": "Geçersiz dosya."
@@ -496,7 +496,7 @@
         "attendee_code": "Code"
     },
     "playground": {
-        "title": "Tarayıcı Playground",
+        "title": "Ugulama Alanı",
         "subtitle": "Sunucu olmadan tarayıcıda kod çalıştırın.",
         "code_label": "Kod parçası",
         "copied": "Kopyalandı",
@@ -551,7 +551,7 @@
     "login": {
         "title": "Kolaylaştırıcı Girişi",
         "subtitle": "Panelinize erişin",
-        "admin_id": "Admin ID",
+        "admin_id": "Yönetici Kimliği",
         "password": "Şifre",
         "sign_in": "Giriş yap",
         "connecting": "Bağlanıyor...",
@@ -567,7 +567,8 @@
         "trouble_local_commands_desc": "Sunucuları başlat:",
         "trouble_local_note": "Değişikliklerden sonra backend'i yeniden başlatın.",
         "trouble_serverless_desc": "Google ile giriş yapın.",
-        "trouble_serverless_hint": "Popup engelleyicileri kontrol edin."
+        "trouble_serverless_hint": "Popup engelleyicileri kontrol edin.",
+        "admin_pw": "Şifre"
     },
     "home": {
         "subtitle": "Etkileşimli kılavuzlarla mükemmel pratik oturumlar.",
