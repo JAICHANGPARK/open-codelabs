@@ -189,7 +189,7 @@
         "current_step": "Passo {step}",
         "no_conversations": "Ainda não há conversas.",
         "start_new_chat": "Iniciar novo chat com participantes",
-        "feedback_tab": "Feedback",
+        "feedback_tab": "Comentários",
         "tab_descriptions": {
             "edit": "Editar o conteúdo e a estrutura do passo.",
             "preview": "Pré-visualização do Markdown renderizado.",
@@ -330,9 +330,9 @@
             "structure": "Estrutura",
             "path": "Caminho",
             "steps": "Passos",
-            "branch": "Branch",
+            "branch": "Ramo",
             "folder": "Pasta",
-            "branches": "branches",
+            "branches": "Ramos",
             "folders": "pastas"
         },
         "steps_summary": "{count} passos × 2 ({unit}) = {total} total",
