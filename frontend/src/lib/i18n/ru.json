@@ -364,7 +364,7 @@
         "no_files": "Файлы не найдены",
         "select_file": "Выберите файл для просмотра",
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "Markdown-редактор",
             "code_label": "Код",
             "empty": "Ячейки не найдены.",
             "invalid": "Неверный файл ноутбука."
@@ -406,9 +406,9 @@
         "ai_step_summary": "Шаг {step} {phase}: {updated} обновлено, {deleted} удалено",
         "ai_phase_start": "start",
         "ai_phase_end": "end",
-        "copy_title": "Copy Step Code",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
-        "copy_button": "Copy Step {source} End → Step {target} Start",
+        "copy_title": "Копировать код шага",
+        "copy_desc": "Скопируйте финальный код предыдущего шага как начальный для следующего.",
+        "copy_button": "Копировать конец шага {source} ← начало шага {target}",
         "copy_success": "Copied step {source} end code to step {target} start code.",
         "copy_phase": "copy",
         "actions": {
