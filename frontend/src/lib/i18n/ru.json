@@ -252,10 +252,10 @@
             "checklist_label": "Чек-лист",
             "callout_label": "Заметка (Callout)",
             "command_block_label": "Команда + Вывод",
-            "step_outline": "## Objective\n- \n\n## Prerequisites\n- \n\n## Steps\n1. \n2. \n\n## Checkpoint\n- ",
-            "checklist": "- [ ] Task\n- [ ] Task",
-            "callout": "> **Note**\n> ",
-            "command_block": "```bash\n# command\n```\n\nOutput:\n```\n\n```"
+            "step_outline": "## Цели\n- \n\n## Требования\n- \n\n## Шаги\n1. \n2. \n\n## Контрольная точка\n- ",
+            "checklist": "- [ ] Задача",
+            "callout": "> **Заметка**",
+            "command_block": "```bash\n# Команда\n```"
         },
         "stats": {
             "words": "{count} слов",
@@ -266,18 +266,19 @@
         "guide_description": "Создайте руководство для участников о том, что им нужно подготовить перед началом сессии (инструменты, ПО, окружение).",
         "markdown_editor": "Редактор Markdown",
         "live_preview": "Живой предпросмотр",
-        "parse_error": "Ошибка при разборе контента",
-        "pdf_export_failed": "Экспорт в PDF не удался",
-        "docx_export_failed": "Экспорт в DOCX не удался. Попробуйте скопировать контент напрямую в ваш текстовый редактор.",
-        "generate_guide": "Сгенерировать гид с помощью ИИ",
-        "generating_guide": "Генерация гида...",
-        "generate_guide_pro": "Сгенерировать гид (Pro)",
-        "generating_guide_pro": "Запуск рабочего процесса Pro...",
+        "parse_error": "Ошибка синтаксиса",
+        "pdf_export_failed": "Ошибка экспорта PDF",
+        "docx_export_failed": "Ошибка экспорта DOCX",
+        "generate_guide": "Создать руководство",
+        "generating_guide": "Создание...",
+        "generate_guide_pro": "Создать Pro-руководство",
+        "generating_guide_pro": "Создание Pro-руководства...",
         "guide_pro_stage": {
-            "plan": "План",
+            "plan": "Планирование",
             "draft": "Черновик",
             "review": "Проверка",
-            "revise": "Правка"
+            "revise": "Правка",
+            "finalize": "Завершение"
         },
         "guide_pro_modal_title": "Рабочий процесс Pro-гида",
         "guide_pro_modal_desc": "Просматривайте результаты каждого этапа и ответы ИИ.",
@@ -335,7 +336,7 @@
             "steps": "Шаги",
             "branch": "Ветка",
             "folder": "Папка",
-            "branches": "ветки",
+            "branches": "Ветки",
             "folders": "папки"
         },
         "steps_summary": "{count} шагов × 2 ({unit}) = {total} всего",
