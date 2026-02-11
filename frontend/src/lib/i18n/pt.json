@@ -451,7 +451,8 @@
         "codelab": "Codelab",
         "attendee_id": "ID do Participante",
         "registered_at": "Registrado em",
-        "not_available": "Não disponível"
+        "not_available": "Não disponível",
+        "total_steps": "Total de etapas"
     },
     "feedback": {
         "done_title": "Concluído!",
@@ -481,18 +482,18 @@
         "link_submit": "Enviar link",
         "link_submitting": "Enviando...",
         "open_link": "Abrir link",
-        "size_label": "{used}MB / 10MB",
+        "size_label": "Tamanho",
         "delete": "Excluir",
         "download": "Baixar",
         "open_new_tab": "Nova aba",
         "upload_failed": "Falha no envio",
         "delete_failed": "Falha ao excluir",
-        "upload_failed_material": "File upload failed",
-        "add_material_failed": "Failed to add material",
-        "attendee_code": "Code"
+        "upload_failed_material": "Falha no upload",
+        "add_material_failed": "Falha ao adicionar",
+        "attendee_code": "Código"
     },
     "playground": {
-        "title": "Browser Playground",
+        "title": "Parque de diversões",
         "subtitle": "Execute código no navegador sem servidor.",
         "code_label": "Trecho de código",
         "copied": "Copiado",
@@ -500,15 +501,15 @@
         "embed_unavailable": "Não incorporável.",
         "toggle_open": "Abrir",
         "toggle_close": "Fechar",
-        "iframe_title": "Playground: {name}"
+        "iframe_title": "Visualização do parquinho"
     },
     "certificate": {
-        "title": "CERTIFICADO",
+        "title": "Certificado de Conclusão",
         "subtitle": "CERTIFICADO DE PARTICIPAÇÃO",
         "issued_to": "Emitido para",
-        "codelab_title": "Título do Curso",
-        "completion_date": "Data de Conclusão",
-        "verify_desc": "Este documento é emitido oficialmente pelo Open-Codelabs.",
+        "codelab_title": "Título do Codelab",
+        "completion_date": "Data de conclusão",
+        "verify_desc": "Digitalize para verificar a autenticidade",
         "download_pdf": "Salvar PDF / Imprimir",
         "verified_at": "Verificado em",
         "verify_status": "Status de Verificação",
@@ -547,7 +548,7 @@
     "login": {
         "title": "Login do Facilitador",
         "subtitle": "Acesse seu painel",
-        "admin_id": "Admin ID",
+        "admin_id": "ID Administrador",
         "password": "Senha",
         "sign_in": "Entrar",
         "connecting": "Conectando...",
@@ -563,7 +564,10 @@
         "trouble_local_commands_desc": "Iniciar servidores:",
         "trouble_local_note": "Reinicie o backend após alterações.",
         "trouble_serverless_desc": "Use o login do Google.",
-        "trouble_serverless_hint": "Verifique bloqueadores de popup."
+        "trouble_serverless_hint": "Verifique bloqueadores de popup.",
+        "admin_pw": "Senha",
+        "facilitator_title": "Login Facilitador",
+        "attendee_title": "Entrar como Participante"
     },
     "home": {
         "subtitle": "Sessões práticas perfeitas com guias interativos.",
@@ -766,7 +770,7 @@
         "title": "Logs de auditoria",
         "back_to_admin": "Voltar para admin",
         "filter_action": "Ação",
-        "filter_codelab_id": "ID do Codelab",
+        "filter_codelab_id": "ID Codelab",
         "placeholder_action": "ex. codelab_create",
         "placeholder_codelab": "Filtrar por codelab",
         "apply_filters": "Aplicar filtros",
@@ -778,13 +782,15 @@
         "col_target": "Alvo",
         "col_ip": "IP",
         "col_details": "Detalhes",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "Codelab alvo",
         "col_target_id": "Alvo",
         "view_details": "Ver",
         "pagination_info": "Mostrando {start} até {end} (limite: {limit})",
         "prev": "Anterior",
         "next": "Próximo",
-        "error_load": "Falha ao carregar logs: {error}"
+        "error_load": "Falha ao carregar logs: {error}",
+        "filter_admin": "Admin",
+        "col_timestamp": "Timestamp"
     },
     "screen_share": {
         "share_screen": "Compartilhar tela",
