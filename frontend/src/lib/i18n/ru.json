@@ -720,13 +720,13 @@
             "button": "Начать консультацию",
             "how_can_i_help": "Как я могу помочь вам в дизайне коделаба сегодня?",
             "help_desc": "Ищите в файлах или задавайте вопросы.",
-            "placeholder": "Ask for advice on your codelab...",
-            "api_key_desc": "Please configure your Gemini API key in the dashboard settings to use the consultant.",
-            "sources": "Information Sources",
-            "history": "Your History",
-            "new_chat": "Start New Chat",
-            "no_history": "No conversation history yet.",
-            "role_consultant": "Consultant",
+            "placeholder": "Введите ваш вопрос здесь...",
+            "api_key_desc": "Ключ Gemini используется для работы функций ИИ.",
+            "sources": "Источники",
+            "history": "История",
+            "new_chat": "Новый чат (очистить)",
+            "no_history": "История отсутствует.",
+            "role_consultant": "Консультант",
             "role_you": "You"
         }
     },
@@ -746,7 +746,7 @@
         "eligible_badge": "Подходит",
         "waiting_for_completion": "Никто еще не завершил. Выдайте сертификаты, чтобы присоединиться к розыгрышу.",
         "recent_winners": "Последние победители",
-        "refresh": "Refresh list"
+        "refresh": "Обновить список"
     },
     "submission": {
         "title": "Загрузки",
@@ -770,12 +770,12 @@
         "title": "Галерея",
         "search_placeholder": "Поиск...",
         "no_images": "Нет изображений",
-        "tab_title": "Image Gallery",
-        "image_count": "images",
-        "no_search_results": "No images match your search.",
-        "waiting_images": "Waiting for attendees to upload images.",
-        "grid_view": "Grid View",
-        "masonry_view": "Masonry View"
+        "tab_title": "Галерея",
+        "image_count": "{count} изображений",
+        "no_search_results": "Изображения не найдены.",
+        "waiting_images": "Загрузка изображений...",
+        "grid_view": "Сетка",
+        "masonry_view": "Мозаика"
     },
     "audit": {
         "title": "Журналы аудита",
