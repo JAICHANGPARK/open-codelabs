@@ -714,9 +714,9 @@
             "api_key_desc": "Khóa Gemini dùng để chạy các tính năng AI.",
             "sources": "Nguồn",
             "history": "Lịch sử",
-            "new_chat": "Start New Chat",
-            "no_history": "No conversation history yet.",
-            "role_consultant": "Consultant",
+            "new_chat": "Trò chuyện mới",
+            "no_history": "Chưa có lịch sử.",
+            "role_consultant": "Tư vấn viên",
             "role_you": "You"
         }
     },
@@ -736,7 +736,7 @@
         "eligible_badge": "Đủ điều kiện",
         "waiting_for_completion": "Chưa có ai hoàn thành. Hãy cấp chứng chỉ để tham gia quay số.",
         "recent_winners": "Người chiến thắng gần đây",
-        "refresh": "Refresh list"
+        "refresh": "Làm mới"
     },
     "submission": {
         "title": "Bài nộp",
@@ -760,12 +760,12 @@
         "title": "Thư viện",
         "search_placeholder": "Tìm kiếm...",
         "no_images": "Không có hình ảnh",
-        "tab_title": "Image Gallery",
-        "image_count": "images",
-        "no_search_results": "No images match your search.",
-        "waiting_images": "Waiting for attendees to upload images.",
-        "grid_view": "Grid View",
-        "masonry_view": "Masonry View"
+        "tab_title": "Thư viện",
+        "image_count": "{count} hình ảnh",
+        "no_search_results": "Không tìm thấy hình ảnh.",
+        "waiting_images": "Đang tải hình ảnh...",
+        "grid_view": "Chế độ lưới",
+        "masonry_view": "Chế độ Masonry"
     },
     "audit": {
         "title": "Nhật ký kiểm tra",
@@ -783,7 +783,7 @@
         "col_target": "Mục tiêu",
         "col_ip": "Địa chỉ IP",
         "col_details": "Chi tiết",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "Lab mục tiêu",
         "col_target_id": "ID mục tiêu",
         "view_details": "Xem",
         "pagination_info": "Hiển thị từ {start} đến {end} (giới hạn: {limit})",
