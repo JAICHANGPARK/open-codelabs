@@ -1,6 +1,6 @@
 {
     "common": {
-        "title": "Open-Codelabs",
+        "title": "Open Codelabs (RU)",
         "description": "Интерактивный опыт обучения",
         "facilitator": "Организатор",
         "attendee": "Участник",
@@ -716,10 +716,10 @@
         },
         "consultant": {
             "title": "Консультант по дизайну",
-            "subtitle": "Your AI partner for session success",
-            "button": "Design Consultant",
-            "how_can_i_help": "How can I help you today?",
-            "help_desc": "Ask about codelab structure, choosing a topic, or technical implementation details.",
+            "subtitle": "Ваш ИИ-помощник для создания контента.",
+            "button": "Начать консультацию",
+            "how_can_i_help": "Как я могу помочь вам в дизайне коделаба сегодня?",
+            "help_desc": "Ищите в файлах или задавайте вопросы.",
             "placeholder": "Ask for advice on your codelab...",
             "api_key_desc": "Please configure your Gemini API key in the dashboard settings to use the consultant.",
             "sources": "Information Sources",
