@@ -188,7 +188,7 @@
         "current_step": "Étape {step}",
         "no_conversations": "Aucune conversation.",
         "start_new_chat": "Démarrer une nouvelle discussion avec le participant",
-        "feedback_tab": "Commentaires",
+        "feedback_tab": "Onglet feedback",
         "tab_groups": {
             "authoring": "Rédaction",
             "operations": "Opérations",
@@ -252,7 +252,7 @@
             "callout_label": "Mise en avant (Callout)",
             "command_block_label": "Commande + Sortie",
             "step_outline": "## Objectifs\n- \n\n## Prérequis\n- \n\n## Étapes\n1. \n2. \n\n## Point de contrôle\n- ",
-            "checklist": "- [ ] Tâche\n- [ ] Tâche",
+            "checklist": "- [ ] Tâche",
             "callout": "> **Note**\n> ",
             "command_block": "```bash\n# Commande\n```\n\nSortie :\n```\n\n```"
         },
