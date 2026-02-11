@@ -791,7 +791,7 @@
         "col_ip": "IP",
         "col_details": "Detail",
         "col_target_codelab": "Target Codelab",
-        "col_target_id": "Target",
+        "col_target_id": "ID Target Utama",
         "view_details": "Lihat",
         "pagination_info": "Menampilkan {start} hingga {end} (batas: {limit})",
         "prev": "Sebelumnya",
