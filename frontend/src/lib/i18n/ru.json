@@ -334,9 +334,9 @@
             "structure": "Структура",
             "path": "Путь",
             "steps": "Шаги",
-            "branch": "Ветка",
+            "branch": "Ветка (branch)",
             "folder": "Папка",
-            "branches": "Ветки",
+            "branches": "Ветки (branches)",
             "folders": "папки"
         },
         "steps_summary": "{count} шагов × 2 ({unit}) = {total} всего",
@@ -409,11 +409,11 @@
         "copy_title": "Копировать код шага",
         "copy_desc": "Скопируйте финальный код предыдущего шага как начальный для следующего.",
         "copy_button": "Копировать конец шага {source} ← начало шага {target}",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_success": "Код окончания шага {source} скопирован в код начала шага {target}.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "Обзор файлов",
+            "download": "Скачать рабочую область"
         }
     },
     "attendee": {
