@@ -338,7 +338,7 @@
             "path": "Path",
             "steps": "Langkah",
             "branch": "Cabang",
-            "folder": "Folder",
+            "folder": "Direktori",
             "branches": "cabang",
             "folders": "folder"
         },
@@ -412,11 +412,11 @@
         "copy_title": "Salin kode langkah",
         "copy_desc": "Salin kode akhir langkah sebelumnya sebagai kode awal untuk langkah berikutnya.",
         "copy_button": "Salin akhir langkah {source} → awal langkah {target}",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_success": "Kode berhasil disalin antara langkah.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "Telusuri berkas",
+            "download": "Unduh Ruang Kerja"
         }
     },
     "attendee": {
@@ -455,7 +455,7 @@
         "title": "Profil Anda",
         "name": "Nama",
         "email": "Email",
-        "codelab": "Codelab",
+        "codelab": "Codelab Praktis",
         "attendee_id": "ID Peserta",
         "registered_at": "Terdaftar",
         "not_available": "Tidak tersedia",
@@ -547,7 +547,7 @@
         "status_title": "Status Langsung",
         "participants": "{count} peserta",
         "realtime_progress": "Progres real-time",
-        "step_progress": "Step {current} / {total}",
+        "step_progress": "Kemajuan langkah",
         "you": "(Anda)",
         "live_chat": "Chat Langsung",
         "say_hello": "Sapa..."
@@ -611,7 +611,7 @@
         "mode_prompt": "Hanya Prompt",
         "mode_basic_desc": "Generasi cepat dalam satu lintasan berdasarkan kode dan file yang disediakan.",
         "mode_prompt_desc": "Generasi alur berbasis langkah melalui prompt untuk sesi pengkodean cepat.",
-        "prompt_section": "Prompt",
+        "prompt_section": "Bagian perintah",
         "expected_output_section": "Output yang Diharapkan",
         "facilitator_tips_section": "Tip Fasilitator",
         "timebox_section": "Kotak Waktu (Timebox)",
@@ -677,7 +677,7 @@
         "diff_too_large": "Perbedaan terlalu besar untuk ditampilkan. Silakan periksa hasilnya secara langsung.",
         "draft_markdown_title": "Output Draf (Markdown)",
         "revised_markdown_title": "Output Direvisi (Markdown)",
-        "view_markdown": "Markdown",
+        "view_markdown": "Lihat dalam Markdown",
         "saving": "Menyimpan...",
         "upload_files": "File Konteks",
         "upload_limits": "Batas: maks {maxFiles} file per prompt, masing-masing {maxSizeMb} MB. File ZIP: maks {maxZipFiles} file, tanpa audio/video.",
@@ -787,7 +787,7 @@
         "col_time": "Waktu",
         "col_action": "Tindakan",
         "col_actor": "Aktor",
-        "col_target": "Target",
+        "col_target": "Target Utama",
         "col_ip": "IP",
         "col_details": "Detail",
         "col_target_codelab": "Target Codelab",
