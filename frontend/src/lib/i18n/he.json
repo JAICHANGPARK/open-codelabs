@@ -363,7 +363,7 @@
         "no_files": "לא נמצאו קבצים",
         "select_file": "בחר קובץ לצפייה בתוכן",
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "עורך Markdown",
             "code_label": "קוד",
             "empty": "לא נמצאו תאים.",
             "invalid": "קובץ מחברת לא תקין."
@@ -421,7 +421,7 @@
         "nickname": "שמך",
         "nickname_placeholder": "למשל Alex",
         "email": "אימייל",
-        "email_placeholder": "example@email.com",
+        "email_placeholder": "כתובת אימייל (אופציונלי)",
         "unique_code": "קוד ייחודי",
         "unique_code_placeholder": "למשל 1234",
         "start_learning": "התחל ללמוד",
@@ -451,7 +451,7 @@
         "title": "הפרופיל שלך",
         "name": "שם",
         "email": "אימייל",
-        "codelab": "Codelab",
+        "codelab": "קודלב",
         "attendee_id": "מזהה משתתף",
         "registered_at": "נרשם בתאריך",
         "not_available": "לא זמין"
@@ -484,18 +484,18 @@
         "link_submit": "שלח קישור",
         "link_submitting": "שולח...",
         "open_link": "פתח קישור",
-        "size_label": "{used}MB / 10MB",
+        "size_label": "גודל",
         "delete": "מחק",
         "download": "הורד",
         "open_new_tab": "פתח בכרטיסייה חדשה",
         "upload_failed": "העלאה נכשלה",
         "delete_failed": "מחיקה נכשלה",
-        "upload_failed_material": "File upload failed",
-        "add_material_failed": "Failed to add material",
+        "upload_failed_material": "העלאה נכשלה",
+        "add_material_failed": "הוספת החומר נכשלה",
         "attendee_code": "Code"
     },
     "playground": {
-        "title": "Browser Playground",
+        "title": "סביבת בדיקה",
         "subtitle": "הרץ קוד בדפדפן ללא שרת.",
         "code_label": "קטע קוד",
         "copied": "הועתק",
@@ -503,7 +503,7 @@
         "embed_unavailable": "לא ניתן להטמיע.",
         "toggle_open": "פתח",
         "toggle_close": "סגור",
-        "iframe_title": "Playground: {name}"
+        "iframe_title": "תצוגה מקדימה של סביבת הבדיקה"
     },
     "certificate": {
         "title": "תעודה",
@@ -550,7 +550,7 @@
     "login": {
         "title": "כניסת מנחה",
         "subtitle": "גישה ללוח הבקרה",
-        "admin_id": "Admin ID",
+        "admin_id": "מזהה מנהל",
         "password": "סיסמה",
         "sign_in": "התחבר",
         "connecting": "מתחבר...",
@@ -566,7 +566,8 @@
         "trouble_local_commands_desc": "הפעל שרתים:",
         "trouble_local_note": "הפעל מחדש את השרת לאחר שינויים.",
         "trouble_serverless_desc": "השתמש בכניסה עם Google.",
-        "trouble_serverless_hint": "בדוק חוסמי פופאפ."
+        "trouble_serverless_hint": "בדוק חוסמי פופאפ.",
+        "admin_pw": "סיסמה"
     },
     "home": {
         "subtitle": "סשנים מעשיים מושלמים עם מדריכים אינטראקטיביים.",
@@ -606,11 +607,11 @@
         "facilitator_tips_section": "טיפים למנחה",
         "timebox_section": "מסגרת זמן",
         "section_empty": "לא סופק תוכן",
-        "mode_advanced_star_message": "If Pro mode helped you, please consider starring the project on GitHub.",
-        "mode_advanced_star_button": "Star on GitHub",
-        "input_label": "Paste your source code here",
-        "google_search": "Google Search (Real-time data)",
-        "url_context": "URL Context",
+        "mode_advanced_star_message": "נשמח אם תתמכו בנו בכוכב ב-GitHub!",
+        "mode_advanced_star_button": "תנו לנו כוכב",
+        "input_label": "הכנס את הקוד שלך כאן",
+        "google_search": "חיפוש גוגל",
+        "url_context": "הקשר קישור",
         "show_thinking": "Show AI Thinking",
         "billing_notice": "Billing Notice:",
         "billing_desc": "Google Search and URL Context tools may incur additional charges starting January 5, 2026.",
