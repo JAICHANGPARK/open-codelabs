@@ -360,7 +360,7 @@
         "no_files": "Nenhum arquivo encontrado",
         "select_file": "Selecione um arquivo para ver o conteúdo",
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "Editor de Markdown",
             "code_label": "Código",
             "empty": "Nenhuma célula encontrada.",
             "invalid": "Arquivo de notebook inválido."
@@ -402,9 +402,9 @@
         "ai_step_summary": "Passo {step} {phase}: {updated} atualizado, {deleted} removido",
         "ai_phase_start": "start",
         "ai_phase_end": "end",
-        "copy_title": "Copy Step Code",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
-        "copy_button": "Copy Step {source} End → Step {target} Start",
+        "copy_title": "Copiar código da etapa",
+        "copy_desc": "Copie o código final da etapa anterior como código inicial para a próxima.",
+        "copy_button": "Copiar fim da etapa {source} ← início da etapa {target}",
         "copy_success": "Copied step {source} end code to step {target} start code.",
         "copy_phase": "copy",
         "actions": {
