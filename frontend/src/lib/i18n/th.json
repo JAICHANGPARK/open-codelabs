@@ -714,9 +714,9 @@
             "api_key_desc": "ใช้คีย์ Gemini เพื่อเปิดฟีเจอร์ AI",
             "sources": "แหล่งที่มา",
             "history": "ประวัติ",
-            "new_chat": "Start New Chat",
-            "no_history": "No conversation history yet.",
-            "role_consultant": "Consultant",
+            "new_chat": "การแชทใหม่",
+            "no_history": "ยังไม่มีประวัติ",
+            "role_consultant": "ที่ปรึกษา",
             "role_you": "You"
         }
     },
@@ -736,7 +736,7 @@
         "eligible_badge": "มีสิทธิ์",
         "waiting_for_completion": "ยังไม่มีใครทำสำเร็จ ออกประกาศนียบัตรเพื่อเข้าร่วมการสุ่มรางวัล",
         "recent_winners": "ผู้ชนะล่าสุด",
-        "refresh": "Refresh list"
+        "refresh": "รีเฟรชข้อมูล"
     },
     "submission": {
         "title": "การส่งงาน",
@@ -760,12 +760,12 @@
         "title": "แกลเลอรี",
         "search_placeholder": "ค้นหา...",
         "no_images": "ไม่มีรูปภาพ",
-        "tab_title": "Image Gallery",
-        "image_count": "images",
-        "no_search_results": "No images match your search.",
-        "waiting_images": "Waiting for attendees to upload images.",
-        "grid_view": "Grid View",
-        "masonry_view": "Masonry View"
+        "tab_title": "คลังภาพ",
+        "image_count": "{count} รูปภาพ",
+        "no_search_results": "ไม่พบรูปภาพ",
+        "waiting_images": "กำลังโหลดรูปภาพ...",
+        "grid_view": "มุมมองตาราง",
+        "masonry_view": "มุมมองพอยน์เตอร์"
     },
     "audit": {
         "title": "บันทึกการตรวจสอบ",
@@ -783,7 +783,7 @@
         "col_target": "เป้าหมาย",
         "col_ip": "ที่อยู่ IP",
         "col_details": "รายละเอียด",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "โค้ดแล็บเป้าหมาย",
         "col_target_id": "ID เป้าหมาย",
         "view_details": "ดู",
         "pagination_info": "แสดง {start} ถึง {end} (จำกัด: {limit})",
