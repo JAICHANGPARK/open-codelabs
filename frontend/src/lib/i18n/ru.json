@@ -451,10 +451,11 @@
         "title": "Ваш профиль",
         "name": "Имя",
         "email": "Email",
-        "codelab": "Codelab",
+        "codelab": "Коделаб",
         "attendee_id": "ID участника",
         "registered_at": "Зарегистрирован",
-        "not_available": "Недоступно"
+        "not_available": "Недоступно",
+        "total_steps": "Всего шагов"
     },
     "feedback": {
         "done_title": "Готово!",
@@ -484,18 +485,18 @@
         "link_submit": "Отправить ссылку",
         "link_submitting": "Отправка...",
         "open_link": "Открыть ссылку",
-        "size_label": "{used}MB / 10MB",
+        "size_label": "Размер",
         "delete": "Удалить",
         "download": "Скачать",
         "open_new_tab": "Открыть в новой вкладке",
         "upload_failed": "Ошибка загрузки",
         "delete_failed": "Ошибка удаления",
-        "upload_failed_material": "File upload failed",
-        "add_material_failed": "Failed to add material",
-        "attendee_code": "Code"
+        "upload_failed_material": "Ошибка загрузки",
+        "add_material_failed": "Ошибка добавления",
+        "attendee_code": "Код"
     },
     "playground": {
-        "title": "Браузерный Playground",
+        "title": "Песочница",
         "subtitle": "Запускайте код в браузере без сервера.",
         "code_label": "Фрагмент кода",
         "copied": "Скопировано",
@@ -503,15 +504,15 @@
         "embed_unavailable": "Этот playground нельзя встроить.",
         "toggle_open": "Открыть",
         "toggle_close": "Закрыть",
-        "iframe_title": "Playground: {name}"
+        "iframe_title": "Предпросмотр песочницы"
     },
     "certificate": {
-        "title": "СЕРТИФИКАТ",
+        "title": "Сертификат о завершении",
         "subtitle": "СЕРТИФИКАТ О ПРОХОЖДЕНИИ",
-        "issued_to": "Выдан",
-        "codelab_title": "Название курса",
+        "issued_to": "Выдано",
+        "codelab_title": "Название коделаба",
         "completion_date": "Дата завершения",
-        "verify_desc": "Документ официально выдан через Open-Codelabs.",
+        "verify_desc": "Отсканируйте для проверки подлинности",
         "download_pdf": "Сохранить как PDF / Печать",
         "verified_at": "Проверено",
         "verify_status": "Статус проверки",
@@ -550,7 +551,7 @@
     "login": {
         "title": "Вход для организатора",
         "subtitle": "Доступ к панели",
-        "admin_id": "Admin ID",
+        "admin_id": "ID администратора",
         "password": "Пароль",
         "sign_in": "Войти",
         "connecting": "Подключение...",
@@ -566,7 +567,10 @@
         "trouble_local_commands_desc": "Запустите серверы:",
         "trouble_local_note": "Перезапустите бэкенд после изменений.",
         "trouble_serverless_desc": "Используйте вход через Google.",
-        "trouble_serverless_hint": "Проверьте блокировщики попапов."
+        "trouble_serverless_hint": "Проверьте блокировщики попапов.",
+        "admin_pw": "Пароль",
+        "facilitator_title": "Вход для фасилитатора",
+        "attendee_title": "Присоединиться как участник"
     },
     "home": {
         "subtitle": "Идеальные практические сессии с интерактивными руководствами.",
@@ -776,7 +780,7 @@
         "title": "Журналы аудита",
         "back_to_admin": "Вернуться в админ-панель",
         "filter_action": "Действие",
-        "filter_codelab_id": "ID Codelab",
+        "filter_codelab_id": "ID коделаба",
         "placeholder_action": "напр., codelab_create",
         "placeholder_codelab": "Фильтр по codelab",
         "apply_filters": "Применить фильтры",
@@ -788,13 +792,15 @@
         "col_target": "Объект",
         "col_ip": "IP-адрес",
         "col_details": "Детали",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "Целевой коделаб",
         "col_target_id": "Объект ID",
         "view_details": "Просмотр",
         "pagination_info": "Показано с {start} по {end} (лимит: {limit})",
         "prev": "Назад",
         "next": "Вперед",
-        "error_load": "Ошибка загрузки журналов: {error}"
+        "error_load": "Ошибка загрузки журналов: {error}",
+        "filter_admin": "Админ",
+        "col_timestamp": "Метка времени"
     },
     "screen_share": {
         "share_screen": "Демонстрация экрана",
