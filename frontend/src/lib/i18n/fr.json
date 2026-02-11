@@ -771,7 +771,7 @@
     "gallery": {
         "title": "Galerie",
         "tab_title": "Galerie",
-        "image_count": "images",
+        "image_count": "{count} Images (Total)",
         "search_placeholder": "Rechercher...",
         "no_images": "Aucune image",
         "no_search_results": "Aucun résultat",
@@ -782,7 +782,7 @@
     "audit": {
         "title": "Journaux d'audit",
         "back_to_admin": "Retour à l'admin",
-        "filter_action": "Action",
+        "filter_action": "Filtrer par Action",
         "filter_codelab_id": "ID Codelab",
         "placeholder_action": "ex. codelab_create",
         "placeholder_codelab": "Filtrer par codelab",
@@ -790,7 +790,7 @@
         "loading": "Chargement des logs...",
         "no_logs": "Aucun log trouvé",
         "col_time": "Heure",
-        "col_action": "Action",
+        "col_action": "Type d'action effectuée",
         "col_actor": "Acteur",
         "col_target": "Cible",
         "col_ip": "IP",
