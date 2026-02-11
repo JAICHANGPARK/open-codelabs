@@ -736,7 +736,7 @@
         "eligible_badge": "पात्र",
         "waiting_for_completion": "अभी तक किसी ने पूरा नहीं किया है। ड्रॉ में शामिल होने के लिए प्रमाण पत्र जारी करें।",
         "recent_winners": "हाल के विजेता",
-        "refresh": "Refresh list"
+        "refresh": "रिफ्रेश"
     },
     "submission": {
         "title": "सबमिशन",
@@ -760,10 +760,10 @@
         "title": "गैलरी",
         "search_placeholder": "खोजें...",
         "no_images": "कोई चित्र नहीं",
-        "tab_title": "Image Gallery",
-        "image_count": "images",
-        "no_search_results": "No images match your search.",
-        "waiting_images": "Waiting for attendees to upload images.",
+        "tab_title": "गैलरी",
+        "image_count": "{count} चित्र",
+        "no_search_results": "कोई चित्र नहीं मिला।",
+        "waiting_images": "चित्र लोड हो रहे हैं...",
         "grid_view": "Grid View",
         "masonry_view": "Masonry View"
     },
