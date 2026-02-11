@@ -712,14 +712,14 @@
             "subtitle": "Twój asystent AI do tworzenia treści.",
             "button": "Rozpocznij konsultację",
             "how_can_i_help": "W czym mogę Ci dzisiaj pomóc przy projekcie?",
-            "help_desc": "Ask about codelab structure, choosing a topic, or technical implementation details.",
-            "placeholder": "Ask for advice on your codelab...",
-            "api_key_desc": "Please configure your Gemini API key in the dashboard settings to use the consultant.",
-            "sources": "Information Sources",
-            "history": "Your History",
-            "new_chat": "Start New Chat",
-            "no_history": "No conversation history yet.",
-            "role_consultant": "Consultant",
+            "help_desc": "Przeszukaj pliki lub zadaj pytanie, aby ulepszyć codelab.",
+            "placeholder": "Wpisz tutaj swoje pytanie...",
+            "api_key_desc": "Klucz Gemini służy do obsługi funkcji AI.",
+            "sources": "Źródła",
+            "history": "Historia",
+            "new_chat": "Nowa rozmowa",
+            "no_history": "Brak historii.",
+            "role_consultant": "Konsultant",
             "role_you": "You"
         }
     },
@@ -739,7 +739,7 @@
         "eligible_badge": "Uprawniony",
         "waiting_for_completion": "Nikt jeszcze nie ukończył. Wystaw certyfikaty, aby dołączyć do losowania.",
         "recent_winners": "Ostatni zwycięzcy",
-        "refresh": "Refresh list"
+        "refresh": "Odśwież listę"
     },
     "submission": {
         "title": "Zgłoszenia",
@@ -763,12 +763,12 @@
         "title": "Galeria",
         "search_placeholder": "Szukaj...",
         "no_images": "Brak zdjęć",
-        "tab_title": "Image Gallery",
-        "image_count": "images",
-        "no_search_results": "No images match your search.",
-        "waiting_images": "Waiting for attendees to upload images.",
-        "grid_view": "Grid View",
-        "masonry_view": "Masonry View"
+        "tab_title": "Galeria zdjęć",
+        "image_count": "{count} obrazów",
+        "no_search_results": "Brak wyników wyszukiwania.",
+        "waiting_images": "Ładowanie zdjęć...",
+        "grid_view": "Widok siatki",
+        "masonry_view": "Widok Masonry"
     },
     "audit": {
         "title": "Dzienniki audytu",
