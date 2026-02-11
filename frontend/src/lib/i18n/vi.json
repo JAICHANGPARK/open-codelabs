@@ -491,7 +491,7 @@
         "upload_failed": "Tải lên thất bại",
         "delete_failed": "Xóa thất bại",
         "upload_failed_material": "Tải lên thất bại",
-        "add_material_failed": "Failed to add material",
+        "add_material_failed": "Thêm tài liệu thất bại",
         "attendee_code": "Code"
     },
     "playground": {
@@ -503,7 +503,7 @@
         "embed_unavailable": "Playground này không thể nhúng.",
         "toggle_open": "Mở",
         "toggle_close": "Đóng",
-        "iframe_title": "Playground: {name}"
+        "iframe_title": "Xem trước sân chơi"
     },
     "certificate": {
         "title": "CHỨNG CHỈ",
