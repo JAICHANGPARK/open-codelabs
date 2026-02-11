@@ -764,14 +764,14 @@
         "image_count": "{count} चित्र",
         "no_search_results": "कोई चित्र नहीं मिला।",
         "waiting_images": "चित्र लोड हो रहे हैं...",
-        "grid_view": "Grid View",
-        "masonry_view": "Masonry View"
+        "grid_view": "ग्रिड व्यू",
+        "masonry_view": "मेसनरी व्यू"
     },
     "audit": {
         "title": "ऑडिट लॉग",
         "back_to_admin": "एडमिन पर वापस जाएं",
         "filter_action": "कार्रवाई",
-        "filter_codelab_id": "Codelab ID",
+        "filter_codelab_id": "कोडलैब आईडी",
         "placeholder_action": "जैसे: codelab_create",
         "placeholder_codelab": "Codelab द्वारा फ़िल्टर करें",
         "apply_filters": "फ़िल्टर लागू करें",
@@ -783,7 +783,7 @@
         "col_target": "लक्ष्य",
         "col_ip": "IP",
         "col_details": "विवरण",
-        "col_target_codelab": "Codelab",
+        "col_target_codelab": "लक्ष्य कोडलैब",
         "col_target_id": "लक्ष्य",
         "view_details": "देखें",
         "pagination_info": "{start} से {end} तक दिखा रहा है (सीमा: {limit})",
