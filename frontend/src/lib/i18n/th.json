@@ -491,7 +491,7 @@
         "upload_failed": "อัปโหลดล้มเหลว",
         "delete_failed": "ลบล้มเหลว",
         "upload_failed_material": "การอัปโหลดล้มเหลว",
-        "add_material_failed": "Failed to add material",
+        "add_material_failed": "เพิ่มเนื้อหาไม่สำเร็จ",
         "attendee_code": "Code"
     },
     "playground": {
@@ -503,7 +503,7 @@
         "embed_unavailable": "ไม่สามารถฝัง Playground นี้ได้",
         "toggle_open": "เปิด",
         "toggle_close": "ปิด",
-        "iframe_title": "Playground: {name}"
+        "iframe_title": "ตัวอย่างสนามทดสอบ"
     },
     "certificate": {
         "title": "ประกาศนียบัตร",
