@@ -363,7 +363,7 @@
         "no_files": "ไม่พบไฟล์",
         "select_file": "เลือกไฟล์เพื่อดูเนื้อหา",
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "แก้ไข Markdown",
             "code_label": "โค้ด",
             "empty": "ไม่พบเซลล์",
             "invalid": "ไฟล์โน้ตบุ๊กไม่ถูกต้อง"
@@ -421,7 +421,7 @@
         "nickname": "ชื่อของคุณ",
         "nickname_placeholder": "เช่น Alex",
         "email": "อีเมล",
-        "email_placeholder": "example@email.com",
+        "email_placeholder": "ที่อยู่อีเมล (ไม่บังคับ)",
         "unique_code": "รหัสเฉพาะ",
         "unique_code_placeholder": "เช่น 1234",
         "start_learning": "เริ่มเรียนรู้",
@@ -451,7 +451,7 @@
         "title": "โปรไฟล์ของคุณ",
         "name": "ชื่อ",
         "email": "อีเมล",
-        "codelab": "Codelab",
+        "codelab": "โค้ดแล็บ",
         "attendee_id": "ID ผู้เข้าร่วม",
         "registered_at": "ลงทะเบียนเมื่อ",
         "not_available": "ไม่พร้อมใช้งาน"
@@ -484,18 +484,18 @@
         "link_submit": "ส่งลิงก์",
         "link_submitting": "กำลังส่ง...",
         "open_link": "เปิดลิงก์",
-        "size_label": "{used}MB / 10MB",
+        "size_label": "ขนาด",
         "delete": "ลบ",
         "download": "ดาวน์โหลด",
         "open_new_tab": "เปิดในแท็บใหม่",
         "upload_failed": "อัปโหลดล้มเหลว",
         "delete_failed": "ลบล้มเหลว",
-        "upload_failed_material": "File upload failed",
+        "upload_failed_material": "การอัปโหลดล้มเหลว",
         "add_material_failed": "Failed to add material",
         "attendee_code": "Code"
     },
     "playground": {
-        "title": "Browser Playground",
+        "title": "สนามทดสอบ",
         "subtitle": "รันโค้ดในเบราว์เซอร์โดยไม่ต้องใช้เซิร์ฟเวอร์",
         "code_label": "ตัวอย่างโค้ด",
         "copied": "คัดลอกแล้ว",
@@ -550,7 +550,7 @@
     "login": {
         "title": "วิทยากรเข้าสู่ระบบ",
         "subtitle": "เข้าถึงแดชบอร์ด",
-        "admin_id": "Admin ID",
+        "admin_id": "ไอดีผู้ดูแล",
         "password": "รหัสผ่าน",
         "sign_in": "เข้าสู่ระบบ",
         "connecting": "กำลังเชื่อมต่อ...",
@@ -566,7 +566,8 @@
         "trouble_local_commands_desc": "เริ่มเซิร์ฟเวอร์:",
         "trouble_local_note": "รีสตาร์ท backend หลังแก้ไข",
         "trouble_serverless_desc": "ใช้ Google เข้าสู่ระบบ",
-        "trouble_serverless_hint": "ตรวจสอบตัวบล็อกป๊อปอัป"
+        "trouble_serverless_hint": "ตรวจสอบตัวบล็อกป๊อปอัป",
+        "admin_pw": "รหัสผ่าน"
     },
     "home": {
         "subtitle": "เซสชันปฏิบัติที่สมบูรณ์แบบพร้อมคู่มือเชิงโต้ตอบ",
