@@ -289,13 +289,14 @@
         "parse_error": "解析内容时出错",
         "pdf_export_failed": "导出 PDF 失败",
         "docx_export_failed": "导出 DOCX 失败。请尝试直接复制到文档编辑器。",
-        "generate_guide_pro": "生成专业版指南",
-        "generating_guide_pro": "正在运行专业版工作流...",
+        "generate_guide_pro": "生成专业指南",
+        "generating_guide_pro": "正在生成专业指南...",
         "guide_pro_stage": {
-            "plan": "规划",
-            "draft": "起草",
-            "review": "评审",
-            "revise": "修订"
+            "plan": "计划",
+            "draft": "草案",
+            "review": "审查",
+            "revise": "修订",
+            "finalize": "完成"
         },
         "guide_pro_modal_title": "专业版指南智影工作流",
         "guide_pro_modal_desc": "查看每个阶段的输出和 AI 响应。",
@@ -350,7 +351,7 @@
     },
     "workspace": {
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "Markdown 编辑器",
             "code_label": "代码",
             "empty": "未找到笔记本单元格。",
             "invalid": "无效的笔记本文件。"
