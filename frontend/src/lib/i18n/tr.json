@@ -405,14 +405,14 @@
         "ai_step_summary": "Adım {step} {phase}: {updated} güncellendi, {deleted} silindi",
         "ai_phase_start": "Başla",
         "ai_phase_end": "Bitir",
-        "copy_title": "Copy Step Code",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
-        "copy_button": "Copy Step {source} End → Step {target} Start",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_title": "Adım Kodunu Kopyala",
+        "copy_desc": "Önceki adımın son kodunu sonraki adımın başlangıç kodu olarak kopyalayın.",
+        "copy_button": "Adım {source} sonunu kopyala → Adım {target} başlangıcı",
+        "copy_success": "Adım {source} son kodu Adım {target} başlangıç koduna kopyalandı.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "Dosyalara Göz At",
+            "download": "Çalışma Alanını İndir"
         }
     },
     "attendee": {

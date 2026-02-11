@@ -405,14 +405,14 @@
         "ai_step_summary": "שלב {step} {phase}: {updated} עודכן, {deleted} נמחק",
         "ai_phase_start": "התחלה",
         "ai_phase_end": "סיום",
-        "copy_title": "Copy Step Code",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
-        "copy_button": "Copy Step {source} End → Step {target} Start",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_title": "העתק קוד שלב",
+        "copy_desc": "העתק את הקוד הסופי של השלב הקודם כקוד ההתחלה של השלב הבא.",
+        "copy_button": "העתק סוף שלב {source} ← התחלת שלב {target}",
+        "copy_success": "קוד סוף שלב {source} הועתק לקוד התחלת שלב {target}.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "עיון בקבצים",
+            "download": "הורד סביבת עבודה"
         }
     },
     "attendee": {

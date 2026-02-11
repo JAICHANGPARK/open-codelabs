@@ -405,14 +405,14 @@
         "ai_step_summary": "Bước {step} {phase}: {updated} đã cập nhật, {deleted} đã xóa",
         "ai_phase_start": "Bắt đầu",
         "ai_phase_end": "Kết thúc",
-        "copy_title": "Copy Step Code",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
-        "copy_button": "Copy Step {source} End → Step {target} Start",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_title": "Sao chép mã bước",
+        "copy_desc": "Sao chép mã cuối cùng của bước trước làm mã bắt đầu cho bước tiếp theo.",
+        "copy_button": "Sao chép kết thúc bước {source} ← bắt đầu bước {target}",
+        "copy_success": "Mã cuối bước {source} đã được sao chép vào mã đầu bước {target}.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "Duyệt tệp tin",
+            "download": "Tải xuống không gian làm việc"
         }
     },
     "attendee": {

@@ -402,14 +402,14 @@
         "ai_step_summary": "مرحله {step} {phase}: {updated} به‌روزرسانی شد، {deleted} حذف شد",
         "ai_phase_start": "شروع",
         "ai_phase_end": "پایان",
-        "copy_title": "Copy Step Code",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
-        "copy_button": "Copy Step {source} End → Step {target} Start",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_title": "کپی کد مرحله",
+        "copy_desc": "کد پایانی مرحله قبلی را به عنوان کد شروع مرحله بعدی کپی کنید.",
+        "copy_button": "کپی پایان مرحله {source} ← شروع مرحله {target}",
+        "copy_success": "کد پایان مرحله {source} به کد شروع مرحله {target} کپی شد.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "مرور فایل‌ها",
+            "download": "دانلود فضای کاری"
         }
     },
     "attendee": {

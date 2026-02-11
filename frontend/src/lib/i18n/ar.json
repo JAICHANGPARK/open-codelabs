@@ -405,14 +405,14 @@
         "ai_step_summary": "الخطوة {step} {phase}: {updated} تم تحديثه، {deleted} تم حذفه",
         "ai_phase_start": "بدء",
         "ai_phase_end": "نهاية",
-        "copy_title": "Copy Step Code",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
-        "copy_button": "Copy Step {source} End → Step {target} Start",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_title": "نسخ رمز المرحلة",
+        "copy_desc": "انسخ الرمز النهائي للمرحلة السابقة كرمز بداية للمرحلة التالية.",
+        "copy_button": "نسخ نهاية المرحلة {source} ← بداية المرحلة {target}",
+        "copy_success": "تم نسخ رمز نهاية المرحلة {source} إلى رمز بداية المرحلة {target}.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "تصفح الملفات",
+            "download": "تحميل مساحة العمل"
         }
     },
     "attendee": {
@@ -508,10 +508,10 @@
     "certificate": {
         "title": "شهادة",
         "subtitle": "شهادة حضور",
-        "issued_to": "مُنحت لـ",
+        "issued_to": "صادر إلى",
         "codelab_title": "عنوان الدورة",
         "completion_date": "تاريخ الإكمال",
-        "verify_desc": "تم إصدار هذه الوثيقة رسمياً عبر نظام Open-Codelabs.",
+        "verify_desc": "تحقق من صحة هذه الشهادة",
         "download_pdf": "حفظ كـ PDF / طباعة",
         "verified_at": "تم التحقق في",
         "verify_status": "حالة التحقق",

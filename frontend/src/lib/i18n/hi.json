@@ -405,14 +405,14 @@
         "ai_step_summary": "चरण {step} {phase}: {updated} अपडेट किया गया, {deleted} हटाया गया",
         "ai_phase_start": "प्रारंभ",
         "ai_phase_end": "अंत",
-        "copy_title": "Copy Step Code",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
-        "copy_button": "Copy Step {source} End → Step {target} Start",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_title": "चरण कोड कॉपी करें",
+        "copy_desc": "पिछले चरण के अंतिम कोड को अगले चरण के शुरुआती कोड के रूप में कॉपी करें।",
+        "copy_button": "चरण {source} का अंत कॉपी करें → चरण {target} का प्रारंभ",
+        "copy_success": "चरण {source} का अंत कोड चरण {target} के प्रारंभ कोड में कॉपी किया गया है।",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "फ़ाइलें ब्राउज़ करें",
+            "download": "वर्कस्पेस डाउनलोड करें"
         }
     },
     "attendee": {

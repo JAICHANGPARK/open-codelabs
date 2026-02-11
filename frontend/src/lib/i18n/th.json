@@ -405,14 +405,14 @@
         "ai_step_summary": "ขั้นตอน {step} {phase}: อัปเดต {updated}, ลบ {deleted}",
         "ai_phase_start": "เริ่ม",
         "ai_phase_end": "จบ",
-        "copy_title": "Copy Step Code",
-        "copy_desc": "Copy the end code from the previous step to the next step's start code.",
-        "copy_button": "Copy Step {source} End → Step {target} Start",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_title": "คัดลอกโค้ดขั้นตอน",
+        "copy_desc": "คัดลอกโค้ดสุดท้ายของขั้นตอนก่อนหน้าเพื่อเป็นโค้ดเริ่มต้นของขั้นตอนถัดไป",
+        "copy_button": "คัดลอกจบขั้นตอน {source} ← เริ่มขั้นตอน {target}",
+        "copy_success": "คัดลอกโค้ดจบขั้นตอน {source} ไปยังขั้นตอนเริ่ม {target} เรียบร้อยแล้ว",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "เรียกดูไฟล์",
+            "download": "ดาวน์โหลดเวิร์กสเปซ"
         }
     },
     "attendee": {
