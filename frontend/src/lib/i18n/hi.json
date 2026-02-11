@@ -363,7 +363,7 @@
         "no_files": "कोई फ़ाइल नहीं मिली",
         "select_file": "सामग्री देखने के लिए फ़ाइल चुनें",
         "notebook": {
-            "markdown_label": "Markdown",
+            "markdown_label": "Markdown एडिटर",
             "code_label": "कोड",
             "empty": "कोई सेल नहीं मिला।",
             "invalid": "अमान्य नोटबुक फ़ाइल।"
@@ -421,7 +421,7 @@
         "nickname": "आपका नाम",
         "nickname_placeholder": "जैसे Alex",
         "email": "ईमेल",
-        "email_placeholder": "example@email.com",
+        "email_placeholder": "ईमेल पता (वैकल्पिक)",
         "unique_code": "अद्वितीय कोड",
         "unique_code_placeholder": "जैसे 1234",
         "start_learning": "सीखना शुरू करें",
@@ -451,7 +451,7 @@
         "title": "आपकी प्रोफ़ाइल",
         "name": "नाम",
         "email": "ईमेल",
-        "codelab": "Codelab",
+        "codelab": "कोडलैब",
         "attendee_id": "प्रतिभागी ID",
         "registered_at": "पंजीकृत",
         "not_available": "उपलब्ध नहीं"
@@ -484,18 +484,18 @@
         "link_submit": "लिंक भेजें",
         "link_submitting": "भेज रहा है...",
         "open_link": "लिंक खोलें",
-        "size_label": "{used}MB / 10MB",
+        "size_label": "आकार",
         "delete": "हटाएं",
         "download": "डाउनलोड",
         "open_new_tab": "नए टैब में खोलें",
         "upload_failed": "अपलोड विफल",
         "delete_failed": "हटाना विफल",
-        "upload_failed_material": "File upload failed",
-        "add_material_failed": "Failed to add material",
+        "upload_failed_material": "अपलोड विफल रहा",
+        "add_material_failed": "सामग्री जोड़ने में विफल",
         "attendee_code": "Code"
     },
     "playground": {
-        "title": "Browser Playground",
+        "title": "प्लेग्राउंड",
         "subtitle": "बिना सर्वर के ब्राउज़र में कोड चलाएं।",
         "code_label": "कोड स्निपेट",
         "copied": "कॉपी किया गया",
@@ -503,7 +503,7 @@
         "embed_unavailable": "एम्बेड उपलब्ध नहीं।",
         "toggle_open": "खोलें",
         "toggle_close": "बंद करें",
-        "iframe_title": "Playground: {name}"
+        "iframe_title": "प्लेग्राउंड पूर्वावलोकन"
     },
     "certificate": {
         "title": "प्रमाण पत्र",
@@ -550,7 +550,7 @@
     "login": {
         "title": "सुविधा प्रदाता लॉगिन",
         "subtitle": "डैशबोर्ड एक्सेस करें",
-        "admin_id": "Admin ID",
+        "admin_id": "व्यवस्थापक आईडी",
         "password": "पासवर्ड",
         "sign_in": "लॉगिन करें",
         "connecting": "कनेक्ट हो रहा है...",
@@ -566,7 +566,8 @@
         "trouble_local_commands_desc": "सर्वर शुरू करें:",
         "trouble_local_note": "बदलाव के बाद बैकएंड रीस्टार्ट करें।",
         "trouble_serverless_desc": "Google लॉगिन का उपयोग करें।",
-        "trouble_serverless_hint": "पॉपअप ब्लॉकर जांचें।"
+        "trouble_serverless_hint": "पॉपअप ब्लॉकर जांचें।",
+        "admin_pw": "पासवर्ड"
     },
     "home": {
         "subtitle": "इंटरैक्टिव गाइड के साथ परफेक्ट प्रैक्टिस सेशन।",
@@ -606,11 +607,11 @@
         "facilitator_tips_section": "सुविधा प्रदाता के लिए टिप्स",
         "timebox_section": "टाइमबॉक्स",
         "section_empty": "कोई सामग्री प्रदान नहीं की गई",
-        "mode_advanced_star_message": "If Pro mode helped you, please consider starring the project on GitHub.",
-        "mode_advanced_star_button": "Star on GitHub",
-        "input_label": "Paste your source code here",
-        "google_search": "Google Search (Real-time data)",
-        "url_context": "URL Context",
+        "mode_advanced_star_message": "कृपया गिटहब पर हमें स्टार देकर समर्थन करें!",
+        "mode_advanced_star_button": "हमें स्टार दें",
+        "input_label": "अपना कोड यहाँ डालें",
+        "google_search": "गूगल सर्च",
+        "url_context": "यूआरएल संदर्भ",
         "show_thinking": "Show AI Thinking",
         "billing_notice": "Billing Notice:",
         "billing_desc": "Google Search and URL Context tools may incur additional charges starting January 5, 2026.",
