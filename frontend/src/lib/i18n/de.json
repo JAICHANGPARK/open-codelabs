@@ -412,7 +412,7 @@
         "copy_phase": "copy",
         "actions": {
             "browse": "Dateien durchsuchen",
-            "download": "Download Workspace"
+            "download": "Arbeitsbereich herunterladen"
         }
     },
     "attendee": {
@@ -451,7 +451,7 @@
         "title": "Ihr Profil",
         "name": "Name",
         "email": "E-Mail",
-        "codelab": "Codelab",
+        "codelab": "Codelab-Kurs",
         "attendee_id": "Teilnehmer-ID",
         "registered_at": "Registriert",
         "not_available": "Nicht angegeben",
@@ -607,7 +607,7 @@
         "mode_prompt": "Nur Prompt",
         "mode_basic_desc": "Schnelle Generierung in einem Durchgang basierend auf bereitgestelltem Code und Dateien.",
         "mode_prompt_desc": "Generierung von schrittbasierten Workflows via Prompt für schnelle Coding-Sessions.",
-        "prompt_section": "Prompt",
+        "prompt_section": "Eingabe-Bereich",
         "expected_output_section": "Erwartetes Ergebnis",
         "facilitator_tips_section": "Tipps für den Facilitator",
         "timebox_section": "Zeitrahmen",
@@ -673,7 +673,7 @@
         "diff_too_large": "Differenz zu groß für die Anzeige. Bitte prüfen Sie die Ergebnisse direkt.",
         "draft_markdown_title": "Entwurfsausgabe (Markdown)",
         "revised_markdown_title": "Überarbeitete Ausgabe (Markdown)",
-        "view_markdown": "Markdown",
+        "view_markdown": "Markdown anzeigen",
         "saving": "Speichere...",
         "upload_files": "Kontext-Dateien",
         "upload_limits": "Limit: max. {maxFiles} Dateien pro Prompt, je {maxSizeMb} MB. ZIP-Dateien: max. {maxZipFiles} Dateien, kein Audio/Video.",
@@ -784,7 +784,7 @@
         "col_actor": "Akteur",
         "col_target": "Ziel",
         "col_ip": "IP",
-        "col_details": "Details",
+        "col_details": "Einzelheiten",
         "col_target_codelab": "Ziel-Codelab",
         "col_target_id": "Ziel",
         "view_details": "Ansehen",
