@@ -410,11 +410,11 @@
         "copy_title": "Copiar código de paso",
         "copy_desc": "Copie el código final del paso anterior como código inicial para el siguiente.",
         "copy_button": "Copiar fin paso {source} → inicio paso {target}",
-        "copy_success": "Copied step {source} end code to step {target} start code.",
+        "copy_success": "El código del paso {source} se copió en el paso {target}.",
         "copy_phase": "copy",
         "actions": {
-            "browse": "Browse Workspace Files",
-            "download": "Download Workspace"
+            "browse": "Explorar archivos",
+            "download": "Descargar espacio de trabajo"
         }
     },
     "attendee": {
@@ -453,7 +453,7 @@
         "title": "Su perfil",
         "name": "Nombre",
         "email": "Correo",
-        "codelab": "Codelab",
+        "codelab": "Laboratorio",
         "attendee_id": "ID de participante",
         "registered_at": "Registrado",
         "not_available": "No proporcionado",
@@ -609,7 +609,7 @@
         "mode_prompt": "Solo Prompt",
         "mode_basic_desc": "Generación rápida en una sola pasada basada en el código y los archivos proporcionados.",
         "mode_prompt_desc": "Generación de flujos basados en pasos vía prompt para sesiones rápidas de codificación.",
-        "prompt_section": "Prompt",
+        "prompt_section": "Sección de sugerencia",
         "expected_output_section": "Resultado esperado",
         "facilitator_tips_section": "Consejos para el facilitador",
         "timebox_section": "Tiempo límite (Timebox)",
@@ -675,7 +675,7 @@
         "diff_too_large": "La diferencia es demasiado grande para mostrarla. Por favor, revisa los resultados directamente.",
         "draft_markdown_title": "Salida borrador (Markdown)",
         "revised_markdown_title": "Salida revisada (Markdown)",
-        "view_markdown": "Markdown",
+        "view_markdown": "Ver Markdown",
         "saving": "Guardando...",
         "upload_files": "Archivos de contexto",
         "upload_limits": "Límite: máx {maxFiles} archivos por prompt, cada uno {maxSizeMb} MB. Archivos ZIP: máx {maxZipFiles} archivos, no audio/video.",
