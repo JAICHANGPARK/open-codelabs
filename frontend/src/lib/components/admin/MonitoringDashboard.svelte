@@ -84,15 +84,9 @@
         activeStreams = new Map(activeStreams);
     }
 
-    // React to attendees starting/stopping share
+    // Only cleanup streams for attendees who stopped sharing.
+    // New streams are connected on-demand when facilitator clicks "Watch".
     $effect(() => {
-        // Check for new sharers
-        sharingAttendees.forEach((a: any) => {
-            if (!services.has(a.id)) {
-                subscribeToStream(a.id);
-            }
-        });
-
         // Cleanup stopped sharers
         services.forEach((_, id) => {
             if (!sharingAttendees.find((a: any) => a.id === id)) {
