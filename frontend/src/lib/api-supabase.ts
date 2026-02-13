@@ -828,11 +828,15 @@ export async function getCertificate(attendeeId: string): Promise<CertificateInf
         throw new Error("REQUIREMENTS_NOT_MET");
     }
 
+    const codelab = Array.isArray(data.codelabs)
+        ? data.codelabs[0]
+        : data.codelabs;
+
     return {
         attendee_name: data.name,
-        codelab_title: data.codelabs?.title || "",
-        codelab_id: data.codelabs?.id || "",
-        author: data.codelabs?.author || "",
+        codelab_title: codelab?.title || "",
+        codelab_id: codelab?.id || "",
+        author: codelab?.author || "",
         completed_at: data.completed_at || "",
         verification_url: `/verify/${attendeeId}`,
     };

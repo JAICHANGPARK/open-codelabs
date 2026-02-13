@@ -7,19 +7,13 @@
     import { adminMarked } from '$lib/markdown';
     import WorkspaceFileTree from '$lib/components/admin/WorkspaceFileTree.svelte';
     import { t } from 'svelte-i18n';
+    import type { TreeNode } from '$lib/components/admin/workspace-tree';
 
     let { codelabId, onClose = null, embedded = false } = $props<{
         codelabId: string;
         onClose?: (() => void) | null;
         embedded?: boolean;
     }>();
-
-    type TreeNode = {
-        name: string;
-        path: string;
-        type: 'folder' | 'file';
-        children?: TreeNode[];
-    };
 
     type NotebookCell = {
         kind: 'markdown' | 'code';
@@ -68,7 +62,9 @@
                 await loadFiles();
             }
         } catch (e) {
-            error = $t('workspace.errors.load_workspace_failed', { error: (e as Error).message });
+            error = $t('workspace.errors.load_workspace_failed', {
+                values: { error: (e as Error).message },
+            });
         } finally {
             loading = false;
         }
@@ -98,7 +94,9 @@
 
             treeNodes = buildFileTree(files);
         } catch (e) {
-            error = $t('workspace.errors.load_files_failed', { error: (e as Error).message });
+            error = $t('workspace.errors.load_files_failed', {
+                values: { error: (e as Error).message },
+            });
         } finally {
             loading = false;
         }
@@ -124,7 +122,9 @@
             const cellType = cell?.cell_type;
             if (cellType !== 'markdown' && cellType !== 'code') return [];
             const source = toNotebookSource(cell?.source);
-            return [{ kind: cellType === 'markdown' ? 'markdown' : 'code', source }];
+            const kind: NotebookCell['kind'] =
+                cellType === 'markdown' ? 'markdown' : 'code';
+            return [{ kind, source }];
         });
 
         return { cells: extracted, language };
@@ -278,7 +278,9 @@
                 highlightedContent = renderCodeBlock(fileContent, languageFromFilename(file));
             }
         } catch (e) {
-            error = $t('workspace.errors.load_file_content_failed', { error: (e as Error).message });
+            error = $t('workspace.errors.load_file_content_failed', {
+                values: { error: (e as Error).message },
+            });
         } finally {
             loading = false;
         }

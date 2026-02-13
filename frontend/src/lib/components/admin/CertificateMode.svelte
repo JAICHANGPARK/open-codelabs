@@ -7,11 +7,11 @@
     attendees: Attendee[];
   }>();
 
-  let completed = $derived(attendees.filter((a) => a.is_completed));
+  let completed = $derived(attendees.filter((a: Attendee) => a.is_completed));
   let searchQuery = $state("");
 
   let filteredAttendees = $derived(
-    completed.filter((a) =>
+    completed.filter((a: Attendee) =>
       a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (a.email && a.email.toLowerCase().includes(searchQuery.toLowerCase()))
     )

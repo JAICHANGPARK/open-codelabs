@@ -49,9 +49,13 @@
     let copied = $state(false);
     let activeLanguage = $state<PlaygroundLanguage>("python");
 
-    let availableLanguages = $derived(playgrounds.map((block) => block.language));
+    let availableLanguages = $derived(
+        playgrounds.map((block: PlaygroundBlock) => block.language),
+    );
     let activeBlock = $derived(
-        playgrounds.find((block) => block.language === activeLanguage) ||
+        playgrounds.find(
+            (block: PlaygroundBlock) => block.language === activeLanguage,
+        ) ||
             playgrounds[0],
     );
 
@@ -141,14 +145,15 @@
             <div class="px-6 pb-6 pt-4 space-y-4">
                 <div class="flex flex-wrap gap-2">
                     {#each availableLanguages as lang}
+                        {@const playgroundLang = lang as PlaygroundLanguage}
                         <button
                             type="button"
-                            onclick={() => (activeLanguage = lang)}
-                            class="px-4 py-2 rounded-full text-xs font-bold transition-all border {activeLanguage === lang
+                            onclick={() => (activeLanguage = playgroundLang)}
+                            class="px-4 py-2 rounded-full text-xs font-bold transition-all border {activeLanguage === playgroundLang
                                 ? 'bg-primary border-primary text-primary-foreground shadow-sm'
                                 : 'bg-white dark:bg-dark-bg border-border dark:border-dark-border text-muted-foreground dark:text-dark-text-muted hover:border-primary hover:text-primary'}"
                         >
-                            {PLAYGROUND_CONFIG[lang].label}
+                            {PLAYGROUND_CONFIG[playgroundLang].label}
                         </button>
                     {/each}
                 </div>

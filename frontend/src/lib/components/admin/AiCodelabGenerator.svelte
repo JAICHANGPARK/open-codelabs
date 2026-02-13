@@ -292,7 +292,8 @@ Review Criteria (Be specific and critical):
 Provide actionable improvements for every issue found (e.g., "Step 3 lacks a filename header", not just "Fix formatting").
 `;
 
-    let generationMode: GenerationMode = $state("basic");
+    let generationMode = $state<GenerationMode>("basic");
+    let isPromptOutput = $derived(generationMode === "prompt");
     let advancedStep = $state<AdvancedStep>("input");
     let advancedLoading = $state(false);
     let advancedStreamContent = $state("");
@@ -1949,7 +1950,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                         class="hidden"
                                     />
                                     <button
-                                        onclick={() => fileInput.click()}
+                                        onclick={() => fileInput?.click()}
                                         class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl text-sm font-bold text-primary hover:bg-primary/5 transition-all shadow-sm"
                                     >
                                         <Upload size={18} />
@@ -2056,7 +2057,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                     class="hidden"
                                 />
                                 <button
-                                    onclick={() => fileInput.click()}
+                                    onclick={() => fileInput?.click()}
                                     class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-xl text-sm font-bold text-primary hover:bg-primary/5 transition-all shadow-sm"
                                 >
                                     <Upload size={18} />
@@ -2361,7 +2362,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                             >
                                                 {i + 1}. {step.title}
                                             </h4>
-                                            {#if generationMode === "prompt"}
+                                            {#if isPromptOutput}
                                                 {@const sections =
                                                     extractPromptSections(
                                                         step.content,
@@ -3034,7 +3035,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
 
                             <div class="space-y-8">
                                 {#each advancedDraftData.steps as step, i}
-                                    {@const stepId = step.id || `${i}`}
+                                    {@const stepId = `${i}`}
                                     {@const isExpanded =
                                         advancedDraftExpandedSteps.includes(
                                             stepId,
@@ -3063,7 +3064,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                                                     : $t("ai_generator.expand")}
                                             </button>
                                         </div>
-                                        {#if generationMode === "prompt"}
+                                        {#if isPromptOutput}
                                             {@const sections =
                                                 extractPromptSections(
                                                     step.content,

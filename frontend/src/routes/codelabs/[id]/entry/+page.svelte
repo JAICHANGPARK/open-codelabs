@@ -18,67 +18,73 @@
     let errorType = $state("");
     const supabaseJoinKey = "supabase_oauth_join";
 
-    onMount(async () => {
+    onMount(() => {
         let cleanup: (() => void) | undefined;
-        try {
-            const data = await getCodelab(id);
-            codelab = data[0];
-            if (!codelab.is_public) {
-                error = $t("attendee.error_private_codelab");
-                errorType = "PRIVATE";
-                codelab = null;
-                return;
+        void (async () => {
+            try {
+                const data = await getCodelab(id);
+                codelab = data[0];
+                if (!codelab.is_public) {
+                    error = $t("attendee.error_private_codelab");
+                    errorType = "PRIVATE";
+                    codelab = null;
+                    return;
+                }
+
+                // Check if already registered in this session
+                const savedAttendee = localStorage.getItem(`attendee_${id}`);
+                if (savedAttendee) {
+                    goto(`/codelabs/${id}`);
+                }
+
+                if (isSupabaseMode()) {
+                    cleanup = onAuthChange(async (user) => {
+                        if (!user) return;
+                        const pending = sessionStorage.getItem(supabaseJoinKey);
+                        if (pending !== id) return;
+                        sessionStorage.removeItem(supabaseJoinKey);
+
+                        const displayName =
+                            user.displayName ||
+                            (user.email ? user.email.split("@")[0] : "") ||
+                            $t("attendee.anonymous_user");
+                        const userCode = user.uid
+                            ? user.uid.substring(0, 8)
+                            : "";
+
+                        try {
+                            const attendee = await registerAttendee(
+                                id,
+                                displayName,
+                                userCode || "supabase",
+                                user.email || undefined,
+                            );
+                            localStorage.setItem(
+                                `attendee_${id}`,
+                                JSON.stringify(attendee),
+                            );
+                            goto(`/codelabs/${id}`);
+                        } catch (e: any) {
+                            error = $t("attendee.error_registration_failed");
+                        }
+                    });
+                }
+            } catch (e: any) {
+                if (e.message === "PRIVATE_CODELAB") {
+                    error = $t("attendee.error_private_codelab");
+                    errorType = "PRIVATE";
+                } else {
+                    error = $t("attendee.codelab_not_found");
+                    errorType = "NOT_FOUND";
+                }
+            } finally {
+                loading = false;
             }
+        })();
 
-            // Check if already registered in this session
-            const savedAttendee = localStorage.getItem(`attendee_${id}`);
-            if (savedAttendee) {
-                goto(`/codelabs/${id}`);
-            }
-
-            if (isSupabaseMode()) {
-                cleanup = onAuthChange(async (user) => {
-                    if (!user) return;
-                    const pending = sessionStorage.getItem(supabaseJoinKey);
-                    if (pending !== id) return;
-                    sessionStorage.removeItem(supabaseJoinKey);
-
-                    const displayName =
-                        user.displayName ||
-                        (user.email ? user.email.split("@")[0] : "") ||
-                        $t("attendee.anonymous_user");
-                    const userCode = user.uid ? user.uid.substring(0, 8) : "";
-
-                    try {
-                        const attendee = await registerAttendee(
-                            id,
-                            displayName,
-                            userCode || "supabase",
-                            user.email || undefined,
-                        );
-                        localStorage.setItem(
-                            `attendee_${id}`,
-                            JSON.stringify(attendee),
-                        );
-                        goto(`/codelabs/${id}`);
-                    } catch (e: any) {
-                        error = $t("attendee.error_registration_failed");
-                    }
-                });
-            }
-        } catch (e: any) {
-            if (e.message === 'PRIVATE_CODELAB') {
-                error = $t("attendee.error_private_codelab");
-                errorType = "PRIVATE";
-            } else {
-                error = $t("attendee.codelab_not_found");
-                errorType = "NOT_FOUND";
-            }
-        } finally {
-            loading = false;
-        }
-
-        return cleanup;
+        return () => {
+            cleanup?.();
+        };
     });
 
     async function handleSubmit() {

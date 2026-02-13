@@ -76,7 +76,7 @@ export const onAuthChange = USE_SUPABASE
     ? supabase.onAuthChange
     : USE_FIREBASE
         ? firebase.onAuthChange
-        : (cb: any) => { /* no-op */ };
+        : (_cb: any) => () => { /* no-op */ };
 export const getSession = USE_SUPABASE
     ? supabase.getSession
     : USE_FIREBASE

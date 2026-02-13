@@ -90,6 +90,7 @@
         | "workspace"
         | "raffle"
         | "certificate"
+        | "ai"
         | "monitoring"
     >(
         initialMode === "preview" ||
@@ -104,13 +105,15 @@
             initialMode === "workspace" ||
             initialMode === "raffle" ||
             initialMode === "certificate" ||
+            initialMode === "ai" ||
             initialMode === "monitoring"
             ? (initialMode as any)
             : "edit",
     );
 
     let isSaving = $state(false);
-    let codelab = $state<Codelab | null>(null);
+    type AdminCodelab = Codelab & { guide_markdown: string };
+    let codelab = $state<AdminCodelab | null>(null);
     let steps = $state<Step[]>([]);
     let saveSuccess = $state(false);
     let loading = $state(true);
@@ -440,7 +443,10 @@
     onMount(async () => {
         try {
             const data = await getCodelab(id);
-            codelab = data[0];
+            codelab = {
+                ...data[0],
+                guide_markdown: data[0].guide_markdown ?? "",
+            };
             steps = data[1];
             captureSavedContentSnapshot();
 
@@ -2011,7 +2017,10 @@
                 }),
             ]);
             const latest = await getCodelab(id);
-            codelab = latest[0];
+            codelab = {
+                ...latest[0],
+                guide_markdown: latest[0].guide_markdown ?? "",
+            };
             steps = latest[1];
             if (activeStepIndex >= steps.length) {
                 activeStepIndex = Math.max(0, steps.length - 1);
@@ -2077,14 +2086,14 @@
                 } else {
                     alert(
                         $t("workspace.errors.download_failed", {
-                            error: e.message,
+                            values: { error: e.message },
                         }),
                     );
                 }
             } else {
                 alert(
                     $t("workspace.errors.download_failed", {
-                        error: String(e),
+                        values: { error: String(e) },
                     }),
                 );
             }

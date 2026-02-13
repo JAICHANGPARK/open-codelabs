@@ -172,7 +172,8 @@ export async function* streamGeminiChat(
         });
 
         if (!response.ok) throw new Error(`API Error: ${response.status}`);
-        yield* parseGoogleStream(response);
+        const result = yield* parseGoogleStream(response);
+        return result;
     } else {
         apiKeyRequired();
         let apiKey = config.apiKey;
@@ -195,7 +196,8 @@ export async function* streamGeminiChat(
         });
 
         if (!response.ok) throw new Error(`Backend AI Error: ${response.status}`);
-        yield* parseGoogleStream(response);
+        const result = yield* parseGoogleStream(response);
+        return result;
     }
 }
 

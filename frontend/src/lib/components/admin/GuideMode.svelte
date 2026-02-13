@@ -37,6 +37,10 @@
     // @ts-ignore
     import { asBlob } from "html-docx-js-typescript";
 
+    type Html2PdfOptions = Parameters<
+        InstanceType<typeof html2pdf.Worker>["set"]
+    >[0];
+
     let {
         guide_markdown = $bindable(),
         codelab_title = $t("editor.guide_tab"),
@@ -636,15 +640,17 @@
     }
 
     function downloadFile(
-        content: Blob | string,
+        content: Blob | string | ArrayBuffer | Uint8Array,
         fileName: string,
         contentType: string,
     ) {
         const a = document.createElement("a");
+        const normalizedContent =
+            content instanceof Uint8Array ? new Uint8Array(content) : content;
         const file =
-            content instanceof Blob
-                ? content
-                : new Blob([content], { type: contentType });
+            normalizedContent instanceof Blob
+                ? normalizedContent
+                : new Blob([normalizedContent], { type: contentType });
         a.href = URL.createObjectURL(file);
         a.download = fileName;
         a.click();
@@ -666,7 +672,7 @@
         const element = document.getElementById("guide-preview-content");
         if (!element) return;
 
-        const opt = {
+        const opt: Html2PdfOptions = {
             margin: 1,
             filename: `${codelab_title}_Preparation_Guide.pdf`,
             image: { type: "jpeg", quality: 0.98 },

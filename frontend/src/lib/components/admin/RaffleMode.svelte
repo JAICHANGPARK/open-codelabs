@@ -23,12 +23,12 @@
   let winner = $state<Attendee | null>(null);
   let history = $state<{ id: string; name: string; time: string }[]>([]);
 
-  let eligible = $derived(attendees.filter((a) => a.is_completed));
+  let eligible = $derived(attendees.filter((a: Attendee) => a.is_completed));
   let segmentAngle = $derived(eligible.length ? 360 / eligible.length : 0);
   let gradient = $derived(
     eligible.length
       ? eligible
-          .map((_, idx) => {
+          .map((_: Attendee, idx: number) => {
             const start = (idx / eligible.length) * 100;
             const end = ((idx + 1) / eligible.length) * 100;
             return `${segmentColors[idx % segmentColors.length]} ${start}% ${end}%`;

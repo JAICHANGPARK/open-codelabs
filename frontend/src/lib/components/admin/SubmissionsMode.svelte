@@ -28,7 +28,7 @@
 
     let searchTerm = $state("");
     let filteredSubmissions = $derived(
-        submissions.filter(s =>
+        submissions.filter((s: SubmissionWithAttendee) =>
             s.attendee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             s.file_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (s.link_url || "").toLowerCase().includes(searchTerm.toLowerCase())

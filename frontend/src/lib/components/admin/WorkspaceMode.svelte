@@ -12,7 +12,8 @@
         getWorkspaceFolderFileContent,
         updateWorkspaceBranchFiles,
         updateWorkspaceFolderFiles,
-        type WorkspaceFile
+        type WorkspaceFile,
+        type CodeServerInfo,
     } from '$lib/api-backend';
     import WorkspaceBrowser from '$lib/components/admin/WorkspaceBrowser.svelte';
     import { streamGeminiStructuredOutput, type GeminiStructuredConfig } from '$lib/gemini';
@@ -23,7 +24,7 @@
     let { codelabId, steps, geminiApiKey = "" }: { codelabId: string; steps: Step[]; geminiApiKey?: string } = $props();
 
     let workspaceExists = $state(false);
-    let workspaceInfo = $state<{ path: string; structure_type: string } | null>(null);
+    let workspaceInfo = $state<CodeServerInfo | null>(null);
     let loading = $state(true);
     let creating = $state(false);
     let error = $state('');
@@ -132,7 +133,9 @@
             success = $t('workspace.success.created');
             await loadWorkspaceInfo();
         } catch (e) {
-            error = $t('workspace.errors.create_failed', { error: (e as Error).message });
+            error = $t('workspace.errors.create_failed', {
+                values: { error: (e as Error).message },
+            });
         } finally {
             creating = false;
         }
@@ -143,7 +146,9 @@
             error = '';
             await downloadCodeServerWorkspace(codelabId);
         } catch (e) {
-            error = $t('workspace.errors.download_failed', { error: (e as Error).message });
+            error = $t('workspace.errors.download_failed', {
+                values: { error: (e as Error).message },
+            });
         }
     }
 
@@ -468,7 +473,9 @@
                 values: { source: sourceStep, target: targetStep }
             });
         } catch (e) {
-            error = $t("workspace.errors.copy_failed", { error: (e as Error).message });
+            error = $t("workspace.errors.copy_failed", {
+                values: { error: (e as Error).message },
+            });
         }
     }
 </script>
@@ -751,8 +758,8 @@
                                 <div class="text-sm text-primary dark:text-primary">
                                     <p class="font-medium mb-2">{$t('workspace.info_title')}</p>
                                     <ul class="list-disc list-inside space-y-1 text-xs">
-                                        <li>{$t('workspace.info_step_create', { unit: structureType === 'branch' ? $t('workspace.labels.branches') : $t('workspace.labels.folders') })} <code class="bg-white/50 px-1 rounded">step-N-start</code>, <code class="bg-white/50 px-1 rounded">step-N-end</code></li>
-                                        <li>{$t('workspace.info_copy_base', { unit: structureType === 'branch' ? $t('workspace.labels.branch') : $t('workspace.labels.folder') })}</li>
+                                        <li>{$t('workspace.info_step_create', { values: { unit: structureType === 'branch' ? $t('workspace.labels.branches') : $t('workspace.labels.folders') } })} <code class="bg-white/50 px-1 rounded">step-N-start</code>, <code class="bg-white/50 px-1 rounded">step-N-end</code></li>
+                                        <li>{$t('workspace.info_copy_base', { values: { unit: structureType === 'branch' ? $t('workspace.labels.branch') : $t('workspace.labels.folder') } })}</li>
                                         <li>{$t('workspace.info_modify_later')}</li>
                                     </ul>
                                 </div>

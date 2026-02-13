@@ -108,8 +108,8 @@
                 quizzes[qIndex].correct_answers = quizzes[
                     qIndex
                 ].correct_answers
-                    .filter((i) => i !== oIndex)
-                    .map((i) => (i > oIndex ? i - 1 : i));
+                    .filter((i: number) => i !== oIndex)
+                    .map((i: number) => (i > oIndex ? i - 1 : i));
                 if (quizzes[qIndex].correct_answers.length === 0) {
                     quizzes[qIndex].correct_answers = [0];
                 }
@@ -126,7 +126,7 @@
         if (answers.includes(oIndex)) {
             if (answers.length > 1) {
                 quizzes[qIndex].correct_answers = answers.filter(
-                    (i) => i !== oIndex,
+                    (i: number) => i !== oIndex,
                 );
             }
         } else {

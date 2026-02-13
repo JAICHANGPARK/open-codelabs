@@ -62,8 +62,8 @@
     // Position for draggable (from bottom-right)
     let position = $state({ right: 20, bottom: 80 });
     let dimensions = $state({ width: 320, height: 220 });
-    let isDragging = false;
-    let isResizing = false;
+    let isDragging = $state(false);
+    let isResizing = $state(false);
     let startMousePos = { x: 0, y: 0 };
     let startPosition = { right: 0, bottom: 0 };
     let startDimensions = { width: 0, height: 0 };

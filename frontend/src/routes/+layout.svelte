@@ -46,73 +46,77 @@
         }
     }
 
-    onMount(async () => {
+    onMount(() => {
         let cleanup: (() => void) | undefined;
-        if (isFirebaseMode()) {
-            onAuthChange((user) => {
-                if (!user && page.url.pathname.startsWith("/admin")) {
-                    localStorage.removeItem("adminToken");
-                    localStorage.removeItem("user");
-                    goto("/login");
-                } else if (user) {
-                    // Sync token if needed
-                    user.getIdToken().then((token) => {
+        void (async () => {
+            if (isFirebaseMode()) {
+                cleanup = onAuthChange((user) => {
+                    if (!user && page.url.pathname.startsWith("/admin")) {
+                        localStorage.removeItem("adminToken");
+                        localStorage.removeItem("user");
+                        goto("/login");
+                    } else if (user) {
+                        // Sync token if needed
+                        user.getIdToken().then((token: string) => {
+                            localStorage.setItem("adminToken", token);
+                            localStorage.setItem(
+                                "user",
+                                JSON.stringify({
+                                    uid: user.uid,
+                                    email: user.email,
+                                    displayName: user.displayName,
+                                    photoURL: user.photoURL,
+                                }),
+                            );
+                        });
+                    }
+                });
+            } else if (isSupabaseMode()) {
+                cleanup = onAuthChange((user) => {
+                    if (!user && page.url.pathname.startsWith("/admin")) {
+                        localStorage.removeItem("adminToken");
+                        localStorage.removeItem("user");
+                        goto("/login");
+                    } else if (user) {
+                        const token = (user as any).accessToken || "supabase";
                         localStorage.setItem("adminToken", token);
-                        localStorage.setItem(
-                            "user",
-                            JSON.stringify({
-                                uid: user.uid,
-                                email: user.email,
-                                displayName: user.displayName,
-                                photoURL: user.photoURL,
-                            }),
-                        );
-                    });
-                }
-            });
-        } else if (isSupabaseMode()) {
-            cleanup = onAuthChange((user) => {
-                if (!user && page.url.pathname.startsWith("/admin")) {
-                    localStorage.removeItem("adminToken");
-                    localStorage.removeItem("user");
-                    goto("/login");
-                } else if (user) {
-                    const token = (user as any).accessToken || "supabase";
-                    localStorage.setItem("adminToken", token);
-                    localStorage.setItem("user", JSON.stringify(user));
-                }
-            });
-        } else {
-            await refreshSession();
-            const handler = () => {
-                refreshSession();
-            };
-            window.addEventListener("session-changed", handler);
-            cleanup = () =>
-                window.removeEventListener("session-changed", handler);
-        }
-        try {
-            const savedLocale = localStorage.getItem("locale");
-            if (savedLocale) {
-                locale.set(savedLocale);
+                        localStorage.setItem("user", JSON.stringify(user));
+                    }
+                });
+            } else {
+                await refreshSession();
+                const handler = () => {
+                    refreshSession();
+                };
+                window.addEventListener("session-changed", handler);
+                cleanup = () =>
+                    window.removeEventListener("session-changed", handler);
             }
-        } catch (e) {
-            console.warn("localStorage not available", e);
-        }
+            try {
+                const savedLocale = localStorage.getItem("locale");
+                if (savedLocale) {
+                    locale.set(savedLocale);
+                }
+            } catch (e) {
+                console.warn("localStorage not available", e);
+            }
 
-        try {
-            // Wait for locale to load, but don't hang for more than 500ms
-            await Promise.race([
-                waitLocale(),
-                new Promise((resolve) => setTimeout(resolve, 500)),
-            ]);
-        } catch (e) {
-            console.warn("i18n load issue", e);
-        } finally {
-            i18nLoaded = true;
-        }
+            try {
+                // Wait for locale to load, but don't hang for more than 500ms
+                await Promise.race([
+                    waitLocale(),
+                    new Promise((resolve) => setTimeout(resolve, 500)),
+                ]);
+            } catch (e) {
+                console.warn("i18n load issue", e);
+            } finally {
+                i18nLoaded = true;
+            }
+        })();
 
-        return cleanup;
+        return () => {
+            cleanup?.();
+        };
     });
 
     $effect(() => {
@@ -218,7 +222,14 @@
     }
 
     function selectThemePreset(
-        presetId: "default" | "mint" | "ocean" | "sunset",
+        presetId:
+            | "default"
+            | "mint"
+            | "ocean"
+            | "sunset"
+            | "forest"
+            | "berry"
+            | "slate",
     ) {
         themeState.setPreset(presetId);
         themeMenuOpen = false;

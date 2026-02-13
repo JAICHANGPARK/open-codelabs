@@ -1,12 +1,7 @@
 <script lang="ts">
     import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen } from 'lucide-svelte';
-
-    type TreeNode = {
-        name: string;
-        path: string;
-        type: 'folder' | 'file';
-        children?: TreeNode[];
-    };
+    import type { TreeNode } from './workspace-tree';
+    import WorkspaceFileTree from './WorkspaceFileTree.svelte';
 
     let {
         nodes,

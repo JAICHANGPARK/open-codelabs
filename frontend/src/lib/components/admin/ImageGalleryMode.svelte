@@ -24,14 +24,14 @@
 
     // Filter only image submissions
     let imageSubmissions = $derived(
-        submissions.filter((sub) =>
+        submissions.filter((sub: SubmissionWithAttendee) =>
             isImage(sub.file_name, sub.submission_type),
         ),
     );
 
     let filteredImages = $derived(
         imageSubmissions.filter(
-            (s) =>
+            (s: SubmissionWithAttendee) =>
                 s.attendee_name
                     .toLowerCase()
                     .includes(searchTerm.toLowerCase()) ||
@@ -393,7 +393,8 @@
                     </div>
                     <div class="flex items-center gap-2 shrink-0">
                         <button
-                            onclick={() => downloadImage(selectedImage)}
+                            onclick={() =>
+                                selectedImage && downloadImage(selectedImage)}
                             class="p-3 bg-white/20 hover:bg-white/30 rounded-full transition-all"
                             title={$t("common.download")}
                         >
