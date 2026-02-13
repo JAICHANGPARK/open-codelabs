@@ -549,7 +549,13 @@
         "stale_section": "Comments from previous version",
         "stale_hint": "These comments are read-only. Reply is disabled, but deletion is allowed.",
         "stale_reply_blocked": "This thread is stale and cannot be replied to.",
-        "overlap_error": "Overlapping highlight exists. Click existing highlight to reply."
+        "overlap_error": "Overlapping highlight exists. Click existing highlight to reply.",
+        "admin_stale_modal_title": "Inline comments will move to previous-version section",
+        "admin_stale_modal_desc": "Saving these edits changes the content hash. Matching inline comment threads will be marked stale (read/delete only, no reply).",
+        "admin_stale_summary": "{threads} thread(s), {messages} message(s) affected",
+        "admin_stale_threads": "threads",
+        "admin_stale_messages": "messages",
+        "admin_stale_continue": "Save anyway"
     },
     "live": {
         "status_title": "Live Status",

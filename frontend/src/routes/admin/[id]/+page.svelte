@@ -13,6 +13,7 @@
         resolveHelpRequest,
         getWsUrl,
         getChatHistory,
+        getInlineComments,
         ASSET_URL,
         uploadImage,
         getFeedback,
@@ -114,6 +115,14 @@
     let saveSuccess = $state(false);
     let loading = $state(true);
     let copySuccess = $state(false);
+    let savedStepContentById = $state<Record<string, string>>({});
+    let savedGuideMarkdown = $state("");
+    let showInlineStaleWarningModal = $state(false);
+    let inlineStaleImpactItems = $state<
+        { label: string; thread_count: number; message_count: number }[]
+    >([]);
+    let inlineStaleImpactThreads = $state(0);
+    let inlineStaleImpactMessages = $state(0);
 
     let attendees = $state<Attendee[]>([]);
     let helpRequests = $state<HelpRequest[]>([]);
@@ -216,6 +225,149 @@
         setTimeout(() => (isScrollingPreview = false), 50);
     }
 
+    function hashText(content: string): string {
+        let hash = 2166136261;
+        for (let i = 0; i < content.length; i++) {
+            hash ^= content.charCodeAt(i);
+            hash = Math.imul(hash, 16777619);
+        }
+        return (hash >>> 0).toString(16);
+    }
+
+    function captureSavedContentSnapshot() {
+        const nextMap: Record<string, string> = {};
+        for (const step of steps) {
+            if (!step.id) continue;
+            nextMap[step.id] = step.content_markdown || "";
+        }
+        savedStepContentById = nextMap;
+        savedGuideMarkdown = codelab?.guide_markdown || "";
+    }
+
+    function closeInlineStaleWarningModal() {
+        showInlineStaleWarningModal = false;
+        inlineStaleImpactItems = [];
+        inlineStaleImpactThreads = 0;
+        inlineStaleImpactMessages = 0;
+    }
+
+    async function collectInlineStaleImpact() {
+        if (!codelab) {
+            return {
+                items: [] as {
+                    label: string;
+                    thread_count: number;
+                    message_count: number;
+                }[],
+                total_threads: 0,
+                total_messages: 0,
+            };
+        }
+
+        const changedSteps = steps.filter((step) => {
+            const previous = savedStepContentById[step.id] ?? "";
+            const current = step.content_markdown || "";
+            return previous !== current;
+        });
+        const guideChanged =
+            (savedGuideMarkdown || "") !== (codelab.guide_markdown || "");
+
+        if (changedSteps.length === 0 && !guideChanged) {
+            return {
+                items: [] as {
+                    label: string;
+                    thread_count: number;
+                    message_count: number;
+                }[],
+                total_threads: 0,
+                total_messages: 0,
+            };
+        }
+
+        let threads = [] as Awaited<ReturnType<typeof getInlineComments>>;
+        try {
+            threads = await getInlineComments(id);
+        } catch (e) {
+            console.error("Failed to load inline comments before save:", e);
+            return {
+                items: [] as {
+                    label: string;
+                    thread_count: number;
+                    message_count: number;
+                }[],
+                total_threads: 0,
+                total_messages: 0,
+            };
+        }
+
+        const items: {
+            label: string;
+            thread_count: number;
+            message_count: number;
+        }[] = [];
+        let totalThreads = 0;
+        let totalMessages = 0;
+
+        for (const step of changedSteps) {
+            const previousHash = hashText(savedStepContentById[step.id] ?? "");
+            const nextHash = hashText(step.content_markdown || "");
+            if (previousHash === nextHash) continue;
+
+            const affected = threads.filter(
+                (thread) =>
+                    thread.target_type === "step" &&
+                    thread.target_step_id === step.id &&
+                    thread.content_hash === previousHash &&
+                    thread.content_hash !== nextHash,
+            );
+            if (affected.length === 0) continue;
+
+            const messageCount = affected.reduce(
+                (sum, thread) => sum + thread.messages.length,
+                0,
+            );
+            items.push({
+                label: `Step ${step.step_number}: ${step.title}`,
+                thread_count: affected.length,
+                message_count: messageCount,
+            });
+            totalThreads += affected.length;
+            totalMessages += messageCount;
+        }
+
+        if (guideChanged) {
+            const previousHash = hashText(savedGuideMarkdown || "");
+            const nextHash = hashText(codelab.guide_markdown || "");
+            if (previousHash !== nextHash) {
+                const affected = threads.filter(
+                    (thread) =>
+                        thread.target_type === "guide" &&
+                        thread.content_hash === previousHash &&
+                        thread.content_hash !== nextHash,
+                );
+                if (affected.length > 0) {
+                    const messageCount = affected.reduce(
+                        (sum, thread) => sum + thread.messages.length,
+                        0,
+                    );
+                    items.push({
+                        label: $t("editor.guide_tab") || "Guide",
+                        thread_count: affected.length,
+                        message_count: messageCount,
+                    });
+                    totalThreads += affected.length;
+                    totalMessages += messageCount;
+                }
+            }
+        }
+
+        return {
+            items,
+            total_threads: totalThreads,
+            total_messages: totalMessages,
+        };
+    }
+
     // Sync mode to URL and load data
     $effect(() => {
         if (!browser) return;
@@ -290,6 +442,7 @@
             const data = await getCodelab(id);
             codelab = data[0];
             steps = data[1];
+            captureSavedContentSnapshot();
 
             // Initial fetch of live data
             await refreshLiveData();
@@ -1076,27 +1229,7 @@
     }
 
     async function saveGuideMarkdown() {
-        if (!codelab || isSaving) return;
-        isSaving = true;
-        try {
-            await updateCodelab(id, {
-                title: codelab.title,
-                description: codelab.description,
-                author: codelab.author,
-                is_public: codelab.is_public,
-                require_quiz: codelab.require_quiz,
-                require_feedback: codelab.require_feedback,
-                guide_markdown: codelab.guide_markdown,
-            });
-            saveSuccess = true;
-            setTimeout(() => (saveSuccess = false), 3000);
-        } catch (e) {
-            console.error("Guide auto-save failed:", e);
-            const errorMessage = (e as any)?.message || String(e);
-            alert($t("editor.save_failed") + ": " + errorMessage);
-        } finally {
-            isSaving = false;
-        }
+        await handleSave();
     }
 
     async function generateGuideWithAiPro() {
@@ -1736,9 +1869,26 @@
         }
     }
 
+    function createStepId() {
+        if (
+            typeof crypto !== "undefined" &&
+            typeof crypto.randomUUID === "function"
+        ) {
+            return crypto.randomUUID();
+        }
+        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+            /[xy]/g,
+            (char) => {
+                const random = Math.floor(Math.random() * 16);
+                const value = char === "x" ? random : (random & 0x3) | 0x8;
+                return value.toString(16);
+            },
+        );
+    }
+
     function addStep() {
         const newStep: Step = {
-            id: "",
+            id: createStepId(),
             codelab_id: id,
             step_number: steps.length + 1,
             title: $t("editor.untitled_step"),
@@ -1825,14 +1975,27 @@
         }
     }
 
-    async function handleSave() {
+    async function handleSave(skipStaleWarning = false) {
         if (isSaving || !codelab) return;
+
+        if (!skipStaleWarning) {
+            const impact = await collectInlineStaleImpact();
+            if (impact.total_threads > 0) {
+                inlineStaleImpactItems = impact.items;
+                inlineStaleImpactThreads = impact.total_threads;
+                inlineStaleImpactMessages = impact.total_messages;
+                showInlineStaleWarningModal = true;
+                return;
+            }
+        }
+
         isSaving = true;
         try {
             await Promise.all([
                 saveSteps(
                     id,
                     steps.map((s) => ({
+                        id: s.id,
                         title: s.title,
                         content_markdown: s.content_markdown,
                     })),
@@ -1847,6 +2010,14 @@
                     guide_markdown: codelab.guide_markdown,
                 }),
             ]);
+            const latest = await getCodelab(id);
+            codelab = latest[0];
+            steps = latest[1];
+            if (activeStepIndex >= steps.length) {
+                activeStepIndex = Math.max(0, steps.length - 1);
+            }
+            captureSavedContentSnapshot();
+            closeInlineStaleWarningModal();
             saveSuccess = true;
             setTimeout(() => (saveSuccess = false), 3000);
         } catch (e) {
@@ -1854,6 +2025,10 @@
         } finally {
             isSaving = false;
         }
+    }
+
+    async function handleConfirmInlineStaleSave() {
+        await handleSave(true);
     }
 
     async function toggleVisibility() {
@@ -2614,6 +2789,87 @@
                 codelabId={id}
                 onClose={() => (showWorkspaceBrowser = false)}
             />
+        </div>
+    </div>
+{/if}
+
+{#if showInlineStaleWarningModal}
+    <div
+        class="modal-overlay"
+        onclick={closeInlineStaleWarningModal}
+        onkeydown={(e) =>
+            e.key === "Escape" && closeInlineStaleWarningModal()}
+        role="button"
+        tabindex="-1"
+    >
+        <div
+            class="w-[min(680px,calc(100vw-24px))] rounded-2xl border border-border dark:border-dark-border bg-white dark:bg-dark-surface shadow-2xl p-6"
+            onclick={(e) => e.stopPropagation()}
+            onkeydown={(e) => e.stopPropagation()}
+            role="button"
+            tabindex="-1"
+        >
+            <h3 class="text-lg font-bold text-foreground dark:text-dark-text">
+                {$t("inline_comment.admin_stale_modal_title") ||
+                    "Inline comments will move to previous-version section"}
+            </h3>
+            <p
+                class="mt-2 text-sm text-muted-foreground dark:text-dark-text-muted"
+            >
+                {$t("inline_comment.admin_stale_modal_desc") ||
+                    "Saving these edits changes the content hash. Matching inline comment threads will be marked stale (read/delete only, no reply)."}
+            </p>
+            <p class="mt-3 text-sm font-semibold text-foreground dark:text-dark-text">
+                {$t("inline_comment.admin_stale_summary", {
+                    values: {
+                        threads: inlineStaleImpactThreads,
+                        messages: inlineStaleImpactMessages,
+                    },
+                }) ||
+                    `${inlineStaleImpactThreads} thread(s), ${inlineStaleImpactMessages} message(s) affected`}
+            </p>
+
+            <div class="mt-4 max-h-56 overflow-y-auto space-y-2">
+                {#each inlineStaleImpactItems as item}
+                    <div
+                        class="rounded-lg border border-border dark:border-dark-border bg-accent/50 dark:bg-white/5 px-3 py-2 text-sm"
+                    >
+                        <p class="font-semibold text-foreground dark:text-dark-text">
+                            {item.label}
+                        </p>
+                        <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
+                            {item.thread_count} {$t(
+                                "inline_comment.admin_stale_threads",
+                            ) || "threads"}
+                            ·
+                            {item.message_count} {$t(
+                                "inline_comment.admin_stale_messages",
+                            ) || "messages"}
+                        </p>
+                    </div>
+                {/each}
+            </div>
+
+            <div class="mt-6 flex justify-end gap-2">
+                <button
+                    type="button"
+                    class="px-4 py-2 rounded-lg border border-border dark:border-dark-border text-sm font-semibold"
+                    onclick={closeInlineStaleWarningModal}
+                >
+                    {$t("common.cancel")}
+                </button>
+                <button
+                    type="button"
+                    class="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+                    onclick={handleConfirmInlineStaleSave}
+                    disabled={isSaving}
+                >
+                    {isSaving
+                        ? $t("common.loading")
+                        : $t("inline_comment.admin_stale_continue") ||
+                          "Save anyway"}
+                </button>
+            </div>
         </div>
     </div>
 {/if}

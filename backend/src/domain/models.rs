@@ -92,6 +92,7 @@ pub struct UpdateStepsPayload {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateStep {
+    pub id: Option<String>,
     pub title: String,
     pub content_markdown: String,
 }

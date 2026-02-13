@@ -94,7 +94,10 @@ export async function updateCodelab(id: string, payload: { title: string; descri
     return res.json();
 }
 
-export async function saveSteps(codelabId: string, steps: { title: string, content_markdown: string }[]): Promise<void> {
+export async function saveSteps(
+    codelabId: string,
+    steps: { id?: string; title: string; content_markdown: string }[],
+): Promise<void> {
     const res = await apiFetch(`/codelabs/${codelabId}/steps`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },

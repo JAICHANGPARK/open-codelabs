@@ -164,7 +164,10 @@ export async function updateCodelab(id: string, payload: { title: string; descri
     } as Codelab;
 }
 
-export async function saveSteps(codelabId: string, steps: { title: string, content_markdown: string }[]): Promise<void> {
+export async function saveSteps(
+    codelabId: string,
+    steps: { id?: string; title: string; content_markdown: string }[],
+): Promise<void> {
     const stepsCollection = collection(db, `${CODELABS_COLLECTION}/${codelabId}/steps`);
 
     // Delete existing steps first (simple approach)
@@ -173,13 +176,20 @@ export async function saveSteps(codelabId: string, steps: { title: string, conte
         await deleteDoc(d.ref);
     }
 
-    // Add new steps
+    // Add new steps (preserve existing IDs when provided)
     for (let i = 0; i < steps.length; i++) {
-        await addDoc(stepsCollection, {
-            ...steps[i],
+        const step = steps[i];
+        const payload = {
+            ...step,
             step_number: i + 1,
-            codelab_id: codelabId
-        });
+            codelab_id: codelabId,
+        };
+        const stepId = step.id?.trim();
+        if (stepId) {
+            await setDoc(doc(stepsCollection, stepId), payload);
+        } else {
+            await addDoc(stepsCollection, payload);
+        }
     }
 }
 

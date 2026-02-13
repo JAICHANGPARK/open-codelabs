@@ -273,7 +273,7 @@ export async function updateCodelab(
 
 export async function saveSteps(
     codelabId: string,
-    steps: { title: string; content_markdown: string }[],
+    steps: { id?: string; title: string; content_markdown: string }[],
 ): Promise<void> {
     const client = requireClient();
     const { error: deleteError } = await client
@@ -282,12 +282,19 @@ export async function saveSteps(
         .eq("codelab_id", codelabId);
     if (deleteError) throw deleteError;
 
-    const payload = steps.map((step, index) => ({
-        codelab_id: codelabId,
-        step_number: index + 1,
-        title: step.title,
-        content_markdown: step.content_markdown,
-    }));
+    const payload = steps.map((step, index) => {
+        const row: Record<string, unknown> = {
+            codelab_id: codelabId,
+            step_number: index + 1,
+            title: step.title,
+            content_markdown: step.content_markdown,
+        };
+        const stepId = step.id?.trim();
+        if (stepId) {
+            row.id = stepId;
+        }
+        return row;
+    });
 
     if (payload.length === 0) return;
     const { error } = await client.from("steps").insert(payload);

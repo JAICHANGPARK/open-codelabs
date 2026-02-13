@@ -281,7 +281,13 @@ pub async fn update_codelab_steps(
 
     // Insert new steps
     for (i, step) in payload.steps.into_iter().enumerate() {
-        let step_id = uuid::Uuid::new_v4().to_string();
+        let step_id = step
+            .id
+            .as_deref()
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .map(|value| value.to_string())
+            .unwrap_or_else(|| uuid::Uuid::new_v4().to_string());
         sqlx::query(
             &state.q("INSERT INTO steps (id, codelab_id, step_number, title, content_markdown) VALUES (?, ?, ?, ?, ?)"),
         )

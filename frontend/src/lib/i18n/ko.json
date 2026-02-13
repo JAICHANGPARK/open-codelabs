@@ -549,7 +549,13 @@
         "stale_section": "이전 버전 코멘트",
         "stale_hint": "이 코멘트는 읽기/삭제만 가능합니다. 답글은 비활성화됩니다.",
         "stale_reply_blocked": "이 스레드는 이전 버전 기준이라 답글을 남길 수 없습니다.",
-        "overlap_error": "겹치는 하이라이트가 이미 있습니다. 기존 하이라이트를 클릭해 답글을 남기세요."
+        "overlap_error": "겹치는 하이라이트가 이미 있습니다. 기존 하이라이트를 클릭해 답글을 남기세요.",
+        "admin_stale_modal_title": "저장하면 일부 인라인 코멘트가 이전 버전으로 이동됩니다",
+        "admin_stale_modal_desc": "지금 저장하면 본문 해시가 변경되어, 일치하는 인라인 코멘트 스레드가 stale 처리됩니다(읽기/삭제만 가능, 답글 불가).",
+        "admin_stale_summary": "영향 스레드 {threads}개, 메시지 {messages}개",
+        "admin_stale_threads": "스레드",
+        "admin_stale_messages": "메시지",
+        "admin_stale_continue": "그래도 저장"
     },
     "live": {
         "status_title": "실시간 현황",
