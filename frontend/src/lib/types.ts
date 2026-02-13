@@ -64,6 +64,45 @@ export interface ChatMessage {
     created_at?: string;
 }
 
+export type InlineCommentTarget = "step" | "guide";
+
+export interface InlineCommentMessage {
+    id: string;
+    thread_id: string;
+    codelab_id: string;
+    author_role: "admin" | "attendee";
+    author_id: string;
+    author_name: string;
+    message: string;
+    created_at?: string;
+}
+
+export interface InlineCommentThread {
+    id: string;
+    codelab_id: string;
+    anchor_key: string;
+    target_type: InlineCommentTarget;
+    target_step_id?: string | null;
+    start_offset: number;
+    end_offset: number;
+    selected_text: string;
+    content_hash: string;
+    created_by_attendee_id: string;
+    created_at?: string;
+    messages: InlineCommentMessage[];
+}
+
+export interface CreateInlineCommentPayload {
+    anchor_key: string;
+    target_type: InlineCommentTarget;
+    target_step_id?: string | null;
+    start_offset: number;
+    end_offset: number;
+    selected_text: string;
+    content_hash: string;
+    message: string;
+}
+
 export interface Feedback {
     id: string;
     codelab_id: string;

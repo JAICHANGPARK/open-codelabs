@@ -1,6 +1,6 @@
 use crate::domain::models::{
     AiConversation, AiMessage, AiThread, Attendee, ChatMessageRow, Codelab, Feedback, HelpRequest,
-    Material, Quiz, QuizSubmission, Step, Submission,
+    InlineCommentMessage, InlineCommentThread, Material, Quiz, QuizSubmission, Step, Submission,
 };
 use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::infrastructure::db_models::AuditLog;
@@ -48,6 +48,10 @@ struct BackupData {
     ai_conversations: Vec<AiConversation>,
     ai_threads: Vec<AiThread>,
     ai_messages: Vec<AiMessage>,
+    #[serde(default)]
+    inline_comment_threads: Vec<InlineCommentThread>,
+    #[serde(default)]
+    inline_comment_messages: Vec<InlineCommentMessage>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -76,6 +80,8 @@ pub struct BackupSummary {
     ai_conversations: usize,
     ai_threads: usize,
     ai_messages: usize,
+    inline_comment_threads: usize,
+    inline_comment_messages: usize,
     uploads_files: usize,
     workspaces_files: usize,
 }
@@ -265,6 +271,18 @@ pub async fn export_backup(
         .fetch_all(&state.pool)
         .await
         .map_err(internal_error)?;
+    let inline_comment_threads = sqlx::query_as::<_, InlineCommentThread>(&state.q(
+        "SELECT id, codelab_id, anchor_key, target_type, target_step_id, start_offset, end_offset, selected_text, content_hash, created_by_attendee_id, CAST(created_at AS TEXT) AS created_at FROM inline_comment_threads",
+    ))
+    .fetch_all(&state.pool)
+    .await
+    .map_err(internal_error)?;
+    let inline_comment_messages = sqlx::query_as::<_, InlineCommentMessage>(&state.q(
+        "SELECT id, thread_id, codelab_id, author_role, author_id, author_name, message, CAST(created_at AS TEXT) AS created_at FROM inline_comment_messages",
+    ))
+    .fetch_all(&state.pool)
+    .await
+    .map_err(internal_error)?;
 
     let payload = BackupPayload {
         version: 1,
@@ -285,6 +303,8 @@ pub async fn export_backup(
             ai_conversations,
             ai_threads,
             ai_messages,
+            inline_comment_threads,
+            inline_comment_messages,
         },
     };
 
@@ -431,6 +451,14 @@ pub async fn restore_backup(
         .execute(&mut *tx)
         .await
         .map_err(internal_error)?;
+    sqlx::query(&state.q("DELETE FROM inline_comment_messages"))
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
+    sqlx::query(&state.q("DELETE FROM inline_comment_threads"))
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
     sqlx::query(&state.q("DELETE FROM help_requests"))
         .execute(&mut *tx)
         .await
@@ -523,6 +551,39 @@ pub async fn restore_backup(
             .bind(&row.message)
             .bind(&row.msg_type)
             .bind(&row.target_id)
+            .bind(&row.created_at)
+            .execute(&mut *tx)
+            .await
+            .map_err(internal_error)?;
+    }
+
+    for row in &payload.data.inline_comment_threads {
+        sqlx::query(&state.q("INSERT INTO inline_comment_threads (id, codelab_id, anchor_key, target_type, target_step_id, start_offset, end_offset, selected_text, content_hash, created_by_attendee_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"))
+            .bind(&row.id)
+            .bind(&row.codelab_id)
+            .bind(&row.anchor_key)
+            .bind(&row.target_type)
+            .bind(&row.target_step_id)
+            .bind(row.start_offset)
+            .bind(row.end_offset)
+            .bind(&row.selected_text)
+            .bind(&row.content_hash)
+            .bind(&row.created_by_attendee_id)
+            .bind(&row.created_at)
+            .execute(&mut *tx)
+            .await
+            .map_err(internal_error)?;
+    }
+
+    for row in &payload.data.inline_comment_messages {
+        sqlx::query(&state.q("INSERT INTO inline_comment_messages (id, thread_id, codelab_id, author_role, author_id, author_name, message, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"))
+            .bind(&row.id)
+            .bind(&row.thread_id)
+            .bind(&row.codelab_id)
+            .bind(&row.author_role)
+            .bind(&row.author_id)
+            .bind(&row.author_name)
+            .bind(&row.message)
             .bind(&row.created_at)
             .execute(&mut *tx)
             .await
@@ -788,6 +849,8 @@ pub async fn inspect_backup(
         ai_conversations: payload.data.ai_conversations.len(),
         ai_threads: payload.data.ai_threads.len(),
         ai_messages: payload.data.ai_messages.len(),
+        inline_comment_threads: payload.data.inline_comment_threads.len(),
+        inline_comment_messages: payload.data.inline_comment_messages.len(),
         uploads_files,
         workspaces_files,
     };

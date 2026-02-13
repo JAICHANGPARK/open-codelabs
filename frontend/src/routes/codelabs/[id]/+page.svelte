@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import { fade, slide, fly } from "svelte/transition";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
@@ -24,11 +24,17 @@
         uploadImage,
         submitSubmissionLink,
         getAttendees,
+        getInlineComments,
+        createInlineComment,
+        replyInlineComment,
+        deleteInlineComment,
         type Codelab,
         type Step,
         type Attendee,
         type ChatMessage,
         type Material,
+        type InlineCommentThread,
+        type CreateInlineCommentPayload,
     } from "$lib/api";
     import { loadProgress, saveProgress } from "$lib/Progress";
     import { attendeeMarked as marked } from "$lib/markdown";
@@ -94,6 +100,7 @@
     let materials = $state<Material[]>([]);
 
     let attendee = $state<Attendee | null>(null);
+    let hasAdminSession = $state(false);
 
     // Submission State
     let mySubmissions = $state<any[]>([]);
@@ -245,6 +252,26 @@
     let showGeminiModal = $state(false);
     let selectedContext = $state("");
     let geminiButtonPos = $state({ x: 0, y: 0 });
+    let showInlineCommentComposer = $state(false);
+    let inlineCommentDraft = $state("");
+    let inlineCommentError = $state("");
+    let inlineCommentLoading = $state(false);
+    let inlineThreads = $state<InlineCommentThread[]>([]);
+    let activeInlineThreadId = $state<string | null>(null);
+    let inlineReplyDraft = $state("");
+    let inlineReplyLoading = $state(false);
+    let inlineReplyError = $state("");
+    let showInlineThreadPopover = $state(false);
+    let inlineThreadPopoverPos = $state({ top: 0, left: 0 });
+    let stepMarkdownRef = $state<HTMLDivElement | null>(null);
+    let guideMarkdownRef = $state<HTMLDivElement | null>(null);
+    let inlineSelection = $state<
+        | ({
+              top: number;
+              left: number;
+          } & CreateInlineCommentPayload)
+        | null
+    >(null);
 
     // TTS State
     const tts = createTtsPlayer();
@@ -400,6 +427,332 @@
         return date.toLocaleString($locale || "en");
     }
 
+    function hashText(content: string): string {
+        let hash = 2166136261;
+        for (let i = 0; i < content.length; i++) {
+            hash ^= content.charCodeAt(i);
+            hash = Math.imul(hash, 16777619);
+        }
+        return (hash >>> 0).toString(16);
+    }
+
+    function buildInlineAnchorKey(
+        targetType: "step" | "guide",
+        targetStepId: string | null,
+        contentHash: string,
+        startOffset: number,
+        endOffset: number,
+    ): string {
+        return [
+            targetType,
+            targetStepId || "guide",
+            contentHash,
+            startOffset.toString(),
+            endOffset.toString(),
+        ].join("|");
+    }
+
+    function getCurrentContentHash(
+        targetType: "step" | "guide",
+        targetStepId: string | null,
+    ): string {
+        if (targetType === "guide") {
+            return hashText(codelab?.guide_markdown || "");
+        }
+        if (!currentStep || currentStep.id !== targetStepId) {
+            return "";
+        }
+        return hashText(currentStep.content_markdown || "");
+    }
+
+    function isThreadForCurrentView(thread: InlineCommentThread): boolean {
+        if (thread.target_type === "guide") {
+            return !!showGuide && !!codelab?.guide_markdown;
+        }
+        return !!currentStep && thread.target_step_id === currentStep.id;
+    }
+
+    function isInlineThreadStale(thread: InlineCommentThread): boolean {
+        const currentHash = getCurrentContentHash(
+            thread.target_type,
+            thread.target_step_id || null,
+        );
+        if (!currentHash) return true;
+        return currentHash !== thread.content_hash;
+    }
+
+    function canDeleteInlineMessage(message: {
+        author_id: string;
+        author_role: string;
+    }) {
+        if (!attendee) return false;
+        if (message.author_id === attendee.id) return true;
+        if (isServerlessMode()) return false;
+        return hasAdminSession;
+    }
+
+    async function refreshInlineComments() {
+        try {
+            inlineThreads = await getInlineComments(id);
+        } catch (e) {
+            console.error("Failed to load inline comments:", e);
+        }
+    }
+
+    function getOffsetsFromRange(root: HTMLElement, range: Range) {
+        try {
+            const startRange = document.createRange();
+            startRange.selectNodeContents(root);
+            startRange.setEnd(range.startContainer, range.startOffset);
+            const endRange = document.createRange();
+            endRange.selectNodeContents(root);
+            endRange.setEnd(range.endContainer, range.endOffset);
+            return {
+                start: startRange.toString().length,
+                end: endRange.toString().length,
+            };
+        } catch {
+            return null;
+        }
+    }
+
+    function getTextPosition(
+        root: HTMLElement,
+        targetOffset: number,
+    ): { node: Text; offset: number } | null {
+        const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+        let currentOffset = 0;
+        let node = walker.nextNode() as Text | null;
+        let lastText: Text | null = null;
+        while (node) {
+            lastText = node;
+            const len = node.nodeValue?.length || 0;
+            if (targetOffset <= currentOffset + len) {
+                return {
+                    node,
+                    offset: Math.max(0, targetOffset - currentOffset),
+                };
+            }
+            currentOffset += len;
+            node = walker.nextNode() as Text | null;
+        }
+
+        if (lastText) {
+            return {
+                node: lastText,
+                offset: lastText.nodeValue?.length || 0,
+            };
+        }
+        return null;
+    }
+
+    function getRangeFromOffsets(
+        root: HTMLElement,
+        startOffset: number,
+        endOffset: number,
+    ): Range | null {
+        const startPos = getTextPosition(root, startOffset);
+        const endPos = getTextPosition(root, endOffset);
+        if (!startPos || !endPos) return null;
+
+        const range = document.createRange();
+        range.setStart(startPos.node, startPos.offset);
+        range.setEnd(endPos.node, endPos.offset);
+        return range;
+    }
+
+    function clearInlineHighlights(root: HTMLElement) {
+        const highlights = root.querySelectorAll(".inline-comment-highlight");
+        highlights.forEach((el) => {
+            const parent = el.parentNode;
+            if (!parent) return;
+            while (el.firstChild) {
+                parent.insertBefore(el.firstChild, el);
+            }
+            parent.removeChild(el);
+            parent.normalize();
+        });
+    }
+
+    function applyInlineHighlightsToRoot(
+        root: HTMLElement | null,
+        threads: InlineCommentThread[],
+    ) {
+        if (!root) return;
+        clearInlineHighlights(root);
+        if (!threads.length) return;
+
+        const sorted = [...threads].sort(
+            (a, b) => a.start_offset - b.start_offset,
+        );
+
+        for (const thread of sorted) {
+            const range = getRangeFromOffsets(
+                root,
+                thread.start_offset,
+                thread.end_offset,
+            );
+            if (!range || range.collapsed) continue;
+
+            const wrapper = document.createElement("span");
+            wrapper.className = `inline-comment-highlight${thread.id === activeInlineThreadId ? " inline-comment-highlight--active" : ""}`;
+            wrapper.dataset.threadId = thread.id;
+            wrapper.title = "Inline comment";
+            wrapper.addEventListener("click", (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                activeInlineThreadId = thread.id;
+                inlineReplyError = "";
+                showGeminiButton = false;
+                showInlineCommentComposer = false;
+                const target = event.currentTarget as HTMLElement;
+                const rect = target.getBoundingClientRect();
+                inlineThreadPopoverPos = {
+                    top: Math.max(
+                        12,
+                        Math.min(rect.bottom + 8, window.innerHeight - 360),
+                    ),
+                    left: Math.max(
+                        12,
+                        Math.min(rect.left, window.innerWidth - 390),
+                    ),
+                };
+                showInlineThreadPopover = true;
+            });
+
+            const extracted = range.extractContents();
+            wrapper.appendChild(extracted);
+            range.insertNode(wrapper);
+        }
+    }
+
+    async function applyInlineHighlights() {
+        if (!browser) return;
+        await tick();
+        await new Promise<void>((resolve) => {
+            requestAnimationFrame(() => resolve());
+        });
+        const stepThreads = inlineThreads.filter(
+            (thread) =>
+                thread.target_type === "step" &&
+                !!currentStep &&
+                thread.target_step_id === currentStep.id &&
+                !isInlineThreadStale(thread),
+        );
+        const guideThreads = inlineThreads.filter(
+            (thread) =>
+                thread.target_type === "guide" &&
+                !!showGuide &&
+                !isInlineThreadStale(thread),
+        );
+
+        applyInlineHighlightsToRoot(stepMarkdownRef, stepThreads);
+        applyInlineHighlightsToRoot(guideMarkdownRef, guideThreads);
+    }
+
+    function closeInlineCommentComposer() {
+        showInlineCommentComposer = false;
+        inlineCommentDraft = "";
+        inlineCommentError = "";
+    }
+
+    async function submitInlineComment() {
+        if (!inlineSelection) return;
+        const message = inlineCommentDraft.trim();
+        if (!message) return;
+
+        inlineCommentLoading = true;
+        inlineCommentError = "";
+        try {
+            const thread = await createInlineComment(id, {
+                anchor_key: inlineSelection.anchor_key,
+                target_type: inlineSelection.target_type,
+                target_step_id: inlineSelection.target_step_id || null,
+                start_offset: inlineSelection.start_offset,
+                end_offset: inlineSelection.end_offset,
+                selected_text: inlineSelection.selected_text,
+                content_hash: inlineSelection.content_hash,
+                message,
+            });
+            await refreshInlineComments();
+            activeInlineThreadId = thread.id;
+            window.getSelection()?.removeAllRanges();
+            showGeminiButton = false;
+            closeInlineCommentComposer();
+            inlineSelection = null;
+        } catch (e: any) {
+            const msg = e?.message || "";
+            if (
+                msg.includes("OVERLAPPING_HIGHLIGHT") ||
+                msg.toLowerCase().includes("overlapping highlight")
+            ) {
+                inlineCommentError =
+                    $t("inline_comment.overlap_error") ||
+                    "Overlapping highlight exists. Click existing highlight to reply.";
+            } else {
+                inlineCommentError =
+                    $t("inline_comment.create_failed") ||
+                    "Failed to create inline comment.";
+            }
+        } finally {
+            inlineCommentLoading = false;
+        }
+    }
+
+    async function submitInlineReply() {
+        if (!activeInlineThread) return;
+        const message = inlineReplyDraft.trim();
+        if (!message) return;
+
+        const currentHash = getCurrentContentHash(
+            activeInlineThread.target_type,
+            activeInlineThread.target_step_id || null,
+        );
+        if (!currentHash || currentHash !== activeInlineThread.content_hash) {
+            inlineReplyError =
+                $t("inline_comment.stale_reply_blocked") ||
+                "This thread is stale and cannot be replied to.";
+            return;
+        }
+
+        inlineReplyLoading = true;
+        inlineReplyError = "";
+        try {
+            await replyInlineComment(id, activeInlineThread.id, {
+                message,
+                content_hash: currentHash,
+            });
+            inlineReplyDraft = "";
+            await refreshInlineComments();
+        } catch (e: any) {
+            const msg = e?.message || "";
+            inlineReplyError =
+                msg.includes("STALE_THREAD") ||
+                msg.toLowerCase().includes("stale")
+                    ? ($t("inline_comment.stale_reply_blocked") ||
+                      "This thread is stale and cannot be replied to.")
+                    : ($t("inline_comment.reply_failed") ||
+                      "Failed to reply to inline comment.");
+        } finally {
+            inlineReplyLoading = false;
+        }
+    }
+
+    async function handleInlineCommentDelete(threadId: string, commentId: string) {
+        try {
+            await deleteInlineComment(id, threadId, commentId);
+            await refreshInlineComments();
+            if (!inlineThreads.find((thread) => thread.id === threadId)) {
+                activeInlineThreadId = null;
+            }
+        } catch (e) {
+            alert(
+                $t("inline_comment.delete_failed") ||
+                    "Failed to delete inline comment.",
+            );
+        }
+    }
+
     let wsCleanup: any;
     onMount(async () => {
         // Check for registration
@@ -415,6 +768,7 @@
                 const sessionMatches =
                     session?.role === "attendee" && session.codelab_id === id;
                 const isAdminSession = session?.role === "admin";
+                hasAdminSession = !!isAdminSession;
                 if (!sessionMatches && !isAdminSession) {
                     localStorage.removeItem(`attendee_${id}`);
                     goto(`/codelabs/${id}/entry`);
@@ -425,6 +779,9 @@
                 goto(`/codelabs/${id}/entry`);
                 return;
             }
+        }
+        if (isServerlessMode()) {
+            hasAdminSession = false;
         }
 
         try {
@@ -483,7 +840,7 @@
                 console.log("My filtered submissions:", mySubmissions);
             }
 
-            await loadChatHistory();
+            await Promise.all([loadChatHistory(), refreshInlineComments()]);
             wsCleanup = initWebSocket();
             getAttendees(id).then((list) => {
                 allAttendees = list;
@@ -505,12 +862,13 @@
         };
     });
 
-    function handleSelection(e: MouseEvent) {
+    function handleSelection(_e: MouseEvent) {
         // Debounce or just wait a tick
         setTimeout(() => {
             const selection = window.getSelection();
             if (selection && selection.toString().trim().length > 0) {
                 // Check if selection is inside markdown-body
+                if (!selection.rangeCount) return;
                 const range = selection.getRangeAt(0);
                 const container = range.commonAncestorContainer;
                 const element =
@@ -518,9 +876,29 @@
                         ? (container as Element)
                         : container.parentElement;
 
-                if (element?.closest(".markdown-body")) {
+                const markdownRoot = element?.closest(".markdown-body") as
+                    | HTMLElement
+                    | null;
+                if (markdownRoot) {
+                    const targetType =
+                        markdownRoot.dataset.commentTarget === "guide"
+                            ? "guide"
+                            : "step";
+                    const targetStepId = markdownRoot.dataset.stepId || null;
+                    const offsets = getOffsetsFromRange(markdownRoot, range);
+                    if (!offsets || offsets.end <= offsets.start) {
+                        return;
+                    }
+                    const contentHash = getCurrentContentHash(
+                        targetType,
+                        targetType === "step" ? targetStepId : null,
+                    );
+                    if (!contentHash) {
+                        return;
+                    }
                     const rect = range.getBoundingClientRect();
-                    selectedContext = selection.toString();
+                    const selectedText = selection.toString().trim();
+                    selectedContext = selectedText;
                     geminiButtonPos = {
                         x: rect.right + 10, // Show to the right of selection
                         y: rect.top - 40, // Show slightly above
@@ -531,13 +909,37 @@
                     }
                     if (geminiButtonPos.y < 0) geminiButtonPos.y = 10;
 
+                    inlineSelection = {
+                        anchor_key: buildInlineAnchorKey(
+                            targetType,
+                            targetType === "step" ? targetStepId : null,
+                            contentHash,
+                            offsets.start,
+                            offsets.end,
+                        ),
+                        target_type: targetType,
+                        target_step_id:
+                            targetType === "step" ? targetStepId : null,
+                        start_offset: offsets.start,
+                        end_offset: offsets.end,
+                        selected_text: selectedText,
+                        content_hash: contentHash,
+                        message: "",
+                        top: geminiButtonPos.y + 44,
+                        left: Math.max(
+                            12,
+                            Math.min(geminiButtonPos.x, window.innerWidth - 380),
+                        ),
+                    };
                     showGeminiButton = true;
+                    showInlineThreadPopover = false;
                     return;
                 }
             }
             // If we click outside or empty selection, hide button
-            if (!showGeminiModal) {
+            if (!showGeminiModal && !showInlineCommentComposer) {
                 showGeminiButton = false;
+                inlineSelection = null;
             }
         }, 10);
     }
@@ -645,6 +1047,8 @@
                     ];
                     if (chatTab !== "direct") hasNewDm = true;
                     showChat = true;
+                } else if (data.type === "inline_comment_changed") {
+                    refreshInlineComments();
                 }
             });
 
@@ -746,6 +1150,8 @@
                     // Optional: Remove from list or mark offline
                 } else if (data.type === "help_resolved") {
                     helpSent = false;
+                } else if (data.type === "inline_comment_changed") {
+                    refreshInlineComments();
                 }
             } catch (e) {
                 console.error("WS Message error:", e);
@@ -1233,6 +1639,21 @@
     }
 
     let currentStep = $derived(steps[currentStepIndex]);
+    let currentViewInlineThreads = $derived.by(() =>
+        inlineThreads.filter((thread) => isThreadForCurrentView(thread)),
+    );
+    let staleInlineThreads = $derived.by(() =>
+        currentViewInlineThreads.filter((thread) => isInlineThreadStale(thread)),
+    );
+    let activeInlineThreads = $derived.by(() =>
+        currentViewInlineThreads.filter((thread) => !isInlineThreadStale(thread)),
+    );
+    let activeInlineThread = $derived.by(
+        () => inlineThreads.find((thread) => thread.id === activeInlineThreadId) || null,
+    );
+    let activeInlineThreadIsStale = $derived.by(() =>
+        activeInlineThread ? isInlineThreadStale(activeInlineThread) : false,
+    );
 
     let renderedContent = $derived.by(() => {
         if (!currentStep) return "";
@@ -1256,6 +1677,37 @@
         if (!stepId || stepId === lastStepId) return;
         showPlayground = playgrounds.length > 0;
         lastStepId = stepId;
+    });
+    $effect(() => {
+        if (!activeInlineThreadId) return;
+        const exists = inlineThreads.some((thread) => thread.id === activeInlineThreadId);
+        if (!exists) {
+            activeInlineThreadId = null;
+            showInlineThreadPopover = false;
+        }
+    });
+    $effect(() => {
+        if (!activeInlineThreadId) return;
+        const inCurrentView = currentViewInlineThreads.some(
+            (thread) => thread.id === activeInlineThreadId,
+        );
+        if (!inCurrentView) {
+            activeInlineThreadId = null;
+            showInlineThreadPopover = false;
+        }
+    });
+    $effect(() => {
+        if (!browser) return;
+        loading;
+        stepMarkdownRef;
+        guideMarkdownRef;
+        renderedContent;
+        codelab?.guide_markdown;
+        showGuide;
+        currentStep?.id;
+        inlineThreads.length;
+        activeInlineThreadId;
+        void applyInlineHighlights();
     });
     let progressPercent = $derived(
         steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0,
@@ -1752,7 +2204,11 @@
                             </button>
                         </div>
                         <div class="p-8 prose dark:prose-invert max-w-none">
-                            <div class="markdown-body">
+                            <div
+                                class="markdown-body"
+                                data-comment-target="guide"
+                                bind:this={guideMarkdownRef}
+                            >
                                 {#await marked.parse(codelab.guide_markdown) then parsed}
                                     {@html injectYoutubeEmbeds(
                                         DOMPurify.sanitize(parsed as string),
@@ -2331,7 +2787,12 @@
                                 {/if}
                             </button>
                         </h1>
-                        <div class="markdown-body">
+                        <div
+                            class="markdown-body"
+                            data-comment-target="step"
+                            data-step-id={currentStep.id}
+                            bind:this={stepMarkdownRef}
+                        >
                             {@html renderedContent}
                         </div>
                         {#if showPlayground}
@@ -2340,6 +2801,256 @@
                             />
                         {/if}
                     </div>
+                {/if}
+
+                {#if !loading && !isFinished && (currentStep || showGuide)}
+                    <section
+                        class="mt-8 border border-border dark:border-dark-border rounded-2xl bg-accent/30 dark:bg-dark-surface/70 p-5 sm:p-6 space-y-5"
+                    >
+                        <div
+                            class="flex items-center justify-between gap-3 flex-wrap"
+                        >
+                            <h3
+                                class="text-base font-bold text-foreground dark:text-dark-text"
+                            >
+                                {$t("inline_comment.panel_title") ||
+                                    "Inline comments"}
+                            </h3>
+                            <span
+                                class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted bg-white/80 dark:bg-white/5 border border-border dark:border-dark-border rounded-full px-3 py-1"
+                            >
+                                {activeInlineThreads.length} {$t(
+                                    "inline_comment.active_count",
+                                ) || "active"}
+                            </span>
+                        </div>
+
+                        {#if activeInlineThreads.length === 0}
+                            <p
+                                class="text-sm text-muted-foreground dark:text-dark-text-muted"
+                            >
+                                {$t("inline_comment.empty") ||
+                                    "No inline comments yet."}
+                            </p>
+                        {:else}
+                            <div class="grid lg:grid-cols-[260px_1fr] gap-4">
+                                <div
+                                    class="space-y-2 max-h-[340px] overflow-y-auto pr-1"
+                                >
+                                    {#each activeInlineThreads as thread}
+                                        <button
+                                            type="button"
+                                            onclick={() => {
+                                                activeInlineThreadId =
+                                                    thread.id;
+                                                inlineReplyError = "";
+                                            }}
+                                            class="w-full text-left rounded-xl border px-3 py-2.5 transition-colors {activeInlineThreadId ===
+                                            thread.id
+                                                ? 'border-primary bg-primary/10 dark:bg-primary/20'
+                                                : 'border-border dark:border-dark-border hover:bg-accent/80 dark:hover:bg-white/5'}"
+                                        >
+                                            <p
+                                                class="text-xs text-muted-foreground dark:text-dark-text-muted mb-1 line-clamp-2"
+                                            >
+                                                "{thread.selected_text}"
+                                            </p>
+                                            <p
+                                                class="text-sm font-semibold text-foreground dark:text-dark-text"
+                                            >
+                                                {thread.messages.length} {$t(
+                                                    "inline_comment.message_count",
+                                                ) || "messages"}
+                                            </p>
+                                        </button>
+                                    {/each}
+                                </div>
+
+                                <div
+                                    class="rounded-xl border border-border dark:border-dark-border bg-white/80 dark:bg-dark-bg/50 p-4"
+                                >
+                                    {#if activeInlineThread &&
+                                    !activeInlineThreadIsStale &&
+                                    isThreadForCurrentView(activeInlineThread)}
+                                        <p
+                                            class="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-dark-text-muted mb-2"
+                                        >
+                                            {$t("inline_comment.selected_text") ||
+                                                "Selected text"}
+                                        </p>
+                                        <blockquote
+                                            class="text-sm border-l-2 border-primary/50 pl-3 mb-4 text-foreground dark:text-dark-text"
+                                        >
+                                            {activeInlineThread.selected_text}
+                                        </blockquote>
+
+                                        <div class="space-y-3 mb-4">
+                                            {#each activeInlineThread.messages as message}
+                                                <div
+                                                    class="rounded-lg bg-accent/60 dark:bg-white/5 p-3 border border-border/70 dark:border-dark-border/70"
+                                                >
+                                                    <div
+                                                        class="flex items-center justify-between gap-2 mb-2"
+                                                    >
+                                                        <p
+                                                            class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
+                                                        >
+                                                            {message.author_name}
+                                                            ·
+                                                            {formatTimestamp(
+                                                                message.created_at,
+                                                            )}
+                                                        </p>
+                                                        {#if canDeleteInlineMessage(
+                                                            message,
+                                                        )}
+                                                            <button
+                                                                type="button"
+                                                                onclick={() =>
+                                                                    handleInlineCommentDelete(
+                                                                        activeInlineThread.id,
+                                                                        message.id,
+                                                                    )}
+                                                                class="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                                            >
+                                                                {$t(
+                                                                    "common.delete",
+                                                                )}
+                                                            </button>
+                                                        {/if}
+                                                    </div>
+                                                    <p
+                                                        class="text-sm whitespace-pre-wrap break-words"
+                                                    >
+                                                        {message.message}
+                                                    </p>
+                                                </div>
+                                            {/each}
+                                        </div>
+
+                                        <div class="space-y-2">
+                                            <textarea
+                                                bind:value={inlineReplyDraft}
+                                                class="w-full border border-border dark:border-dark-border rounded-lg bg-transparent p-3 text-sm focus:border-primary outline-none"
+                                                rows="3"
+                                                placeholder={$t(
+                                                    "inline_comment.reply_placeholder",
+                                                ) ||
+                                                    "Write a reply..."}
+                                            ></textarea>
+                                            {#if inlineReplyError}
+                                                <p
+                                                    class="text-xs text-red-600 dark:text-red-400"
+                                                >
+                                                    {inlineReplyError}
+                                                </p>
+                                            {/if}
+                                            <div class="flex justify-end">
+                                                <button
+                                                    type="button"
+                                                    onclick={submitInlineReply}
+                                                    disabled={inlineReplyLoading ||
+                                                        !inlineReplyDraft.trim()}
+                                                    class="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+                                                >
+                                                    {inlineReplyLoading
+                                                        ? $t("common.loading")
+                                                        : $t(
+                                                              "inline_comment.reply_button",
+                                                          ) || "Reply"}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {:else}
+                                        <p
+                                            class="text-sm text-muted-foreground dark:text-dark-text-muted"
+                                        >
+                                            {$t(
+                                                "inline_comment.select_thread_prompt",
+                                            ) ||
+                                                "Select a highlighted thread to view and reply."}
+                                        </p>
+                                    {/if}
+                                </div>
+                            </div>
+                        {/if}
+
+                        {#if staleInlineThreads.length > 0}
+                            <div
+                                class="pt-4 border-t border-border dark:border-dark-border"
+                            >
+                                <h4
+                                    class="text-sm font-bold text-foreground dark:text-dark-text mb-2"
+                                >
+                                    {$t("inline_comment.stale_section") ||
+                                        "Comments from previous version"}
+                                </h4>
+                                <p
+                                    class="text-xs text-muted-foreground dark:text-dark-text-muted mb-3"
+                                >
+                                    {$t("inline_comment.stale_hint") ||
+                                        "These comments are read-only. Reply is disabled, but deletion is allowed."}
+                                </p>
+                                <div class="space-y-2">
+                                    {#each staleInlineThreads as thread}
+                                        <details
+                                            class="rounded-lg border border-border dark:border-dark-border bg-white/80 dark:bg-dark-bg/40 p-3"
+                                        >
+                                            <summary
+                                                class="cursor-pointer text-sm font-semibold text-foreground dark:text-dark-text"
+                                            >
+                                                "{thread.selected_text}" ·
+                                                {thread.messages.length}
+                                            </summary>
+                                            <div class="mt-3 space-y-2">
+                                                {#each thread.messages as message}
+                                                    <div
+                                                        class="rounded-lg bg-accent/60 dark:bg-white/5 p-3 border border-border/70 dark:border-dark-border/70"
+                                                    >
+                                                        <div
+                                                            class="flex items-center justify-between gap-2 mb-2"
+                                                        >
+                                                            <p
+                                                                class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
+                                                            >
+                                                                {message.author_name}
+                                                                ·
+                                                                {formatTimestamp(
+                                                                    message.created_at,
+                                                                )}
+                                                            </p>
+                                                            {#if canDeleteInlineMessage(
+                                                                message,
+                                                            )}
+                                                                <button
+                                                                    type="button"
+                                                                    onclick={() =>
+                                                                        handleInlineCommentDelete(
+                                                                            thread.id,
+                                                                            message.id,
+                                                                        )}
+                                                                    class="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                                                >
+                                                                    {$t(
+                                                                        "common.delete",
+                                                                    )}
+                                                                </button>
+                                                            {/if}
+                                                        </div>
+                                                        <p
+                                                            class="text-sm whitespace-pre-wrap break-words"
+                                                        >
+                                                            {message.message}
+                                                        </p>
+                                                    </div>
+                                                {/each}
+                                            </div>
+                                        </details>
+                                    {/each}
+                                </div>
+                            </div>
+                        {/if}
+                    </section>
                 {/if}
             </div>
 
@@ -2378,18 +3089,185 @@
 
             <!-- Gemini Context Menu -->
             {#if showGeminiButton}
-                <button
+                <div
                     style="top: {geminiButtonPos.y}px; left: {geminiButtonPos.x}px;"
-                    class="fixed z-50 bg-white dark:bg-dark-surface text-primary px-4 py-2 rounded-lg shadow-xl border border-border dark:border-dark-border flex items-center gap-2 font-bold text-sm animate-in fade-in zoom-in-95 duration-200 hover:bg-accent/60 dark:hover:bg-white/10 active:scale-95 cursor-pointer"
-                    onmousedown={(e) => {
-                        e.preventDefault();
-                        showGeminiModal = true;
-                        showGeminiButton = false;
-                    }}
+                    class="fixed z-50 bg-white dark:bg-dark-surface rounded-lg shadow-xl border border-border dark:border-dark-border p-2 flex items-center gap-2 animate-in fade-in zoom-in-95 duration-200"
                 >
-                    <span class="hidden sm:inline"><Sparkles size={16} /></span>
-                    Ask Gemini
-                </button>
+                    <button
+                        class="text-primary px-3 py-2 rounded-md border border-border dark:border-dark-border flex items-center gap-2 font-bold text-sm hover:bg-accent/60 dark:hover:bg-white/10 active:scale-95 cursor-pointer"
+                        onmousedown={(e) => {
+                            e.preventDefault();
+                            showGeminiModal = true;
+                            showGeminiButton = false;
+                            showInlineCommentComposer = false;
+                        }}
+                    >
+                        <span class="hidden sm:inline"
+                            ><Sparkles size={16} /></span
+                        >
+                        Ask Gemini
+                    </button>
+                    <button
+                        class="text-foreground dark:text-dark-text px-3 py-2 rounded-md border border-border dark:border-dark-border flex items-center gap-2 font-bold text-sm hover:bg-accent/60 dark:hover:bg-white/10 active:scale-95 cursor-pointer"
+                        onmousedown={(e) => {
+                            e.preventDefault();
+                            showInlineCommentComposer = true;
+                            inlineCommentError = "";
+                            showGeminiButton = false;
+                        }}
+                    >
+                        {$t("inline_comment.add_button") || "코멘트 남기기"}
+                    </button>
+                </div>
+            {/if}
+
+            {#if showInlineCommentComposer && inlineSelection}
+                <div
+                    class="fixed z-50 w-[min(360px,calc(100vw-24px))] bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border shadow-2xl p-4"
+                    style="top: {inlineSelection.top}px; left: {inlineSelection.left}px;"
+                >
+                    <p
+                        class="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-dark-text-muted mb-2"
+                    >
+                        {$t("inline_comment.selected_text") || "Selected text"}
+                    </p>
+                    <blockquote
+                        class="text-sm border-l-2 border-primary/50 pl-3 mb-3 text-foreground dark:text-dark-text line-clamp-3"
+                    >
+                        {inlineSelection.selected_text}
+                    </blockquote>
+
+                    <textarea
+                        bind:value={inlineCommentDraft}
+                        class="w-full border border-border dark:border-dark-border rounded-lg bg-transparent p-3 text-sm focus:border-primary outline-none"
+                        rows="4"
+                        placeholder={$t("inline_comment.create_placeholder") ||
+                            "Write your comment..."}
+                    ></textarea>
+
+                    {#if inlineCommentError}
+                        <p class="mt-2 text-xs text-red-600 dark:text-red-400">
+                            {inlineCommentError}
+                        </p>
+                    {/if}
+
+                    <div class="mt-3 flex justify-end gap-2">
+                        <button
+                            type="button"
+                            class="px-3 py-2 text-sm rounded-lg border border-border dark:border-dark-border"
+                            onclick={() => {
+                                closeInlineCommentComposer();
+                                showGeminiButton = false;
+                                inlineSelection = null;
+                            }}
+                        >
+                            {$t("common.cancel")}
+                        </button>
+                        <button
+                            type="button"
+                            class="px-4 py-2 text-sm rounded-lg bg-primary text-primary-foreground font-semibold disabled:opacity-50"
+                            disabled={inlineCommentLoading ||
+                                !inlineCommentDraft.trim()}
+                            onclick={submitInlineComment}
+                        >
+                            {inlineCommentLoading
+                                ? $t("common.loading")
+                                : $t("inline_comment.create_button") || "등록"}
+                        </button>
+                    </div>
+                </div>
+            {/if}
+
+            {#if showInlineThreadPopover &&
+            activeInlineThread &&
+            !activeInlineThreadIsStale &&
+            isThreadForCurrentView(activeInlineThread)}
+                <div
+                    class="fixed z-50 w-[min(380px,calc(100vw-24px))] max-h-[70vh] overflow-y-auto bg-white dark:bg-dark-surface rounded-xl border border-border dark:border-dark-border shadow-2xl p-4"
+                    style="top: {inlineThreadPopoverPos.top}px; left: {inlineThreadPopoverPos.left}px;"
+                >
+                    <div class="flex items-start justify-between gap-3 mb-3">
+                        <p
+                            class="text-xs font-semibold uppercase tracking-wide text-muted-foreground dark:text-dark-text-muted"
+                        >
+                            {$t("inline_comment.selected_text") ||
+                                "Selected text"}
+                        </p>
+                        <button
+                            type="button"
+                            class="text-xs text-muted-foreground hover:text-foreground dark:hover:text-dark-text"
+                            onclick={() => (showInlineThreadPopover = false)}
+                        >
+                            {$t("common.close")}
+                        </button>
+                    </div>
+                    <blockquote
+                        class="text-sm border-l-2 border-primary/50 pl-3 mb-3 text-foreground dark:text-dark-text"
+                    >
+                        {activeInlineThread.selected_text}
+                    </blockquote>
+
+                    <div class="space-y-2 mb-3">
+                        {#each activeInlineThread.messages as message}
+                            <div
+                                class="rounded-lg bg-accent/60 dark:bg-white/5 p-3 border border-border/70 dark:border-dark-border/70"
+                            >
+                                <div
+                                    class="flex items-center justify-between gap-2 mb-2"
+                                >
+                                    <p
+                                        class="text-xs font-semibold text-muted-foreground dark:text-dark-text-muted"
+                                    >
+                                        {message.author_name} ·
+                                        {formatTimestamp(message.created_at)}
+                                    </p>
+                                    {#if canDeleteInlineMessage(message)}
+                                        <button
+                                            type="button"
+                                            class="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                                            onclick={() =>
+                                                handleInlineCommentDelete(
+                                                    activeInlineThread.id,
+                                                    message.id,
+                                                )}
+                                        >
+                                            {$t("common.delete")}
+                                        </button>
+                                    {/if}
+                                </div>
+                                <p class="text-sm whitespace-pre-wrap break-words">
+                                    {message.message}
+                                </p>
+                            </div>
+                        {/each}
+                    </div>
+
+                    <textarea
+                        bind:value={inlineReplyDraft}
+                        class="w-full border border-border dark:border-dark-border rounded-lg bg-transparent p-3 text-sm focus:border-primary outline-none"
+                        rows="3"
+                        placeholder={$t("inline_comment.reply_placeholder") ||
+                            "Write a reply..."}
+                    ></textarea>
+                    {#if inlineReplyError}
+                        <p class="mt-2 text-xs text-red-600 dark:text-red-400">
+                            {inlineReplyError}
+                        </p>
+                    {/if}
+                    <div class="mt-3 flex justify-end">
+                        <button
+                            type="button"
+                            class="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-50"
+                            onclick={submitInlineReply}
+                            disabled={inlineReplyLoading ||
+                                !inlineReplyDraft.trim()}
+                        >
+                            {inlineReplyLoading
+                                ? $t("common.loading")
+                                : $t("inline_comment.reply_button") || "Reply"}
+                        </button>
+                    </div>
+                </div>
             {/if}
 
             {#if showGeminiModal}

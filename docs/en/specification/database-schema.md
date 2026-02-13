@@ -10,6 +10,8 @@ erDiagram
     CODELABS ||--o{ ATTENDEES : "enrolled_by"
     CODELABS ||--o{ HELP_REQUESTS : "receives"
     CODELABS ||--o{ CHAT_MESSAGES : "stores"
+    CODELABS ||--o{ INLINE_COMMENT_THREADS : "annotates"
+    CODELABS ||--o{ INLINE_COMMENT_MESSAGES : "stores"
     CODELABS ||--o{ FEEDBACK : "collects"
     CODELABS ||--o{ MATERIALS : "provides"
     CODELABS ||--o{ QUIZZES : "includes"
@@ -20,6 +22,8 @@ erDiagram
     CODELABS ||--o{ AUDIT_LOGS : "audits"
 
     ATTENDEES ||--o{ HELP_REQUESTS : "makes"
+    ATTENDEES ||--o{ INLINE_COMMENT_THREADS : "creates"
+    INLINE_COMMENT_THREADS ||--o{ INLINE_COMMENT_MESSAGES : "contains"
     ATTENDEES ||--o{ FEEDBACK : "submits"
     ATTENDEES ||--o{ QUIZ_SUBMISSIONS : "answers"
     ATTENDEES ||--o{ SUBMISSIONS : "uploads"
@@ -168,6 +172,72 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 | `msg_type` | VARCHAR | Type (chat/dm) | DEFAULT 'chat' |
 | `target_id` | VARCHAR | DM target ID (attendee ID) | - |
 | `created_at` | TEXT | Sent time | DEFAULT CURRENT_TIMESTAMP |
+
+### inline_comment_threads
+
+Stores highlight anchors and thread metadata for guide/step inline comments.
+
+```sql
+CREATE TABLE IF NOT EXISTS inline_comment_threads (
+    id VARCHAR(255) PRIMARY KEY NOT NULL,
+    codelab_id VARCHAR(255) NOT NULL,
+    anchor_key VARCHAR(512) NOT NULL,
+    target_type VARCHAR(16) NOT NULL,
+    target_step_id VARCHAR(255),
+    start_offset INTEGER NOT NULL,
+    end_offset INTEGER NOT NULL,
+    selected_text TEXT NOT NULL,
+    content_hash VARCHAR(128) NOT NULL,
+    created_by_attendee_id VARCHAR(255) NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (codelab_id) REFERENCES codelabs(id) ON DELETE CASCADE,
+    UNIQUE (codelab_id, anchor_key)
+);
+```
+
+| Column | Type | Description | Constraints |
+|------|------|------|------|
+| `id` | VARCHAR | UUID | PRIMARY KEY |
+| `codelab_id` | VARCHAR | Codelab ID | FOREIGN KEY |
+| `anchor_key` | VARCHAR | Unique highlight anchor key | UNIQUE (with codelab_id) |
+| `target_type` | VARCHAR | Target type (`step`/`guide`) | NOT NULL |
+| `target_step_id` | VARCHAR | Step ID when `target_type=step` | - |
+| `start_offset` | INTEGER | Start offset | NOT NULL |
+| `end_offset` | INTEGER | End offset | NOT NULL |
+| `selected_text` | TEXT | Selected source text | NOT NULL |
+| `content_hash` | VARCHAR | Content version hash | NOT NULL |
+| `created_by_attendee_id` | VARCHAR | Creator attendee ID | NOT NULL |
+| `created_at` | TEXT | Created time | DEFAULT CURRENT_TIMESTAMP |
+
+### inline_comment_messages
+
+Stores messages under inline comment threads.
+
+```sql
+CREATE TABLE IF NOT EXISTS inline_comment_messages (
+    id VARCHAR(255) PRIMARY KEY NOT NULL,
+    thread_id VARCHAR(255) NOT NULL,
+    codelab_id VARCHAR(255) NOT NULL,
+    author_role VARCHAR(16) NOT NULL,
+    author_id VARCHAR(255) NOT NULL,
+    author_name VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (thread_id) REFERENCES inline_comment_threads(id) ON DELETE CASCADE,
+    FOREIGN KEY (codelab_id) REFERENCES codelabs(id) ON DELETE CASCADE
+);
+```
+
+| Column | Type | Description | Constraints |
+|------|------|------|------|
+| `id` | VARCHAR | UUID | PRIMARY KEY |
+| `thread_id` | VARCHAR | Thread ID | FOREIGN KEY |
+| `codelab_id` | VARCHAR | Codelab ID | FOREIGN KEY |
+| `author_role` | VARCHAR | Author role (`attendee`/`admin`) | NOT NULL |
+| `author_id` | VARCHAR | Author identifier | NOT NULL |
+| `author_name` | VARCHAR | Display author name | NOT NULL |
+| `message` | TEXT | Message body | NOT NULL |
+| `created_at` | TEXT | Created time | DEFAULT CURRENT_TIMESTAMP |
 
 ### feedback
 
@@ -417,3 +487,4 @@ The system uses `sqlx` to manage schema migrations. Files in `backend/migrations
 17. `20260129100000_add_workspace_structure_type.sql`: add workspace structure type
 18. `20260130000000_add_email_to_attendees.sql`: add attendee email field
 19. `20260130010000_ai_conversations.sql`: create AI conversations table
+20. `20260213200000_inline_comments.sql`: create inline comment thread/message tables

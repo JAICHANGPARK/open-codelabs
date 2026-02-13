@@ -6,6 +6,7 @@ pub mod audit;
 pub mod codeserver;
 pub mod codelabs;
 pub mod feedback;
+pub mod inline_comments;
 pub mod materials;
 pub mod quizzes;
 pub mod submissions;

@@ -651,6 +651,18 @@ pub async fn delete_codelab(
         .await
         .map_err(internal_error)?;
 
+    // Delete inline comments
+    sqlx::query(&state.q("DELETE FROM inline_comment_messages WHERE codelab_id = ?"))
+        .bind(&id)
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
+    sqlx::query(&state.q("DELETE FROM inline_comment_threads WHERE codelab_id = ?"))
+        .bind(&id)
+        .execute(&mut *tx)
+        .await
+        .map_err(internal_error)?;
+
     // Delete help requests
     sqlx::query(&state.q("DELETE FROM help_requests WHERE codelab_id = ?"))
         .bind(&id)

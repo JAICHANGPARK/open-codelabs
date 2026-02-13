@@ -531,6 +531,26 @@
         "sent": "Help request sent to facilitator!",
         "failed": "Failed to send help request."
     },
+    "inline_comment": {
+        "panel_title": "Inline comments",
+        "add_button": "Leave comment",
+        "active_count": "active",
+        "message_count": "messages",
+        "selected_text": "Selected text",
+        "create_button": "Post",
+        "create_placeholder": "Write your comment...",
+        "create_failed": "Failed to create inline comment.",
+        "reply_button": "Reply",
+        "reply_placeholder": "Write a reply...",
+        "reply_failed": "Failed to reply to inline comment.",
+        "delete_failed": "Failed to delete inline comment.",
+        "empty": "No inline comments yet.",
+        "select_thread_prompt": "Select a highlighted thread to view and reply.",
+        "stale_section": "Comments from previous version",
+        "stale_hint": "These comments are read-only. Reply is disabled, but deletion is allowed.",
+        "stale_reply_blocked": "This thread is stale and cannot be replied to.",
+        "overlap_error": "Overlapping highlight exists. Click existing highlight to reply."
+    },
     "live": {
         "status_title": "Live Status",
         "participants": "{count} Participants",

@@ -191,6 +191,58 @@ pub struct ChatMessageRow {
     pub created_at: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, Clone)]
+pub struct InlineCommentThread {
+    pub id: String,
+    pub codelab_id: String,
+    pub anchor_key: String,
+    pub target_type: String, // "step" | "guide"
+    pub target_step_id: Option<String>,
+    pub start_offset: i32,
+    pub end_offset: i32,
+    pub selected_text: String,
+    pub content_hash: String,
+    pub created_by_attendee_id: String,
+    pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, sqlx::FromRow, Clone)]
+pub struct InlineCommentMessage {
+    pub id: String,
+    pub thread_id: String,
+    pub codelab_id: String,
+    pub author_role: String, // "attendee" | "admin"
+    pub author_id: String,
+    pub author_name: String,
+    pub message: String,
+    pub created_at: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct InlineCommentThreadWithMessages {
+    #[serde(flatten)]
+    pub thread: InlineCommentThread,
+    pub messages: Vec<InlineCommentMessage>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct CreateInlineCommentPayload {
+    pub anchor_key: String,
+    pub target_type: String, // "step" | "guide"
+    pub target_step_id: Option<String>,
+    pub start_offset: i32,
+    pub end_offset: i32,
+    pub selected_text: String,
+    pub content_hash: String,
+    pub message: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ReplyInlineCommentPayload {
+    pub message: String,
+    pub content_hash: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CreateFeedback {
     pub difficulty: String,

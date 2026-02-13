@@ -53,6 +53,32 @@ create table if not exists chat_messages (
     created_at timestamptz default now()
 );
 
+create table if not exists inline_comment_threads (
+    id uuid primary key default gen_random_uuid(),
+    codelab_id uuid not null references codelabs(id) on delete cascade,
+    anchor_key text not null,
+    target_type text not null,
+    target_step_id uuid,
+    start_offset integer not null,
+    end_offset integer not null,
+    selected_text text not null,
+    content_hash text not null,
+    created_by_attendee_id uuid not null references attendees(id) on delete cascade,
+    created_at timestamptz default now(),
+    unique (codelab_id, anchor_key)
+);
+
+create table if not exists inline_comment_messages (
+    id uuid primary key default gen_random_uuid(),
+    thread_id uuid not null references inline_comment_threads(id) on delete cascade,
+    codelab_id uuid not null references codelabs(id) on delete cascade,
+    author_role text not null,
+    author_id uuid not null,
+    author_name text not null,
+    message text not null,
+    created_at timestamptz default now()
+);
+
 create table if not exists feedback (
     id uuid primary key default gen_random_uuid(),
     codelab_id uuid not null references codelabs(id) on delete cascade,
@@ -117,6 +143,9 @@ create index if not exists idx_attendees_codelab on attendees(codelab_id);
 create unique index if not exists idx_attendees_codelab_name on attendees(codelab_id, name);
 create index if not exists idx_help_requests_codelab on help_requests(codelab_id);
 create index if not exists idx_chat_messages_codelab on chat_messages(codelab_id);
+create index if not exists idx_inline_comment_threads_target on inline_comment_threads(codelab_id, target_type, target_step_id);
+create index if not exists idx_inline_comment_threads_hash_offsets on inline_comment_threads(codelab_id, target_type, target_step_id, content_hash, start_offset, end_offset);
+create index if not exists idx_inline_comment_messages_thread on inline_comment_messages(thread_id, created_at);
 create unique index if not exists idx_feedback_codelab_attendee on feedback(codelab_id, attendee_id);
 create index if not exists idx_materials_codelab on materials(codelab_id);
 create index if not exists idx_quizzes_codelab on quizzes(codelab_id);
@@ -127,3 +156,5 @@ create index if not exists idx_participations_user on participations(user_id);
 alter publication supabase_realtime add table chat_messages;
 alter publication supabase_realtime add table help_requests;
 alter publication supabase_realtime add table attendees;
+alter publication supabase_realtime add table inline_comment_threads;
+alter publication supabase_realtime add table inline_comment_messages;

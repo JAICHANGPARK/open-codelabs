@@ -1,7 +1,7 @@
 import { browser } from '$app/environment';
 import { encryptForBackend, getEncryptionPassword } from './crypto';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload } from './types';
-export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload };
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload, InlineCommentThread, CreateInlineCommentPayload } from './types';
+export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload, InlineCommentThread, CreateInlineCommentPayload };
 
 const envApiUrl = import.meta.env.VITE_API_URL;
 let BASE_URL = envApiUrl || 'http://localhost:8080';
@@ -325,6 +325,72 @@ export async function getChatHistory(codelabId: string): Promise<ChatMessage[]> 
     const res = await apiFetch(`/codelabs/${codelabId}/chat`);
     if (!res.ok) throw new Error('Failed to fetch chat history');
     return res.json();
+}
+
+export async function getInlineComments(
+    codelabId: string,
+    params?: { target_type?: "step" | "guide"; target_step_id?: string },
+): Promise<InlineCommentThread[]> {
+    const searchParams = new URLSearchParams();
+    if (params?.target_type) searchParams.set("target_type", params.target_type);
+    if (params?.target_step_id) searchParams.set("target_step_id", params.target_step_id);
+    const query = searchParams.toString();
+    const res = await apiFetch(
+        `/codelabs/${codelabId}/inline-comments${query ? `?${query}` : ""}`,
+    );
+    if (!res.ok) throw new Error("Failed to fetch inline comments");
+    return res.json();
+}
+
+export async function createInlineComment(
+    codelabId: string,
+    payload: CreateInlineCommentPayload,
+): Promise<InlineCommentThread> {
+    const res = await apiFetch(`/codelabs/${codelabId}/inline-comments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || "Failed to create inline comment");
+    }
+    return res.json();
+}
+
+export async function replyInlineComment(
+    codelabId: string,
+    threadId: string,
+    payload: { message: string; content_hash: string },
+): Promise<InlineCommentThread> {
+    const res = await apiFetch(
+        `/codelabs/${codelabId}/inline-comments/${threadId}/comments`,
+        {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        },
+    );
+    if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || "Failed to reply to inline comment");
+    }
+    return res.json();
+}
+
+export async function deleteInlineComment(
+    codelabId: string,
+    threadId: string,
+    commentId: string,
+): Promise<void> {
+    const res = await apiFetch(
+        `/codelabs/${codelabId}/inline-comments/${threadId}/comments/${commentId}`,
+        { method: "DELETE" },
+    );
+    if (!res.ok) {
+        const text = await res.text().catch(() => "");
+        throw new Error(text || "Failed to delete inline comment");
+    }
 }
 
 export async function uploadImage(file: File): Promise<{ url: string }> {

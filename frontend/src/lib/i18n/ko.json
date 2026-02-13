@@ -531,6 +531,26 @@
         "sent": "퍼실리테이터에게 도움을 요청했습니다!",
         "failed": "도움 요청에 실패했습니다."
     },
+    "inline_comment": {
+        "panel_title": "인라인 코멘트",
+        "add_button": "코멘트 남기기",
+        "active_count": "활성",
+        "message_count": "개 메시지",
+        "selected_text": "선택 텍스트",
+        "create_button": "등록",
+        "create_placeholder": "코멘트를 입력하세요...",
+        "create_failed": "인라인 코멘트 생성에 실패했습니다.",
+        "reply_button": "답글 남기기",
+        "reply_placeholder": "답글을 입력하세요...",
+        "reply_failed": "답글 작성에 실패했습니다.",
+        "delete_failed": "코멘트 삭제에 실패했습니다.",
+        "empty": "아직 인라인 코멘트가 없습니다.",
+        "select_thread_prompt": "하이라이트를 선택하면 스레드와 답글을 확인할 수 있습니다.",
+        "stale_section": "이전 버전 코멘트",
+        "stale_hint": "이 코멘트는 읽기/삭제만 가능합니다. 답글은 비활성화됩니다.",
+        "stale_reply_blocked": "이 스레드는 이전 버전 기준이라 답글을 남길 수 없습니다.",
+        "overlap_error": "겹치는 하이라이트가 이미 있습니다. 기존 하이라이트를 클릭해 답글을 남기세요."
+    },
     "live": {
         "status_title": "실시간 현황",
         "participants": "{count}명 참여 중",

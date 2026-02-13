@@ -3,14 +3,19 @@ import {
     ref as rtdbRef,
     push,
     set,
+    get as rtdbGet,
     onValue,
     onChildAdded,
+    onChildChanged,
+    onChildRemoved,
     update,
+    remove,
     serverTimestamp as rtdbTimestamp
 } from "firebase/database";
 import {
     GoogleAuthProvider,
     signInWithPopup,
+    signInAnonymously,
     signOut,
     onAuthStateChanged,
     type User
@@ -35,13 +40,19 @@ import {
     uploadBytes,
     getDownloadURL
 } from "firebase/storage";
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback } from './types';
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CreateInlineCommentPayload, InlineCommentMessage, InlineCommentThread } from './types';
 
 const CODELABS_COLLECTION = "codelabs";
 
 function isAdmin() {
     if (typeof localStorage === 'undefined') return false;
     return !!localStorage.getItem('adminToken');
+}
+
+async function ensureAuthUser(): Promise<User> {
+    if (auth.currentUser) return auth.currentUser;
+    const credential = await signInAnonymously(auth);
+    return credential.user;
 }
 
 export async function listCodelabs(): Promise<Codelab[]> {
@@ -361,6 +372,238 @@ export async function sendChatMessage(codelabId: string, payload: { sender: stri
     });
 }
 
+function toIsoTimestamp(value: any): string | undefined {
+    if (typeof value === "number") return new Date(value).toISOString();
+    if (typeof value === "string") return value;
+    return undefined;
+}
+
+function normalizeInlineThreads(
+    threadData: Record<string, any> | null,
+    messageData: Record<string, Record<string, any>> | null,
+): InlineCommentThread[] {
+    if (!threadData) return [];
+    return Object.entries(threadData)
+        .map(([anchorKey, thread]) => {
+            const messageMap = messageData?.[anchorKey] || {};
+            const messages = Object.entries(messageMap)
+                .map(([messageId, message]) => ({
+                    id: message.id || messageId,
+                    thread_id: message.thread_id || thread.id || anchorKey,
+                    codelab_id: message.codelab_id || thread.codelab_id,
+                    author_role: message.author_role || "attendee",
+                    author_id: message.author_id || "",
+                    author_name: message.author_name || "Attendee",
+                    message: message.message || "",
+                    created_at: toIsoTimestamp(message.created_at),
+                }) as InlineCommentMessage)
+                .sort(
+                    (a, b) =>
+                        new Date(a.created_at || 0).getTime() -
+                        new Date(b.created_at || 0).getTime(),
+                );
+
+            return {
+                id: thread.id || anchorKey,
+                codelab_id: thread.codelab_id,
+                anchor_key: thread.anchor_key || anchorKey,
+                target_type: thread.target_type,
+                target_step_id: thread.target_step_id || null,
+                start_offset: Number(thread.start_offset || 0),
+                end_offset: Number(thread.end_offset || 0),
+                selected_text: thread.selected_text || "",
+                content_hash: thread.content_hash || "",
+                created_by_attendee_id: thread.created_by_attendee_id || "",
+                created_at: toIsoTimestamp(thread.created_at),
+                messages,
+            } as InlineCommentThread;
+        })
+        .sort(
+            (a, b) =>
+                new Date(a.created_at || 0).getTime() -
+                new Date(b.created_at || 0).getTime(),
+        );
+}
+
+export async function getInlineComments(
+    codelabId: string,
+    params?: { target_type?: "step" | "guide"; target_step_id?: string },
+): Promise<InlineCommentThread[]> {
+    const [threadsSnap, messagesSnap] = await Promise.all([
+        rtdbGet(rtdbRef(rtdb, `codelabs/${codelabId}/inline_comment_threads`)),
+        rtdbGet(rtdbRef(rtdb, `codelabs/${codelabId}/inline_comment_messages`)),
+    ]);
+
+    let threads = normalizeInlineThreads(
+        (threadsSnap.val() as Record<string, any>) || null,
+        (messagesSnap.val() as Record<string, Record<string, any>>) || null,
+    );
+
+    if (params?.target_type) {
+        threads = threads.filter((thread) => thread.target_type === params.target_type);
+    }
+    if (params?.target_step_id) {
+        threads = threads.filter(
+            (thread) => thread.target_step_id === params.target_step_id,
+        );
+    }
+
+    return threads;
+}
+
+export async function createInlineComment(
+    codelabId: string,
+    payload: CreateInlineCommentPayload,
+): Promise<InlineCommentThread> {
+    const attendee = getStoredAttendee(codelabId);
+    if (!attendee) throw new Error("ATTENDEE_REQUIRED");
+    const user = await ensureAuthUser();
+
+    const threads = await getInlineComments(codelabId);
+    let thread = threads.find((item) => item.anchor_key === payload.anchor_key);
+
+    if (!thread) {
+        const overlap = threads.find(
+            (item) =>
+                item.target_type === payload.target_type &&
+                (item.target_step_id || null) ===
+                    (payload.target_type === "step"
+                        ? (payload.target_step_id || null)
+                        : null) &&
+                item.content_hash === payload.content_hash &&
+                item.start_offset < payload.end_offset &&
+                item.end_offset > payload.start_offset,
+        );
+        if (overlap) {
+            throw new Error("OVERLAPPING_HIGHLIGHT");
+        }
+
+        const newThread = {
+            id: payload.anchor_key,
+            codelab_id: codelabId,
+            anchor_key: payload.anchor_key,
+            target_type: payload.target_type,
+            target_step_id:
+                payload.target_type === "step"
+                    ? (payload.target_step_id || null)
+                    : null,
+            start_offset: payload.start_offset,
+            end_offset: payload.end_offset,
+            selected_text: payload.selected_text,
+            content_hash: payload.content_hash,
+            created_by_attendee_id: attendee.id,
+            created_at: Date.now(),
+        };
+        await set(
+            rtdbRef(
+                rtdb,
+                `codelabs/${codelabId}/inline_comment_threads/${payload.anchor_key}`,
+            ),
+            newThread,
+        );
+        thread = {
+            ...newThread,
+            created_at: toIsoTimestamp(newThread.created_at),
+            messages: [],
+        } as InlineCommentThread;
+    }
+
+    const messageRef = push(
+        rtdbRef(rtdb, `codelabs/${codelabId}/inline_comment_messages/${thread.id}`),
+    );
+    await set(messageRef, {
+        id: messageRef.key,
+        thread_id: thread.id,
+        codelab_id: codelabId,
+        author_role: "attendee",
+        author_id: attendee.id,
+        author_uid: user.uid,
+        author_name: attendee.name,
+        message: payload.message.trim(),
+        created_at: rtdbTimestamp(),
+    });
+
+    const refreshed = await getInlineComments(codelabId);
+    const found = refreshed.find((item) => item.id === thread.id);
+    if (!found) throw new Error("INLINE_COMMENT_NOT_FOUND");
+    return found;
+}
+
+export async function replyInlineComment(
+    codelabId: string,
+    threadId: string,
+    payload: { message: string; content_hash: string },
+): Promise<InlineCommentThread> {
+    const attendee = getStoredAttendee(codelabId);
+    if (!attendee) throw new Error("ATTENDEE_REQUIRED");
+    const user = await ensureAuthUser();
+
+    const threadSnap = await rtdbGet(
+        rtdbRef(rtdb, `codelabs/${codelabId}/inline_comment_threads/${threadId}`),
+    );
+    const thread = threadSnap.val();
+    if (!thread) throw new Error("INLINE_COMMENT_THREAD_NOT_FOUND");
+    if ((thread.content_hash || "") !== payload.content_hash.trim()) {
+        throw new Error("STALE_THREAD");
+    }
+
+    const messageRef = push(
+        rtdbRef(rtdb, `codelabs/${codelabId}/inline_comment_messages/${threadId}`),
+    );
+    await set(messageRef, {
+        id: messageRef.key,
+        thread_id: threadId,
+        codelab_id: codelabId,
+        author_role: "attendee",
+        author_id: attendee.id,
+        author_uid: user.uid,
+        author_name: attendee.name,
+        message: payload.message.trim(),
+        created_at: rtdbTimestamp(),
+    });
+
+    const refreshed = await getInlineComments(codelabId);
+    const found = refreshed.find((item) => item.id === threadId);
+    if (!found) throw new Error("INLINE_COMMENT_THREAD_NOT_FOUND");
+    return found;
+}
+
+export async function deleteInlineComment(
+    codelabId: string,
+    threadId: string,
+    commentId: string,
+): Promise<void> {
+    const attendeeId = getStoredAttendeeId(codelabId);
+    if (!attendeeId) throw new Error("ATTENDEE_REQUIRED");
+    const user = await ensureAuthUser();
+
+    const messagePath = `codelabs/${codelabId}/inline_comment_messages/${threadId}/${commentId}`;
+    const messageSnap = await rtdbGet(rtdbRef(rtdb, messagePath));
+    const message = messageSnap.val();
+    if (!message) throw new Error("INLINE_COMMENT_NOT_FOUND");
+    if (
+        message.author_id !== attendeeId ||
+        (message.author_uid && message.author_uid !== user.uid)
+    ) {
+        throw new Error("FORBIDDEN");
+    }
+
+    await remove(rtdbRef(rtdb, messagePath));
+
+    const remainingSnap = await rtdbGet(
+        rtdbRef(rtdb, `codelabs/${codelabId}/inline_comment_messages/${threadId}`),
+    );
+    const remaining = remainingSnap.val();
+    if (!remaining || Object.keys(remaining).length === 0) {
+        await remove(
+            rtdbRef(rtdb, `codelabs/${codelabId}/inline_comment_threads/${threadId}`),
+        );
+        await remove(
+            rtdbRef(rtdb, `codelabs/${codelabId}/inline_comment_messages/${threadId}`),
+        );
+    }
+}
+
 export async function uploadImage(file: File): Promise<{ url: string }> {
     const storageRef = ref(storage, `images/${Date.now()}_${file.name}`);
     await uploadBytes(storageRef, file);
@@ -400,6 +643,19 @@ function getStoredAttendeeId(codelabId: string): string | null {
     }
 }
 
+function getStoredAttendee(codelabId: string): { id: string; name: string } | null {
+    if (typeof localStorage === 'undefined') return null;
+    const raw = localStorage.getItem(`attendee_${codelabId}`);
+    if (!raw) return null;
+    try {
+        const parsed = JSON.parse(raw) as { id?: string; name?: string };
+        if (!parsed.id || !parsed.name) return null;
+        return { id: parsed.id, name: parsed.name };
+    } catch {
+        return null;
+    }
+}
+
 export async function getFeedback(codelabId: string): Promise<Feedback[]> {
     const q = query(collection(db, `${CODELABS_COLLECTION}/${codelabId}/feedback`), orderBy("created_at", "desc"));
     const snapshot = await getDocs(q);
@@ -434,9 +690,43 @@ export function listenToWsReplacement(codelabId: string, callback: (msg: any) =>
         }
     });
 
+    // 4. Listen to inline comment changes (threads + messages)
+    const inlineThreadsRef = rtdbRef(
+        rtdb,
+        `codelabs/${codelabId}/inline_comment_threads`,
+    );
+    const inlineMessagesRef = rtdbRef(
+        rtdb,
+        `codelabs/${codelabId}/inline_comment_messages`,
+    );
+    const inlineThreadAddedUnsub = onChildAdded(inlineThreadsRef, () => {
+        callback({ type: "inline_comment_changed" });
+    });
+    const inlineThreadChangedUnsub = onChildChanged(inlineThreadsRef, () => {
+        callback({ type: "inline_comment_changed" });
+    });
+    const inlineThreadRemovedUnsub = onChildRemoved(inlineThreadsRef, () => {
+        callback({ type: "inline_comment_changed" });
+    });
+    const inlineMessageAddedUnsub = onChildAdded(inlineMessagesRef, () => {
+        callback({ type: "inline_comment_changed" });
+    });
+    const inlineMessageChangedUnsub = onChildChanged(inlineMessagesRef, () => {
+        callback({ type: "inline_comment_changed" });
+    });
+    const inlineMessageRemovedUnsub = onChildRemoved(inlineMessagesRef, () => {
+        callback({ type: "inline_comment_changed" });
+    });
+
     return () => {
-        // Firebase RTDB doesn't return unsub from onChildAdded, need to use off()
-        // but since we might have multiple listeners, it's better to manage carefully.
-        // For simplicity in this context:
+        chatUnsub();
+        helpUnsub();
+        attendeesUnsub();
+        inlineThreadAddedUnsub();
+        inlineThreadChangedUnsub();
+        inlineThreadRemovedUnsub();
+        inlineMessageAddedUnsub();
+        inlineMessageChangedUnsub();
+        inlineMessageRemovedUnsub();
     };
 }

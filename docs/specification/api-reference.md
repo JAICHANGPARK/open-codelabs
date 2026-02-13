@@ -215,6 +215,89 @@ https://your-domain.com/api
 ]
 ```
 
+### 인라인 코멘트 조회
+
+`GET /codelabs/:id/inline-comments`
+
+쿼리 파라미터(선택):
+
+- `target_type`: `step` 또는 `guide`
+- `target_step_id`: step 대상일 때 step ID
+
+**Response** (200 OK):
+```json
+[
+  {
+    "id": "thread_xxx",
+    "codelab_id": "codelab_xxx",
+    "anchor_key": "step|step_xxx|hash|12|34",
+    "target_type": "step",
+    "target_step_id": "step_xxx",
+    "start_offset": 12,
+    "end_offset": 34,
+    "selected_text": "선택한 텍스트",
+    "content_hash": "abc123",
+    "created_by_attendee_id": "attendee_xxx",
+    "created_at": "2026-02-13T10:20:00Z",
+    "messages": [
+      {
+        "id": "comment_xxx",
+        "thread_id": "thread_xxx",
+        "codelab_id": "codelab_xxx",
+        "author_role": "attendee",
+        "author_id": "attendee_xxx",
+        "author_name": "홍길동",
+        "message": "이 부분 설명이 헷갈려요.",
+        "created_at": "2026-02-13T10:20:00Z"
+      }
+    ]
+  }
+]
+```
+
+### 인라인 코멘트 생성
+
+`POST /codelabs/:id/inline-comments`
+
+**Request Body**:
+```json
+{
+  "anchor_key": "step|step_xxx|hash|12|34",
+  "target_type": "step",
+  "target_step_id": "step_xxx",
+  "start_offset": 12,
+  "end_offset": 34,
+  "selected_text": "선택한 텍스트",
+  "content_hash": "abc123",
+  "message": "이 부분 설명이 헷갈려요."
+}
+```
+
+동일 구간(`anchor_key`)이 이미 있으면 기존 스레드에 메시지를 추가하고, 겹치는 다른 구간이면 `400`을 반환합니다.
+
+### 인라인 코멘트 답글
+
+`POST /codelabs/:id/inline-comments/:thread_id/comments`
+
+**Request Body**:
+```json
+{
+  "message": "여기서는 이 개념을 먼저 보면 돼요.",
+  "content_hash": "abc123"
+}
+```
+
+`content_hash`가 현재 본문과 다르면 stale 스레드로 간주되어 `400`을 반환합니다.
+
+### 인라인 코멘트 삭제
+
+`DELETE /codelabs/:id/inline-comments/:thread_id/comments/:comment_id`
+
+- 백엔드 모드: 작성자 또는 관리자 삭제 가능
+- 서버리스 모드(Supabase/Firebase): 작성자만 삭제 가능
+
+스레드의 마지막 메시지를 삭제하면 스레드도 함께 정리됩니다.
+
 ## Attendees
 
 ### 참가자 등록
@@ -579,6 +662,10 @@ https://your-domain.com/api
 
 ```json
 { "type": "help_request", "attendee_id": "attendee_xxx", "step_number": 3 }
+```
+
+```json
+{ "type": "inline_comment_changed", "target_type": "step", "target_step_id": "step_xxx" }
 ```
 
 ## 에러 응답

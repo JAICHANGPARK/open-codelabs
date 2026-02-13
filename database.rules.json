@@ -1,6 +1,26 @@
 {
-  /* Visit https://firebase.google.com/docs/database/security to learn more about security rules. */
   "rules": {
+    "codelabs": {
+      "$codelabId": {
+        ".read": true,
+        ".write": true,
+        "inline_comment_threads": {
+          "$threadId": {
+            ".read": true,
+            ".write": "auth != null"
+          }
+        },
+        "inline_comment_messages": {
+          "$threadId": {
+            "$commentId": {
+              ".read": true,
+              ".write": "auth != null && ((!data.exists() && newData.exists() && newData.child('author_uid').val() == auth.uid) || (data.exists() && newData.exists() && data.child('author_uid').val() == auth.uid && newData.child('author_uid').val() == auth.uid) || (data.exists() && !newData.exists() && data.child('author_uid').val() == auth.uid))",
+              ".validate": "!newData.exists() || (newData.hasChildren(['id', 'thread_id', 'codelab_id', 'author_role', 'author_id', 'author_uid', 'author_name', 'message']) && newData.child('author_uid').isString() && newData.child('author_uid').val().length > 0)"
+            }
+          }
+        }
+      }
+    },
     ".read": false,
     ".write": false
   }

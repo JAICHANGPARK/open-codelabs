@@ -13,6 +13,9 @@ import type {
     QuizSubmissionWithAttendee,
     Submission,
     SubmissionWithAttendee,
+    InlineCommentThread,
+    InlineCommentMessage,
+    CreateInlineCommentPayload,
 } from "./types";
 
 const CODELABS_TABLE = "codelabs";
@@ -79,6 +82,19 @@ function getStoredAttendeeId(codelabId: string): string | null {
     try {
         const parsed = JSON.parse(raw) as { id?: string };
         return parsed.id || null;
+    } catch {
+        return null;
+    }
+}
+
+function getStoredAttendee(codelabId: string): { id: string; name: string } | null {
+    if (typeof localStorage === "undefined") return null;
+    const raw = localStorage.getItem(`attendee_${codelabId}`);
+    if (!raw) return null;
+    try {
+        const parsed = JSON.parse(raw) as { id?: string; name?: string };
+        if (!parsed.id || !parsed.name) return null;
+        return { id: parsed.id, name: parsed.name };
     } catch {
         return null;
     }
@@ -505,6 +521,235 @@ export async function sendChatMessage(
     if (error) throw error;
 }
 
+function normalizeInlineThreadRow(row: any): Omit<InlineCommentThread, "messages"> {
+    return {
+        id: row.id,
+        codelab_id: row.codelab_id,
+        anchor_key: row.anchor_key,
+        target_type: row.target_type,
+        target_step_id: row.target_step_id || null,
+        start_offset: Number(row.start_offset),
+        end_offset: Number(row.end_offset),
+        selected_text: row.selected_text,
+        content_hash: row.content_hash,
+        created_by_attendee_id: row.created_by_attendee_id,
+        created_at: row.created_at || undefined,
+    };
+}
+
+function normalizeInlineMessageRow(row: any): InlineCommentMessage {
+    return {
+        id: row.id,
+        thread_id: row.thread_id,
+        codelab_id: row.codelab_id,
+        author_role: row.author_role,
+        author_id: row.author_id,
+        author_name: row.author_name,
+        message: row.message,
+        created_at: row.created_at || undefined,
+    };
+}
+
+export async function getInlineComments(
+    codelabId: string,
+    params?: { target_type?: "step" | "guide"; target_step_id?: string },
+): Promise<InlineCommentThread[]> {
+    const client = requireClient();
+    let query = client
+        .from("inline_comment_threads")
+        .select("*")
+        .eq("codelab_id", codelabId)
+        .order("created_at", { ascending: true });
+
+    if (params?.target_type) query = query.eq("target_type", params.target_type);
+    if (params?.target_step_id) {
+        query = query.eq("target_step_id", params.target_step_id);
+    }
+
+    const { data: threadRows, error: threadError } = await query;
+    if (threadError) throw threadError;
+
+    const threadList = (threadRows || []).map(normalizeInlineThreadRow);
+    if (threadList.length === 0) return [];
+
+    const threadIds = threadList.map((thread) => thread.id);
+    const { data: messageRows, error: messageError } = await client
+        .from("inline_comment_messages")
+        .select("*")
+        .eq("codelab_id", codelabId)
+        .in("thread_id", threadIds)
+        .order("created_at", { ascending: true });
+    if (messageError) throw messageError;
+
+    const grouped = new Map<string, InlineCommentMessage[]>();
+    (messageRows || []).map(normalizeInlineMessageRow).forEach((message) => {
+        const arr = grouped.get(message.thread_id) || [];
+        arr.push(message);
+        grouped.set(message.thread_id, arr);
+    });
+
+    return threadList.map((thread) => ({
+        ...thread,
+        messages: grouped.get(thread.id) || [],
+    }));
+}
+
+export async function createInlineComment(
+    codelabId: string,
+    payload: CreateInlineCommentPayload,
+): Promise<InlineCommentThread> {
+    const client = requireClient();
+    const attendee = getStoredAttendee(codelabId);
+    if (!attendee) throw new Error("ATTENDEE_REQUIRED");
+
+    const { data: existing, error: existingError } = await client
+        .from("inline_comment_threads")
+        .select("*")
+        .eq("codelab_id", codelabId)
+        .eq("anchor_key", payload.anchor_key)
+        .limit(1);
+    if (existingError) throw existingError;
+
+    let thread = existing && existing.length > 0 ? existing[0] : null;
+
+    if (!thread) {
+        let overlapQuery = client
+            .from("inline_comment_threads")
+            .select("*")
+            .eq("codelab_id", codelabId)
+            .eq("target_type", payload.target_type)
+            .eq("content_hash", payload.content_hash)
+            .lt("start_offset", payload.end_offset)
+            .gt("end_offset", payload.start_offset);
+        if (payload.target_type === "step" && payload.target_step_id) {
+            overlapQuery = overlapQuery.eq("target_step_id", payload.target_step_id);
+        } else {
+            overlapQuery = overlapQuery.is("target_step_id", null);
+        }
+        const { data: overlapRows, error: overlapError } = await overlapQuery;
+        if (overlapError) throw overlapError;
+        if ((overlapRows || []).length > 0) {
+            throw new Error("OVERLAPPING_HIGHLIGHT");
+        }
+
+        const { data: created, error: createError } = await client
+            .from("inline_comment_threads")
+            .insert({
+                codelab_id: codelabId,
+                anchor_key: payload.anchor_key,
+                target_type: payload.target_type,
+                target_step_id: payload.target_type === "step" ? (payload.target_step_id || null) : null,
+                start_offset: payload.start_offset,
+                end_offset: payload.end_offset,
+                selected_text: payload.selected_text,
+                content_hash: payload.content_hash,
+                created_by_attendee_id: attendee.id,
+            })
+            .select("*")
+            .single();
+        if (createError || !created) throw createError || new Error("INLINE_COMMENT_CREATE_FAILED");
+        thread = created;
+    }
+
+    const { error: messageError } = await client.from("inline_comment_messages").insert({
+        codelab_id: codelabId,
+        thread_id: thread.id,
+        author_role: "attendee",
+        author_id: attendee.id,
+        author_name: attendee.name,
+        message: payload.message.trim(),
+    });
+    if (messageError) throw messageError;
+
+    const refreshed = await getInlineComments(codelabId);
+    const found = refreshed.find((item) => item.id === thread.id);
+    if (!found) throw new Error("INLINE_COMMENT_NOT_FOUND");
+    return found;
+}
+
+export async function replyInlineComment(
+    codelabId: string,
+    threadId: string,
+    payload: { message: string; content_hash: string },
+): Promise<InlineCommentThread> {
+    const client = requireClient();
+    const attendee = getStoredAttendee(codelabId);
+    if (!attendee) throw new Error("ATTENDEE_REQUIRED");
+
+    const { data: thread, error: threadError } = await client
+        .from("inline_comment_threads")
+        .select("*")
+        .eq("codelab_id", codelabId)
+        .eq("id", threadId)
+        .single();
+    if (threadError || !thread) throw threadError || new Error("INLINE_COMMENT_THREAD_NOT_FOUND");
+
+    if ((thread.content_hash || "") !== payload.content_hash.trim()) {
+        throw new Error("STALE_THREAD");
+    }
+
+    const { error: insertError } = await client.from("inline_comment_messages").insert({
+        codelab_id: codelabId,
+        thread_id: threadId,
+        author_role: "attendee",
+        author_id: attendee.id,
+        author_name: attendee.name,
+        message: payload.message.trim(),
+    });
+    if (insertError) throw insertError;
+
+    const refreshed = await getInlineComments(codelabId);
+    const found = refreshed.find((item) => item.id === threadId);
+    if (!found) throw new Error("INLINE_COMMENT_THREAD_NOT_FOUND");
+    return found;
+}
+
+export async function deleteInlineComment(
+    codelabId: string,
+    threadId: string,
+    commentId: string,
+): Promise<void> {
+    const client = requireClient();
+    const attendeeId = getStoredAttendeeId(codelabId);
+    if (!attendeeId) throw new Error("ATTENDEE_REQUIRED");
+
+    const { data: comment, error: commentError } = await client
+        .from("inline_comment_messages")
+        .select("id, thread_id, author_id")
+        .eq("codelab_id", codelabId)
+        .eq("thread_id", threadId)
+        .eq("id", commentId)
+        .single();
+    if (commentError || !comment) throw commentError || new Error("INLINE_COMMENT_NOT_FOUND");
+    if (comment.author_id !== attendeeId) {
+        throw new Error("FORBIDDEN");
+    }
+
+    const { error: deleteError } = await client
+        .from("inline_comment_messages")
+        .delete()
+        .eq("codelab_id", codelabId)
+        .eq("thread_id", threadId)
+        .eq("id", commentId);
+    if (deleteError) throw deleteError;
+
+    const { count, error: countError } = await client
+        .from("inline_comment_messages")
+        .select("id", { count: "exact", head: true })
+        .eq("codelab_id", codelabId)
+        .eq("thread_id", threadId);
+    if (countError) throw countError;
+
+    if ((count || 0) === 0) {
+        const { error: threadDeleteError } = await client
+            .from("inline_comment_threads")
+            .delete()
+            .eq("codelab_id", codelabId)
+            .eq("id", threadId);
+        if (threadDeleteError) throw threadDeleteError;
+    }
+}
+
 export async function uploadImage(file: File): Promise<{ url: string }> {
     const ext = file.name.split(".").pop() || "bin";
     const path = `images/${randomId()}.${ext}`;
@@ -878,6 +1123,37 @@ export function listenToWsReplacement(
         (payload) => {
             const attendee: any = payload.new || payload.old || {};
             callback({ type: "progress_update", attendee });
+        },
+    );
+
+    channel.on(
+        "postgres_changes",
+        {
+            event: "*",
+            schema: "public",
+            table: "inline_comment_threads",
+            filter: `codelab_id=eq.${codelabId}`,
+        },
+        (payload) => {
+            const row: any = payload.new || payload.old || {};
+            callback({
+                type: "inline_comment_changed",
+                target_type: row.target_type,
+                target_step_id: row.target_step_id || null,
+            });
+        },
+    );
+
+    channel.on(
+        "postgres_changes",
+        {
+            event: "*",
+            schema: "public",
+            table: "inline_comment_messages",
+            filter: `codelab_id=eq.${codelabId}`,
+        },
+        (_payload) => {
+            callback({ type: "inline_comment_changed" });
         },
     );
 

@@ -215,6 +215,89 @@ https://your-domain.com/api
 ]
 ```
 
+### Get inline comments
+
+`GET /codelabs/:id/inline-comments`
+
+Optional query params:
+
+- `target_type`: `step` or `guide`
+- `target_step_id`: step ID when `target_type=step`
+
+**Response** (200 OK):
+```json
+[
+  {
+    "id": "thread_xxx",
+    "codelab_id": "codelab_xxx",
+    "anchor_key": "step|step_xxx|hash|12|34",
+    "target_type": "step",
+    "target_step_id": "step_xxx",
+    "start_offset": 12,
+    "end_offset": 34,
+    "selected_text": "Selected text",
+    "content_hash": "abc123",
+    "created_by_attendee_id": "attendee_xxx",
+    "created_at": "2026-02-13T10:20:00Z",
+    "messages": [
+      {
+        "id": "comment_xxx",
+        "thread_id": "thread_xxx",
+        "codelab_id": "codelab_xxx",
+        "author_role": "attendee",
+        "author_id": "attendee_xxx",
+        "author_name": "Jane Doe",
+        "message": "This part is confusing.",
+        "created_at": "2026-02-13T10:20:00Z"
+      }
+    ]
+  }
+]
+```
+
+### Create inline comment
+
+`POST /codelabs/:id/inline-comments`
+
+**Request Body**:
+```json
+{
+  "anchor_key": "step|step_xxx|hash|12|34",
+  "target_type": "step",
+  "target_step_id": "step_xxx",
+  "start_offset": 12,
+  "end_offset": 34,
+  "selected_text": "Selected text",
+  "content_hash": "abc123",
+  "message": "This part is confusing."
+}
+```
+
+If the same `anchor_key` already exists, the server appends a message to the existing thread. Overlapping different ranges return `400`.
+
+### Reply to inline comment
+
+`POST /codelabs/:id/inline-comments/:thread_id/comments`
+
+**Request Body**:
+```json
+{
+  "message": "You can read this concept first.",
+  "content_hash": "abc123"
+}
+```
+
+If `content_hash` differs from the current content, the thread is treated as stale and the server returns `400`.
+
+### Delete inline comment
+
+`DELETE /codelabs/:id/inline-comments/:thread_id/comments/:comment_id`
+
+- Backend mode: author or admin can delete
+- Serverless mode (Supabase/Firebase): author only
+
+When the last message in a thread is deleted, the thread is deleted too.
+
 ## Attendees
 
 ### Register attendee
@@ -579,6 +662,10 @@ https://your-domain.com/api
 
 ```json
 { "type": "help_request", "attendee_id": "attendee_xxx", "step_number": 3 }
+```
+
+```json
+{ "type": "inline_comment_changed", "target_type": "step", "target_step_id": "step_xxx" }
 ```
 
 ## Error responses

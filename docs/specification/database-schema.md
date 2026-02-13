@@ -10,6 +10,8 @@ erDiagram
     CODELABS ||--o{ ATTENDEES : "enrolled_by"
     CODELABS ||--o{ HELP_REQUESTS : "receives"
     CODELABS ||--o{ CHAT_MESSAGES : "stores"
+    CODELABS ||--o{ INLINE_COMMENT_THREADS : "annotates"
+    CODELABS ||--o{ INLINE_COMMENT_MESSAGES : "stores"
     CODELABS ||--o{ FEEDBACK : "collects"
     CODELABS ||--o{ MATERIALS : "provides"
     CODELABS ||--o{ QUIZZES : "includes"
@@ -20,6 +22,8 @@ erDiagram
     CODELABS ||--o{ AUDIT_LOGS : "audits"
     
     ATTENDEES ||--o{ HELP_REQUESTS : "makes"
+    ATTENDEES ||--o{ INLINE_COMMENT_THREADS : "creates"
+    INLINE_COMMENT_THREADS ||--o{ INLINE_COMMENT_MESSAGES : "contains"
     ATTENDEES ||--o{ FEEDBACK : "submits"
     ATTENDEES ||--o{ QUIZ_SUBMISSIONS : "answers"
     ATTENDEES ||--o{ SUBMISSIONS : "uploads"
@@ -168,6 +172,72 @@ CREATE TABLE IF NOT EXISTS chat_messages (
 | `msg_type` | VARCHAR | 타입 (chat/dm) | DEFAULT 'chat' |
 | `target_id` | VARCHAR | DM 대상 ID (Attendee ID) | - |
 | `created_at` | TEXT | 전송 시간 | DEFAULT CURRENT_TIMESTAMP |
+
+### inline_comment_threads
+
+본문(Guide/Step) 하이라이트 앵커와 스레드 메타데이터를 저장합니다.
+
+```sql
+CREATE TABLE IF NOT EXISTS inline_comment_threads (
+    id VARCHAR(255) PRIMARY KEY NOT NULL,
+    codelab_id VARCHAR(255) NOT NULL,
+    anchor_key VARCHAR(512) NOT NULL,
+    target_type VARCHAR(16) NOT NULL,
+    target_step_id VARCHAR(255),
+    start_offset INTEGER NOT NULL,
+    end_offset INTEGER NOT NULL,
+    selected_text TEXT NOT NULL,
+    content_hash VARCHAR(128) NOT NULL,
+    created_by_attendee_id VARCHAR(255) NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (codelab_id) REFERENCES codelabs(id) ON DELETE CASCADE,
+    UNIQUE (codelab_id, anchor_key)
+);
+```
+
+| 컬럼 | 타입 | 설명 | 제약 |
+|------|------|------|------|
+| `id` | VARCHAR | UUID | PRIMARY KEY |
+| `codelab_id` | VARCHAR | Codelab ID | FOREIGN KEY |
+| `anchor_key` | VARCHAR | 고유 하이라이트 키 | UNIQUE (with codelab_id) |
+| `target_type` | VARCHAR | 대상 타입 (`step`/`guide`) | NOT NULL |
+| `target_step_id` | VARCHAR | Step ID (`target_type=step`일 때) | - |
+| `start_offset` | INTEGER | 시작 오프셋 | NOT NULL |
+| `end_offset` | INTEGER | 종료 오프셋 | NOT NULL |
+| `selected_text` | TEXT | 선택 텍스트 원문 | NOT NULL |
+| `content_hash` | VARCHAR | 본문 버전 해시 | NOT NULL |
+| `created_by_attendee_id` | VARCHAR | 생성자 참가자 ID | NOT NULL |
+| `created_at` | TEXT | 생성 시간 | DEFAULT CURRENT_TIMESTAMP |
+
+### inline_comment_messages
+
+인라인 코멘트 스레드 내 메시지를 저장합니다.
+
+```sql
+CREATE TABLE IF NOT EXISTS inline_comment_messages (
+    id VARCHAR(255) PRIMARY KEY NOT NULL,
+    thread_id VARCHAR(255) NOT NULL,
+    codelab_id VARCHAR(255) NOT NULL,
+    author_role VARCHAR(16) NOT NULL,
+    author_id VARCHAR(255) NOT NULL,
+    author_name VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (thread_id) REFERENCES inline_comment_threads(id) ON DELETE CASCADE,
+    FOREIGN KEY (codelab_id) REFERENCES codelabs(id) ON DELETE CASCADE
+);
+```
+
+| 컬럼 | 타입 | 설명 | 제약 |
+|------|------|------|------|
+| `id` | VARCHAR | UUID | PRIMARY KEY |
+| `thread_id` | VARCHAR | 스레드 ID | FOREIGN KEY |
+| `codelab_id` | VARCHAR | Codelab ID | FOREIGN KEY |
+| `author_role` | VARCHAR | 작성자 역할 (`attendee`/`admin`) | NOT NULL |
+| `author_id` | VARCHAR | 작성자 식별자 | NOT NULL |
+| `author_name` | VARCHAR | 작성자 표시명 | NOT NULL |
+| `message` | TEXT | 메시지 본문 | NOT NULL |
+| `created_at` | TEXT | 생성 시간 | DEFAULT CURRENT_TIMESTAMP |
 
 ### feedback
 
@@ -417,3 +487,4 @@ CREATE TABLE IF NOT EXISTS ai_conversations (
 17. `20260129100000_add_workspace_structure_type.sql`: 워크스페이스 구조 유형 추가
 18. `20260130000000_add_email_to_attendees.sql`: 참가자 이메일 필드 추가
 19. `20260130010000_ai_conversations.sql`: AI 대화 테이블 생성
+20. `20260213200000_inline_comments.sql`: 인라인 코멘트 스레드/메시지 테이블 생성

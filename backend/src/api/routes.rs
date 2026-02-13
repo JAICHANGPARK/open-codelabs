@@ -21,6 +21,9 @@ use crate::api::handlers::{
         read_folder_file, update_branch_files, update_folder_files,
     },
     feedback::{get_feedback, submit_feedback},
+    inline_comments::{
+        create_inline_comment, delete_inline_comment, get_inline_comments, reply_inline_comment,
+    },
     materials::{add_material, delete_material, get_materials, upload_material_file},
     quizzes::{get_quiz_submissions, get_quizzes, submit_quiz, update_quizzes},
     submissions::{delete_submission, get_submissions, submit_file, submit_link},
@@ -118,6 +121,18 @@ fn codelab_routes() -> Router<Arc<AppState>> {
             delete(delete_submission),
         )
         .route("/api/codelabs/{id}/chat", get(get_chat_history))
+        .route(
+            "/api/codelabs/{id}/inline-comments",
+            get(get_inline_comments).post(create_inline_comment),
+        )
+        .route(
+            "/api/codelabs/{id}/inline-comments/{thread_id}/comments",
+            post(reply_inline_comment),
+        )
+        .route(
+            "/api/codelabs/{id}/inline-comments/{thread_id}/comments/{comment_id}",
+            delete(delete_inline_comment),
+        )
         .route(
             "/api/codelabs/{id}/ai/conversations",
             get(get_ai_conversations),

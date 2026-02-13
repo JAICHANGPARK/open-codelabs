@@ -1,9 +1,9 @@
 import * as backend from './api-backend';
 import * as firebase from './api-firebase';
 import * as supabase from './api-supabase';
-import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload } from './types';
+import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload, InlineCommentThread, InlineCommentMessage, InlineCommentTarget, CreateInlineCommentPayload } from './types';
 
-export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload };
+export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload, InlineCommentThread, InlineCommentMessage, InlineCommentTarget, CreateInlineCommentPayload };
 
 const USE_SUPABASE = import.meta.env.VITE_USE_SUPABASE === 'true';
 const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true' && !USE_SUPABASE;
@@ -118,6 +118,26 @@ export const getChatHistory = USE_SUPABASE
     : USE_FIREBASE
         ? firebase.getChatHistory
         : backend.getChatHistory;
+export const getInlineComments = USE_SUPABASE
+    ? supabase.getInlineComments
+    : USE_FIREBASE
+        ? firebase.getInlineComments
+        : backend.getInlineComments;
+export const createInlineComment = USE_SUPABASE
+    ? supabase.createInlineComment
+    : USE_FIREBASE
+        ? firebase.createInlineComment
+        : backend.createInlineComment;
+export const replyInlineComment = USE_SUPABASE
+    ? supabase.replyInlineComment
+    : USE_FIREBASE
+        ? firebase.replyInlineComment
+        : backend.replyInlineComment;
+export const deleteInlineComment = USE_SUPABASE
+    ? supabase.deleteInlineComment
+    : USE_FIREBASE
+        ? firebase.deleteInlineComment
+        : backend.deleteInlineComment;
 export const sendChatMessage = USE_SUPABASE
     ? supabase.sendChatMessage
     : USE_FIREBASE
