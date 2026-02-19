@@ -1,0 +1,127 @@
+{
+  "generated_at_utc": "2026-02-19T09:46:36.148396+00:00",
+  "started_at_utc": "2026-02-19T09:45:49.014221+00:00",
+  "ended_at_utc": "2026-02-19T09:46:36.148337+00:00",
+  "config": {
+    "base_url": "http://localhost:8080",
+    "admin_id": "admin",
+    "duration_secs": 20,
+    "cycle_interval_secs": 20,
+    "backend_pid": null,
+    "local_attendees": 3,
+    "local_read_requests": 12,
+    "local_write_requests": 8,
+    "local_read_concurrency": 3,
+    "local_write_concurrency": 2,
+    "ws_users": "5",
+    "ws_duration_secs": 8,
+    "ws_chat_rate": 0.5,
+    "ws_step_interval_secs": 7,
+    "restart_cmd": "",
+    "restart_at_secs": 10,
+    "ready_check_url": "http://localhost:8080/api/login",
+    "ready_timeout_secs": 180,
+    "output": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/soak/soak.json"
+  },
+  "summary": {
+    "cycles": 1,
+    "ok_cycles": 1,
+    "failed_cycles": 0,
+    "cycle_success_rate": 1.0,
+    "cycle_duration_ms": {
+      "mean": 47133.38354200096,
+      "p50": 47133.38354200096,
+      "p95": 47133.38354200096,
+      "p99": 47133.38354200096,
+      "max": 47133.38354200096
+    },
+    "backend_cpu_percent": {
+      "samples": 0,
+      "mean": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "backend_rss_mb": {
+      "samples": 0,
+      "mean": 0.0,
+      "p95": 0.0,
+      "max": 0.0
+    },
+    "restart_event": null
+  },
+  "cycles": [
+    {
+      "cycle": 1,
+      "elapsed_secs": 0,
+      "ok": true,
+      "duration_ms": 47133.38354200096,
+      "local_bench": {
+        "cmd": [
+          "cargo",
+          "run",
+          "--release",
+          "--bin",
+          "local_bench",
+          "--",
+          "--base-url",
+          "http://localhost:8080",
+          "--admin-id",
+          "admin",
+          "--admin-pw",
+          "admin",
+          "--attendees",
+          "3",
+          "--read-requests",
+          "12",
+          "--write-requests",
+          "8",
+          "--read-concurrency",
+          "3",
+          "--write-concurrency",
+          "2",
+          "--output",
+          "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/soak/cycle-0001-local.json"
+        ],
+        "exit_code": 0,
+        "duration_ms": 28551.388916996075,
+        "stdout_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/soak/soak-logs/cycle-0001-local.stdout.log",
+        "stderr_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/soak/soak-logs/cycle-0001-local.stderr.log"
+      },
+      "ws_bench": {
+        "cmd": [
+          "cargo",
+          "run",
+          "--release",
+          "--bin",
+          "ws_bench",
+          "--",
+          "--base-url",
+          "http://localhost:8080",
+          "--admin-id",
+          "admin",
+          "--admin-pw",
+          "admin",
+          "--users",
+          "5",
+          "--duration-secs",
+          "8",
+          "--chat-rate",
+          "0.5",
+          "--step-interval-secs",
+          "7",
+          "--output",
+          "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/soak/cycle-0001-ws.json"
+        ],
+        "exit_code": 0,
+        "duration_ms": 18580.604292001226,
+        "stdout_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/soak/soak-logs/cycle-0001-ws.stdout.log",
+        "stderr_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/soak/soak-logs/cycle-0001-ws.stderr.log"
+      },
+      "resources": null,
+      "outputs": {
+        "local_json": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/soak/cycle-0001-local.json",
+        "ws_json": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/soak/cycle-0001-ws.json"
+      }
+    }
+  ]
+}

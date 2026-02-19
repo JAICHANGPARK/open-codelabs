@@ -1,5 +1,3 @@
-import { browser } from '$app/environment';
-
 export interface WebRTCSignal {
     type: 'offer' | 'answer' | 'candidate';
     sdp?: RTCSessionDescriptionInit;
@@ -62,7 +60,7 @@ export class ScreenShareService {
     }
 
     async startScreenShare(preset: QualityPreset = 'auto'): Promise<MediaStream | null> {
-        if (!browser) return null;
+        if (typeof window === "undefined" || typeof navigator === "undefined") return null;
         this.currentPreset = preset;
         const config = preset === 'auto' ? AUTO_CONFIG : QUALITY_PRESETS[preset];
 

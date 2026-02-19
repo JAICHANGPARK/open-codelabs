@@ -153,7 +153,7 @@ pub async fn update_settings(
     Ok(StatusCode::OK)
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, PartialEq, Eq)]
 pub struct UpdateStatus {
     current: Option<String>,
     latest: Option<String>,
@@ -172,9 +172,12 @@ pub struct GhcrTagsResponse {
     tags: Option<Vec<String>>,
 }
 
+#[rustfmt::skip]
 async fn fetch_latest_tag(image: &str) -> Result<Option<String>, String> {
-    let url = format!("https://ghcr.io/v2/{}/tags/list", image);
+    let base = std::env::var("GHCR_API_BASE").unwrap_or_else(|_| "https://ghcr.io/v2".to_string());
+    let url = format!("{}/{}/tags/list", base.trim_end_matches('/'), image);
     let client = reqwest::Client::builder()
+        .no_proxy()
         .timeout(std::time::Duration::from_secs(5))
         .build()
         .map_err(|e| format!("http client error: {}", e))?;
@@ -183,13 +186,12 @@ async fn fetch_latest_tag(image: &str) -> Result<Option<String>, String> {
         .send()
         .await
         .map_err(|e| format!("request error: {}", e))?;
-    if !res.status().is_success() {
-        return Err(format!("ghcr status {}", res.status()));
-    }
-    let data: GhcrTagsResponse = res.json().await.map_err(|e| e.to_string())?;
-    let tags = data.tags.unwrap_or_default();
+    if res.status().is_success() { res.json::<GhcrTagsResponse>().await.map(|data| pick_latest_tag(data.tags.unwrap_or_default())).map_err(|e| e.to_string()) } else { Err(format!("ghcr status {}", res.status())) }
+}
+
+fn pick_latest_tag(tags: Vec<String>) -> Option<String> {
     if tags.is_empty() {
-        return Ok(None);
+        return None;
     }
     let mut semver_tags: Vec<(String, (u64, u64, u64))> = tags
         .iter()
@@ -197,14 +199,14 @@ async fn fetch_latest_tag(image: &str) -> Result<Option<String>, String> {
         .collect();
     if !semver_tags.is_empty() {
         semver_tags.sort_by(|a, b| a.1.cmp(&b.1));
-        return Ok(Some(semver_tags.last().unwrap().0.clone()));
+        return Some(semver_tags.last().expect("non-empty").0.clone());
     }
     if tags.iter().any(|t| t == "latest") {
-        return Ok(Some("latest".to_string()));
+        return Some("latest".to_string());
     }
     let mut sorted = tags.clone();
     sorted.sort();
-    Ok(sorted.last().cloned())
+    sorted.last().cloned()
 }
 
 fn parse_semver(tag: &str) -> Option<(u64, u64, u64)> {
@@ -219,6 +221,29 @@ fn parse_semver(tag: &str) -> Option<(u64, u64, u64)> {
     Some((major, minor, patch))
 }
 
+fn build_update_status(
+    current: Option<String>,
+    latest_result: Result<Option<String>, String>,
+) -> UpdateStatus {
+    match latest_result {
+        Ok(latest) => UpdateStatus {
+            current: current.clone(),
+            latest: latest.clone(),
+            update_available: latest
+                .as_ref()
+                .and_then(|l| current.as_ref().map(|c| l != c))
+                .unwrap_or(false),
+            error: None,
+        },
+        Err(err) => UpdateStatus {
+            current,
+            latest: None,
+            update_available: false,
+            error: Some(err),
+        },
+    }
+}
+
 pub async fn check_updates(
     State(_state): State<Arc<AppState>>,
     session: AuthSession,
@@ -231,41 +256,8 @@ pub async fn check_updates(
     let frontend_latest = fetch_latest_tag("jaichangpark/open-codelabs-frontend").await;
     let backend_latest = fetch_latest_tag("jaichangpark/open-codelabs-backend").await;
 
-    let frontend_status = match frontend_latest {
-        Ok(latest) => UpdateStatus {
-            current: frontend_current.clone(),
-            latest: latest.clone(),
-            update_available: latest
-                .as_ref()
-                .and_then(|l| frontend_current.as_ref().map(|c| l != c))
-                .unwrap_or(false),
-            error: None,
-        },
-        Err(err) => UpdateStatus {
-            current: frontend_current,
-            latest: None,
-            update_available: false,
-            error: Some(err),
-        },
-    };
-
-    let backend_status = match backend_latest {
-        Ok(latest) => UpdateStatus {
-            current: backend_current.clone(),
-            latest: latest.clone(),
-            update_available: latest
-                .as_ref()
-                .and_then(|l| backend_current.as_ref().map(|c| l != c))
-                .unwrap_or(false),
-            error: None,
-        },
-        Err(err) => UpdateStatus {
-            current: backend_current,
-            latest: None,
-            update_available: false,
-            error: Some(err),
-        },
-    };
+    let frontend_status = build_update_status(frontend_current, frontend_latest);
+    let backend_status = build_update_status(backend_current, backend_latest);
 
     Ok(Json(UpdateCheckResponse {
         frontend: frontend_status,
@@ -311,7 +303,19 @@ pub async fn get_session(
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use crate::utils::crypto::{decrypt_with_password, encrypt_with_password, ENCRYPTION_PREFIX};
+    use std::sync::{LazyLock, Mutex};
+
+    static GHCR_ENV_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
+
+    fn restore_ghcr_api_base(previous: Option<String>) {
+        if let Some(value) = previous {
+            std::env::set_var("GHCR_API_BASE", value);
+        } else {
+            std::env::remove_var("GHCR_API_BASE");
+        }
+    }
 
     #[test]
     fn test_password_encryption_round_trip() {
@@ -321,5 +325,99 @@ mod tests {
         assert!(encrypted.starts_with(ENCRYPTION_PREFIX));
         let decrypted = decrypt_with_password(&encrypted, password).expect("decrypt");
         assert_eq!(text, decrypted);
+    }
+
+    #[test]
+    fn test_parse_semver_variants() {
+        assert_eq!(parse_semver("v1.2.3"), Some((1, 2, 3)));
+        assert_eq!(parse_semver("2.10.7"), Some((2, 10, 7)));
+        assert_eq!(parse_semver("1.2"), None);
+        assert_eq!(parse_semver("1.2.x"), None);
+    }
+
+    #[test]
+    fn test_pick_latest_tag_prefers_semver_then_latest_then_lexicographic() {
+        assert_eq!(
+            pick_latest_tag(vec![
+                "v1.2.0".to_string(),
+                "v1.10.0".to_string(),
+                "v1.3.9".to_string(),
+            ]),
+            Some("v1.10.0".to_string())
+        );
+        assert_eq!(
+            pick_latest_tag(vec!["alpha".to_string(), "latest".to_string()]),
+            Some("latest".to_string())
+        );
+        assert_eq!(
+            pick_latest_tag(vec!["beta".to_string(), "alpha".to_string()]),
+            Some("beta".to_string())
+        );
+        assert_eq!(pick_latest_tag(vec![]), None);
+    }
+
+    #[test]
+    fn test_build_update_status_covers_ok_and_error_paths() {
+        let ok = build_update_status(Some("1.0.0".to_string()), Ok(Some("1.1.0".to_string())));
+        assert_eq!(
+            ok,
+            UpdateStatus {
+                current: Some("1.0.0".to_string()),
+                latest: Some("1.1.0".to_string()),
+                update_available: true,
+                error: None,
+            }
+        );
+
+        let same = build_update_status(Some("1.1.0".to_string()), Ok(Some("1.1.0".to_string())));
+        assert!(!same.update_available);
+
+        let missing = build_update_status(None, Ok(Some("1.1.0".to_string())));
+        assert!(!missing.update_available);
+
+        let err = build_update_status(Some("1.0.0".to_string()), Err("network".to_string()));
+        assert_eq!(err.latest, None);
+        assert!(!err.update_available);
+        assert_eq!(err.error.as_deref(), Some("network"));
+    }
+
+    #[test]
+    fn test_restore_ghcr_api_base_removes_var_when_previous_missing() {
+        let _env_lock = GHCR_ENV_LOCK.lock().expect("ghcr env lock");
+        let original = std::env::var("GHCR_API_BASE").ok();
+        std::env::set_var("GHCR_API_BASE", "http://temp.example/v2");
+
+        restore_ghcr_api_base(None);
+        assert!(std::env::var("GHCR_API_BASE").is_err());
+
+        restore_ghcr_api_base(original);
+    }
+
+    #[test]
+    fn test_restore_ghcr_api_base_restores_existing_value() {
+        let _env_lock = GHCR_ENV_LOCK.lock().expect("ghcr env lock");
+        let original = std::env::var("GHCR_API_BASE").ok();
+        std::env::set_var("GHCR_API_BASE", "http://temp.example/v2");
+
+        restore_ghcr_api_base(Some("http://restored.example/v2".to_string()));
+        assert_eq!(
+            std::env::var("GHCR_API_BASE").as_deref(),
+            Ok("http://restored.example/v2")
+        );
+
+        restore_ghcr_api_base(original);
+    }
+
+    #[tokio::test]
+    async fn test_fetch_latest_tag_reports_request_error_for_unreachable_base() {
+        let _env_lock = GHCR_ENV_LOCK.lock().expect("ghcr env lock");
+        let previous = std::env::var("GHCR_API_BASE").ok();
+        std::env::set_var("GHCR_API_BASE", "http://127.0.0.1:9/v2");
+        let err = fetch_latest_tag("repo")
+            .await
+            .expect_err("request should fail");
+        assert!(err.contains("request error"), "unexpected error: {err}");
+
+        restore_ghcr_api_base(previous);
     }
 }

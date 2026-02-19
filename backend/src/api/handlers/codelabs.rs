@@ -364,14 +364,16 @@ pub async fn export_codelab(
     }
 
     // Add preparation guide (if present)
-    if let Some(guide_markdown) = codelab.guide_markdown.as_deref() {
-        let guide_markdown = guide_markdown.trim();
-        if !guide_markdown.is_empty() {
-            zip.start_file("preparation_guide.md", options)
-                .map_err(internal_error)?;
-            zip.write_all(guide_markdown.as_bytes())
-                .map_err(internal_error)?;
-        }
+    if let Some(guide_markdown) = codelab
+        .guide_markdown
+        .as_deref()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+    {
+        zip.start_file("preparation_guide.md", options)
+            .map_err(internal_error)?;
+        zip.write_all(guide_markdown.as_bytes())
+            .map_err(internal_error)?;
     }
 
     zip.finish().map_err(internal_error)?;

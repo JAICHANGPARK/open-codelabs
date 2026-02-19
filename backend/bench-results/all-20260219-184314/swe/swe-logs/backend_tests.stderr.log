@@ -1,0 +1,10 @@
+   Compiling backend v0.1.0 (/Users/jaichang/Documents/GitHub/open-codelabs/backend)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 6.68s
+     Running unittests src/lib.rs (target/debug/deps/backend-3f2113c9f7b0db97)
+     Running unittests src/main.rs (target/debug/deps/backend-b275df3c195076a8)
+     Running unittests src/bin/local_bench.rs (target/debug/deps/local_bench-ad825eea51e838bb)
+     Running unittests src/bin/ops_bench.rs (target/debug/deps/ops_bench-4c6bf194597b127a)
+     Running unittests src/bin/ws_bench.rs (target/debug/deps/ws_bench-add167612e09ea22)
+     Running tests/api_tests.rs (target/debug/deps/api_tests-068311837831623f)
+     Running tests/visibility_test.rs (target/debug/deps/visibility_test-c2144da8fa6ed407)
+   Doc-tests backend

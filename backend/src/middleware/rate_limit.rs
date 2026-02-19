@@ -73,3 +73,51 @@ fn env_u32(key: &str, default: u32) -> u32 {
         .and_then(|value| value.parse::<u32>().ok())
         .unwrap_or(default)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn check_blocks_when_limit_reached() {
+        let limiter = RateLimiter::new();
+        let key = "login:127.0.0.1";
+        let window = Duration::from_secs(60);
+
+        assert!(limiter.check(key, 1, window));
+        assert!(!limiter.check(key, 1, window));
+    }
+
+    #[tokio::test]
+    async fn check_allows_after_window_expires() {
+        let limiter = RateLimiter::new();
+        let key = "ai:127.0.0.1";
+        let window = Duration::from_millis(1);
+
+        assert!(limiter.check(key, 1, window));
+        tokio::time::sleep(Duration::from_millis(3)).await;
+        assert!(limiter.check(key, 1, window));
+    }
+
+    #[test]
+    fn env_u32_parses_and_falls_back() {
+        let key = "RATE_LIMIT_TEST_KEY";
+
+        std::env::set_var(key, "42");
+        assert_eq!(env_u32(key, 7), 42);
+
+        std::env::set_var(key, "not-a-number");
+        assert_eq!(env_u32(key, 7), 7);
+
+        std::env::remove_var(key);
+    }
+
+    #[test]
+    fn from_env_populates_windows() {
+        let config = RateLimitConfig::from_env();
+        assert_eq!(config.general_window, Duration::from_secs(60));
+        assert_eq!(config.login_window, Duration::from_secs(5 * 60));
+        assert_eq!(config.ai_window, Duration::from_secs(60));
+        assert_eq!(config.upload_window, Duration::from_secs(60));
+    }
+}

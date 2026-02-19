@@ -1,0 +1,11 @@
+Loading svelte-check in workspace: /Users/jaichang/Documents/GitHub/open-codelabs/frontend
+Getting Svelte diagnostics...
+
+/Users/jaichang/Documents/GitHub/open-codelabs/frontend/src/lib/components/admin/EditMode.svelte:681:9
+Warn: Also define the standard property 'mask' for compatibility (css)
+        background-size: 220% 220%;
+        -webkit-mask:
+            linear-gradient(#000 0 0) content-box,
+
+====================================
+svelte-check found 0 errors and 1 warning in 1 file

@@ -1,0 +1,729 @@
+{
+  "generated_at_utc": "2026-02-19T10:52:09.337649+00:00",
+  "config": {
+    "base_url": "http://localhost:5173",
+    "routes": [
+      "/",
+      "/admin",
+      "/codelabs"
+    ],
+    "concurrency": [
+      10,
+      30,
+      60
+    ],
+    "requests_per_case": 300,
+    "repeats": 3,
+    "timeout_secs": 10.0,
+    "warmup_requests": 20,
+    "output": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193826/frontend/frontend-bench-20260219-193838.json"
+  },
+  "cases": [
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 9280.18691699981,
+      "requests_per_second": 32.32693508041829,
+      "latency_ms": {
+        "min": 27.60550000675721,
+        "mean": 304.7531073297675,
+        "p50": 269.268688000011,
+        "p95": 521.5150208561682,
+        "p99": 556.9338440803404,
+        "max": 575.3073750020121
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/",
+      "full_url": "http://localhost:5173/",
+      "concurrency": 10,
+      "repeat": 1
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 8384.870374997263,
+      "requests_per_second": 35.778728421916476,
+      "latency_ms": {
+        "min": 43.14804100431502,
+        "mean": 275.859248470224,
+        "p50": 250.87264549802057,
+        "p95": 379.21424345076963,
+        "p99": 675.2970718383584,
+        "max": 692.7738750018761
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/",
+      "full_url": "http://localhost:5173/",
+      "concurrency": 10,
+      "repeat": 2
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 7277.19670800434,
+      "requests_per_second": 41.22466549104325,
+      "latency_ms": {
+        "min": 23.312167002586648,
+        "mean": 238.8063498433621,
+        "p50": 241.62941650138237,
+        "p95": 265.821581248747,
+        "p99": 295.59916482401604,
+        "max": 296.9440000015311
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/",
+      "full_url": "http://localhost:5173/",
+      "concurrency": 10,
+      "repeat": 3
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 7296.024875002331,
+      "requests_per_second": 41.118280863852476,
+      "latency_ms": {
+        "min": 23.15933399950154,
+        "mean": 694.6483990433384,
+        "p50": 719.0564375014219,
+        "p95": 784.8622767971393,
+        "p99": 796.5699775870598,
+        "max": 798.2779580052011
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/",
+      "full_url": "http://localhost:5173/",
+      "concurrency": 30,
+      "repeat": 1
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 7433.424040995305,
+      "requests_per_second": 40.35825190995443,
+      "latency_ms": {
+        "min": 24.493333003192674,
+        "mean": 707.8025877399826,
+        "p50": 730.9590839977318,
+        "p95": 848.5152541521529,
+        "p99": 858.5177526779444,
+        "max": 863.1635000056121
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/",
+      "full_url": "http://localhost:5173/",
+      "concurrency": 30,
+      "repeat": 2
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 7399.3504169993685,
+      "requests_per_second": 40.544099561871796,
+      "latency_ms": {
+        "min": 25.787374994251877,
+        "mean": 700.0971952799833,
+        "p50": 699.5894789979502,
+        "p95": 820.1554452032724,
+        "p99": 878.4923991747927,
+        "max": 890.6451250004466
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/",
+      "full_url": "http://localhost:5173/",
+      "concurrency": 30,
+      "repeat": 3
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 7839.233374994365,
+      "requests_per_second": 38.26904821547243,
+      "latency_ms": {
+        "min": 27.535791996342596,
+        "mean": 1419.5447507133456,
+        "p50": 1542.7846245002002,
+        "p95": 1637.084268451872,
+        "p99": 1662.0002158296118,
+        "max": 1663.7737920027575
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/",
+      "full_url": "http://localhost:5173/",
+      "concurrency": 60,
+      "repeat": 1
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 7555.980875004025,
+      "requests_per_second": 39.70364734411007,
+      "latency_ms": {
+        "min": 26.470583994523622,
+        "mean": 1356.2617322267517,
+        "p50": 1493.2277290026832,
+        "p95": 1567.933954495311,
+        "p99": 1574.0763862490712,
+        "max": 1576.027791998058
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/",
+      "full_url": "http://localhost:5173/",
+      "concurrency": 60,
+      "repeat": 2
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 7428.4441670024535,
+      "requests_per_second": 40.38530724005655,
+      "latency_ms": {
+        "min": 27.055416998337023,
+        "mean": 1340.7680898666877,
+        "p50": 1484.8836665005365,
+        "p95": 1518.2931833445764,
+        "p99": 1523.5902562531555,
+        "max": 1524.6623329949216
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/",
+      "full_url": "http://localhost:5173/",
+      "concurrency": 60,
+      "repeat": 3
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 8346.903541001666,
+      "requests_per_second": 35.94147201130812,
+      "latency_ms": {
+        "min": 28.024499995808583,
+        "mean": 273.9744777400968,
+        "p50": 271.02422900134115,
+        "p95": 330.1019232556428,
+        "p99": 410.93100882833824,
+        "max": 417.2532919983496
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/admin",
+      "full_url": "http://localhost:5173/admin",
+      "concurrency": 10,
+      "repeat": 1
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 17971.556249998685,
+      "requests_per_second": 16.693045155731685,
+      "latency_ms": {
+        "min": 26.363333003246225,
+        "mean": 594.0785326199693,
+        "p50": 396.88993749950896,
+        "p95": 2476.8222315942708,
+        "p99": 2914.7644154937725,
+        "max": 3185.191416996531
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/admin",
+      "full_url": "http://localhost:5173/admin",
+      "concurrency": 10,
+      "repeat": 2
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 9720.512291998602,
+      "requests_per_second": 30.862570920973344,
+      "latency_ms": {
+        "min": 27.872457998455502,
+        "mean": 318.91046247629373,
+        "p50": 290.04620849809726,
+        "p95": 489.8391771017487,
+        "p99": 561.2711242453952,
+        "max": 570.6614579976304
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/admin",
+      "full_url": "http://localhost:5173/admin",
+      "concurrency": 10,
+      "repeat": 3
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 10265.419750001456,
+      "requests_per_second": 29.224328600879417,
+      "latency_ms": {
+        "min": 25.82395799981896,
+        "mean": 989.886014979808,
+        "p50": 824.5265834993916,
+        "p95": 2443.555035100144,
+        "p99": 2717.156210168687,
+        "max": 2732.768624999153
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/admin",
+      "full_url": "http://localhost:5173/admin",
+      "concurrency": 30,
+      "repeat": 1
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 7967.554916001973,
+      "requests_per_second": 37.65270564969467,
+      "latency_ms": {
+        "min": 23.970499998540618,
+        "mean": 759.251278990123,
+        "p50": 779.3241875006061,
+        "p95": 868.3258964516426,
+        "p99": 891.9366712483315,
+        "max": 894.3115829970338
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/admin",
+      "full_url": "http://localhost:5173/admin",
+      "concurrency": 30,
+      "repeat": 2
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 8014.23674999387,
+      "requests_per_second": 37.43338378420496,
+      "latency_ms": {
+        "min": 27.15895800065482,
+        "mean": 762.2604192165696,
+        "p50": 792.2033125032613,
+        "p95": 841.8412979001005,
+        "p99": 846.1597510820866,
+        "max": 849.4740840033046
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/admin",
+      "full_url": "http://localhost:5173/admin",
+      "concurrency": 30,
+      "repeat": 3
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 10549.109250001493,
+      "requests_per_second": 28.438420049537125,
+      "latency_ms": {
+        "min": 27.389666996896267,
+        "mean": 1894.7750221166402,
+        "p50": 1998.1390835018829,
+        "p95": 3049.809869399542,
+        "p99": 3182.6534134200483,
+        "max": 3200.772042000608
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/admin",
+      "full_url": "http://localhost:5173/admin",
+      "concurrency": 60,
+      "repeat": 1
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 8663.30291700433,
+      "requests_per_second": 34.62882492671012,
+      "latency_ms": {
+        "min": 31.200999997963663,
+        "mean": 1566.6051986131545,
+        "p50": 1716.225250496791,
+        "p95": 1848.5316128499107,
+        "p99": 1887.977483509676,
+        "max": 1892.3270000013872
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/admin",
+      "full_url": "http://localhost:5173/admin",
+      "concurrency": 60,
+      "repeat": 2
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 10461.193583003478,
+      "requests_per_second": 28.677415977409723,
+      "latency_ms": {
+        "min": 30.356541006767657,
+        "mean": 1925.2628435933489,
+        "p50": 1822.3669999970298,
+        "p95": 3313.1765441001335,
+        "p99": 3340.513525425049,
+        "max": 3346.046667000337
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/admin",
+      "full_url": "http://localhost:5173/admin",
+      "concurrency": 60,
+      "repeat": 3
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 11890.54995799961,
+      "requests_per_second": 25.230119806037134,
+      "latency_ms": {
+        "min": 33.624957999563776,
+        "mean": 392.8895052931087,
+        "p50": 350.8169375018042,
+        "p95": 873.9078000038719,
+        "p99": 1543.0383674967013,
+        "max": 1647.057375004806
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/codelabs",
+      "full_url": "http://localhost:5173/codelabs",
+      "concurrency": 10,
+      "repeat": 1
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 7948.554292001063,
+      "requests_per_second": 37.74271257125356,
+      "latency_ms": {
+        "min": 22.485583001980558,
+        "mean": 261.0444557333297,
+        "p50": 249.34316700091586,
+        "p95": 382.14047470428346,
+        "p99": 558.4675995820726,
+        "max": 570.5029579985421
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/codelabs",
+      "full_url": "http://localhost:5173/codelabs",
+      "concurrency": 10,
+      "repeat": 2
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 8144.542915993952,
+      "requests_per_second": 36.834479613444124,
+      "latency_ms": {
+        "min": 24.390415994275827,
+        "mean": 266.93625720004394,
+        "p50": 265.6645419992856,
+        "p95": 324.19527499732794,
+        "p99": 336.00745475589065,
+        "max": 338.81308299896773
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/codelabs",
+      "full_url": "http://localhost:5173/codelabs",
+      "concurrency": 10,
+      "repeat": 3
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 16180.126375002146,
+      "requests_per_second": 18.541264329275684,
+      "latency_ms": {
+        "min": 31.47575000184588,
+        "mean": 1572.1788459802094,
+        "p50": 1478.2476460022735,
+        "p95": 2768.544991353702,
+        "p99": 2949.6239419898484,
+        "max": 2958.386124999379
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/codelabs",
+      "full_url": "http://localhost:5173/codelabs",
+      "concurrency": 30,
+      "repeat": 1
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 11837.004207998689,
+      "requests_per_second": 25.344250515453837,
+      "latency_ms": {
+        "min": 27.674875003867783,
+        "mean": 1127.1813025435888,
+        "p50": 1074.197791498591,
+        "p95": 2064.891968099255,
+        "p99": 2186.909148336199,
+        "max": 2211.727499998233
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/codelabs",
+      "full_url": "http://localhost:5173/codelabs",
+      "concurrency": 30,
+      "repeat": 2
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 10030.912041998818,
+      "requests_per_second": 29.907549656892442,
+      "latency_ms": {
+        "min": 37.841833000129554,
+        "mean": 947.2385396000269,
+        "p50": 970.0289165011782,
+        "p95": 1194.1165506043035,
+        "p99": 1241.2093452516274,
+        "max": 1259.9995839991607
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/codelabs",
+      "full_url": "http://localhost:5173/codelabs",
+      "concurrency": 30,
+      "repeat": 3
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 8414.564165999764,
+      "requests_per_second": 35.65247041696971,
+      "latency_ms": {
+        "min": 46.43404200032819,
+        "mean": 1514.7654204267747,
+        "p50": 1601.6522704994713,
+        "p95": 1906.282966998333,
+        "p99": 1919.3401540835475,
+        "max": 1922.7949999985867
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/codelabs",
+      "full_url": "http://localhost:5173/codelabs",
+      "concurrency": 60,
+      "repeat": 1
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 7860.660250000365,
+      "requests_per_second": 38.1647330451645,
+      "latency_ms": {
+        "min": 27.855583000928164,
+        "mean": 1412.9683337568713,
+        "p50": 1551.3573330026702,
+        "p95": 1614.1820291526528,
+        "p99": 1657.598496340579,
+        "max": 1664.5037919952301
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/codelabs",
+      "full_url": "http://localhost:5173/codelabs",
+      "concurrency": 60,
+      "repeat": 2
+    },
+    {
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 300,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 8124.772250004753,
+      "requests_per_second": 36.924111934316,
+      "latency_ms": {
+        "min": 27.37058299680939,
+        "mean": 1471.7875054198764,
+        "p50": 1549.3784374993993,
+        "p95": 1825.6111520498964,
+        "p99": 1866.2368569964747,
+        "max": 1879.368499998236
+      },
+      "status_counts": {
+        "200": 300
+      },
+      "top_transport_errors": [],
+      "route": "/codelabs",
+      "full_url": "http://localhost:5173/codelabs",
+      "concurrency": 60,
+      "repeat": 3
+    }
+  ],
+  "notes": [
+    "Measures route response latency under concurrent load (SSR/route handling path).",
+    "For browser paint metrics (LCP/INP/CLS), run Lighthouse/Playwright separately and merge artifacts."
+  ]
+}

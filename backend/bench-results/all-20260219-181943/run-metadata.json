@@ -1,0 +1,46 @@
+{
+  "generated_at_utc": "2026-02-19T09:19:44Z",
+  "repo_root": "/Users/jaichang/Documents/GitHub/open-codelabs",
+  "backend_dir": "/Users/jaichang/Documents/GitHub/open-codelabs/backend",
+  "frontend_dir": "/Users/jaichang/Documents/GitHub/open-codelabs/frontend",
+  "git_branch": "main",
+  "git_commit": "a3510b39",
+  "platform": {
+    "os": "Darwin",
+    "release": "24.6.0",
+    "arch": "arm64"
+  },
+  "tool_versions": {
+    "rustc": "rustc 1.93.1 (01f6ddf75 2026-02-11)",
+    "cargo": "cargo 1.93.1 (083ac5135 2025-12-15)",
+    "bun": "1.3.9"
+  },
+  "config": {
+    "base_url": "http://localhost:8080",
+    "admin_id": "admin",
+    "frontend_base_url": "http://localhost:5173",
+    "rest_profile": "paper",
+    "rest_matrix_file": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench/matrix.smoke.csv",
+    "rest_repeats": 1,
+    "ws_users": "5",
+    "ws_duration_secs": 8,
+    "ws_chat_rate": 0.5,
+    "ws_step_interval_secs": 7,
+    "ws_repeats": 1,
+    "ops_scenarios": "upload,backup,codeserver",
+    "ops_profile": "quick",
+    "ops_upload_requests": 3,
+    "ops_codeserver_iterations": 1,
+    "ops_repeats": 1,
+    "soak_duration_secs": 20,
+    "soak_cycle_interval_secs": 20,
+    "soak_backend_pid": "",
+    "frontend_routes": "/,/admin,/codelabs",
+    "frontend_concurrency": "10,30,60",
+    "frontend_requests": 300,
+    "frontend_repeats": 3,
+    "swe_timeout_secs": 300,
+    "swe_run_mutation": 0,
+    "dry_run": 0
+  }
+}

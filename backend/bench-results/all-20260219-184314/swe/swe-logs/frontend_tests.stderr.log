@@ -1,0 +1,81 @@
+
+src/lib/__tests__/utils.test.ts:
+(pass) cn > merges class names and resolves tailwind conflicts [7.32ms]
+
+src/lib/__tests__/uploadFilters.test.ts:
+(pass) uploadFilters > skips env files [0.18ms]
+(pass) uploadFilters > skips media files [0.12ms]
+(pass) uploadFilters > blocks known build paths and extensions [0.06ms]
+(pass) uploadFilters > shouldSkipFile combines all rules [0.07ms]
+(pass) uploadFilters > normalizes path separators and casing [0.02ms]
+(pass) uploadFilters > exposes blocklist collections [0.04ms]
+
+src/lib/__tests__/progress.test.ts:
+(pass) Progress storage helpers > saveProgress and loadProgress use localStorage when available [0.26ms]
+(pass) Progress storage helpers > loadProgress returns 0 when key does not exist [0.03ms]
+(pass) Progress storage helpers > returns defaults safely when localStorage is unavailable [0.23ms]
+
+src/lib/__tests__/playground.test.ts:
+(pass) extractPlaygrounds > returns empty array for empty input [0.31ms]
+(pass) extractPlaygrounds > extracts only runnable blocks with normalized languages and de-duplicates by language [0.24ms]
+
+src/lib/__tests__/platform-core.test.ts:
+(pass) firebase.ts > validates config values [130.50ms]
+(pass) firebase.ts > creates services and reuses existing app [0.31ms]
+(pass) firebase.ts > returns empty services for invalid config and logs on init failures [0.37ms]
+(pass) supabase.ts > validates config values [31.56ms]
+(pass) supabase.ts > creates client only for valid config [0.08ms]
+(pass) i18n/index.ts > registers all locales and resolves navigator locale [42.82ms]
+(pass) i18n/index.ts > setup initializes i18n and sets locale [0.15ms]
+(pass) theme.svelte.ts > applies browser state and handles mode transitions [1.62ms]
+
+src/lib/__tests__/markdown.test.ts:
+(pass) createMarkdownParser > renders gfm and katex without highlight option [5.24ms]
+(pass) createMarkdownParser > highlights known language blocks when enabled [5.29ms]
+(pass) createMarkdownParser > falls back to auto-highlight for unknown languages [126.55ms]
+(pass) createMarkdownParser > pre-configured parser instances are usable [0.26ms]
+
+src/lib/__tests__/api-routing.test.ts:
+(pass) api mode routing > routes to backend mode and executes backend fallbacks [2.29ms]
+(pass) api mode routing > routes to supabase mode and executes serverless unsupported handlers [0.97ms]
+(pass) api mode routing > routes to firebase mode and executes firebase unsupported handlers [0.71ms]
+
+src/lib/__tests__/screen-share-service.test.ts:
+(pass) ScreenShareService > starts and stops screen share, including startup errors [3.43ms]
+(pass) ScreenShareService > applies quality presets and handles sender/constraint failures [0.38ms]
+(pass) ScreenShareService > collects network stats, including failure handling [0.28ms]
+(pass) ScreenShareService > starts and stops periodic stats monitoring [0.03ms]
+(pass) ScreenShareService > handles offer/answer/candidate signaling flows [0.35ms]
+
+src/lib/__tests__/tts.test.ts:
+(pass) createTtsPlayer > is a safe no-op when speech synthesis is unavailable [0.15ms]
+(pass) createTtsPlayer > speaks stripped text and maps common locale codes [0.07ms]
+
+src/lib/__tests__/api-backend.test.ts:
+(pass) api-backend > resolves backend base URL and websocket URL across host patterns [0.57ms]
+(pass) api-backend > covers success paths across backend API functions [596.51ms]
+(pass) api-backend > covers failure paths across backend API functions [654.80ms]
+(pass) api-backend > handles fallback errors when response text parsing fails [0.42ms]
+
+src/lib/__tests__/gemini.test.ts:
+(pass) gemini helpers > resolves base URL variants and merges csrf headers [0.16ms]
+(pass) gemini helpers > streams robust response in backend mode with encrypted api key [619.27ms]
+(pass) gemini helpers > handles backend/serverless mode validation and request routing [637.73ms]
+(pass) gemini helpers > streams chat response and returns usage metadata [631.59ms]
+(pass) gemini helpers > streams structured output in backend/serverless modes [1229.61ms]
+
+src/lib/__tests__/crypto.test.ts:
+(pass) crypto helpers > encrypt/decrypt round trips with default key [1.32ms]
+(pass) crypto helpers > encryptForBackend produces a versioned payload [635.04ms]
+(pass) crypto helpers > returns empty string for empty inputs [0.64ms]
+(pass) crypto helpers > decrypt handles CryptoJS errors gracefully [0.12ms]
+(pass) crypto helpers > getEncryptionPassword returns null on server without env password [0.03ms]
+(pass) crypto helpers > getEncryptionPassword prefers a stored browser password [0.04ms]
+(pass) crypto helpers > getEncryptionPassword uses env password and caches it in browser session [0.08ms]
+(pass) crypto helpers > getEncryptionPassword prompts interactively when requested in browser [0.05ms]
+(pass) crypto helpers > getEncryptionPassword returns null when interactive prompt is canceled [0.05ms]
+
+ 52 pass
+ 0 fail
+ 404 expect() calls
+Ran 52 tests across 12 files. [5.60s]

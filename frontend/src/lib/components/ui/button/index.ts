@@ -1,9 +1,11 @@
-import Root, {
-	type ButtonProps,
-	type ButtonSize,
-	type ButtonVariant,
-	buttonVariants,
-} from "./button.svelte";
+import * as ButtonModule from "./button.svelte";
+
+type ButtonProps = import("./button.svelte").ButtonProps;
+type ButtonSize = import("./button.svelte").ButtonSize;
+type ButtonVariant = import("./button.svelte").ButtonVariant;
+
+const Root = (ButtonModule as any).default;
+const buttonVariants = (ButtonModule as any).buttonVariants;
 
 export {
 	Root,

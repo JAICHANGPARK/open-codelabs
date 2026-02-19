@@ -151,6 +151,7 @@ pub fn ensure_sqlite_directory(database_url: &str) -> std::io::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::infrastructure::config::AppConfig;
     use sqlx::any::AnyPoolOptions;
     use tempfile::TempDir;
 
@@ -243,5 +244,62 @@ mod tests {
         assert!(!nested.parent().expect("missing parent").exists());
         ensure_sqlite_directory(&database_url).expect("failed to create sqlite directory");
         assert!(nested.parent().expect("missing parent").exists());
+    }
+
+    #[tokio::test]
+    async fn test_new_with_config_uses_config_values() {
+        sqlx::any::install_default_drivers();
+        let pool = AnyPoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .unwrap();
+
+        let state = AppState::new_with_config(
+            pool,
+            DbKind::Sqlite,
+            AppConfig {
+                admin_id: "admin-id".to_string(),
+                admin_pw: "admin-pw".to_string(),
+                trust_proxy: true,
+            },
+        );
+
+        assert_eq!(state.admin_id, "admin-id");
+        assert_eq!(state.admin_pw, "admin-pw");
+        assert!(state.trust_proxy);
+    }
+
+    #[tokio::test]
+    async fn test_q_keeps_question_mark_in_escaped_quote() {
+        sqlx::any::install_default_drivers();
+        let pool = AnyPoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .unwrap();
+
+        let state_postgres = AppState::new(
+            pool,
+            DbKind::Postgres,
+            "admin".to_string(),
+            "pass".to_string(),
+            false,
+        );
+
+        let sql = r"SELECT 'it\\'s ?' as quoted, ?";
+        assert_eq!(state_postgres.q(sql), r"SELECT 'it\\'s $1' as quoted, ?");
+    }
+
+    #[test]
+    fn test_sqlite_path_from_url_non_sqlite() {
+        assert!(sqlite_path_from_url("postgres://localhost/db").is_none());
+        assert!(sqlite_path_from_url("sqlite::memory:?cache=shared").is_none());
+    }
+
+    #[test]
+    fn test_ensure_sqlite_directory_noop_cases() {
+        ensure_sqlite_directory("sqlite:db.sqlite").expect("relative file is fine");
+        ensure_sqlite_directory("sqlite::memory:").expect("memory sqlite is fine");
+        ensure_sqlite_directory("postgres://localhost/db").expect("non-sqlite is ignored");
+        ensure_sqlite_directory("sqlite:/").expect("root path is fine");
     }
 }

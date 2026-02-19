@@ -1,0 +1,224 @@
+
+running 124 tests
+test api::dto::admin::tests::test_settings_payload_deserializes ... ok
+test api::dto::codeserver::tests::test_codeserver_info_serializes ... ok
+test api::handlers::ai::tests::env_restore_restores_previous_value ... ok
+test api::handlers::admin::tests::test_parse_semver_variants ... ok
+test api::dto::codeserver::tests::test_create_codeserver_request_deserializes ... ok
+test api::dto::audit::tests::test_audit_log_query_deserializes ... ok
+test api::handlers::backup::tests::is_safe_zip_path_blocks_unsafe_paths ... ok
+test api::handlers::ai::tests::is_valid_model_respects_allow_list_env ... ok
+test api::handlers::ai::tests::is_valid_model_uses_default_rules ... ok
+test api::handlers::backup::tests::replace_dir_contents_creates_missing_dir ... ok
+test api::handlers::codelabs::tests::test_can_access_codelab_private_admin ... ok
+test api::handlers::codelabs::tests::test_can_access_codelab_private_attendee_match ... ok
+test api::handlers::codelabs::tests::test_can_access_codelab_private_attendee_mismatch ... ok
+test api::handlers::codelabs::tests::test_can_access_codelab_public ... ok
+test api::handlers::codelabs::tests::test_sanitize_filename ... ok
+test api::handlers::backup::tests::replace_dir_contents_clears_existing_entries ... ok
+test api::handlers::backup::tests::add_dir_to_zip_ignores_missing_dir ... ok
+test api::handlers::inline_comments::tests::validate_common_anchor_fields_checks_constraints ... ok
+test api::handlers::inline_comments::tests::validate_message_checks_required_and_length ... ok
+test api::handlers::backup::tests::restore_dir_from_zip_rejects_unsafe_paths ... ok
+test api::handlers::inline_comments::tests::validate_payloads_check_message_and_hash ... ok
+test api::handlers::backup::tests::restore_dir_from_zip_skips_prefix_root_entry ... ok
+test api::handlers::inline_comments::tests::validate_target_type_checks_values ... ok
+test api::handlers::materials::tests::can_access_codelab_respects_role_and_membership ... ok
+test api::handlers::materials::tests::sanitize_filename_filters_and_truncates ... ok
+test api::handlers::backup::tests::restore_dir_from_zip_restores_files ... ok
+test api::handlers::quizzes::tests::can_access_codelab_respects_role_and_membership ... ok
+test api::handlers::backup::tests::add_dir_to_zip_writes_files ... ok
+test api::handlers::websocket::tests::generate_session_id_returns_uuid_like_value ... ok
+test api::handlers::submissions::tests::sanitize_original_name_filters_and_truncates ... ok
+test domain::models::tests::test_attendee_public_from_attendee ... ok
+test domain::models::tests::test_codelab_serialization ... ok
+test domain::models::tests::test_codelab_serialization_with_false_flags ... ok
+test domain::models::tests::test_create_codelab_deserialization ... ok
+test domain::models::tests::test_default_submission_type_is_file ... ok
+test domain::models::tests::test_registration_payload_deserialization ... ok
+test domain::services::codeserver::tests::test_from_env_uses_workspace_base ... ok
+test api::handlers::submissions::tests::convert_image_to_webp_returns_none_for_invalid_bytes ... ok
+test api::handlers::submissions::tests::convert_image_to_webp_converts_valid_image ... ok
+test api::handlers::inline_comments::tests::broadcast_inline_comment_changed_sends_message ... ok
+test api::handlers::websocket::tests::cleanup_session_removes_only_target_and_cleans_last_entry ... ok
+test domain::services::codeserver::tests::test_folder_file_operations ... ok
+test domain::services::codeserver::tests::test_remove_path_for_directory_and_missing_path ... ok
+test infrastructure::audit::tests::record_audit_ignores_insert_error ... ok
+test domain::services::codeserver::tests::test_workspace_operations ... ok
+test infrastructure::config::tests::env_restore_restores_previous_value ... ok
+test infrastructure::config::tests::from_env_reads_values ... ok
+test infrastructure::config::tests::from_env_requires_admin_credentials ... ok
+test infrastructure::config::tests::from_env_requires_admin_pw_when_id_exists ... ok
+test infrastructure::database::tests::test_db_kind_from_url ... ok
+test infrastructure::database::tests::test_ensure_sqlite_directory_noop_cases ... ok
+test infrastructure::database::tests::test_ensure_sqlite_directory_creates_parent ... ok
+test infrastructure::database::tests::test_new_with_config_uses_config_values ... ok
+test infrastructure::database::tests::test_q_keeps_question_mark_in_escaped_quote ... ok
+test infrastructure::database::tests::test_q_placeholder_transformation ... ok
+test infrastructure::database::tests::test_q_with_quotes ... ok
+test infrastructure::database::tests::test_sqlite_path_from_url ... ok
+test middleware::auth::tests::cookie_builders_apply_expected_attributes ... ok
+test infrastructure::database::tests::test_sqlite_path_from_url_non_sqlite ... ok
+test middleware::auth::tests::csrf_token_has_expected_length ... ok
+test middleware::auth::tests::from_env_parses_samesite_and_cookie_prefix ... ok
+test middleware::auth::tests::from_request_parts_handles_invalid_or_missing_tokens ... ok
+test middleware::auth::tests::from_request_parts_extracts_admin_and_attendee_claims ... ok
+test middleware::auth::tests::require_admin_and_attendee_cover_rejections ... ok
+test middleware::auth::tests::issue_and_verify_token ... ok
+test middleware::auth::tests::role_from_str_and_as_str_cover_all_cases ... ok
+test middleware::auth::tests::verify_token_rejects_wrong_secret ... ok
+test domain::services::codeserver::tests::test_archive_workspace_returns_tar_failure ... ok
+test middleware::auth::tests::verify_token_supports_secret_rotation ... ok
+test middleware::rate_limit::tests::env_u32_parses_and_falls_back ... ok
+test middleware::rate_limit::tests::check_blocks_when_limit_reached ... ok
+test middleware::rate_limit::tests::from_env_populates_windows ... ok
+test middleware::request_info::tests::extract_ip_handles_non_utf8_forwarded_for ... ok
+test middleware::request_info::tests::extract_ip_ignores_empty_forwarded_for ... ok
+test middleware::request_info::tests::extract_ip_prefers_forwarded_for_when_proxy_trusted ... ok
+test middleware::request_info::tests::extract_ip_uses_connect_info_when_proxy_untrusted ... ok
+test middleware::rate_limit::tests::check_allows_after_window_expires ... ok
+test middleware::security::tests::classify_rate_limit_selects_expected_bucket ... ok
+test domain::services::codeserver::tests::test_archive_and_remove_workspace ... ok
+test middleware::security::tests::build_cors_layer_handles_default_and_custom_env ... ok
+test middleware::request_info::tests::from_request_parts_populates_fields ... ok
+test middleware::security::tests::csrf_middleware_allows_safe_methods_and_matching_token ... ok
+test middleware::security::tests::extract_client_ip_falls_back_when_forwarded_for_empty ... ok
+test middleware::security::tests::extract_client_ip_handles_non_utf8_forwarded_for ... ok
+test middleware::security::tests::csrf_middleware_rejects_missing_or_invalid_token ... ok
+test middleware::security::tests::extract_client_ip_prefers_forwarded_for_when_trusted ... ok
+test middleware::security::tests::ensure_csrf_cookie_sets_cookie_once ... ok
+test utils::crypto::tests::decrypt_rejects_invalid_base64 ... ok
+test utils::crypto::tests::decrypt_rejects_invalid_prefix ... ok
+test utils::crypto::tests::decrypt_rejects_too_short_payload ... ok
+test utils::crypto::tests::encrypt_and_decrypt_allow_empty_input ... ok
+test middleware::security::tests::security_headers_middleware_sets_expected_headers ... ok
+test utils::error::tests::bad_request_returns_status_and_message ... ok
+test utils::error::tests::forbidden_returns_expected_response ... ok
+test utils::error::tests::internal_error_masks_detail ... ok
+test utils::error::tests::too_many_requests_returns_expected_response ... ok
+test utils::error::tests::unauthorized_returns_expected_response ... ok
+test middleware::security::tests::rate_limit_middleware_blocks_when_exceeded ... ok
+test utils::validation::tests::validate_codelab_accepts_guide_markdown ... ok
+test utils::validation::tests::validate_codelab_accepts_valid_payload ... ok
+test utils::validation::tests::validate_codelab_rejects_invalid_fields ... ok
+test utils::validation::tests::validate_feedback_accepts_valid_comment ... ok
+test utils::validation::tests::validate_feedback_accepts_without_comment ... ok
+test utils::validation::tests::validate_feedback_and_prompt_cover_error_paths ... ok
+test utils::validation::tests::validate_material_accepts_valid_link_and_file ... ok
+test utils::validation::tests::validate_material_rejects_invalid_cases ... ok
+test utils::validation::tests::validate_material_requires_http_link ... ok
+test utils::validation::tests::validate_quiz_accepts_valid_multiple_choice ... ok
+test utils::validation::tests::validate_quiz_accepts_when_type_is_none ... ok
+test utils::validation::tests::validate_quiz_covers_quiz_type_and_answer_range ... ok
+test utils::validation::tests::validate_quiz_rejects_invalid_options ... ok
+test utils::validation::tests::validate_registration_accepts_non_ascii_code ... ok
+test utils::validation::tests::validate_registration_rejects_blank_name ... ok
+test utils::validation::tests::validate_step_rejects_invalid_content ... ok
+test utils::validation::tests::validate_steps_accepts_valid_steps ... ok
+test utils::validation::tests::validate_steps_rejects_empty_and_too_many ... ok
+test domain::services::codeserver::tests::test_internal_command_error_detail_selection ... ok
+test infrastructure::audit::tests::record_audit_persists_row ... ok
+test domain::services::codeserver::tests::test_non_git_operations_return_errors ... ok
+test domain::services::codeserver::tests::test_git_operations ... ok
+test domain::services::codeserver::tests::test_branch_and_file_listing ... ok
+test utils::crypto::tests::decrypt_rejects_tampered_payload ... ok
+test api::handlers::admin::tests::test_password_encryption_round_trip ... ok
+test utils::crypto::tests::encrypt_decrypt_round_trip ... ok
+
+test result: ok. 124 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.14s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+
+running 18 tests
+test test_create_and_get_codelab ... ok
+test test_list_codelabs_empty ... ok
+test test_login ... ok
+test test_login_failure ... ok
+test test_admin_and_attendee_session_edge_paths ... ok
+test test_upload_endpoints_handle_missing_file_and_unauthorized ... ok
+test test_codelab_management_inline_comments_and_ai_endpoints ... ok
+test test_full_handler_flow_materials_quizzes_feedback_submissions_attendees_audit ... ok
+test test_admin_session_settings_updates_and_logout ... FAILED
+test test_ai_edge_paths_and_thread_guards ... FAILED
+test test_backup_custom_restore_and_empty_upload_errors ... FAILED
+test test_codeserver_endpoints_branch_and_folder_flow ... FAILED
+test test_backup_export_inspect_restore_and_upload_success_paths ... FAILED
+test test_quiz_feedback_submission_and_codelab_error_paths ... ok
+test test_websocket_live_message_paths ... FAILED
+test test_upload_material_and_submission_edge_paths ... ok
+test test_websocket_query_token_and_extra_message_paths ... FAILED
+test test_attendee_registration_and_help_edge_paths ... ok
+
+failures:
+
+---- test_admin_session_settings_updates_and_logout stdout ----
+
+thread 'test_admin_session_settings_updates_and_logout' (3513620) panicked at /Users/jaichang/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/system-configuration-0.6.1/src/dynamic_store.rs:154:1:
+Attempted to create a NULL object.
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- test_ai_edge_paths_and_thread_guards stdout ----
+AuthSession: No session cookie found (cookie_name=oc_session, attendee_cookie_name=oc_attendee_session)
+
+thread 'test_ai_edge_paths_and_thread_guards' (3513621) panicked at tests/api_tests.rs:208:38:
+env lock: PoisonError { .. }
+
+---- test_backup_custom_restore_and_empty_upload_errors stdout ----
+
+thread 'test_backup_custom_restore_and_empty_upload_errors' (3513623) panicked at tests/api_tests.rs:208:38:
+env lock: PoisonError { .. }
+
+---- test_codeserver_endpoints_branch_and_folder_flow stdout ----
+
+thread 'test_codeserver_endpoints_branch_and_folder_flow' (3513627) panicked at tests/api_tests.rs:208:38:
+env lock: PoisonError { .. }
+
+---- test_backup_export_inspect_restore_and_upload_success_paths stdout ----
+AuthSession: No session cookie found (cookie_name=oc_session, attendee_cookie_name=oc_attendee_session)
+
+thread 'test_backup_export_inspect_restore_and_upload_success_paths' (3513625) panicked at tests/api_tests.rs:208:38:
+env lock: PoisonError { .. }
+
+---- test_websocket_live_message_paths stdout ----
+AuthSession: No session cookie found (cookie_name=oc_session, attendee_cookie_name=oc_attendee_session)
+
+thread 'test_websocket_live_message_paths' (3514096) panicked at tests/api_tests.rs:2373:71:
+called `Result::unwrap()` on an `Err` value: Os { code: 1, kind: PermissionDenied, message: "Operation not permitted" }
+
+---- test_websocket_query_token_and_extra_message_paths stdout ----
+AuthSession: No session cookie found (cookie_name=oc_session, attendee_cookie_name=oc_attendee_session)
+
+thread 'test_websocket_query_token_and_extra_message_paths' (3514199) panicked at tests/api_tests.rs:3847:71:
+called `Result::unwrap()` on an `Err` value: Os { code: 1, kind: PermissionDenied, message: "Operation not permitted" }
+
+
+failures:
+    test_admin_session_settings_updates_and_logout
+    test_ai_edge_paths_and_thread_guards
+    test_backup_custom_restore_and_empty_upload_errors
+    test_backup_export_inspect_restore_and_upload_success_paths
+    test_codeserver_endpoints_branch_and_folder_flow
+    test_websocket_live_message_paths
+    test_websocket_query_token_and_extra_message_paths
+
+test result: FAILED. 11 passed; 7 failed; 0 ignored; 0 measured; 0 filtered out; finished in 9.65s
+

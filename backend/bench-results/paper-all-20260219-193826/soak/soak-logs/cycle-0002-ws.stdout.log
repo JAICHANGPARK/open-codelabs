@@ -1,0 +1,7 @@
+Running WS case: users=50 duration=45s chat_rate=0.5/s step_interval=7s
+Case done users=50 sent_chat=1150 p95=75.13ms
+
+WS benchmark complete: /Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193826/soak/cycle-0002-ws.json
+users        sent/s     recv/s    p95(ms)      disc    errors
+--------------------------------------------------------------------
+50             25.6     1266.7      75.13        50        50

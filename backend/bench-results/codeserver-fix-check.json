@@ -1,0 +1,63 @@
+{
+  "generated_at_utc": "2026-02-19T09:42:39.174221+00:00",
+  "config": {
+    "base_url": "http://localhost:8080",
+    "profile": "quick",
+    "scenarios": [
+      "codeserver"
+    ],
+    "upload_requests_per_case": 60,
+    "codeserver_iterations": 1,
+    "output": "bench-results/codeserver-fix-check.json"
+  },
+  "upload": null,
+  "backup": null,
+  "codeserver": {
+    "codelab_id": "4c1cd7e9-637d-4bd2-9319-a38b8690659b",
+    "iterations": 1,
+    "create_codeserver_ms": 71.733875,
+    "download_workspace_ms": 38.327167,
+    "download_size_bytes": 20480,
+    "create_branch_ms": {
+      "samples": 1,
+      "min": 79.55900000000001,
+      "mean": 79.55900000000001,
+      "p50": 79.55900000000001,
+      "p95": 79.55900000000001,
+      "p99": 79.55900000000001,
+      "max": 79.55900000000001
+    },
+    "update_branch_ms": {
+      "samples": 1,
+      "min": 118.83541699999999,
+      "mean": 118.83541699999999,
+      "p50": 118.83541699999999,
+      "p95": 118.83541699999999,
+      "p99": 118.83541699999999,
+      "max": 118.83541699999999
+    },
+    "create_folder_ms": {
+      "samples": 1,
+      "min": 3.528083,
+      "mean": 3.528083,
+      "p50": 3.528083,
+      "p95": 3.528083,
+      "p99": 3.528083,
+      "max": 3.528083
+    },
+    "update_folder_ms": {
+      "samples": 1,
+      "min": 2.126042,
+      "mean": 2.126042,
+      "p50": 2.126042,
+      "p95": 2.126042,
+      "p99": 2.126042,
+      "max": 2.126042
+    }
+  },
+  "notes": [
+    "Upload benchmark uses PNG noise images (server converts to WebP).",
+    "Backup benchmark seeds synthetic workshop data before export/inspect/restore.",
+    "Code-server benchmark measures branch/folder update path plus workspace download."
+  ]
+}

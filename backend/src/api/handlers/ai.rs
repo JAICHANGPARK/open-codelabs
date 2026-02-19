@@ -1,3 +1,4 @@
+use crate::api::dto::AiRequest;
 use crate::domain::models::{
     AddAiMessagePayload, AiConversation, AiMessage, AiThread, CreateAiThreadPayload,
     SaveAiConversationPayload,
@@ -9,7 +10,6 @@ use crate::middleware::request_info::RequestInfo;
 use crate::utils::crypto::decrypt_with_password;
 use crate::utils::error::{bad_request, forbidden, internal_error};
 use crate::utils::validation::validate_prompt;
-use crate::api::dto::AiRequest;
 use axum::{
     body::Body,
     extract::{Path, State},
@@ -30,11 +30,13 @@ pub async fn proxy_gemini_stream(
     let (user_id, user_type, _user_name) = if let Ok(admin) = session.require_admin() {
         (admin.sub, "admin".to_string(), "Admin".to_string())
     } else if let Ok(attendee) = session.require_attendee() {
-        // For attendees, verify they belong to the codelab if codelab_id is provided
-        if let Some(codelab_id) = &payload.codelab_id {
-            if attendee.codelab_id.as_deref() != Some(codelab_id.as_str()) {
-                return forbidden().into_response();
-            }
+        // For attendees, verify they belong to the codelab if codelab_id is provided.
+        if payload
+            .codelab_id
+            .as_deref()
+            .is_some_and(|codelab_id| attendee.codelab_id.as_deref() != Some(codelab_id))
+        {
+            return forbidden().into_response();
         }
         // Get attendee name from database
         let attendee_name = match sqlx::query_scalar::<_, String>(
@@ -107,20 +109,22 @@ pub async fn proxy_gemini_stream(
     if !is_valid_model(&model) {
         return bad_request("Invalid model").into_response();
     }
+    let api_base = std::env::var("GEMINI_API_BASE")
+        .unwrap_or_else(|_| "https://generativelanguage.googleapis.com/v1beta".to_string());
     let url = format!(
-        "https://generativelanguage.googleapis.com/v1beta/models/{}:streamGenerateContent?alt=sse&key={}",
-        model, api_key
+        "{}/models/{}:streamGenerateContent?alt=sse&key={}",
+        api_base.trim_end_matches('/'),
+        model,
+        api_key
     );
 
-    let client = match reqwest::Client::builder()
+    let client = reqwest::Client::builder()
+        .no_proxy()
         .connect_timeout(Duration::from_secs(10))
         .timeout(Duration::from_secs(180))
         .redirect(reqwest::redirect::Policy::none())
         .build()
-    {
-        Ok(client) => client,
-        Err(e) => return internal_error(e).into_response(),
-    };
+        .unwrap_or_else(|_| reqwest::Client::new());
 
     let final_contents = if let Some(contents) = payload.contents.clone() {
         contents
@@ -153,10 +157,7 @@ pub async fn proxy_gemini_stream(
 
     let response = match client.post(&url).json(&body).send().await {
         Ok(res) => res,
-        Err(e) => {
-            tracing::error!("Gemini request failed: {:?}", e);
-            return internal_error(e).into_response();
-        }
+        Err(e) => return internal_error(e).into_response(),
     };
 
     let stream = response.bytes_stream();
@@ -408,4 +409,77 @@ fn is_valid_model(model: &str) -> bool {
     model
         .chars()
         .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::{LazyLock, Mutex};
+
+    struct EnvRestore {
+        key: &'static str,
+        value: Option<String>,
+    }
+
+    impl EnvRestore {
+        fn new(key: &'static str) -> Self {
+            Self {
+                key,
+                value: std::env::var(key).ok(),
+            }
+        }
+    }
+
+    impl Drop for EnvRestore {
+        fn drop(&mut self) {
+            if let Some(value) = &self.value {
+                std::env::set_var(self.key, value);
+            } else {
+                std::env::remove_var(self.key);
+            }
+        }
+    }
+
+    static ENV_TEST_LOCK: LazyLock<Mutex<()>> = LazyLock::new(|| Mutex::new(()));
+
+    #[test]
+    fn is_valid_model_uses_default_rules() {
+        let _lock = ENV_TEST_LOCK.lock().expect("env test lock");
+        let _guard = EnvRestore::new("ALLOWED_GEMINI_MODELS");
+        std::env::remove_var("ALLOWED_GEMINI_MODELS");
+
+        assert!(is_valid_model("gemini-3-flash-preview"));
+        assert!(!is_valid_model(""));
+        assert!(!is_valid_model(&"a".repeat(65)));
+        assert!(!is_valid_model("Model-With-Uppercase"));
+        assert!(!is_valid_model("bad/model"));
+    }
+
+    #[test]
+    fn is_valid_model_respects_allow_list_env() {
+        let _lock = ENV_TEST_LOCK.lock().expect("env test lock");
+        let _guard = EnvRestore::new("ALLOWED_GEMINI_MODELS");
+        std::env::set_var(
+            "ALLOWED_GEMINI_MODELS",
+            "gemini-3-flash-preview, custom-model",
+        );
+
+        assert!(is_valid_model("custom-model"));
+        assert!(!is_valid_model("gemini-2.0"));
+    }
+
+    #[test]
+    fn env_restore_restores_previous_value() {
+        let _lock = ENV_TEST_LOCK.lock().expect("env test lock");
+        std::env::set_var("ALLOWED_GEMINI_MODELS", "before");
+        {
+            let _guard = EnvRestore::new("ALLOWED_GEMINI_MODELS");
+            std::env::set_var("ALLOWED_GEMINI_MODELS", "during");
+        }
+        assert_eq!(
+            std::env::var("ALLOWED_GEMINI_MODELS").as_deref(),
+            Ok("before")
+        );
+        std::env::remove_var("ALLOWED_GEMINI_MODELS");
+    }
 }

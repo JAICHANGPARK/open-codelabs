@@ -1,8 +1,8 @@
+use crate::api::dto::AuditLogQuery;
 use crate::infrastructure::database::AppState;
 use crate::infrastructure::db_models::AuditLog;
 use crate::middleware::auth::AuthSession;
 use crate::utils::error::internal_error;
-use crate::api::dto::AuditLogQuery;
 use axum::{
     extract::{Query, State},
     http::StatusCode,
@@ -45,7 +45,7 @@ pub async fn get_audit_logs(
         }
     } else if let Some(action) = params.action {
         sqlx::query_as::<_, AuditLog>(&state.q(
-            "SELECT * FROM audit_logs WHERE action = ? ORDER BY created_at DESC LIMIT ? OFFSET ?"
+            "SELECT * FROM audit_logs WHERE action = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
         ))
         .bind(action)
         .bind(limit)
@@ -54,9 +54,9 @@ pub async fn get_audit_logs(
         .await
         .map_err(internal_error)?
     } else {
-        sqlx::query_as::<_, AuditLog>(&state.q(
-            "SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT ? OFFSET ?"
-        ))
+        sqlx::query_as::<_, AuditLog>(
+            &state.q("SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT ? OFFSET ?"),
+        )
         .bind(limit)
         .bind(offset)
         .fetch_all(&state.pool)

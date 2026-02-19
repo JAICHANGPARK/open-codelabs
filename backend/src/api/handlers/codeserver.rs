@@ -1,3 +1,7 @@
+use crate::api::dto::{
+    CodeServerInfo, CreateBranchRequest, CreateCodeServerRequest, CreateFolderRequest,
+    ReadFileQuery, UpdateWorkspaceFilesRequest,
+};
 use crate::domain::services::codeserver::CodeServerManager;
 use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::infrastructure::database::AppState;
@@ -5,10 +9,6 @@ use crate::infrastructure::db_models::WorkspaceRow;
 use crate::middleware::auth::AuthSession;
 use crate::middleware::request_info::RequestInfo;
 use crate::utils::error::{bad_request, internal_error};
-use crate::api::dto::{
-    CodeServerInfo, CreateBranchRequest, CreateCodeServerRequest, CreateFolderRequest,
-    ReadFileQuery, UpdateWorkspaceFilesRequest,
-};
 use axum::{
     body::Body,
     extract::{Path, State},
@@ -44,13 +44,11 @@ pub async fn create_codeserver(
         .map_err(internal_error)?;
 
     // Write workspace files if provided
-    if let Some(files) = payload.workspace_files {
-        for file in files {
-            manager
-                .write_file(&payload.codelab_id, &file.path, &file.content)
-                .await
-                .map_err(internal_error)?;
-        }
+    for file in payload.workspace_files.unwrap_or_default() {
+        manager
+            .write_file(&payload.codelab_id, &file.path, &file.content)
+            .await
+            .map_err(internal_error)?;
     }
 
     let structure_type = payload.structure_type.as_deref().unwrap_or("branch");
@@ -63,7 +61,10 @@ pub async fn create_codeserver(
             .map_err(internal_error)?;
     }
 
-    let workspace_path = format!("/app/workspaces/{}", payload.codelab_id);
+    let workspace_path = manager
+        .workspace_path(&payload.codelab_id)
+        .to_string_lossy()
+        .to_string();
 
     // Store workspace info in database
     sqlx::query(
@@ -523,13 +524,12 @@ pub async fn update_branch_files(
             .map_err(internal_error)?;
     }
 
-    if let Some(deletes) = &payload.delete_files {
-        for file in deletes {
-            manager
-                .remove_path(&codelab_id, file)
-                .await
-                .map_err(internal_error)?;
-        }
+    let delete_files = payload.delete_files.clone().unwrap_or_default();
+    for file in &delete_files {
+        manager
+            .remove_path(&codelab_id, file)
+            .await
+            .map_err(internal_error)?;
     }
 
     let commit_message = payload
@@ -559,7 +559,7 @@ pub async fn update_branch_files(
             metadata: Some(serde_json::json!({
                 "branch": branch,
                 "files_updated": payload.files.len(),
-                "files_deleted": payload.delete_files.as_ref().map(|v| v.len()).unwrap_or(0)
+                "files_deleted": delete_files.len()
             })),
         },
     )
@@ -597,14 +597,13 @@ pub async fn update_folder_files(
             .map_err(internal_error)?;
     }
 
-    if let Some(deletes) = &payload.delete_files {
-        for file in deletes {
-            let path = format!("{}/{}", folder, file);
-            manager
-                .remove_path(&codelab_id, &path)
-                .await
-                .map_err(internal_error)?;
-        }
+    let delete_files = payload.delete_files.clone().unwrap_or_default();
+    for file in &delete_files {
+        let path = format!("{}/{}", folder, file);
+        manager
+            .remove_path(&codelab_id, &path)
+            .await
+            .map_err(internal_error)?;
     }
 
     record_audit(
@@ -620,7 +619,7 @@ pub async fn update_folder_files(
             metadata: Some(serde_json::json!({
                 "folder": folder,
                 "files_updated": payload.files.len(),
-                "files_deleted": payload.delete_files.as_ref().map(|v| v.len()).unwrap_or(0)
+                "files_deleted": delete_files.len()
             })),
         },
     )

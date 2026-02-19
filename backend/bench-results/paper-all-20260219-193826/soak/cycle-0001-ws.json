@@ -1,0 +1,52 @@
+{
+  "generated_at_utc": "2026-02-19T10:55:29.034218+00:00",
+  "config": {
+    "base_url": "http://localhost:8080",
+    "users": [
+      50
+    ],
+    "duration_secs": 45,
+    "chat_rate_per_sec": 0.5,
+    "step_interval_secs": 7,
+    "output": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193826/soak/cycle-0001-ws.json"
+  },
+  "cases": [
+    {
+      "users": 50,
+      "codelab_id": "f76393a3-dae6-4f28-bbf6-0304c5d3117b",
+      "duration_secs": 45,
+      "sent_chat": 1150,
+      "sent_step_progress": 300,
+      "recv_chat": 57181,
+      "ws_disconnects": 50,
+      "ws_errors": 50,
+      "ws_error_samples": [
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake"
+      ],
+      "throughput": {
+        "sent_chat_per_sec": 25.555555555555557,
+        "recv_chat_per_sec": 1270.6888888888889
+      },
+      "e2e_latency_ms": {
+        "samples": 1150,
+        "min": 0.7715000000000001,
+        "mean": 23.10284616086955,
+        "p50": 17.9077295,
+        "p95": 62.42439594999998,
+        "p99": 136.8200695,
+        "max": 182.52216600000003
+      }
+    }
+  ],
+  "notes": [
+    "WS benchmark measures sender->echo roundtrip latency for chat messages.",
+    "If ws_disconnects/ws_errors are high, raise RATE_LIMIT_GENERAL_PER_MINUTE and inspect server logs."
+  ]
+}

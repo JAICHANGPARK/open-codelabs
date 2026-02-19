@@ -1,0 +1,120 @@
+{
+  "generated_at_utc": "2026-02-19T09:20:12.509019+00:00",
+  "local_environment": {
+    "os": "macos",
+    "arch": "aarch64",
+    "rust_log": "warn"
+  },
+  "config": {
+    "base_url": "http://localhost:8080",
+    "admin_id": "admin",
+    "attendees": 3,
+    "read_requests": 12,
+    "write_requests": 8,
+    "read_concurrency": 3,
+    "write_concurrency": 2,
+    "output": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-181943/rest/u3-r01.json"
+  },
+  "setup": {
+    "codelab_id": "2fb10011-20b9-44af-946c-3c9e72ec35bb",
+    "attendee_count": 3
+  },
+  "scenarios": [
+    {
+      "name": "admin_get_attendees",
+      "total_requests": 12,
+      "completed_requests": 12,
+      "success_2xx": 12,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 22069.55425,
+      "requests_per_second": 0.543735494793693,
+      "latency_ms": {
+        "min": 5489.112708000001,
+        "mean": 5515.763590166665,
+        "p50": 5513.658937,
+        "p95": 5542.8483667,
+        "p99": 5544.06393974,
+        "max": 5544.367833
+      },
+      "status_counts": {
+        "200": 12
+      },
+      "top_transport_errors": []
+    },
+    {
+      "name": "admin_get_chat_history",
+      "total_requests": 12,
+      "completed_requests": 12,
+      "success_2xx": 12,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 2.397125,
+      "requests_per_second": 5005.996766960421,
+      "latency_ms": {
+        "min": 0.419583,
+        "mean": 0.5789165000000001,
+        "p50": 0.506604,
+        "p95": 0.8705848999999999,
+        "p99": 0.8791833800000001,
+        "max": 0.881333
+      },
+      "status_counts": {
+        "200": 12
+      },
+      "top_transport_errors": []
+    },
+    {
+      "name": "attendee_post_help",
+      "total_requests": 8,
+      "completed_requests": 8,
+      "success_2xx": 8,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 11.079041,
+      "requests_per_second": 722.0841587281787,
+      "latency_ms": {
+        "min": 0.86725,
+        "mean": 2.359953,
+        "p50": 0.9432499999999999,
+        "p95": 7.930889349999996,
+        "p99": 10.436877869999998,
+        "max": 11.063375
+      },
+      "status_counts": {
+        "200": 8
+      },
+      "top_transport_errors": []
+    },
+    {
+      "name": "attendee_post_submission_link",
+      "total_requests": 8,
+      "completed_requests": 8,
+      "success_2xx": 8,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 10.904167,
+      "requests_per_second": 733.66447890976,
+      "latency_ms": {
+        "min": 0.803125,
+        "mean": 2.1313174999999998,
+        "p50": 0.8737919999999999,
+        "p95": 7.4510728999999944,
+        "p99": 10.212748179999997,
+        "max": 10.903167
+      },
+      "status_counts": {
+        "200": 8
+      },
+      "top_transport_errors": []
+    }
+  ],
+  "notes": [
+    "Local-only run. Use this for baseline/trend comparison, not absolute production capacity.",
+    "For paper tables, repeat each run multiple times and report median/IQR with confidence intervals."
+  ]
+}

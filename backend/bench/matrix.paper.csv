@@ -1,0 +1,5 @@
+scenario,attendees,read_requests,write_requests,read_concurrency,write_concurrency
+u10,10,1000,500,50,25
+u50,50,3000,1500,120,60
+u100,100,6000,3000,250,120
+u200,200,12000,6000,450,220

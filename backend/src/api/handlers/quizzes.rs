@@ -173,3 +173,56 @@ fn can_access_codelab(codelab: &Codelab, session: &AuthSession) -> bool {
         _ => false,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::middleware::auth::{AuthSession, SessionClaims};
+
+    fn session(role: &str, codelab_id: Option<&str>) -> AuthSession {
+        AuthSession {
+            claims: Some(SessionClaims {
+                sub: "u1".to_string(),
+                role: role.to_string(),
+                codelab_id: codelab_id.map(|v| v.to_string()),
+                iss: "test".to_string(),
+                aud: "test".to_string(),
+                iat: 0,
+                exp: 1_000_000,
+            }),
+            admin_claims: None,
+            attendee_claims: None,
+        }
+    }
+
+    fn codelab(id: &str) -> Codelab {
+        Codelab {
+            id: id.to_string(),
+            title: "t".to_string(),
+            description: "d".to_string(),
+            author: "a".to_string(),
+            is_public: 1,
+            quiz_enabled: 0,
+            require_quiz: 0,
+            require_feedback: 0,
+            require_submission: 0,
+            guide_markdown: None,
+            created_at: None,
+        }
+    }
+
+    #[test]
+    fn can_access_codelab_respects_role_and_membership() {
+        let lab = codelab("lab-1");
+        assert!(can_access_codelab(&lab, &session("admin", None)));
+        assert!(can_access_codelab(
+            &lab,
+            &session("attendee", Some("lab-1"))
+        ));
+        assert!(!can_access_codelab(
+            &lab,
+            &session("attendee", Some("other-lab"))
+        ));
+        assert!(!can_access_codelab(&lab, &session("guest", None)));
+    }
+}

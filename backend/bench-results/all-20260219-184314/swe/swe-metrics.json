@@ -1,0 +1,248 @@
+{
+  "generated_at_utc": "2026-02-19T09:47:49.337304+00:00",
+  "config": {
+    "backend_dir": "/Users/jaichang/Documents/GitHub/open-codelabs/backend",
+    "frontend_dir": "/Users/jaichang/Documents/GitHub/open-codelabs/frontend",
+    "timeout_secs": 300,
+    "run_mutation": false,
+    "mutation_score_override": null,
+    "output": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-metrics.json"
+  },
+  "environment": {
+    "platform": "macOS-15.7.4-arm64-arm-64bit-Mach-O",
+    "python": "3.14.3",
+    "tools": {
+      "cargo": "cargo 1.93.1 (083ac5135 2025-12-15)",
+      "rustc": "rustc 1.93.1 (01f6ddf75 2026-02-11)",
+      "bun": "1.3.9",
+      "cargo-llvm-cov": "cargo-llvm-cov 0.8.4",
+      "cargo-audit": "cargo-audit-audit 0.22.0"
+    }
+  },
+  "metrics": {
+    "tests": {
+      "backend": {
+        "exit_code": 0,
+        "passed": true
+      },
+      "frontend": {
+        "exit_code": 0,
+        "passed": true
+      }
+    },
+    "coverage": {
+      "tool": "cargo-llvm-cov",
+      "exit_code": 0,
+      "available": true,
+      "regions_percent": 73.18,
+      "functions_percent": 66.97,
+      "lines_percent": 76.26,
+      "raw_total_line": "TOTAL                                 15657              4199    73.18%         893               295    66.97%       10423              2474    76.26%           0                 0         -"
+    },
+    "mutation": {
+      "available": false,
+      "reason": "not_run (use --run-mutation or --mutation-score)"
+    },
+    "static_analysis": {
+      "backend_clippy": {
+        "available": true,
+        "exit_code": 0,
+        "warnings": 54,
+        "errors": 0,
+        "top_lints": [
+          {
+            "lint": "clippy::useless_conversion",
+            "count": 17
+          },
+          {
+            "lint": "clippy::needless_borrows_for_generic_args",
+            "count": 6
+          },
+          {
+            "lint": "clippy::if_same_then_else",
+            "count": 4
+          },
+          {
+            "lint": "clippy::collapsible_if",
+            "count": 4
+          },
+          {
+            "lint": "clippy::cloned_ref_to_slice_refs",
+            "count": 4
+          },
+          {
+            "lint": "clippy::unnecessary_to_owned",
+            "count": 3
+          },
+          {
+            "lint": "clippy::redundant_closure",
+            "count": 2
+          },
+          {
+            "lint": "clippy::type_complexity",
+            "count": 2
+          },
+          {
+            "lint": "clippy::should_implement_trait",
+            "count": 2
+          },
+          {
+            "lint": "clippy::new_without_default",
+            "count": 2
+          },
+          {
+            "lint": "clippy::unwrap_or_default",
+            "count": 2
+          },
+          {
+            "lint": "clippy::unnecessary_lazy_evaluations",
+            "count": 2
+          },
+          {
+            "lint": "clippy::manual_range_contains",
+            "count": 2
+          },
+          {
+            "lint": "clippy::ptr_arg",
+            "count": 2
+          }
+        ],
+        "malformed_json_lines": 0
+      },
+      "frontend_check": {
+        "available": true,
+        "exit_code": 0,
+        "error_line_hits": 0,
+        "warning_line_hits": 1
+      }
+    },
+    "security": {
+      "backend": {
+        "tool": "cargo-audit",
+        "exit_code": 1,
+        "available": true,
+        "found": true,
+        "count": 3,
+        "high": 0,
+        "critical": 0
+      },
+      "frontend": {
+        "tool": "bun audit",
+        "exit_code": 1,
+        "available": true,
+        "count": 4,
+        "high": 2,
+        "critical": 0,
+        "by_severity": {
+          "low": 0,
+          "moderate": 2,
+          "high": 2,
+          "critical": 0
+        }
+      },
+      "high_critical_total": {
+        "high": 2,
+        "critical": 0
+      }
+    }
+  },
+  "commands": [
+    {
+      "label": "backend_tests",
+      "cmd": [
+        "cargo",
+        "test"
+      ],
+      "cwd": "/Users/jaichang/Documents/GitHub/open-codelabs/backend",
+      "exit_code": 0,
+      "duration_ms": 22661.952624999685,
+      "stdout_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/backend_tests.stdout.log",
+      "stderr_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/backend_tests.stderr.log"
+    },
+    {
+      "label": "frontend_tests",
+      "cmd": [
+        "bun",
+        "test"
+      ],
+      "cwd": "/Users/jaichang/Documents/GitHub/open-codelabs/frontend",
+      "exit_code": 0,
+      "duration_ms": 5609.32758400304,
+      "stdout_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/frontend_tests.stdout.log",
+      "stderr_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/frontend_tests.stderr.log"
+    },
+    {
+      "label": "backend_coverage",
+      "cmd": [
+        "cargo",
+        "llvm-cov",
+        "--workspace",
+        "--all-features",
+        "--summary-only"
+      ],
+      "cwd": "/Users/jaichang/Documents/GitHub/open-codelabs/backend",
+      "exit_code": 0,
+      "duration_ms": 30845.587167001213,
+      "stdout_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/backend_coverage.stdout.log",
+      "stderr_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/backend_coverage.stderr.log"
+    },
+    {
+      "label": "backend_clippy",
+      "cmd": [
+        "cargo",
+        "clippy",
+        "--all-targets",
+        "--all-features",
+        "--message-format=json"
+      ],
+      "cwd": "/Users/jaichang/Documents/GitHub/open-codelabs/backend",
+      "exit_code": 0,
+      "duration_ms": 4101.529832994856,
+      "stdout_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/backend_clippy.stdout.log",
+      "stderr_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/backend_clippy.stderr.log"
+    },
+    {
+      "label": "frontend_check",
+      "cmd": [
+        "bun",
+        "run",
+        "check"
+      ],
+      "cwd": "/Users/jaichang/Documents/GitHub/open-codelabs/frontend",
+      "exit_code": 0,
+      "duration_ms": 6679.038707996369,
+      "stdout_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/frontend_check.stdout.log",
+      "stderr_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/frontend_check.stderr.log"
+    },
+    {
+      "label": "backend_security_audit",
+      "cmd": [
+        "cargo",
+        "audit",
+        "--json"
+      ],
+      "cwd": "/Users/jaichang/Documents/GitHub/open-codelabs/backend",
+      "exit_code": 1,
+      "duration_ms": 2967.282166995574,
+      "stdout_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/backend_security_audit.stdout.log",
+      "stderr_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/backend_security_audit.stderr.log"
+    },
+    {
+      "label": "frontend_security_audit",
+      "cmd": [
+        "bun",
+        "audit",
+        "--json"
+      ],
+      "cwd": "/Users/jaichang/Documents/GitHub/open-codelabs/frontend",
+      "exit_code": 1,
+      "duration_ms": 227.12250000040513,
+      "stdout_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/frontend_security_audit.stdout.log",
+      "stderr_log": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/swe/swe-logs/frontend_security_audit.stderr.log"
+    }
+  ],
+  "notes": [
+    "Some metrics are best-effort and may be unavailable if required tools are not installed locally.",
+    "Raw command logs are saved under swe-logs for reproducibility and auditability."
+  ]
+}

@@ -1,0 +1,2 @@
+scenario,attendees,read_requests,write_requests,read_concurrency,write_concurrency
+u3,3,12,8,3,2

@@ -1,0 +1,9 @@
+status,label,exit_code
+OK,rest_matrix,0
+OK,ws_repeat_r01,0
+OK,ops_repeat_r01,0
+OK,frontend_render,0
+OK,soak,0
+OK,swe_metrics,0
+OK,stats,0
+OK,plots,0

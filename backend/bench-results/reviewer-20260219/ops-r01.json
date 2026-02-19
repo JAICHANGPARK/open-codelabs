@@ -1,0 +1,183 @@
+{
+  "generated_at_utc": "2026-02-19T10:56:21.720376+00:00",
+  "config": {
+    "base_url": "http://127.0.0.1:8080",
+    "profile": "quick",
+    "scenarios": [
+      "upload",
+      "backup",
+      "codeserver"
+    ],
+    "upload_requests_per_case": 3,
+    "codeserver_iterations": 1,
+    "output": "bench-results/reviewer-20260219/ops-r01.json"
+  },
+  "upload": {
+    "cases": [
+      {
+        "label": "img_1mb",
+        "generated_image_bytes": 1470878,
+        "requests": 6,
+        "concurrency": 2,
+        "success_2xx": 6,
+        "http_errors": 0,
+        "transport_errors": 0,
+        "latency_ms": {
+          "samples": 6,
+          "min": 6.319208,
+          "mean": 7.9247846666666675,
+          "p50": 6.5935,
+          "p95": 11.1553855,
+          "p99": 11.4333771,
+          "max": 11.502875
+        },
+        "status_counts": {
+          "200": 6
+        }
+      },
+      {
+        "label": "img_1mb",
+        "generated_image_bytes": 1470878,
+        "requests": 12,
+        "concurrency": 4,
+        "success_2xx": 12,
+        "http_errors": 0,
+        "transport_errors": 0,
+        "latency_ms": {
+          "samples": 12,
+          "min": 6.248792000000001,
+          "mean": 8.938732666666667,
+          "p50": 8.979812500000001,
+          "p95": 11.13170845,
+          "p99": 11.16030889,
+          "max": 11.167459
+        },
+        "status_counts": {
+          "200": 12
+        }
+      },
+      {
+        "label": "img_3mb",
+        "generated_image_bytes": 3241213,
+        "requests": 6,
+        "concurrency": 2,
+        "success_2xx": 6,
+        "http_errors": 0,
+        "transport_errors": 0,
+        "latency_ms": {
+          "samples": 6,
+          "min": 9.539875,
+          "mean": 10.990958333333333,
+          "p50": 10.4964795,
+          "p95": 13.0898745,
+          "p99": 13.376407700000003,
+          "max": 13.448041000000002
+        },
+        "status_counts": {
+          "200": 6
+        }
+      },
+      {
+        "label": "img_3mb",
+        "generated_image_bytes": 3241213,
+        "requests": 12,
+        "concurrency": 4,
+        "success_2xx": 12,
+        "http_errors": 0,
+        "transport_errors": 0,
+        "latency_ms": {
+          "samples": 12,
+          "min": 11.047417000000001,
+          "mean": 18.187403000000003,
+          "p50": 14.471104,
+          "p95": 33.310543749999994,
+          "p99": 38.328908750000004,
+          "max": 39.5835
+        },
+        "status_counts": {
+          "200": 12
+        }
+      }
+    ]
+  },
+  "backup": {
+    "datasets": [
+      {
+        "dataset": "tiny",
+        "codelab_id": "e7d666bc-92ed-4edb-82e8-f6793bd97ea3",
+        "attendees_seeded": 4,
+        "steps_seeded": 4,
+        "quizzes_seeded": 2,
+        "export_ms": 75.9335,
+        "inspect_ms": 59.949000000000005,
+        "restore_ms": 254.45941700000003,
+        "backup_size_bytes": 86293836,
+        "export_status": 200,
+        "inspect_status": 200,
+        "restore_status": 200
+      },
+      {
+        "dataset": "small",
+        "codelab_id": "e44808d8-ea98-4fe9-96d9-0fb00bed172c",
+        "attendees_seeded": 20,
+        "steps_seeded": 10,
+        "quizzes_seeded": 3,
+        "export_ms": 61.749292,
+        "inspect_ms": 90.794375,
+        "restore_ms": 213.788958,
+        "backup_size_bytes": 86381202,
+        "export_status": 200,
+        "inspect_status": 200,
+        "restore_status": 200
+      }
+    ]
+  },
+  "codeserver": {
+    "codelab_id": "98cee411-77a0-4acf-a46d-a46320fb2e53",
+    "iterations": 1,
+    "create_codeserver_ms": 54.813584,
+    "download_workspace_ms": 30.668333,
+    "download_size_bytes": 20480,
+    "create_branch_ms": {
+      "samples": 1,
+      "min": 46.190083,
+      "mean": 46.190083,
+      "p50": 46.190083,
+      "p95": 46.190083,
+      "p99": 46.190083,
+      "max": 46.190083
+    },
+    "update_branch_ms": {
+      "samples": 1,
+      "min": 75.249125,
+      "mean": 75.249125,
+      "p50": 75.249125,
+      "p95": 75.249125,
+      "p99": 75.249125,
+      "max": 75.249125
+    },
+    "create_folder_ms": {
+      "samples": 1,
+      "min": 1.243375,
+      "mean": 1.243375,
+      "p50": 1.243375,
+      "p95": 1.243375,
+      "p99": 1.243375,
+      "max": 1.243375
+    },
+    "update_folder_ms": {
+      "samples": 1,
+      "min": 0.939958,
+      "mean": 0.939958,
+      "p50": 0.939958,
+      "p95": 0.939958,
+      "p99": 0.939958,
+      "max": 0.939958
+    }
+  },
+  "notes": [
+    "Upload benchmark uses PNG noise images (server converts to WebP).",
+    "Backup benchmark seeds synthetic workshop data before export/inspect/restore.",
+    "Code-server benchmark measures branch/folder update path plus workspace download."
+  ]
+}

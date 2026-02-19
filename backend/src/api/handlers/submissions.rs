@@ -1,10 +1,10 @@
-use crate::infrastructure::audit::{record_audit, AuditEntry};
-use crate::middleware::auth::AuthSession;
-use crate::utils::error::{bad_request, forbidden, internal_error, unauthorized};
 use crate::domain::models::{CreateSubmissionLink, Submission, SubmissionWithAttendee};
-use crate::middleware::request_info::RequestInfo;
+use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::infrastructure::database::AppState;
 use crate::infrastructure::db_models::SubmissionWithAttendeeRaw;
+use crate::middleware::auth::AuthSession;
+use crate::middleware::request_info::RequestInfo;
+use crate::utils::error::{bad_request, forbidden, internal_error, unauthorized};
 use axum::{
     extract::{Path, State},
     http::StatusCode,
@@ -12,13 +12,13 @@ use axum::{
 };
 use axum_extra::extract::Multipart;
 use image::{codecs::webp::WebPEncoder, ExtendedColorType, ImageReader};
+use serde_json;
 use std::io::Cursor as IoCursor;
 use std::path::Path as StdPath;
 use std::sync::Arc;
 use tokio::fs;
-use uuid::Uuid;
-use serde_json;
 use url::Url;
+use uuid::Uuid;
 
 const MAX_TOTAL_SIZE: i64 = 10 * 1024 * 1024; // 10MB
 const MAX_UPLOAD_SIZE: usize = 5 * 1024 * 1024; // 5MB per file
@@ -313,21 +313,13 @@ pub async fn get_submissions(
     Ok(Json(submissions))
 }
 
-
 fn convert_image_to_webp(original_name: &str, data: &[u8]) -> Option<(Vec<u8>, String)> {
     // Use ImageReader to automatically handle EXIF orientation
     let reader = ImageReader::new(IoCursor::new(data));
     let reader = reader.with_guessed_format().ok()?;
 
     // Load image with automatic EXIF orientation handling
-    let img = match reader.decode() {
-        Ok(img) => img,
-        Err(_) => {
-            // Fallback to basic loading
-            let img = image::load_from_memory(data).ok()?;
-            img
-        }
-    };
+    let img = reader.decode().ok()?;
 
     // Ensure RGBA8 for WebP encoding
     let rgba = img.to_rgba8();
@@ -372,9 +364,9 @@ pub async fn delete_submission(
         None => return Err(unauthorized()),
     };
     // Get file path first
-    let submission_row: Option<(String, String, String, String)> = sqlx::query_as(
-        &state.q("SELECT file_path, codelab_id, attendee_id, submission_type FROM submissions WHERE id = ?"),
-    )
+    let submission_row: Option<(String, String, String, String)> = sqlx::query_as(&state.q(
+        "SELECT file_path, codelab_id, attendee_id, submission_type FROM submissions WHERE id = ?",
+    ))
     .bind(&submission_id)
     .fetch_optional(&state.pool)
     .await
@@ -423,4 +415,35 @@ pub async fn delete_submission(
     .await;
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use image::{DynamicImage, ImageFormat, Rgba, RgbaImage};
+
+    #[test]
+    fn sanitize_original_name_filters_and_truncates() {
+        assert_eq!(sanitize_original_name("a b/c?.png"), "abc.png");
+        let long = "y".repeat(200);
+        assert_eq!(sanitize_original_name(&long).len(), 120);
+    }
+
+    #[test]
+    fn convert_image_to_webp_converts_valid_image() {
+        let img = RgbaImage::from_pixel(2, 2, Rgba([255, 0, 0, 255]));
+        let mut png = Vec::new();
+        DynamicImage::ImageRgba8(img)
+            .write_to(&mut IoCursor::new(&mut png), ImageFormat::Png)
+            .expect("write png");
+
+        let (webp_bytes, name) = convert_image_to_webp("sample.png", &png).expect("convert webp");
+        assert!(!webp_bytes.is_empty());
+        assert_eq!(name, "sample.webp");
+    }
+
+    #[test]
+    fn convert_image_to_webp_returns_none_for_invalid_bytes() {
+        assert!(convert_image_to_webp("invalid.png", b"not-an-image").is_none());
+    }
 }

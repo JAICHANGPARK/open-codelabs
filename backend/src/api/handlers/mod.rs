@@ -1,10 +1,10 @@
 pub mod admin;
-pub mod backup;
 pub mod ai;
 pub mod attendees;
 pub mod audit;
-pub mod codeserver;
+pub mod backup;
 pub mod codelabs;
+pub mod codeserver;
 pub mod feedback;
 pub mod inline_comments;
 pub mod materials;

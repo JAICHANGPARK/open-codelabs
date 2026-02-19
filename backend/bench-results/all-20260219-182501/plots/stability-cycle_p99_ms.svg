@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+<rect x="0" y="0" width="100%" height="100%" fill="white"/>
+<text x="120" y="36" font-size="24" font-family="Menlo, Consolas, monospace" fill="#111">stability :: cycle_p99_ms</text>
+<line x1="120" y1="560.00" x2="1240" y2="560.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="108" y="564.00" text-anchor="end" font-size="12" font-family="Menlo, Consolas, monospace" fill="#374151">0.00</text>
+<line x1="120" y1="462.00" x2="1240" y2="462.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="108" y="466.00" text-anchor="end" font-size="12" font-family="Menlo, Consolas, monospace" fill="#374151">10555.98</text>
+<line x1="120" y1="364.00" x2="1240" y2="364.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="108" y="368.00" text-anchor="end" font-size="12" font-family="Menlo, Consolas, monospace" fill="#374151">21111.96</text>
+<line x1="120" y1="266.00" x2="1240" y2="266.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="108" y="270.00" text-anchor="end" font-size="12" font-family="Menlo, Consolas, monospace" fill="#374151">31667.94</text>
+<line x1="120" y1="168.00" x2="1240" y2="168.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="108" y="172.00" text-anchor="end" font-size="12" font-family="Menlo, Consolas, monospace" fill="#374151">42223.92</text>
+<line x1="120" y1="70.00" x2="1240" y2="70.00" stroke="#e5e7eb" stroke-width="1"/>
+<text x="108" y="74.00" text-anchor="end" font-size="12" font-family="Menlo, Consolas, monospace" fill="#374151">52779.90</text>
+<line x1="120" y1="70" x2="120" y2="560" stroke="#111827" stroke-width="2"/>
+<line x1="120" y1="560" x2="1240" y2="560" stroke="#111827" stroke-width="2"/>
+<rect x="648.00" y="114.55" width="64.00" height="445.45" fill="#1d4ed8" opacity="0.88"/>
+<line x1="680.00" y1="114.55" x2="680.00" y2="114.55" stroke="#111827" stroke-width="2"/>
+<line x1="673.00" y1="114.55" x2="687.00" y2="114.55" stroke="#111827" stroke-width="2"/>
+<line x1="673.00" y1="114.55" x2="687.00" y2="114.55" stroke="#111827" stroke-width="2"/>
+<text x="680.00" y="106.55" text-anchor="middle" font-size="11" font-family="Menlo, Consolas, monospace" fill="#111827">47981.73</text>
+<g transform="translate(680.00,572.00) rotate(40)"><text x="0" y="0" font-size="11" font-family="Menlo, Consolas, monospace" fill="#374151">soak</text></g>
+<text x="24" y="26" font-size="12" font-family="Menlo, Consolas, monospace" fill="#374151">Bars: median, whiskers: bootstrap 95% CI</text>
+</svg>

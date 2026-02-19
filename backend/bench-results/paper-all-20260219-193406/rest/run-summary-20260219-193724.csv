@@ -1,0 +1,7 @@
+timestamp_utc,scenario,repeat,status,exit_code,output_file,attendees,read_requests,write_requests,read_concurrency,write_concurrency
+2026-02-19T10:37:24Z,u10,1,FAIL,101,/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193406/rest/u10-r01-20260219-193724.json,10,1000,500,50,25
+2026-02-19T10:37:28Z,u10,2,FAIL,101,/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193406/rest/u10-r02-20260219-193724.json,10,1000,500,50,25
+2026-02-19T10:37:30Z,u10,3,FAIL,101,/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193406/rest/u10-r03-20260219-193724.json,10,1000,500,50,25
+2026-02-19T10:37:32Z,u10,4,FAIL,101,/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193406/rest/u10-r04-20260219-193724.json,10,1000,500,50,25
+2026-02-19T10:37:34Z,u10,5,FAIL,101,/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193406/rest/u10-r05-20260219-193724.json,10,1000,500,50,25
+2026-02-19T10:37:37Z,u10,6,FAIL,101,/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193406/rest/u10-r06-20260219-193724.json,10,1000,500,50,25

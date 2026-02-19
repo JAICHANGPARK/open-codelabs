@@ -1,0 +1,8 @@
+    Finished `release` profile [optimized] target(s) in 0.49s
+     Running `target/release/local_bench --base-url 'http://localhost:8080' --admin-id admin --admin-pw admin --attendees 30 --read-requests 300 --write-requests 150 --read-concurrency 30 --write-concurrency 20 --output /Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193826/soak/cycle-0011-local.json`
+Error: Failed to register attendee bench-user-0006
+
+Caused by:
+    0: error sending request for url (http://localhost:8080/api/codelabs/931e6e8a-f85d-4dc3-b5a7-11193e7a88a6/register)
+    1: client error (SendRequest)
+    2: connection closed before message completed

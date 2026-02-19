@@ -5,16 +5,21 @@ import CryptoJS from 'crypto-js';
 // However, for this requirement (client-side encryption for localStorage), 
 // we use a hardcoded key to obfuscate the API key and prevent plain-text storage.
 const SECRET_KEY = "Open-Codelabs-Secure-Salt-2025";
-const ENV_ENCRYPTION_PASSWORD =
-    typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_ADMIN_ENCRYPTION_PASSWORD
-        ? (import.meta as any).env.VITE_ADMIN_ENCRYPTION_PASSWORD
+
+function getEnvEncryptionPassword(): string {
+    return typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_ADMIN_ENCRYPTION_PASSWORD
+        ? String((import.meta as any).env.VITE_ADMIN_ENCRYPTION_PASSWORD)
         : "";
-const isBrowser = typeof window !== "undefined";
+}
+
+function hasBrowserStorage(): boolean {
+    return typeof window !== "undefined" && typeof sessionStorage !== "undefined";
+}
 
 export function getEncryptionPassword(opts?: { interactive?: boolean }): string | null {
-    const envPassword = ENV_ENCRYPTION_PASSWORD;
+    const envPassword = getEnvEncryptionPassword();
 
-    if (isBrowser) {
+    if (hasBrowserStorage()) {
         const stored = sessionStorage.getItem("adminPassword");
         if (stored) return stored;
         if (envPassword) {

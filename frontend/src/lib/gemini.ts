@@ -1,4 +1,3 @@
-import { browser } from '$app/environment';
 import { encryptForBackend, getEncryptionPassword } from './crypto';
 
 export interface GeminiConfig {
@@ -34,28 +33,42 @@ export interface GeminiResponseChunk {
 }
 
 const envApiUrl = import.meta.env.VITE_API_URL;
-let BASE_URL = envApiUrl || 'http://localhost:8080';
-const USE_SUPABASE = import.meta.env.VITE_USE_SUPABASE === 'true';
-const USE_FIREBASE = import.meta.env.VITE_USE_FIREBASE === 'true' && !USE_SUPABASE;
-const USE_SERVERLESS = USE_FIREBASE || USE_SUPABASE;
+const isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
+type LocationLike = {
+    hostname: string;
+    port: string;
+    origin: string;
+    protocol: string;
+};
 
-if (browser && (envApiUrl === 'http://backend:8080' || !envApiUrl || envApiUrl.includes('localhost'))) {
-    const hostname = window.location.hostname;
+export function resolveGeminiBaseUrl(apiUrl?: string, location?: LocationLike): string {
+    let baseUrl = apiUrl || 'http://localhost:8080';
+    if (!location) return baseUrl;
+    if (!(apiUrl === 'http://backend:8080' || !apiUrl || apiUrl.includes('localhost'))) return baseUrl;
+
+    const hostname = location.hostname;
     const isTunnelHost = hostname.includes('ngrok') || hostname.includes('bore') || hostname.includes('trycloudflare.com');
-    const isDefaultPort = window.location.port === '' || window.location.port === '443' || window.location.port === '80';
+    const isDefaultPort = location.port === '' || location.port === '443' || location.port === '80';
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
 
     if (isTunnelHost || (!isLocalhost && isDefaultPort)) {
-        BASE_URL = window.location.origin;
-    } else {
-        BASE_URL = `${window.location.protocol}//${window.location.hostname}:8080`;
+        return location.origin;
     }
+    return `${location.protocol}//${location.hostname}:8080`;
 }
+
+const BASE_URL = resolveGeminiBaseUrl(envApiUrl, isBrowser() ? window.location : undefined);
 
 const AI_PROXY_URL = `${BASE_URL}/api/ai/stream`;
 
+function isServerlessMode() {
+    const useSupabase = import.meta.env.VITE_USE_SUPABASE === "true";
+    const useFirebase = import.meta.env.VITE_USE_FIREBASE === "true" && !useSupabase;
+    return useFirebase || useSupabase;
+}
+
 function getCookie(name: string): string | null {
-    if (!browser) return null;
+    if (!isBrowser()) return null;
     const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
     return match ? decodeURIComponent(match[1]) : null;
 }
@@ -80,7 +93,7 @@ export async function* streamGeminiResponseRobust(
         if (!config.apiKey) throw new Error("API Key is required for backend mode");
     };
 
-    if (USE_SERVERLESS) {
+    if (isServerlessMode()) {
         if (!config.apiKey) throw new Error("API Key is required for serverless mode");
         // Direct call for serverless mode
         const model = config.model || "gemini-3-flash-preview";
@@ -107,7 +120,7 @@ export async function* streamGeminiResponseRobust(
         // Proxy through our backend
         apiKeyRequired();
         let apiKey = config.apiKey;
-        if (browser) {
+        if (isBrowser()) {
             const adminPw = getEncryptionPassword({ interactive: false });
             if (adminPw) {
                 apiKey = encryptForBackend(apiKey, adminPw);
@@ -151,7 +164,7 @@ export async function* streamGeminiChat(
         parts: [{ text: m.content }]
     }));
 
-    if (USE_SERVERLESS) {
+    if (isServerlessMode()) {
         apiKeyRequired();
         const model = config.model || "gemini-3-flash-preview";
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
@@ -177,7 +190,7 @@ export async function* streamGeminiChat(
     } else {
         apiKeyRequired();
         let apiKey = config.apiKey;
-        if (browser) {
+        if (isBrowser()) {
             const adminPw = getEncryptionPassword({ interactive: false });
             if (adminPw) apiKey = encryptForBackend(apiKey, adminPw);
         }
@@ -276,7 +289,7 @@ export async function* streamGeminiStructuredOutput(
         })
     };
 
-    if (USE_SERVERLESS) {
+    if (isServerlessMode()) {
         if (!config.apiKey) throw new Error("API Key is required for serverless mode");
         const model = config.model || "gemini-3-flash-preview";
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
@@ -307,7 +320,7 @@ export async function* streamGeminiStructuredOutput(
     } else {
         apiKeyRequired();
         let apiKey = config.apiKey;
-        if (browser) {
+        if (isBrowser()) {
             const adminPw = getEncryptionPassword({ interactive: false });
             if (adminPw) {
                 apiKey = encryptForBackend(apiKey, adminPw);

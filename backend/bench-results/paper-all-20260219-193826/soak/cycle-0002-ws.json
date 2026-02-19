@@ -1,0 +1,52 @@
+{
+  "generated_at_utc": "2026-02-19T11:00:59.638118+00:00",
+  "config": {
+    "base_url": "http://localhost:8080",
+    "users": [
+      50
+    ],
+    "duration_secs": 45,
+    "chat_rate_per_sec": 0.5,
+    "step_interval_secs": 7,
+    "output": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193826/soak/cycle-0002-ws.json"
+  },
+  "cases": [
+    {
+      "users": 50,
+      "codelab_id": "6baf77fc-f0f6-45ec-8d4b-e6ce32479583",
+      "duration_secs": 45,
+      "sent_chat": 1150,
+      "sent_step_progress": 300,
+      "recv_chat": 57003,
+      "ws_disconnects": 50,
+      "ws_errors": 50,
+      "ws_error_samples": [
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake"
+      ],
+      "throughput": {
+        "sent_chat_per_sec": 25.555555555555557,
+        "recv_chat_per_sec": 1266.7333333333333
+      },
+      "e2e_latency_ms": {
+        "samples": 1150,
+        "min": 0.718166,
+        "mean": 24.751003367826076,
+        "p50": 18.916167,
+        "p95": 75.13395625,
+        "p99": 100.82524699999999,
+        "max": 196.335916
+      }
+    }
+  ],
+  "notes": [
+    "WS benchmark measures sender->echo roundtrip latency for chat messages.",
+    "If ws_disconnects/ws_errors are high, raise RATE_LIMIT_GENERAL_PER_MINUTE and inspect server logs."
+  ]
+}

@@ -1,34 +1,45 @@
-import { browser } from '$app/environment';
 import { encryptForBackend, getEncryptionPassword } from './crypto';
 import type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, Material, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload, InlineCommentThread, CreateInlineCommentPayload } from './types';
 export type { Codelab, Step, Attendee, HelpRequest, ChatMessage, Feedback, CertificateInfo, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee, Submission, SubmissionWithAttendee, AiConversation, SaveAiConversationPayload, InlineCommentThread, CreateInlineCommentPayload };
 
-const envApiUrl = import.meta.env.VITE_API_URL;
-let BASE_URL = envApiUrl || 'http://localhost:8080';
+const isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
 
-if (browser && (envApiUrl === 'http://backend:8080' || !envApiUrl || envApiUrl.includes('localhost'))) {
+const envApiUrl = import.meta.env.VITE_API_URL;
+type LocationLike = {
+    hostname: string;
+    port: string;
+    origin: string;
+    protocol: string;
+};
+
+export function resolveBackendBaseUrl(apiUrl?: string, location?: LocationLike): string {
+    let baseUrl = apiUrl || 'http://localhost:8080';
+    if (!location) return baseUrl;
+    if (!(apiUrl === 'http://backend:8080' || !apiUrl || apiUrl.includes('localhost'))) return baseUrl;
+
     // If we are in the browser and the URL is set to the Docker internal name or not set,
     // or pointing to localhost (which won't work from remote), we use the current hostname.
-    const hostname = window.location.hostname;
+    const hostname = location.hostname;
     const isTunnelHost = hostname.includes('ngrok') || hostname.includes('bore') || hostname.includes('trycloudflare.com');
-    const isDefaultPort = window.location.port === '' || window.location.port === '443' || window.location.port === '80';
+    const isDefaultPort = location.port === '' || location.port === '443' || location.port === '80';
     const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
 
     if (isTunnelHost || (!isLocalhost && isDefaultPort)) {
         // For tunnel services or default web ports, use the current origin without port 8080
         // The SvelteKit proxy (hooks.server.ts) will handle forwarding to the backend.
-        BASE_URL = window.location.origin;
-    } else {
-        // Standard local development, keep using port 8080
-        BASE_URL = `${window.location.protocol}//${window.location.hostname}:8080`;
+        return location.origin;
     }
+
+    // Standard local development, keep using port 8080
+    return `${location.protocol}//${location.hostname}:8080`;
 }
 
+const BASE_URL = resolveBackendBaseUrl(envApiUrl, isBrowser() ? window.location : undefined);
 const API_URL = BASE_URL + '/api';
 export const ASSET_URL = BASE_URL;
 
 function getCookie(name: string): string | null {
-    if (!browser) return null;
+    if (!isBrowser()) return null;
     const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
     return match ? decodeURIComponent(match[1]) : null;
 }
@@ -175,7 +186,7 @@ export async function saveAdminSettings(payload: { gemini_api_key: string }): Pr
     let finalPayload = { ...payload };
 
     // Encrypt the API key using admin password if available
-    if (browser) {
+    if (isBrowser()) {
         const adminPw = getEncryptionPassword();
         if (payload.gemini_api_key) {
             if (!adminPw) {

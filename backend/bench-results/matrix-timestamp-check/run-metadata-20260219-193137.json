@@ -1,0 +1,10 @@
+{
+  "generated_at_utc": "2026-02-19T10:31:37Z",
+  "run_tag": "20260219-193137",
+  "base_url": "http://localhost:8080",
+  "admin_id": "admin",
+  "repeats": 1,
+  "profile": "quick",
+  "matrix_file": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench/matrix.quick.csv",
+  "dry_run": 1
+}

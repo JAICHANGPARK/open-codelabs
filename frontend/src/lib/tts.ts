@@ -1,10 +1,8 @@
-import { browser } from "$app/environment";
-
 export function createTtsPlayer() {
     let synth: SpeechSynthesis | null = null;
     let currentUtterance: SpeechSynthesisUtterance | null = null;
 
-    if (browser) {
+    if (typeof window !== "undefined" && typeof window.speechSynthesis !== "undefined") {
         synth = window.speechSynthesis;
     }
 

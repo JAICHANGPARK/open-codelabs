@@ -1,9 +1,9 @@
-use crate::infrastructure::audit::{record_audit, AuditEntry};
-use crate::middleware::auth::AuthSession;
-use crate::utils::error::{forbidden, internal_error};
 use crate::domain::models::{CreateFeedback, Feedback};
-use crate::middleware::request_info::RequestInfo;
+use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::infrastructure::database::AppState;
+use crate::middleware::auth::AuthSession;
+use crate::middleware::request_info::RequestInfo;
+use crate::utils::error::{forbidden, internal_error};
 use crate::utils::validation::validate_feedback;
 use axum::{
     extract::{Path, State},
@@ -58,10 +58,7 @@ pub async fn submit_feedback(
         }
         Err(e) => {
             let err_msg = e.to_string();
-            if err_msg.contains("UNIQUE constraint failed")
-                || err_msg.contains("unique violation")
-                || err_msg.contains("Duplicate entry")
-            {
+            if is_duplicate_feedback_error(&err_msg) {
                 Err((
                     StatusCode::CONFLICT,
                     "Feedback already submitted".to_string(),
@@ -71,6 +68,16 @@ pub async fn submit_feedback(
             }
         }
     }
+}
+
+fn is_duplicate_feedback_error(err_msg: &str) -> bool {
+    [
+        "UNIQUE constraint failed",
+        "unique violation",
+        "Duplicate entry",
+    ]
+    .iter()
+    .any(|needle| err_msg.contains(needle))
 }
 
 pub async fn get_feedback(
@@ -88,4 +95,23 @@ pub async fn get_feedback(
     .map_err(internal_error)?;
 
     Ok(Json(feedback))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_duplicate_feedback_error;
+
+    #[test]
+    fn duplicate_feedback_detection_matches_known_db_errors() {
+        assert!(is_duplicate_feedback_error(
+            "UNIQUE constraint failed: feedback.codelab_id, feedback.attendee_id"
+        ));
+        assert!(is_duplicate_feedback_error(
+            "insert failed due to unique violation on constraint feedback_unique"
+        ));
+        assert!(is_duplicate_feedback_error(
+            "Duplicate entry 'abc' for key 'feedback.unique'"
+        ));
+        assert!(!is_duplicate_feedback_error("no such table: feedback"));
+    }
 }

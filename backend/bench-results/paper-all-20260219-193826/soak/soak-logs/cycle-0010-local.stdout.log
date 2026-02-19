@@ -1,0 +1,16 @@
+Preparing local benchmark (base_url=http://localhost:8080, attendees=30)
+Setup complete. codelab_id=e9d79773-2955-4903-a140-7977b6b0515b
+
+Benchmark complete: /Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193826/soak/cycle-0010-local.json
+codelab_id: e9d79773-2955-4903-a140-7977b6b0515b
+
+scenario                           p50(ms)   p95(ms)   p99(ms)    error%       rps
+------------------------------------------------------------------------------------
+admin_get_attendees                    5.5   13711.9   13740.4     75.00       8.8
+admin_get_chat_history                 3.7       9.6      14.1    100.00    6853.7
+attendee_post_help                     2.3       6.3       9.3    100.00    7077.9
+attendee_post_submission_link          3.0       6.1       7.1    100.00    6253.6
+
+Notes:
+- Local-only run. Use this for baseline/trend comparison, not absolute production capacity.
+- For paper tables, repeat each run multiple times and report median/IQR with confidence intervals.

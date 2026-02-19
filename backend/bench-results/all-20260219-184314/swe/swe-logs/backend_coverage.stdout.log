@@ -1,0 +1,38 @@
+Filename                            Regions    Missed Regions     Cover   Functions  Missed Functions  Executed       Lines      Missed Lines     Cover    Branches   Missed Branches     Cover
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+api/dto/admin.rs                         11                 0   100.00%           1                 0   100.00%           5                 0   100.00%           0                 0         -
+api/dto/audit.rs                         15                 0   100.00%           1                 0   100.00%           7                 0   100.00%           0                 0         -
+api/dto/codeserver.rs                    38                 0   100.00%           2                 0   100.00%          22                 0   100.00%           0                 0         -
+api/handlers/admin.rs                   412                19    95.39%          28                 3    89.29%         296                 6    97.97%           0                 0         -
+api/handlers/ai.rs                      541                39    92.79%          32                 3    90.62%         355                 9    97.46%           0                 0         -
+api/handlers/attendees.rs               446                30    93.27%          20                 2    90.00%         363                 5    98.62%           0                 0         -
+api/handlers/audit.rs                    73                 5    93.15%           2                 0   100.00%          50                 0   100.00%           0                 0         -
+api/handlers/backup.rs                 1560               136    91.28%          34                10    70.59%         811                25    96.92%           0                 0         -
+api/handlers/codelabs.rs               1067                98    90.82%          39                 8    79.49%         712                15    97.89%           0                 0         -
+api/handlers/codeserver.rs              674               105    84.42%          45                13    71.11%         521                16    96.93%           0                 0         -
+api/handlers/feedback.rs                 96                 5    94.79%           7                 0   100.00%          84                 1    98.81%           0                 0         -
+api/handlers/inline_comments.rs        1034                40    96.13%          48                 1    97.92%         759                 9    98.81%           0                 0         -
+api/handlers/materials.rs               282                14    95.04%          16                 0   100.00%         210                 0   100.00%           0                 0         -
+api/handlers/quizzes.rs                 249                18    92.77%          14                 1    92.86%         172                 1    99.42%           0                 0         -
+api/handlers/submissions.rs             503                44    91.25%          22                 3    86.36%         364                24    93.41%           0                 0         -
+api/handlers/upload.rs                   95                13    86.32%           7                 4    42.86%          67                 4    94.03%           0                 0         -
+api/handlers/websocket.rs               631                23    96.35%          29                 2    93.10%         366                17    95.36%           0                 0         -
+api/routes.rs                           239                 0   100.00%           8                 0   100.00%         145                 0   100.00%           0                 0         -
+bin/local_bench.rs                     1021              1021     0.00%          67                67     0.00%         666               666     0.00%           0                 0         -
+bin/ops_bench.rs                       1407              1407     0.00%         104               104     0.00%         980               980     0.00%           0                 0         -
+bin/ws_bench.rs                         944               944     0.00%          54                54     0.00%         604               604     0.00%           0                 0         -
+domain/models.rs                        130                 1    99.23%          10                 0   100.00%         104                 0   100.00%           0                 0         -
+domain/services/codeserver.rs           989               127    87.16%          72                 5    93.06%         640                39    93.91%           0                 0         -
+infrastructure/audit.rs                 101                 0   100.00%           9                 0   100.00%          95                 0   100.00%           0                 0         -
+infrastructure/config.rs                114                 1    99.12%           9                 0   100.00%          72                 0   100.00%           0                 0         -
+infrastructure/database.rs              299                 1    99.67%          19                 0   100.00%         204                 0   100.00%           0                 0         -
+main.rs                                  66                66     0.00%           4                 4     0.00%          38                38     0.00%           0                 0         -
+middleware/auth.rs                      764                 9    98.82%          50                 4    92.00%         485                 4    99.18%           0                 0         -
+middleware/rate_limit.rs                125                 0   100.00%          10                 0   100.00%          77                 0   100.00%           0                 0         -
+middleware/request_info.rs              167                 3    98.20%          16                 1    93.75%         104                 2    98.08%           0                 0         -
+middleware/security.rs                  697                 9    98.71%          59                 4    93.22%         503                 7    98.61%           0                 0         -
+utils/crypto.rs                         268                10    96.27%          12                 2    83.33%         109                 2    98.17%           0                 0         -
+utils/error.rs                           51                 0   100.00%          10                 0   100.00%          47                 0   100.00%           0                 0         -
+utils/validation.rs                     548                11    97.99%          33                 0   100.00%         386                 0   100.00%           0                 0         -
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+TOTAL                                 15657              4199    73.18%         893               295    66.97%       10423              2474    76.26%           0                 0         -

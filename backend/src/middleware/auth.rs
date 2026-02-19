@@ -9,8 +9,8 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use crate::utils::error::{forbidden, unauthorized};
 use crate::infrastructure::database::AppState;
+use crate::utils::error::{forbidden, unauthorized};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Role {
@@ -312,7 +312,23 @@ pub fn now_epoch_seconds() -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::infrastructure::database::{AppState, DbKind};
+    use axum::{body::Body, http::Request};
     use axum_extra::extract::cookie::SameSite;
+    use sqlx::any::AnyPoolOptions;
+
+    fn claims(role: Role, config: &AuthConfig) -> SessionClaims {
+        let now = now_epoch_seconds();
+        SessionClaims {
+            sub: "user-1".to_string(),
+            role: role.as_str().to_string(),
+            codelab_id: Some("codelab-1".to_string()),
+            iss: config.issuer.clone(),
+            aud: config.audience.clone(),
+            iat: now,
+            exp: now + 60,
+        }
+    }
 
     fn test_config() -> AuthConfig {
         AuthConfig {
@@ -373,5 +389,266 @@ mod tests {
         let token = generate_csrf_token();
         assert_eq!(token.len(), 32);
         assert!(token.chars().all(|c| c.is_ascii_alphanumeric()));
+    }
+
+    #[test]
+    fn role_from_str_and_as_str_cover_all_cases() {
+        assert_eq!(Role::Admin.as_str(), "admin");
+        assert_eq!(Role::Attendee.as_str(), "attendee");
+        assert_eq!(Role::from_str("admin"), Some(Role::Admin));
+        assert_eq!(Role::from_str("attendee"), Some(Role::Attendee));
+        assert_eq!(Role::from_str("other"), None);
+    }
+
+    #[test]
+    fn from_env_parses_samesite_and_cookie_prefix() {
+        struct EnvRestore {
+            key: &'static str,
+            value: Option<String>,
+        }
+        impl EnvRestore {
+            fn new(key: &'static str) -> Self {
+                Self {
+                    key,
+                    value: std::env::var(key).ok(),
+                }
+            }
+        }
+        impl Drop for EnvRestore {
+            fn drop(&mut self) {
+                if let Some(value) = &self.value {
+                    std::env::set_var(self.key, value);
+                } else {
+                    std::env::remove_var(self.key);
+                }
+            }
+        }
+
+        std::env::set_var("AUTH_ISSUER", "pre-existing");
+        let _issuer = EnvRestore::new("AUTH_ISSUER");
+        let _aud = EnvRestore::new("AUTH_AUDIENCE");
+        let _secret = EnvRestore::new("AUTH_SECRETS");
+        let _cookie_secure = EnvRestore::new("COOKIE_SECURE");
+        let _cookie_samesite = EnvRestore::new("COOKIE_SAMESITE");
+        let _admin_pw = EnvRestore::new("ADMIN_PW");
+
+        std::env::set_var("AUTH_ISSUER", "issuer-x");
+        std::env::set_var("AUTH_AUDIENCE", "aud-x");
+        std::env::set_var("AUTH_SECRETS", "s1,s2");
+        std::env::set_var("COOKIE_SECURE", "false");
+        std::env::set_var("COOKIE_SAMESITE", "none");
+        std::env::set_var("ADMIN_PW", "pw-x");
+
+        let cfg = AuthConfig::from_env();
+        assert_eq!(cfg.issuer, "issuer-x");
+        assert_eq!(cfg.audience, "aud-x");
+        assert_eq!(cfg.secrets, vec!["s1".to_string(), "s2".to_string()]);
+        // none without secure should fall back to Lax.
+        assert_eq!(cfg.cookie_same_site, SameSite::Lax);
+        assert_eq!(cfg.cookie_name, "oc_session");
+
+        std::env::remove_var("AUTH_SECRETS");
+        std::env::set_var("COOKIE_SECURE", "true");
+        std::env::set_var("COOKIE_SAMESITE", "none");
+        let secure_none_cfg = AuthConfig::from_env();
+        assert_eq!(secure_none_cfg.cookie_same_site, SameSite::None);
+        assert!(secure_none_cfg.cookie_secure);
+        assert_eq!(secure_none_cfg.cookie_name, "__Host-oc_session");
+
+        std::env::set_var("COOKIE_SAMESITE", "strict");
+        let secure_cfg = AuthConfig::from_env();
+        assert_eq!(secure_cfg.cookie_same_site, SameSite::Strict);
+        assert!(secure_cfg.cookie_secure);
+        assert_eq!(secure_cfg.cookie_name, "__Host-oc_session");
+    }
+
+    #[test]
+    fn require_admin_and_attendee_cover_rejections() {
+        let config = test_config();
+
+        let admin = claims(Role::Admin, &config);
+        let attendee = claims(Role::Attendee, &config);
+
+        let admin_session = AuthSession {
+            claims: Some(admin.clone()),
+            admin_claims: Some(admin.clone()),
+            attendee_claims: None,
+        };
+        assert_eq!(admin_session.require_admin().unwrap().role, "admin");
+        assert_eq!(
+            admin_session.require_attendee().unwrap_err().0,
+            StatusCode::FORBIDDEN
+        );
+
+        let attendee_session = AuthSession {
+            claims: Some(attendee.clone()),
+            admin_claims: None,
+            attendee_claims: Some(attendee),
+        };
+        assert_eq!(
+            attendee_session.require_admin().unwrap_err().0,
+            StatusCode::FORBIDDEN
+        );
+        assert_eq!(
+            attendee_session.require_attendee().unwrap().role,
+            Role::Attendee.as_str()
+        );
+
+        let no_session = AuthSession {
+            claims: None,
+            admin_claims: None,
+            attendee_claims: None,
+        };
+        assert_eq!(
+            no_session.require_admin().unwrap_err().0,
+            StatusCode::UNAUTHORIZED
+        );
+        assert_eq!(
+            no_session.require_attendee().unwrap_err().0,
+            StatusCode::UNAUTHORIZED
+        );
+
+        let attendee_from_claims_only = AuthSession {
+            claims: Some(claims(Role::Attendee, &config)),
+            admin_claims: None,
+            attendee_claims: None,
+        };
+        assert_eq!(
+            attendee_from_claims_only.require_attendee().unwrap().role,
+            "attendee"
+        );
+    }
+
+    #[test]
+    fn cookie_builders_apply_expected_attributes() {
+        let config = test_config();
+        let cookie = build_session_cookie(&config, "token".to_string(), Duration::from_secs(60));
+        assert_eq!(cookie.name(), "oc_session");
+        assert_eq!(cookie.path(), Some("/"));
+        assert!(cookie.http_only().unwrap_or(false));
+
+        let attendee = build_attendee_session_cookie(
+            &config,
+            "attendee-token".to_string(),
+            Duration::from_secs(60),
+        );
+        assert_eq!(attendee.name(), "oc_attendee_session");
+        assert!(attendee.http_only().unwrap_or(false));
+
+        let csrf = build_csrf_cookie(&config, "csrf".to_string(), Duration::from_secs(60));
+        assert_eq!(csrf.name(), "oc_csrf");
+        assert!(!csrf.http_only().unwrap_or(true));
+
+        let cleared = clear_cookie("oc_session");
+        assert_eq!(cleared.name(), "oc_session");
+    }
+
+    #[test]
+    fn verify_token_supports_secret_rotation() {
+        let mut config = test_config();
+        config.secrets = vec!["new".to_string(), "old".to_string()];
+
+        let old_only = AuthConfig {
+            secrets: vec!["old".to_string()],
+            ..config.clone()
+        };
+        let token = old_only
+            .issue_token(&claims(Role::Admin, &old_only))
+            .expect("token with old secret");
+
+        let decoded = config
+            .verify_token(&token)
+            .expect("decoded with rotated secrets");
+        assert_eq!(decoded.role, "admin");
+    }
+
+    async fn make_state_with_auth(auth: AuthConfig) -> Arc<AppState> {
+        sqlx::any::install_default_drivers();
+        let pool = AnyPoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .expect("sqlite");
+
+        let mut state = AppState::new(
+            pool,
+            DbKind::Sqlite,
+            "admin".to_string(),
+            "pw".to_string(),
+            false,
+        );
+        state.auth = auth;
+        Arc::new(state)
+    }
+
+    #[tokio::test]
+    async fn from_request_parts_extracts_admin_and_attendee_claims() {
+        let config = test_config();
+        let state = make_state_with_auth(config.clone()).await;
+
+        let admin_token = config
+            .issue_token(&claims(Role::Admin, &config))
+            .expect("admin token");
+        let attendee_token = config
+            .issue_token(&claims(Role::Attendee, &config))
+            .expect("attendee token");
+
+        let cookie_header = format!(
+            "{}={}; {}={}",
+            config.cookie_name, admin_token, config.attendee_cookie_name, attendee_token
+        );
+        let request = Request::builder()
+            .uri("/api/x")
+            .header("cookie", cookie_header)
+            .body(Body::empty())
+            .unwrap();
+        let (mut parts, _) = request.into_parts();
+
+        let session = AuthSession::from_request_parts(&mut parts, &state)
+            .await
+            .expect("extract session");
+        assert!(session.admin_claims.is_some());
+        assert!(session.attendee_claims.is_some());
+        assert!(session.claims.is_some());
+    }
+
+    #[tokio::test]
+    async fn from_request_parts_handles_invalid_or_missing_tokens() {
+        let config = test_config();
+        let state = make_state_with_auth(config.clone()).await;
+
+        let invalid_request = Request::builder()
+            .uri("/api/x")
+            .header("cookie", format!("{}=bad-token", config.cookie_name))
+            .body(Body::empty())
+            .unwrap();
+        let (mut invalid_parts, _) = invalid_request.into_parts();
+        let invalid = AuthSession::from_request_parts(&mut invalid_parts, &state)
+            .await
+            .expect("extract invalid");
+        assert!(invalid.claims.is_none());
+
+        let no_cookie_request = Request::builder()
+            .uri("/api/x")
+            .body(Body::empty())
+            .unwrap();
+        let (mut no_cookie_parts, _) = no_cookie_request.into_parts();
+        let none = AuthSession::from_request_parts(&mut no_cookie_parts, &state)
+            .await
+            .expect("extract no cookie");
+        assert!(none.claims.is_none());
+
+        let invalid_attendee_request = Request::builder()
+            .uri("/api/x")
+            .header(
+                "cookie",
+                format!("{}=bad-token", config.attendee_cookie_name),
+            )
+            .body(Body::empty())
+            .unwrap();
+        let (mut invalid_attendee_parts, _) = invalid_attendee_request.into_parts();
+        let invalid_attendee = AuthSession::from_request_parts(&mut invalid_attendee_parts, &state)
+            .await
+            .expect("extract invalid attendee");
+        assert!(invalid_attendee.claims.is_none());
     }
 }

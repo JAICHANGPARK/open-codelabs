@@ -1,0 +1,52 @@
+{
+  "generated_at_utc": "2026-02-19T11:16:09.945306+00:00",
+  "config": {
+    "base_url": "http://localhost:8080",
+    "users": [
+      50
+    ],
+    "duration_secs": 45,
+    "chat_rate_per_sec": 0.5,
+    "step_interval_secs": 7,
+    "output": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193826/soak/cycle-0005-ws.json"
+  },
+  "cases": [
+    {
+      "users": 50,
+      "codelab_id": "cdccd27e-04a2-4cb6-9b7b-b73517bdaf29",
+      "duration_secs": 45,
+      "sent_chat": 1150,
+      "sent_step_progress": 300,
+      "recv_chat": 56994,
+      "ws_disconnects": 50,
+      "ws_errors": 50,
+      "ws_error_samples": [
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake"
+      ],
+      "throughput": {
+        "sent_chat_per_sec": 25.555555555555557,
+        "recv_chat_per_sec": 1266.5333333333333
+      },
+      "e2e_latency_ms": {
+        "samples": 1150,
+        "min": 0.6895,
+        "mean": 21.616694529565233,
+        "p50": 18.3367915,
+        "p95": 52.96165609999997,
+        "p99": 98.24744408999996,
+        "max": 169.804542
+      }
+    }
+  ],
+  "notes": [
+    "WS benchmark measures sender->echo roundtrip latency for chat messages.",
+    "If ws_disconnects/ws_errors are high, raise RATE_LIMIT_GENERAL_PER_MINUTE and inspect server logs."
+  ]
+}

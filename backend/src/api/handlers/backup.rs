@@ -2,9 +2,10 @@ use crate::domain::models::{
     AiConversation, AiMessage, AiThread, Attendee, ChatMessageRow, Codelab, Feedback, HelpRequest,
     InlineCommentMessage, InlineCommentThread, Material, Quiz, QuizSubmission, Step, Submission,
 };
+use crate::domain::services::codeserver::CodeServerManager;
 use crate::infrastructure::audit::{record_audit, AuditEntry};
-use crate::infrastructure::db_models::AuditLog;
 use crate::infrastructure::database::AppState;
+use crate::infrastructure::db_models::AuditLog;
 use crate::middleware::auth::AuthSession;
 use crate::middleware::request_info::RequestInfo;
 use crate::utils::error::{bad_request, internal_error};
@@ -18,9 +19,11 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io::{Cursor, Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::Arc;
 use zip;
+
+const DEFAULT_BACKUP_MAX_BYTES: usize = 200 * 1024 * 1024;
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 struct CodeServerWorkspace {
@@ -112,7 +115,8 @@ fn add_dir_to_zip(
 
             if path.is_dir() {
                 let dir_name = format!("{}/", zip_path);
-                zip.add_directory(dir_name, options).map_err(internal_error)?;
+                zip.add_directory(dir_name, options)
+                    .map_err(internal_error)?;
                 walk(zip, options, base, &path, prefix)?;
             } else {
                 zip.start_file(zip_path, options).map_err(internal_error)?;
@@ -159,9 +163,10 @@ fn restore_dir_from_zip(
             continue;
         }
 
-        if let Some(parent) = dest_path.parent() {
-            fs::create_dir_all(parent).map_err(internal_error)?;
-        }
+        let parent = dest_path
+            .parent()
+            .ok_or_else(|| internal_error("invalid restore destination path"))?;
+        fs::create_dir_all(parent).map_err(internal_error)?;
         let mut outfile = fs::File::create(&dest_path).map_err(internal_error)?;
         std::io::copy(&mut file, &mut outfile).map_err(internal_error)?;
     }
@@ -169,27 +174,53 @@ fn restore_dir_from_zip(
 }
 
 fn replace_dir_contents(dir: &Path) -> Result<(), (StatusCode, String)> {
+    replace_dir_contents_with_remove(dir, |path| fs::remove_dir_all(path))
+}
+
+fn replace_dir_contents_with_remove<F>(
+    dir: &Path,
+    remove_dir_all: F,
+) -> Result<(), (StatusCode, String)>
+where
+    F: for<'a> Fn(&'a Path) -> std::io::Result<()>,
+{
     if dir.exists() {
-        match fs::remove_dir_all(dir) {
+        match remove_dir_all(dir) {
             Ok(()) => {}
             Err(_) => {
                 // If directory is a mount point (e.g., Docker volume), removing it can fail.
                 // Fallback: delete contents but keep the directory.
-                for entry in fs::read_dir(dir).map_err(internal_error)? {
-                    let entry = entry.map_err(internal_error)?;
-                    let path = entry.path();
-                    if path.is_dir() {
-                        fs::remove_dir_all(&path).map_err(internal_error)?;
-                    } else {
-                        fs::remove_file(&path).map_err(internal_error)?;
-                    }
-                }
+                clear_dir_contents(dir)?;
             }
         }
     } else {
         fs::create_dir_all(dir).map_err(internal_error)?;
     }
     Ok(())
+}
+
+fn clear_dir_contents(dir: &Path) -> Result<(), (StatusCode, String)> {
+    for entry in fs::read_dir(dir).map_err(internal_error)? {
+        let entry = entry.map_err(internal_error)?;
+        let path = entry.path();
+        if path.is_dir() {
+            fs::remove_dir_all(&path).map_err(internal_error)?;
+        } else {
+            fs::remove_file(&path).map_err(internal_error)?;
+        }
+    }
+    Ok(())
+}
+
+fn backup_max_bytes() -> usize {
+    std::env::var("BACKUP_MAX_BYTES")
+        .ok()
+        .and_then(|v| v.parse::<usize>().ok())
+        .unwrap_or(DEFAULT_BACKUP_MAX_BYTES)
+}
+
+fn map_multipart_error<E: std::fmt::Display>(error: E) -> (StatusCode, String) {
+    bad_request(&error.to_string())
 }
 
 pub async fn export_backup(
@@ -217,10 +248,11 @@ pub async fn export_backup(
         .fetch_all(&state.pool)
         .await
         .map_err(internal_error)?;
-    let chat_messages = sqlx::query_as::<_, ChatMessageRow>(&state.q("SELECT * FROM chat_messages"))
-        .fetch_all(&state.pool)
-        .await
-        .map_err(internal_error)?;
+    let chat_messages =
+        sqlx::query_as::<_, ChatMessageRow>(&state.q("SELECT * FROM chat_messages"))
+            .fetch_all(&state.pool)
+            .await
+            .map_err(internal_error)?;
     let feedback = sqlx::query_as::<_, Feedback>(&state.q("SELECT * FROM feedback"))
         .fetch_all(&state.pool)
         .await
@@ -319,17 +351,10 @@ pub async fn export_backup(
     zip.write_all(metadata.as_bytes()).map_err(internal_error)?;
 
     // Add uploads
-    add_dir_to_zip(
-        &mut zip,
-        options,
-        Path::new("static/uploads"),
-        "uploads",
-    )?;
+    add_dir_to_zip(&mut zip, options, Path::new("static/uploads"), "uploads")?;
 
     // Add workspaces
-    let workspace_base = PathBuf::from(
-        std::env::var("WORKSPACE_BASE").unwrap_or_else(|_| "/app/workspaces".to_string()),
-    );
+    let workspace_base = CodeServerManager::default_workspace_base();
     add_dir_to_zip(&mut zip, options, &workspace_base, "workspaces")?;
 
     zip.finish().map_err(internal_error)?;
@@ -371,24 +396,19 @@ pub async fn restore_backup(
     session.require_admin()?;
 
     let mut zip_data = Vec::new();
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(|e: axum_extra::extract::multipart::MultipartError| {
-            bad_request(&e.to_string())
-        })?
-    {
-        if field.name() == Some("file") {
-            zip_data = field
-                .bytes()
-                .await
-                .map_err(|_| bad_request("Failed to read backup file"))?
-                .to_vec();
-            if zip_data.len() > 200 * 1024 * 1024 {
-                return Err(bad_request("Backup file too large"));
-            }
-            break;
+    while let Some(field) = multipart.next_field().await.map_err(map_multipart_error)? {
+        if field.name() != Some("file") {
+            continue;
         }
+        zip_data = field
+            .bytes()
+            .await
+            .map_err(|_| bad_request("Failed to read backup file"))?
+            .to_vec();
+        if zip_data.len() > backup_max_bytes() {
+            return Err(bad_request("Backup file too large"));
+        }
+        break;
     }
 
     if zip_data.is_empty() {
@@ -401,12 +421,13 @@ pub async fn restore_backup(
     let mut backup_json = None;
     for i in 0..archive.len() {
         let mut file = archive.by_index(i).map_err(internal_error)?;
-        if file.name() == "backup.json" {
-            let mut contents = String::new();
-            file.read_to_string(&mut contents).map_err(internal_error)?;
-            backup_json = Some(contents);
-            break;
+        if file.name() != "backup.json" {
+            continue;
         }
+        let mut contents = String::new();
+        file.read_to_string(&mut contents).map_err(internal_error)?;
+        backup_json = Some(contents);
+        break;
     }
 
     let backup_json = backup_json.ok_or_else(|| bad_request("backup.json missing"))?;
@@ -742,9 +763,7 @@ pub async fn restore_backup(
 
     // Restore uploads + workspaces (after DB commit)
     replace_dir_contents(Path::new("static/uploads"))?;
-    let workspace_base = PathBuf::from(
-        std::env::var("WORKSPACE_BASE").unwrap_or_else(|_| "/app/workspaces".to_string()),
-    );
+    let workspace_base = CodeServerManager::default_workspace_base();
     replace_dir_contents(&workspace_base)?;
 
     restore_dir_from_zip(&mut archive, "uploads/", Path::new("static/uploads"))?;
@@ -776,24 +795,19 @@ pub async fn inspect_backup(
     session.require_admin()?;
 
     let mut zip_data = Vec::new();
-    while let Some(field) = multipart
-        .next_field()
-        .await
-        .map_err(|e: axum_extra::extract::multipart::MultipartError| {
-            bad_request(&e.to_string())
-        })?
-    {
-        if field.name() == Some("file") {
-            zip_data = field
-                .bytes()
-                .await
-                .map_err(|_| bad_request("Failed to read backup file"))?
-                .to_vec();
-            if zip_data.len() > 200 * 1024 * 1024 {
-                return Err(bad_request("Backup file too large"));
-            }
-            break;
+    while let Some(field) = multipart.next_field().await.map_err(map_multipart_error)? {
+        if field.name() != Some("file") {
+            continue;
         }
+        zip_data = field
+            .bytes()
+            .await
+            .map_err(|_| bad_request("Failed to read backup file"))?
+            .to_vec();
+        if zip_data.len() > backup_max_bytes() {
+            return Err(bad_request("Backup file too large"));
+        }
+        break;
     }
 
     if zip_data.is_empty() {
@@ -856,4 +870,221 @@ pub async fn inspect_backup(
     };
 
     Ok(axum::Json(summary))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::tempdir;
+
+    #[test]
+    fn is_safe_zip_path_blocks_unsafe_paths() {
+        assert!(is_safe_zip_path("uploads/a.txt"));
+        assert!(is_safe_zip_path("workspaces/lab/main.rs"));
+        assert!(!is_safe_zip_path("/absolute/path"));
+        assert!(!is_safe_zip_path("\\absolute\\path"));
+        assert!(!is_safe_zip_path("../escape.txt"));
+        assert!(!is_safe_zip_path("uploads/../escape.txt"));
+    }
+
+    #[test]
+    fn add_dir_to_zip_writes_files() {
+        let src = tempdir().expect("temp dir");
+        fs::create_dir_all(src.path().join("nested")).expect("mkdir");
+        fs::write(src.path().join("a.txt"), "a").expect("write");
+        fs::write(src.path().join("nested/b.txt"), "b").expect("write");
+
+        let mut buf = Vec::new();
+        {
+            let mut zip = zip::ZipWriter::new(Cursor::new(&mut buf));
+            let options = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Stored);
+            add_dir_to_zip(&mut zip, options, src.path(), "uploads").expect("zip dir");
+            zip.finish().expect("finish");
+        }
+
+        let mut archive = zip::ZipArchive::new(Cursor::new(buf)).expect("archive");
+        let mut names = Vec::new();
+        for i in 0..archive.len() {
+            let file = archive.by_index(i).expect("entry");
+            names.push(file.name().to_string());
+        }
+
+        assert!(names.iter().any(|n| n == "uploads/a.txt"));
+        assert!(names.iter().any(|n| n == "uploads/nested/b.txt"));
+    }
+
+    #[test]
+    fn add_dir_to_zip_ignores_missing_dir() {
+        let src = tempdir().expect("temp dir");
+        let missing = src.path().join("missing");
+        let mut buf = Vec::new();
+        let mut zip = zip::ZipWriter::new(Cursor::new(&mut buf));
+        let options = zip::write::SimpleFileOptions::default()
+            .compression_method(zip::CompressionMethod::Stored);
+        add_dir_to_zip(&mut zip, options, &missing, "uploads").expect("no-op for missing dir");
+        zip.finish().expect("finish");
+        let archive = zip::ZipArchive::new(Cursor::new(buf)).expect("archive");
+        assert_eq!(archive.len(), 0);
+    }
+
+    #[test]
+    fn restore_dir_from_zip_restores_files() {
+        let mut buf = Vec::new();
+        {
+            let mut zip = zip::ZipWriter::new(Cursor::new(&mut buf));
+            let options = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Stored);
+            zip.start_file("uploads/folder/file.txt", options)
+                .expect("start");
+            zip.write_all(b"hello").expect("write");
+            zip.finish().expect("finish");
+        }
+
+        let mut archive = zip::ZipArchive::new(Cursor::new(buf)).expect("archive");
+        let dest = tempdir().expect("dest");
+        restore_dir_from_zip(&mut archive, "uploads/", dest.path()).expect("restore");
+        assert_eq!(
+            fs::read_to_string(dest.path().join("folder/file.txt")).expect("read"),
+            "hello"
+        );
+    }
+
+    #[test]
+    fn restore_dir_from_zip_skips_prefix_root_entry() {
+        let mut buf = Vec::new();
+        {
+            let mut zip = zip::ZipWriter::new(Cursor::new(&mut buf));
+            let options = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Stored);
+            zip.add_directory("uploads/", options).expect("dir entry");
+            zip.start_file("uploads/file.txt", options).expect("file");
+            zip.write_all(b"ok").expect("write");
+            zip.finish().expect("finish");
+        }
+
+        let mut archive = zip::ZipArchive::new(Cursor::new(buf)).expect("archive");
+        let dest = tempdir().expect("dest");
+        restore_dir_from_zip(&mut archive, "uploads/", dest.path()).expect("restore");
+        assert_eq!(
+            fs::read_to_string(dest.path().join("file.txt")).expect("read"),
+            "ok"
+        );
+    }
+
+    #[test]
+    fn restore_dir_from_zip_rejects_unsafe_paths() {
+        let mut buf = Vec::new();
+        {
+            let mut zip = zip::ZipWriter::new(Cursor::new(&mut buf));
+            let options = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Stored);
+            zip.start_file("uploads/../escape.txt", options)
+                .expect("start");
+            zip.write_all(b"x").expect("write");
+            zip.finish().expect("finish");
+        }
+
+        let mut archive = zip::ZipArchive::new(Cursor::new(buf)).expect("archive");
+        let dest = tempdir().expect("dest");
+        assert!(restore_dir_from_zip(&mut archive, "uploads/", dest.path()).is_err());
+    }
+
+    #[test]
+    fn restore_dir_from_zip_creates_parent_dirs_for_nested_files() {
+        let mut buf = Vec::new();
+        {
+            let mut zip = zip::ZipWriter::new(Cursor::new(&mut buf));
+            let options = zip::write::SimpleFileOptions::default()
+                .compression_method(zip::CompressionMethod::Stored);
+            zip.start_file("uploads/nested/deep/file.txt", options)
+                .expect("start");
+            zip.write_all(b"nested").expect("write");
+            zip.finish().expect("finish");
+        }
+
+        let mut archive = zip::ZipArchive::new(Cursor::new(buf)).expect("archive");
+        let dest = tempdir().expect("dest");
+        restore_dir_from_zip(&mut archive, "uploads/", dest.path()).expect("restore");
+        assert_eq!(
+            fs::read_to_string(dest.path().join("nested/deep/file.txt")).expect("read"),
+            "nested"
+        );
+    }
+
+    #[test]
+    fn replace_dir_contents_clears_existing_entries() {
+        let dir = tempdir().expect("temp dir");
+        let target = dir.path().join("uploads");
+        fs::create_dir_all(target.join("nested")).expect("mkdir");
+        fs::write(target.join("a.txt"), "a").expect("write");
+        fs::write(target.join("nested/b.txt"), "b").expect("write");
+
+        replace_dir_contents(&target).expect("replace");
+        if !target.exists() {
+            fs::create_dir_all(&target).expect("recreate");
+        }
+        let entries: Vec<_> = fs::read_dir(&target)
+            .expect("read dir")
+            .map(|e| e.expect("entry"))
+            .collect();
+        assert!(entries.is_empty());
+    }
+
+    #[test]
+    fn replace_dir_contents_falls_back_to_clear_when_remove_fails() {
+        let dir = tempdir().expect("temp dir");
+        let target = dir.path().join("uploads");
+        fs::create_dir_all(target.join("nested")).expect("mkdir");
+        fs::write(target.join("a.txt"), "a").expect("write");
+        fs::write(target.join("nested/b.txt"), "b").expect("write");
+
+        replace_dir_contents_with_remove(&target, |_| {
+            Err(std::io::Error::new(
+                std::io::ErrorKind::PermissionDenied,
+                "forced failure",
+            ))
+        })
+        .expect("fallback clear");
+
+        assert!(target.exists());
+        let entries: Vec<_> = fs::read_dir(&target)
+            .expect("read dir")
+            .map(|e| e.expect("entry"))
+            .collect();
+        assert!(entries.is_empty());
+    }
+
+    #[test]
+    fn map_multipart_error_uses_display_message() {
+        let err = map_multipart_error("multipart-bad");
+        assert_eq!(err.0, StatusCode::BAD_REQUEST);
+        assert!(err.1.contains("multipart-bad"));
+    }
+
+    #[test]
+    fn replace_dir_contents_creates_missing_dir() {
+        let dir = tempdir().expect("temp dir");
+        let target = dir.path().join("new_uploads");
+        assert!(!target.exists());
+        replace_dir_contents(&target).expect("create");
+        assert!(target.exists());
+    }
+
+    #[test]
+    fn clear_dir_contents_removes_files_and_subdirs() {
+        let dir = tempdir().expect("temp dir");
+        let target = dir.path().join("uploads");
+        fs::create_dir_all(target.join("nested")).expect("mkdir");
+        fs::write(target.join("a.txt"), "a").expect("write");
+        fs::write(target.join("nested/b.txt"), "b").expect("write");
+
+        clear_dir_contents(&target).expect("clear");
+
+        let entries: Vec<_> = fs::read_dir(&target)
+            .expect("read dir")
+            .map(|e| e.expect("entry"))
+            .collect();
+        assert!(entries.is_empty());
+    }
 }

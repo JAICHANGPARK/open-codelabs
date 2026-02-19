@@ -1,6 +1,6 @@
-import { browser } from "$app/environment";
+const isBrowser = () => typeof window !== "undefined" && typeof document !== "undefined";
 
-const THEME_PRESETS = [
+export const THEME_PRESETS = [
     { id: "default", labelKey: "theme.presets.default" },
     { id: "mint", labelKey: "theme.presets.mint" },
     { id: "ocean", labelKey: "theme.presets.ocean" },
@@ -10,18 +10,18 @@ const THEME_PRESETS = [
     { id: "slate", labelKey: "theme.presets.slate" },
 ] as const;
 
-type ThemePresetId = (typeof THEME_PRESETS)[number]["id"];
-type ThemeMode = "system" | "light" | "dark";
+export type ThemePresetId = (typeof THEME_PRESETS)[number]["id"];
+export type ThemeMode = "system" | "light" | "dark";
 
 const THEME_MODE_STORAGE_KEY = "themeMode";
 const LEGACY_MODE_STORAGE_KEY = "theme";
 
-function isThemePreset(value: string | null): value is ThemePresetId {
+export function isThemePreset(value: string | null): value is ThemePresetId {
     if (!value) return false;
     return THEME_PRESETS.some((preset) => preset.id === value);
 }
 
-class ThemeState {
+export class ThemeState {
     colorblindMode = $state<boolean>(false);
     preset = $state<ThemePresetId>("default");
     mode = $state<ThemeMode>("system");
@@ -29,7 +29,7 @@ class ThemeState {
     private systemListener: ((event: MediaQueryListEvent) => void) | null = null;
 
     constructor() {
-        if (!browser) return;
+        if (!isBrowser()) return;
 
         const savedColorblind = localStorage.getItem("colorblindMode") === "true";
         this.colorblindMode = savedColorblind;
@@ -49,7 +49,7 @@ class ThemeState {
     }
 
     private applyColorblind(value: boolean) {
-        if (!browser) return;
+        if (!isBrowser()) return;
         if (value) {
             document.documentElement.classList.add("colorblind");
         } else {
@@ -58,12 +58,12 @@ class ThemeState {
     }
 
     private applyPreset(value: ThemePresetId) {
-        if (!browser) return;
+        if (!isBrowser()) return;
         document.documentElement.dataset.theme = value;
     }
 
     private applyMode(value: ThemeMode) {
-        if (!browser) return;
+        if (!isBrowser()) return;
         if (this.systemMedia && this.systemListener) {
             this.systemMedia.removeEventListener("change", this.systemListener);
             this.systemMedia = null;
@@ -92,7 +92,7 @@ class ThemeState {
 
     set isColorblind(value: boolean) {
         this.colorblindMode = value;
-        if (browser) {
+        if (isBrowser()) {
             localStorage.setItem("colorblindMode", String(value));
             this.applyColorblind(value);
         }
@@ -116,7 +116,7 @@ class ThemeState {
 
     setPreset(value: ThemePresetId) {
         this.preset = value;
-        if (browser) {
+        if (isBrowser()) {
             localStorage.setItem("themePreset", value);
             this.applyPreset(value);
         }
@@ -124,7 +124,7 @@ class ThemeState {
 
     setMode(value: ThemeMode) {
         this.mode = value;
-        if (browser) {
+        if (isBrowser()) {
             localStorage.setItem(THEME_MODE_STORAGE_KEY, value);
             localStorage.setItem(LEGACY_MODE_STORAGE_KEY, value);
             this.applyMode(value);
@@ -132,7 +132,7 @@ class ThemeState {
     }
 
     toggleMode() {
-        const isDark = browser
+        const isDark = isBrowser()
             ? document.documentElement.classList.contains("dark")
             : this.mode === "dark";
         this.setMode(isDark ? "light" : "dark");

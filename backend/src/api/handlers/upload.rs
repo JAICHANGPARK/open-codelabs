@@ -13,6 +13,34 @@ use uuid::Uuid;
 
 const MAX_IMAGE_UPLOAD_SIZE: usize = 5 * 1024 * 1024; // 5MB
 
+fn decode_with_fallback(
+    decode: &mut dyn FnMut() -> image::ImageResult<image::DynamicImage>,
+    fallback: &mut dyn FnMut() -> image::ImageResult<image::DynamicImage>,
+) -> Result<image::DynamicImage, String> {
+    match decode() {
+        Ok(img) => Ok(img),
+        Err(_) => fallback().map_err(|e| format!("Failed to load image: {}", e)),
+    }
+}
+
+fn decode_image_bytes(bytes: &[u8]) -> Result<image::DynamicImage, String> {
+    // Prefer ImageReader so EXIF orientation can be honored when available.
+    let reader = ImageReader::new(IoCursor::new(bytes));
+    let reader = reader
+        .with_guessed_format()
+        .map_err(|e| format!("Failed to detect format: {}", e))?;
+
+    let mut reader = Some(reader);
+    let mut decode = move || {
+        let reader = reader
+            .take()
+            .expect("decode closure should not be called more than once");
+        reader.decode()
+    };
+    let mut fallback = || image::load_from_memory(bytes);
+    decode_with_fallback(&mut decode, &mut fallback)
+}
+
 pub async fn upload_image(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -50,19 +78,7 @@ pub async fn upload_image(
         let file_path_clone = file_path.clone();
 
         tokio::task::spawn_blocking(move || -> Result<(), String> {
-            // Use ImageReader to automatically handle EXIF orientation
-            let reader = ImageReader::new(IoCursor::new(&data_clone));
-            let reader = reader.with_guessed_format().map_err(|e| format!("Failed to detect format: {}", e))?;
-
-            let img = match reader.decode() {
-                Ok(img) => img,
-                Err(_) => {
-                    // Fallback to basic loading
-                    let img = image::load_from_memory(&data_clone)
-                        .map_err(|e| format!("Failed to load image: {}", e))?;
-                    img
-                }
-            };
+            let img = decode_image_bytes(&data_clone)?;
 
             img.save_with_format(&file_path_clone, image::ImageFormat::WebP)
                 .map_err(|e| format!("Failed to save image: {}", e))?;
@@ -94,4 +110,47 @@ pub async fn upload_image(
     }
 
     Err(bad_request("No file uploaded"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::decode_with_fallback;
+    use image::{DynamicImage, ImageBuffer, Rgba};
+    use std::io::Error;
+
+    fn sample_image() -> DynamicImage {
+        DynamicImage::ImageRgba8(ImageBuffer::from_pixel(1, 1, Rgba([1, 2, 3, 255])))
+    }
+
+    fn image_io_error(msg: &str) -> image::ImageError {
+        image::ImageError::IoError(Error::other(msg.to_string()))
+    }
+
+    #[test]
+    fn decode_with_fallback_prefers_primary_decoder() {
+        let mut decode = || Ok(sample_image());
+        let mut fallback = || Ok(sample_image());
+        let decoded = decode_with_fallback(&mut decode, &mut fallback)
+            .expect("primary decode should succeed");
+        assert_eq!(decoded.width(), 1);
+        assert_eq!(decoded.height(), 1);
+    }
+
+    #[test]
+    fn decode_with_fallback_uses_fallback_decoder() {
+        let mut decode = || Err(image_io_error("primary failed"));
+        let mut fallback = || Ok(sample_image());
+        let decoded =
+            decode_with_fallback(&mut decode, &mut fallback).expect("fallback decode should succeed");
+        assert_eq!(decoded.width(), 1);
+    }
+
+    #[test]
+    fn decode_with_fallback_surfaces_fallback_error() {
+        let mut decode = || Err(image_io_error("primary failed"));
+        let mut fallback = || Err(image_io_error("fallback failed"));
+        let err =
+            decode_with_fallback(&mut decode, &mut fallback).expect_err("both decoders should fail");
+        assert!(err.contains("Failed to load image"));
+    }
 }

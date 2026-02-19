@@ -1,0 +1,9 @@
+{
+  "generated_at_utc": "2026-02-19T09:17:19Z",
+  "base_url": "http://localhost:8080",
+  "admin_id": "admin",
+  "repeats": 1,
+  "profile": "paper",
+  "matrix_file": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench/matrix.smoke.csv",
+  "dry_run": 0
+}

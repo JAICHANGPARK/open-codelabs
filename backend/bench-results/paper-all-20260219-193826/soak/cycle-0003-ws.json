@@ -1,0 +1,52 @@
+{
+  "generated_at_utc": "2026-02-19T11:05:45.367057+00:00",
+  "config": {
+    "base_url": "http://localhost:8080",
+    "users": [
+      50
+    ],
+    "duration_secs": 45,
+    "chat_rate_per_sec": 0.5,
+    "step_interval_secs": 7,
+    "output": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193826/soak/cycle-0003-ws.json"
+  },
+  "cases": [
+    {
+      "users": 50,
+      "codelab_id": "606f1ed6-d8b2-4cdf-8554-7094c93b9f8e",
+      "duration_secs": 45,
+      "sent_chat": 1150,
+      "sent_step_progress": 300,
+      "recv_chat": 57041,
+      "ws_disconnects": 50,
+      "ws_errors": 50,
+      "ws_error_samples": [
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake"
+      ],
+      "throughput": {
+        "sent_chat_per_sec": 25.555555555555557,
+        "recv_chat_per_sec": 1267.5777777777778
+      },
+      "e2e_latency_ms": {
+        "samples": 1150,
+        "min": 0.9430419999999999,
+        "mean": 28.550398739999995,
+        "p50": 23.3823955,
+        "p95": 66.83189345,
+        "p99": 188.20140432999997,
+        "max": 267.196125
+      }
+    }
+  ],
+  "notes": [
+    "WS benchmark measures sender->echo roundtrip latency for chat messages.",
+    "If ws_disconnects/ws_errors are high, raise RATE_LIMIT_GENERAL_PER_MINUTE and inspect server logs."
+  ]
+}

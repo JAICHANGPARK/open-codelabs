@@ -371,8 +371,8 @@ pub async fn complete_codelab(
         .map_err(internal_error)?
         .ok_or((StatusCode::NOT_FOUND, "Codelab not found".to_string()))?;
 
-    if codelab.require_submission != 0 {
-        let submission_count: (i64,) = sqlx::query_as(
+    let submission_count = if codelab.require_submission != 0 {
+        let row: (i64,) = sqlx::query_as(
             &state.q("SELECT COUNT(*) FROM submissions WHERE attendee_id = ? AND codelab_id = ?"),
         )
         .bind(&attendee_id)
@@ -380,10 +380,12 @@ pub async fn complete_codelab(
         .fetch_one(&state.pool)
         .await
         .map_err(internal_error)?;
-
-        if submission_count.0 == 0 {
-            return Err((StatusCode::BAD_REQUEST, "SUBMISSION_REQUIRED".to_string()));
-        }
+        row.0
+    } else {
+        1
+    };
+    if submission_count == 0 {
+        return Err((StatusCode::BAD_REQUEST, "SUBMISSION_REQUIRED".to_string()));
     }
 
     sqlx::query(&state.q("UPDATE attendees SET is_completed = 1, completed_at = CURRENT_TIMESTAMP WHERE id = ? AND codelab_id = ?"))

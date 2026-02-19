@@ -33,8 +33,7 @@ pub fn encrypt_with_password(plaintext: &str, password: &str) -> Result<String, 
     pbkdf2_hmac::<Sha256>(password.as_bytes(), &salt, PBKDF2_ITERS, &mut derived);
     let (enc_key, mac_key) = derived.split_at(KEY_LEN);
 
-    let cipher =
-        Encryptor::<Aes256>::new_from_slices(enc_key, &iv).map_err(|_| "invalid key")?;
+    let cipher = Encryptor::<Aes256>::new_from_slices(enc_key, &iv).map_err(|_| "invalid key")?;
     let mut buffer = plaintext.as_bytes().to_vec();
     let pos = buffer.len();
     let block_size = 16;
@@ -90,8 +89,7 @@ pub fn decrypt_with_password(value: &str, password: &str) -> Result<String, Stri
         return Err("invalid ciphertext".to_string());
     }
 
-    let cipher =
-        Decryptor::<Aes256>::new_from_slices(enc_key, iv).map_err(|_| "invalid key")?;
+    let cipher = Decryptor::<Aes256>::new_from_slices(enc_key, iv).map_err(|_| "invalid key")?;
     let mut buffer = ciphertext.to_vec();
     let plaintext = cipher
         .decrypt_padded_mut::<Pkcs7>(&mut buffer)
@@ -126,5 +124,33 @@ mod tests {
         bytes[last] ^= 0x1;
         let tampered = format!("{}{}", ENCRYPTION_PREFIX, STANDARD.encode(bytes));
         assert!(decrypt_with_password(&tampered, password).is_err());
+    }
+
+    #[test]
+    fn encrypt_and_decrypt_allow_empty_input() {
+        let encrypted = encrypt_with_password("", "pw").expect("encrypt empty");
+        assert_eq!(encrypted, "");
+
+        let decrypted = decrypt_with_password("", "pw").expect("decrypt empty");
+        assert_eq!(decrypted, "");
+    }
+
+    #[test]
+    fn decrypt_rejects_invalid_prefix() {
+        let err = decrypt_with_password("not-encrypted", "pw").expect_err("must fail");
+        assert_eq!(err, "unsupported ciphertext");
+    }
+
+    #[test]
+    fn decrypt_rejects_invalid_base64() {
+        let err = decrypt_with_password("v1:not-base64", "pw").expect_err("must fail");
+        assert_eq!(err, "invalid ciphertext");
+    }
+
+    #[test]
+    fn decrypt_rejects_too_short_payload() {
+        let short = format!("{}{}", ENCRYPTION_PREFIX, STANDARD.encode(vec![0u8; 48]));
+        let err = decrypt_with_password(&short, "pw").expect_err("must fail");
+        assert_eq!(err, "invalid ciphertext");
     }
 }

@@ -1,0 +1,14 @@
+warning: field `id` is never read
+   --> src/bin/ws_bench.rs:114:5
+    |
+113 | struct AttendeeSession {
+    |        --------------- field in this struct
+114 |     id: String,
+    |     ^^
+    |
+    = note: `AttendeeSession` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `backend` (bin "ws_bench") generated 1 warning
+    Finished `release` profile [optimized] target(s) in 0.18s
+     Running `target/release/ws_bench --base-url 'http://localhost:8080' --admin-id admin --admin-pw admin --users 5 --duration-secs 8 --chat-rate 0.5 --step-interval-secs 7 --output /Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-182501/soak/cycle-0001-ws.json`

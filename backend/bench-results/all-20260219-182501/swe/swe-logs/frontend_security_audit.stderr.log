@@ -1,0 +1,3 @@
+[0.23ms] ".env"
+[0m[1mbun audit [0m[2mv1.3.9 (cf6cdbbb)[0m
+ConnectionRefused: audit request failed

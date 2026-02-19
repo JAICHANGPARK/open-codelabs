@@ -1,0 +1,10 @@
+   Compiling backend v0.1.0 (/Users/jaichang/Documents/GitHub/open-codelabs/backend)
+    Finished `release` profile [optimized] target(s) in 2.35s
+     Running `target/release/ws_bench --base-url 'http://localhost:8080' --admin-id admin --admin-pw admin --users 50 --duration-secs 45 --chat-rate 0.5 --step-interval-secs 7 --output /Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193826/soak/cycle-0008-ws.json`
+Error: Failed to call /api/login
+
+Caused by:
+    0: error sending request for url (http://localhost:8080/api/login)
+    1: client error (Connect)
+    2: tcp connect error
+    3: Connection refused (os error 61)

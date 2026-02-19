@@ -1,0 +1,76 @@
+{
+  "generated_at_utc": "2026-02-19T09:45:48.890807+00:00",
+  "config": {
+    "base_url": "http://localhost:5173",
+    "routes": [
+      "/",
+      "/admin"
+    ],
+    "concurrency": [
+      4
+    ],
+    "requests_per_case": 30,
+    "repeats": 1,
+    "timeout_secs": 10.0,
+    "warmup_requests": 20,
+    "output": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260219-184314/frontend/frontend-bench.json"
+  },
+  "cases": [
+    {
+      "total_requests": 30,
+      "completed_requests": 30,
+      "success_2xx": 30,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 757.8151660054573,
+      "requests_per_second": 39.58748959608966,
+      "latency_ms": {
+        "min": 23.878625004726928,
+        "mean": 95.73641390015837,
+        "p50": 100.51587500493042,
+        "p95": 104.0933998505352,
+        "p99": 104.88536410877714,
+        "max": 105.1321659979294
+      },
+      "status_counts": {
+        "200": 30
+      },
+      "top_transport_errors": [],
+      "route": "/",
+      "full_url": "http://localhost:5173/",
+      "concurrency": 4,
+      "repeat": 1
+    },
+    {
+      "total_requests": 30,
+      "completed_requests": 30,
+      "success_2xx": 30,
+      "http_errors": 0,
+      "transport_errors": 0,
+      "error_rate": 0.0,
+      "duration_ms": 766.935250001552,
+      "requests_per_second": 39.116731171163785,
+      "latency_ms": {
+        "min": 28.276416996959597,
+        "mean": 97.3125443670142,
+        "p50": 102.05660400242778,
+        "p95": 105.10112864685652,
+        "p99": 105.48303421070159,
+        "max": 105.63579200243112
+      },
+      "status_counts": {
+        "200": 30
+      },
+      "top_transport_errors": [],
+      "route": "/admin",
+      "full_url": "http://localhost:5173/admin",
+      "concurrency": 4,
+      "repeat": 1
+    }
+  ],
+  "notes": [
+    "Measures route response latency under concurrent load (SSR/route handling path).",
+    "For browser paint metrics (LCP/INP/CLS), run Lighthouse/Playwright separately and merge artifacts."
+  ]
+}

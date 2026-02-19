@@ -1,0 +1,2 @@
+    Finished `release` profile [optimized] target(s) in 0.58s
+     Running `target/release/local_bench --base-url 'http://localhost:8080' --admin-id admin --admin-pw admin --attendees 30 --read-requests 300 --write-requests 150 --read-concurrency 30 --write-concurrency 20 --output /Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193826/soak/cycle-0002-local.json`

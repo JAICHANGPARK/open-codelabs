@@ -1,44 +1,85 @@
-import { register, init, getLocaleFromNavigator } from 'svelte-i18n';
+import { getLocaleFromNavigator, init, locale, register } from "svelte-i18n";
 
-// Register all 21 supported locales (lazy-loaded)
-register('en', () => import('./en.json'));
-register('ko', () => import('./ko.json'));
-register('ja', () => import('./ja.json'));
-register('zh', () => import('./zh.json'));
-register('de', () => import('./de.json'));
-register('es', () => import('./es.json'));
-register('fr', () => import('./fr.json'));
-register('id', () => import('./id.json'));
-register('it', () => import('./it.json'));
-register('pl', () => import('./pl.json'));
-register('pt', () => import('./pt.json'));
-register('vi', () => import('./vi.json'));
-register('tr', () => import('./tr.json'));
-register('ru', () => import('./ru.json'));
-register('he', () => import('./he.json'));
-register('ar', () => import('./ar.json'));
-register('fa', () => import('./fa.json'));
-register('hi', () => import('./hi.json'));
-register('bn', () => import('./bn.json'));
-register('th', () => import('./th.json'));
-register('zh-TW', () => import('./zh-TW.json'));
+export const localeLoaders = {
+    en: () => import("./en.json"),
+    ko: () => import("./ko.json"),
+    ja: () => import("./ja.json"),
+    zh: () => import("./zh.json"),
+    de: () => import("./de.json"),
+    es: () => import("./es.json"),
+    fr: () => import("./fr.json"),
+    id: () => import("./id.json"),
+    it: () => import("./it.json"),
+    pl: () => import("./pl.json"),
+    pt: () => import("./pt.json"),
+    vi: () => import("./vi.json"),
+    tr: () => import("./tr.json"),
+    ru: () => import("./ru.json"),
+    he: () => import("./he.json"),
+    ar: () => import("./ar.json"),
+    fa: () => import("./fa.json"),
+    hi: () => import("./hi.json"),
+    bn: () => import("./bn.json"),
+    th: () => import("./th.json"),
+    "zh-TW": () => import("./zh-TW.json"),
+} as const;
 
-const allLocales = [
-    'ko', 'ja', 'zh-TW', 'zh', 'de', 'es', 'fr', 'id', 'it',
-    'pl', 'pt', 'vi', 'tr', 'ru', 'he', 'ar', 'fa', 'hi', 'bn', 'th', 'en'
-];
+export const allLocales = [
+    "ko",
+    "ja",
+    "zh-TW",
+    "zh",
+    "de",
+    "es",
+    "fr",
+    "id",
+    "it",
+    "pl",
+    "pt",
+    "vi",
+    "tr",
+    "ru",
+    "he",
+    "ar",
+    "fa",
+    "hi",
+    "bn",
+    "th",
+    "en",
+] as const;
 
-const navLocale = getLocaleFromNavigator();
-// Match zh-TW first, then fall back to base language codes
-const initialLocale = allLocales.find(l =>
-    l.includes('-') ? navLocale?.toLowerCase().startsWith(l.toLowerCase()) : navLocale?.startsWith(l)
-) || 'en';
+export function registerAllLocales(registerFn: typeof register = register): void {
+    for (const [localeCode, loader] of Object.entries(localeLoaders)) {
+        registerFn(localeCode, loader as () => Promise<unknown>);
+    }
+}
 
-init({
-    fallbackLocale: 'en',
-    initialLocale,
-});
+export function resolveInitialLocale(navLocale: string | null | undefined): string {
+    return (
+        allLocales.find((value) =>
+            value.includes("-")
+                ? navLocale?.toLowerCase().startsWith(value.toLowerCase())
+                : navLocale?.startsWith(value),
+        ) || "en"
+    );
+}
 
-// Force set locale immediately to prevent "locale not set" errors
-import { locale } from 'svelte-i18n';
-locale.set(initialLocale);
+export function setupI18n(
+    registerFn: typeof register = register,
+    initFn: typeof init = init,
+    localeStore: typeof locale = locale,
+    navLocale: string | null | undefined = getLocaleFromNavigator(),
+): string {
+    registerAllLocales(registerFn);
+
+    const initialLocale = resolveInitialLocale(navLocale);
+    initFn({
+        fallbackLocale: "en",
+        initialLocale,
+    });
+
+    localeStore.set(initialLocale);
+    return initialLocale;
+}
+
+setupI18n();

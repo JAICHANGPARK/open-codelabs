@@ -1,0 +1,4 @@
+timestamp_utc,scenario,repeat,status,exit_code,output_file,attendees,read_requests,write_requests,read_concurrency,write_concurrency
+2026-02-18T14:08:54Z,u10,1,DRY_RUN,0,bench-results/matrix-dryrun/u10-r01.json,10,300,150,20,10
+2026-02-18T14:08:54Z,u30,1,DRY_RUN,0,bench-results/matrix-dryrun/u30-r01.json,30,600,300,40,20
+2026-02-18T14:08:54Z,u50,1,DRY_RUN,0,bench-results/matrix-dryrun/u50-r01.json,50,1000,500,60,30

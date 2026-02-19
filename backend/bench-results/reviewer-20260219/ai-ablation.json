@@ -1,0 +1,136 @@
+{
+  "model": "gemini-3-flash-preview",
+  "generated_at": "2026-02-19T11:15:47Z",
+  "target_language": "English",
+  "target_duration_min": 60,
+  "tasks": [
+    {
+      "task": "backend/src/api/handlers/ai.rs",
+      "context_chars": 1800,
+      "basic": {
+        "usage": {
+          "prompt": 2521,
+          "candidate": 2199,
+          "total": 7435
+        },
+        "cost_usd": 0.0078575,
+        "steps": 6,
+        "issue_metrics": {
+          "issues": 6,
+          "severe_issues": 3,
+          "missing_items": 5,
+          "improvements": 5
+        },
+        "section_hits": {
+          "has_prereq": 0,
+          "has_environment_setup": 1,
+          "has_verification": 1,
+          "has_summary": 1,
+          "total": 3
+        }
+      },
+      "pro": {
+        "usage_pipeline": {
+          "prompt": 17249,
+          "candidate": 9215,
+          "total": 29977
+        },
+        "cost_usd_pipeline": 0.036269499999999996,
+        "steps": 7,
+        "issue_metrics": {
+          "issues": 4,
+          "severe_issues": 2,
+          "missing_items": 4,
+          "improvements": 4
+        },
+        "section_hits": {
+          "has_prereq": 1,
+          "has_environment_setup": 1,
+          "has_verification": 1,
+          "has_summary": 1,
+          "total": 4
+        }
+      }
+    },
+    {
+      "task": "backend/src/api/handlers/websocket.rs",
+      "context_chars": 1800,
+      "basic": {
+        "usage": {
+          "prompt": 2516,
+          "candidate": 2873,
+          "total": 7072
+        },
+        "cost_usd": 0.009877,
+        "steps": 7,
+        "issue_metrics": {
+          "issues": 5,
+          "severe_issues": 2,
+          "missing_items": 6,
+          "improvements": 5
+        },
+        "section_hits": {
+          "has_prereq": 0,
+          "has_environment_setup": 1,
+          "has_verification": 1,
+          "has_summary": 1,
+          "total": 3
+        }
+      },
+      "pro": {
+        "usage_pipeline": {
+          "prompt": 15486,
+          "candidate": 7806,
+          "total": 28023
+        },
+        "cost_usd_pipeline": 0.031160999999999998,
+        "steps": 6,
+        "issue_metrics": {
+          "issues": 5,
+          "severe_issues": 2,
+          "missing_items": 4,
+          "improvements": 4
+        },
+        "section_hits": {
+          "has_prereq": 1,
+          "has_environment_setup": 1,
+          "has_verification": 1,
+          "has_summary": 1,
+          "total": 4
+        }
+      }
+    }
+  ],
+  "summary": {
+    "n_tasks": 2,
+    "mean_issues_basic": 5.5,
+    "mean_issues_pro": 4.5,
+    "issues_reduction_percent": 18.181818181818183,
+    "mean_missing_basic": 5.5,
+    "mean_missing_pro": 4.0,
+    "missing_reduction_percent": 27.27272727272727,
+    "mean_section_hits_basic": 3.0,
+    "mean_section_hits_pro": 4.0,
+    "basic_generation_usage": {
+      "prompt": 5037,
+      "candidate": 5072,
+      "total": 14507
+    },
+    "pro_generation_usage": {
+      "prompt": 32735,
+      "candidate": 17021,
+      "total": 58000
+    },
+    "basic_generation_cost_usd": 0.0177345,
+    "pro_generation_cost_usd": 0.0674305,
+    "audit_usage": {
+      "prompt": 19042,
+      "candidate": 3376,
+      "total": 26619
+    }
+  },
+  "notes": [
+    "This is a small-sample internal ablation; reviewer and generator model family is the same.",
+    "Use independent human raters and held-out workshop traces for publication-grade generalization claims."
+  ]
+}

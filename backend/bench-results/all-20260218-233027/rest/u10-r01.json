@@ -1,0 +1,157 @@
+{
+  "generated_at_utc": "2026-02-18T14:34:24.076224+00:00",
+  "local_environment": {
+    "os": "macos",
+    "arch": "aarch64",
+    "rust_log": "warn"
+  },
+  "config": {
+    "base_url": "http://localhost:8080",
+    "admin_id": "admin",
+    "attendees": 10,
+    "read_requests": 300,
+    "write_requests": 150,
+    "read_concurrency": 20,
+    "write_concurrency": 10,
+    "output": "/Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/all-20260218-233027/rest/u10-r01.json"
+  },
+  "setup": {
+    "codelab_id": "ba5b63ae-7b24-4fd2-889c-cdba0c531c83",
+    "attendee_count": 10
+  },
+  "scenarios": [
+    {
+      "name": "admin_get_attendees",
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 5,
+      "http_errors": 0,
+      "transport_errors": 295,
+      "error_rate": 0.9833333333333333,
+      "duration_ms": 217297.537084,
+      "requests_per_second": 1.3805954914437433,
+      "latency_ms": {
+        "min": 0.292709,
+        "mean": 14486.231576659999,
+        "p50": 7265.1433959999995,
+        "p95": 30002.125899700004,
+        "p99": 30003.112365920002,
+        "max": 30006.856917
+      },
+      "status_counts": {
+        "200": 5,
+        "transport_error": 295
+      },
+      "top_transport_errors": [
+        {
+          "error": "error sending request for url (http://localhost:8080/api/codelabs/ba5b63ae-7b24-4fd2-889c-cdba0c531c83/attendees)",
+          "count": 295
+        }
+      ]
+    },
+    {
+      "name": "admin_get_chat_history",
+      "total_requests": 300,
+      "completed_requests": 300,
+      "success_2xx": 0,
+      "http_errors": 0,
+      "transport_errors": 300,
+      "error_rate": 1.0,
+      "duration_ms": 38.450416000000004,
+      "requests_per_second": 7802.256287682297,
+      "latency_ms": {
+        "min": 0.245291,
+        "mean": 2.5019674966666656,
+        "p50": 2.134417,
+        "p95": 5.22309375,
+        "p99": 7.734659999999996,
+        "max": 12.006833
+      },
+      "status_counts": {
+        "transport_error": 300
+      },
+      "top_transport_errors": [
+        {
+          "error": "error sending request for url (http://localhost:8080/api/codelabs/ba5b63ae-7b24-4fd2-889c-cdba0c531c83/chat)",
+          "count": 300
+        }
+      ]
+    },
+    {
+      "name": "attendee_post_help",
+      "total_requests": 150,
+      "completed_requests": 150,
+      "success_2xx": 0,
+      "http_errors": 0,
+      "transport_errors": 150,
+      "error_rate": 1.0,
+      "duration_ms": 19.065417,
+      "requests_per_second": 7867.648528222592,
+      "latency_ms": {
+        "min": 0.242916,
+        "mean": 1.2325447266666665,
+        "p50": 0.9754585,
+        "p95": 2.7660980999999993,
+        "p99": 3.2690724999999983,
+        "max": 3.761084
+      },
+      "status_counts": {
+        "transport_error": 150
+      },
+      "top_transport_errors": [
+        {
+          "error": "error sending request for url (http://localhost:8080/api/codelabs/ba5b63ae-7b24-4fd2-889c-cdba0c531c83/help)",
+          "count": 150
+        }
+      ]
+    },
+    {
+      "name": "attendee_post_submission_link",
+      "total_requests": 150,
+      "completed_requests": 150,
+      "success_2xx": 0,
+      "http_errors": 0,
+      "transport_errors": 150,
+      "error_rate": 1.0,
+      "duration_ms": 19.188457999999997,
+      "requests_per_second": 7817.199276773569,
+      "latency_ms": {
+        "min": 0.250083,
+        "mean": 1.2302152133333335,
+        "p50": 1.135875,
+        "p95": 2.636801749999998,
+        "p99": 3.26275791,
+        "max": 5.3208329999999995
+      },
+      "status_counts": {
+        "transport_error": 150
+      },
+      "top_transport_errors": [
+        {
+          "error": "error sending request for url (http://localhost:8080/api/codelabs/ba5b63ae-7b24-4fd2-889c-cdba0c531c83/attendees/8119d2d2-f19f-4c08-8e24-173dc4a0ffc7/submissions/link)",
+          "count": 15
+        },
+        {
+          "error": "error sending request for url (http://localhost:8080/api/codelabs/ba5b63ae-7b24-4fd2-889c-cdba0c531c83/attendees/18ff5371-8f6d-40f3-8ce7-ca7fa52ea79c/submissions/link)",
+          "count": 15
+        },
+        {
+          "error": "error sending request for url (http://localhost:8080/api/codelabs/ba5b63ae-7b24-4fd2-889c-cdba0c531c83/attendees/dbb35199-2a11-4e21-bb50-4ea6cb289a08/submissions/link)",
+          "count": 15
+        },
+        {
+          "error": "error sending request for url (http://localhost:8080/api/codelabs/ba5b63ae-7b24-4fd2-889c-cdba0c531c83/attendees/8e518c09-e111-4493-8aa3-0873eec331fc/submissions/link)",
+          "count": 15
+        },
+        {
+          "error": "error sending request for url (http://localhost:8080/api/codelabs/ba5b63ae-7b24-4fd2-889c-cdba0c531c83/attendees/18e84b7e-cb9e-451a-998f-07a0f95ff735/submissions/link)",
+          "count": 15
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Local-only run. Use this for baseline/trend comparison, not absolute production capacity.",
+    "For paper tables, repeat each run multiple times and report median/IQR with confidence intervals."
+  ]
+}

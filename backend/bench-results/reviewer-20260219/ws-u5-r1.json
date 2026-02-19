@@ -1,0 +1,49 @@
+{
+  "generated_at_utc": "2026-02-19T11:49:30.287529+00:00",
+  "config": {
+    "base_url": "http://127.0.0.1:8080",
+    "users": [
+      5
+    ],
+    "duration_secs": 8,
+    "chat_rate_per_sec": 0.5,
+    "step_interval_secs": 7,
+    "output": "bench-results/reviewer-20260219/ws-u5-r1.json"
+  },
+  "cases": [
+    {
+      "users": 5,
+      "codelab_id": "d27f9cf8-593e-4f61-b753-99c0226c263e",
+      "duration_secs": 8,
+      "sent_chat": 20,
+      "sent_step_progress": 5,
+      "recv_chat": 100,
+      "ws_disconnects": 5,
+      "ws_errors": 5,
+      "ws_error_samples": [
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake",
+        "WS read error: WebSocket protocol error: Connection reset without closing handshake"
+      ],
+      "throughput": {
+        "sent_chat_per_sec": 2.5,
+        "recv_chat_per_sec": 12.5
+      },
+      "e2e_latency_ms": {
+        "samples": 20,
+        "min": 1.384084,
+        "mean": 13.307468850000001,
+        "p50": 11.937021,
+        "p95": 26.70393335000001,
+        "p99": 35.05532026999998,
+        "max": 37.143167
+      }
+    }
+  ],
+  "notes": [
+    "WS benchmark measures sender->echo roundtrip latency for chat messages.",
+    "If ws_disconnects/ws_errors are high, raise RATE_LIMIT_GENERAL_PER_MINUTE and inspect server logs."
+  ]
+}

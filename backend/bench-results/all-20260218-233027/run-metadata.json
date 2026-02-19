@@ -1,0 +1,44 @@
+{
+  "generated_at_utc": "2026-02-18T14:30:27Z",
+  "repo_root": "/Users/jaichang/Documents/GitHub/open-codelabs",
+  "backend_dir": "/Users/jaichang/Documents/GitHub/open-codelabs/backend",
+  "frontend_dir": "/Users/jaichang/Documents/GitHub/open-codelabs/frontend",
+  "git_branch": "main",
+  "git_commit": "a3510b39",
+  "platform": {
+    "os": "Darwin",
+    "release": "24.6.0",
+    "arch": "arm64"
+  },
+  "tool_versions": {
+    "rustc": "rustc 1.93.1 (01f6ddf75 2026-02-11)",
+    "cargo": "cargo 1.93.1 (083ac5135 2025-12-15)",
+    "bun": "1.3.9"
+  },
+  "config": {
+    "base_url": "http://localhost:8080",
+    "admin_id": "admin",
+    "frontend_base_url": "http://localhost:5173",
+    "rest_profile": "quick",
+    "rest_repeats": 1,
+    "ws_users": "10",
+    "ws_duration_secs": 10,
+    "ws_chat_rate": 0.5,
+    "ws_step_interval_secs": 7,
+    "ws_repeats": 1,
+    "ops_scenarios": "upload,backup,codeserver",
+    "ops_upload_requests": 6,
+    "ops_codeserver_iterations": 2,
+    "ops_repeats": 1,
+    "soak_duration_secs": 60,
+    "soak_cycle_interval_secs": 60,
+    "soak_backend_pid": "",
+    "frontend_routes": "/,/admin,/codelabs",
+    "frontend_concurrency": "10,30,60",
+    "frontend_requests": 300,
+    "frontend_repeats": 3,
+    "swe_timeout_secs": 3600,
+    "swe_run_mutation": 0,
+    "dry_run": 0
+  }
+}

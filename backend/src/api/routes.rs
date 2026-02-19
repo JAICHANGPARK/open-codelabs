@@ -1,7 +1,6 @@
 use crate::api::handlers::codelabs::get_reference_codelabs;
 use crate::api::handlers::{
     admin::{check_updates, get_session, login, logout, update_settings},
-    backup::{export_backup, inspect_backup, restore_backup},
     ai::{
         add_ai_message, create_ai_thread, delete_ai_thread, get_ai_conversations, get_ai_messages,
         get_ai_threads, proxy_gemini_stream, save_ai_conversation,
@@ -11,6 +10,7 @@ use crate::api::handlers::{
         request_help, resolve_help_request,
     },
     audit::get_audit_logs,
+    backup::{export_backup, inspect_backup, restore_backup},
     codelabs::{
         copy_codelab, create_codelab, delete_codelab, export_codelab, get_chat_history,
         get_codelab, import_codelab, list_codelabs, update_codelab_info, update_codelab_steps,

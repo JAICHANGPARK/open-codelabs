@@ -141,19 +141,18 @@ async fn handle_socket(
 
     let mut send_task = tokio::spawn(async move {
         loop {
-            tokio::select! {
+            let outbound = tokio::select! {
                 // Incoming from broadcast channel
                 Ok(msg) = rx_broadcast.recv() => {
-                    if sender.send(Message::Text(msg.into())).await.is_err() {
-                        break;
-                    }
+                    Message::Text(msg.into())
                 }
                 // Incoming from direct message channel
                 Some(msg) = rx_ws.recv() => {
-                    if sender.send(msg).await.is_err() {
-                        break;
-                    }
+                    msg
                 }
+            };
+            if sender.send(outbound).await.is_err() {
+                return;
             }
         }
     });
@@ -234,30 +233,31 @@ async fn handle_socket(
                     }
                     Some("step_progress") => {
                         // Persist to DB
-                        if role_clone == Role::Attendee {
-                            let step_number = val.get("step_number").and_then(|v| v.as_i64());
-                            if let Some(step_number) = step_number {
-                                if step_number < 1 {
-                                    continue;
-                                }
-                                let attendee_id = user_id_clone.as_str();
-                                let _ = sqlx::query(
-                                    &state_clone
-                                        .q("UPDATE attendees SET current_step = ? WHERE id = ?"),
-                                )
-                                .bind(step_number as i32)
-                                .bind(attendee_id)
-                                .execute(&state_clone.pool)
-                                .await;
-                                let payload = serde_json::json!({
-                                    "type": "step_progress",
-                                    "attendee_id": attendee_id,
-                                    "step_number": step_number
-                                })
-                                .to_string();
-                                let _ = tx_broadcast_clone.send(payload);
-                            }
+                        if role_clone != Role::Attendee {
+                            continue;
                         }
+                        let Some(step_number) = val.get("step_number").and_then(|v| v.as_i64())
+                        else {
+                            continue;
+                        };
+                        if step_number < 1 {
+                            continue;
+                        }
+                        let attendee_id = user_id_clone.as_str();
+                        let _ = sqlx::query(
+                            &state_clone.q("UPDATE attendees SET current_step = ? WHERE id = ?"),
+                        )
+                        .bind(step_number as i32)
+                        .bind(attendee_id)
+                        .execute(&state_clone.pool)
+                        .await;
+                        let payload = serde_json::json!({
+                            "type": "step_progress",
+                            "attendee_id": attendee_id,
+                            "step_number": step_number
+                        })
+                        .to_string();
+                        let _ = tx_broadcast_clone.send(payload);
                     }
                     Some("webrtc_signal") => {
                         // WebRTC signaling (Offer/Answer/ICE)
@@ -316,29 +316,29 @@ async fn handle_socket(
                     }
                     Some("attendee_screen_status") => {
                         // Attendee notifies facilitator about their screen sharing status
-                        if role_clone == Role::Attendee {
-                            let status = val.get("status").and_then(|v| v.as_str()).unwrap_or("");
-                            let is_sharing = status == "started";
-                            state_clone.attendee_sharing.insert(
-                                (codelab_id_clone.clone(), user_id_clone.clone()),
-                                is_sharing,
-                            );
+                        if role_clone != Role::Attendee {
+                            continue;
+                        }
+                        let status = val.get("status").and_then(|v| v.as_str()).unwrap_or("");
+                        let is_sharing = status == "started";
+                        state_clone.attendee_sharing.insert(
+                            (codelab_id_clone.clone(), user_id_clone.clone()),
+                            is_sharing,
+                        );
 
-                            if let Some(facilitator_sessions) = state_clone
-                                .sessions
-                                .get(&(codelab_id_clone.clone(), "facilitator".to_string()))
-                            {
-                                let payload = serde_json::json!({
-                                    "type": "attendee_screen_status",
-                                    "attendee_id": user_id_clone.as_str(),
-                                    "attendee_name": sender_name_clone.as_str(),
-                                    "status": status
-                                })
-                                .to_string();
-                                for (_, facilitator_ws) in facilitator_sessions.iter() {
-                                    let _ =
-                                        facilitator_ws.send(Message::Text(payload.clone().into()));
-                                }
+                        if let Some(facilitator_sessions) = state_clone
+                            .sessions
+                            .get(&(codelab_id_clone.clone(), "facilitator".to_string()))
+                        {
+                            let payload = serde_json::json!({
+                                "type": "attendee_screen_status",
+                                "attendee_id": user_id_clone.as_str(),
+                                "attendee_name": sender_name_clone.as_str(),
+                                "status": status
+                            })
+                            .to_string();
+                            for (_, facilitator_ws) in facilitator_sessions.iter() {
+                                let _ = facilitator_ws.send(Message::Text(payload.clone().into()));
                             }
                         }
                     }
@@ -372,13 +372,11 @@ async fn handle_socket(
     }
 
     tokio::select! {
-        _ = (&mut send_task) => {
-            recv_task.abort();
-        },
-        _ = (&mut recv_task) => {
-            send_task.abort();
-        },
-    };
+        _ = (&mut send_task) => {},
+        _ = (&mut recv_task) => {},
+    }
+    send_task.abort();
+    recv_task.abort();
 
     // Cleanup and broadcast leave
     cleanup_session(&state, &codelab_id, &user_id, &session_id);
@@ -411,5 +409,67 @@ fn cleanup_session(state: &Arc<AppState>, codelab_id: &str, user_id: &str, sessi
             // Also cleanup sharing status
             state.attendee_sharing.remove(&key);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::infrastructure::database::{AppState, DbKind};
+    use sqlx::any::AnyPoolOptions;
+
+    async fn make_state() -> Arc<AppState> {
+        sqlx::any::install_default_drivers();
+        let pool = AnyPoolOptions::new()
+            .connect("sqlite::memory:")
+            .await
+            .expect("sqlite");
+        Arc::new(AppState::new(
+            pool,
+            DbKind::Sqlite,
+            "admin".to_string(),
+            "pw".to_string(),
+            false,
+        ))
+    }
+
+    #[test]
+    fn generate_session_id_returns_uuid_like_value() {
+        let a = generate_session_id();
+        let b = generate_session_id();
+        assert_ne!(a, b);
+        assert!(uuid::Uuid::parse_str(&a).is_ok());
+        assert!(uuid::Uuid::parse_str(&b).is_ok());
+    }
+
+    #[tokio::test]
+    async fn cleanup_session_removes_only_target_and_cleans_last_entry() {
+        let state = make_state().await;
+        let key = ("lab-1".to_string(), "attendee-1".to_string());
+        let (tx1, _rx1) = tokio::sync::mpsc::unbounded_channel();
+        let (tx2, _rx2) = tokio::sync::mpsc::unbounded_channel();
+
+        state.sessions.insert(
+            key.clone(),
+            vec![("s1".to_string(), tx1), ("s2".to_string(), tx2)],
+        );
+        state.attendee_sharing.insert(key.clone(), true);
+
+        cleanup_session(&state, "lab-1", "attendee-1", "s1");
+        let sessions = state.sessions.get(&key).expect("sessions remain");
+        assert_eq!(sessions.len(), 1);
+        assert_eq!(sessions[0].0, "s2");
+        drop(sessions);
+
+        cleanup_session(&state, "lab-1", "attendee-1", "s2");
+        assert!(!state.sessions.contains_key(&key));
+        assert!(!state.attendee_sharing.contains_key(&key));
+    }
+
+    #[tokio::test]
+    async fn cleanup_session_noop_when_user_has_no_sessions() {
+        let state = make_state().await;
+        cleanup_session(&state, "missing-lab", "missing-user", "missing-session");
+        assert!(state.sessions.is_empty());
     }
 }

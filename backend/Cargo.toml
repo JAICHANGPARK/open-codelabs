@@ -23,7 +23,8 @@ cookie = "0.18"
 dashmap = "6.0"
 futures-util = "0.3"
 image = "0.25.9"
-reqwest = { version = "0.13.1", features = ["json", "stream"] }
+reqwest = { version = "0.13.1", features = ["json", "stream", "multipart"] }
+tokio-tungstenite = { version = "0.24.0", features = ["rustls-tls-native-roots"] }
 jsonwebtoken = "9.3.0"
 rand = "0.8.5"
 subtle = "2.6.1"
@@ -40,3 +41,23 @@ tar = "0.4"
 
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }
+
+[[bin]]
+name = "backend"
+path = "src/main.rs"
+test = false
+
+[[bin]]
+name = "local_bench"
+path = "src/bin/local_bench.rs"
+test = false
+
+[[bin]]
+name = "ops_bench"
+path = "src/bin/ops_bench.rs"
+test = false
+
+[[bin]]
+name = "ws_bench"
+path = "src/bin/ws_bench.rs"
+test = false

@@ -1,0 +1,2 @@
+    Finished `release` profile [optimized] target(s) in 0.54s
+     Running `target/release/ws_bench --base-url 'http://localhost:8080' --admin-id admin --admin-pw admin --users 50 --duration-secs 45 --chat-rate 0.5 --step-interval-secs 7 --output /Users/jaichang/Documents/GitHub/open-codelabs/backend/bench-results/paper-all-20260219-193826/soak/cycle-0002-ws.json`

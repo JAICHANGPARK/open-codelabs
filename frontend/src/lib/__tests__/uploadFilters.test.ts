@@ -1,9 +1,11 @@
 import { describe, expect, test } from "bun:test";
 import {
+    getBlocklists,
     isEnvFile,
     isMediaFile,
     isBlockedByExt,
     isBlockedByPath,
+    normalizePath,
     shouldSkipFile,
 } from "../uploadFilters";
 
@@ -34,5 +36,16 @@ describe("uploadFilters", () => {
         expect(shouldSkipFile(".env")).toBe(true);
         expect(shouldSkipFile("assets/logo.png")).toBe(true);
         expect(shouldSkipFile("src/app.dart")).toBe(false);
+    });
+
+    test("normalizes path separators and casing", () => {
+        expect(normalizePath("SRC\\Assets\\Image.PNG")).toBe("src/assets/image.png");
+    });
+
+    test("exposes blocklist collections", () => {
+        const lists = getBlocklists();
+        expect(lists.EXT_BLOCKLIST.has(".png")).toBe(true);
+        expect(lists.PATH_BLOCKLIST.includes("node_modules/")).toBe(true);
+        expect(lists.MEDIA_EXTENSIONS.has(".mp4")).toBe(true);
     });
 });

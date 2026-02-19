@@ -465,4 +465,57 @@ mod tests {
         assert_eq!(payload.name, "Alice");
         assert_eq!(payload.code, "1234");
     }
+
+    #[test]
+    fn test_attendee_public_from_attendee() {
+        let attendee = Attendee {
+            id: "a1".to_string(),
+            codelab_id: "c1".to_string(),
+            name: "Alice".to_string(),
+            code: "CODE".to_string(),
+            email: Some("alice@example.com".to_string()),
+            current_step: 3,
+            is_completed: 1,
+            completed_at: Some("2026-02-01".to_string()),
+            created_at: Some("2026-01-01".to_string()),
+            is_sharing_screen: true,
+        };
+
+        let public: AttendeePublic = attendee.into();
+        assert_eq!(public.id, "a1");
+        assert_eq!(public.codelab_id, "c1");
+        assert_eq!(public.name, "Alice");
+        assert_eq!(public.email.as_deref(), Some("alice@example.com"));
+        assert_eq!(public.current_step, 3);
+        assert_eq!(public.is_completed, 1);
+        assert_eq!(public.completed_at.as_deref(), Some("2026-02-01"));
+        assert_eq!(public.created_at.as_deref(), Some("2026-01-01"));
+        assert_eq!(public.token, None);
+        assert!(public.is_sharing_screen);
+    }
+
+    #[test]
+    fn test_default_submission_type_is_file() {
+        assert_eq!(default_submission_type(), "file");
+    }
+
+    #[test]
+    fn test_codelab_serialization_with_false_flags() {
+        let codelab = Codelab {
+            id: "test-id-2".to_string(),
+            title: "Title".to_string(),
+            description: "Description".to_string(),
+            author: "Author".to_string(),
+            is_public: 0,
+            quiz_enabled: 0,
+            require_quiz: 0,
+            require_feedback: 0,
+            require_submission: 0,
+            guide_markdown: None,
+            created_at: None,
+        };
+
+        let json = serde_json::to_string(&codelab).unwrap();
+        assert!(json.contains("\"is_public\":false"));
+    }
 }

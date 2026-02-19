@@ -1,9 +1,9 @@
-use crate::infrastructure::audit::{record_audit, AuditEntry};
-use crate::middleware::auth::AuthSession;
-use crate::utils::error::{bad_request, forbidden, internal_error};
 use crate::domain::models::{Codelab, CreateMaterial, Material};
-use crate::middleware::request_info::RequestInfo;
+use crate::infrastructure::audit::{record_audit, AuditEntry};
 use crate::infrastructure::database::AppState;
+use crate::middleware::auth::AuthSession;
+use crate::middleware::request_info::RequestInfo;
+use crate::utils::error::{bad_request, forbidden, internal_error};
 use crate::utils::validation::validate_material;
 use axum::{
     extract::{Path, State},
@@ -215,4 +215,64 @@ fn sanitize_filename(value: &str) -> String {
         out.truncate(120);
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::middleware::auth::{AuthSession, SessionClaims};
+
+    fn session(role: &str, codelab_id: Option<&str>) -> AuthSession {
+        AuthSession {
+            claims: Some(SessionClaims {
+                sub: "u1".to_string(),
+                role: role.to_string(),
+                codelab_id: codelab_id.map(|v| v.to_string()),
+                iss: "test".to_string(),
+                aud: "test".to_string(),
+                iat: 0,
+                exp: 1_000_000,
+            }),
+            admin_claims: None,
+            attendee_claims: None,
+        }
+    }
+
+    fn codelab(id: &str) -> Codelab {
+        Codelab {
+            id: id.to_string(),
+            title: "t".to_string(),
+            description: "d".to_string(),
+            author: "a".to_string(),
+            is_public: 1,
+            quiz_enabled: 0,
+            require_quiz: 0,
+            require_feedback: 0,
+            require_submission: 0,
+            guide_markdown: None,
+            created_at: None,
+        }
+    }
+
+    #[test]
+    fn can_access_codelab_respects_role_and_membership() {
+        let lab = codelab("lab-1");
+        assert!(can_access_codelab(&lab, &session("admin", None)));
+        assert!(can_access_codelab(
+            &lab,
+            &session("attendee", Some("lab-1"))
+        ));
+        assert!(!can_access_codelab(
+            &lab,
+            &session("attendee", Some("other-lab"))
+        ));
+        assert!(!can_access_codelab(&lab, &session("guest", None)));
+    }
+
+    #[test]
+    fn sanitize_filename_filters_and_truncates() {
+        assert_eq!(sanitize_filename("a b/c?.pdf"), "abc.pdf");
+        let long = "x".repeat(200);
+        assert_eq!(sanitize_filename(&long).len(), 120);
+    }
 }
