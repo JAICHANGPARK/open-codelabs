@@ -1,0 +1,29 @@
+flowchart LR
+  subgraph Clients
+    F["Facilitator UI<br/>(SvelteKit)"]
+    A["Attendee UI<br/>(SvelteKit)"]
+  end
+
+  subgraph Core["Core Services"]
+    API["Rust/Axum API<br/>REST + SSE"]
+    WS["WebSocket Hub<br/>chat/help/progress/signaling"]
+    SVC["AI + Workspace Services<br/>prompt pipelines + code-server"]
+  end
+
+  subgraph Data["Data / External"]
+    DB["SQLite / SQLx<br/>core state + metadata"]
+    FS["File and Workspace Storage<br/>uploads + archives"]
+    LLM["Gemini API<br/>stream generation"]
+  end
+
+  F -->|REST/SSE| API
+  A -->|REST| API
+  F -->|WS| WS
+  A -->|WS| WS
+
+  API --> DB
+  WS --> FS
+  WS -.-> DB
+  WS -->|events| SVC
+  SVC --> LLM
+  SVC -.-> FS

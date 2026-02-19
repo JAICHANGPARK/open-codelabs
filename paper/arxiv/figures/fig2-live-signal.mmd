@@ -1,0 +1,12 @@
+sequenceDiagram
+  participant ATT as Attendee Client
+  participant WS as WebSocket Handler
+  participant FAC as Facilitator Client
+  participant DB as DB
+
+  ATT->>WS: 1) step progress / help / chat
+  WS->>DB: 2) persist event
+  WS->>FAC: 3) broadcast status / DM
+  FAC->>WS: 4) resolve help / DM
+  WS->>ATT: 5) status update
+  WS->>DB: 6) append chat/help history

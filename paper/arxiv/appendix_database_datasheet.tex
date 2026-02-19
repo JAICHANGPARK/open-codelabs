@@ -1,0 +1,132 @@
+\section{Comprehensive Database Datasheet}
+\label{app:db_datasheet}
+This appendix reports database evidence in compact, reproducible form.
+Rather than embedding full SQL and handler code listings, it provides:
+(1) schema inventory metrics,
+(2) canonical source anchors,
+(3) representative DDL snippets, and
+(4) regeneration commands.
+
+Snapshot commit used for this manuscript state:
+\texttt{a3510b39}.
+
+\subsection{Schema Inventory Snapshot}
+The migration corpus currently contains 26 SQL migration files.
+Inventory counts are summarized below.
+\begin{table}[h]
+\centering
+\small
+\caption{Database evolution inventory derived from migration files.}
+\label{tab:db_inventory_snapshot}
+\begin{tabular}{L{0.56\linewidth}C{0.18\linewidth}}
+\toprule
+Metric & Value \\
+\midrule
+Migration files & 26 \\
+CREATE TABLE statements & 17 \\
+ALTER TABLE statements & 21 \\
+Index definitions (\texttt{CREATE INDEX}/\texttt{CREATE UNIQUE INDEX}) & 10 \\
+\texttt{UNIQUE} constraints (table/column) & 3 \\
+Foreign-key clauses (non-comment) & 19 \\
+Data backfill UPDATE statements & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Canonical Database Source Index}
+\begin{table}[h]
+\centering
+\small
+\caption{Primary database evidence files for reproducibility.}
+\label{tab:db_source_index}
+\begin{tabular}{L{0.30\linewidth}L{0.45\linewidth}L{0.19\linewidth}}
+\toprule
+Artifact & Path & Role \\
+\midrule
+Migration corpus & \texttt{backend/migrations/*.sql} & Schema evolution source of truth \\
+Migration runner & \texttt{backend/src/main.rs} & Startup-time \texttt{sqlx::migrate!} invocation \\
+Handler SQL surface & \texttt{backend/src/api/handlers/*.rs} & DML reads/writes and transactional behavior \\
+Audit persistence & \texttt{backend/src/infrastructure/audit.rs} & Audit log append path and metrics reads \\
+Schema documentation & \texttt{docs/en/specification/database-schema.md} & Human-readable schema/relationship document \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Representative DDL Excerpts}
+\begin{lstlisting}[language=SQL,caption={Representative migration excerpts (abbreviated).}]
+-- 20251226161500_init.sql
+CREATE TABLE IF NOT EXISTS codelabs (
+    id VARCHAR(255) PRIMARY KEY NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    author VARCHAR(255) NOT NULL,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS steps (
+    id VARCHAR(255) PRIMARY KEY NOT NULL,
+    codelab_id VARCHAR(255) NOT NULL,
+    step_number INTEGER NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content_markdown TEXT NOT NULL,
+    FOREIGN KEY (codelab_id) REFERENCES codelabs(id) ON DELETE CASCADE
+);
+
+-- 20251227161000_add_attendee_feedback.sql
+CREATE UNIQUE INDEX idx_feedback_codelab_attendee
+    ON feedback(codelab_id, attendee_id);
+
+-- 20260213200000_inline_comments.sql
+CREATE TABLE IF NOT EXISTS inline_comment_threads (
+    id VARCHAR(255) PRIMARY KEY NOT NULL,
+    codelab_id VARCHAR(255) NOT NULL,
+    anchor_key TEXT NOT NULL,
+    ...
+    UNIQUE (codelab_id, anchor_key)
+);
+\end{lstlisting}
+
+\subsection{DML Inventory Summary}
+Source-line keyword counts over SQL-bearing lines in
+\texttt{backend/src/api/handlers} and \texttt{backend/src/infrastructure/audit.rs}
+for this snapshot:
+\begin{table}[h]
+\centering
+\small
+\caption{DML keyword inventory in handler/audit SQL-bearing lines.}
+\label{tab:db_dml_summary}
+\begin{tabular}{L{0.30\linewidth}C{0.16\linewidth}L{0.44\linewidth}}
+\toprule
+DML class & Count & Dominant pattern \\
+\midrule
+\texttt{SELECT} & 93 & Retrieval for codelab/attendee/material/AI and admin views \\
+\texttt{INSERT INTO} & 47 & Event persistence, submissions, AI/chat/audit writes \\
+\texttt{UPDATE} & 10 & Progress/status/timestamp state transitions \\
+\texttt{DELETE FROM} & 44 & Lifecycle cleanup and backup-restore reset operations \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Regeneration Commands}
+\begin{lstlisting}[caption={Commands used to regenerate schema and DML counts.}]
+# Migration-level inventory
+ls -1 backend/migrations | wc -l
+rg -n "CREATE TABLE|ALTER TABLE|FOREIGN KEY|CREATE (UNIQUE )?INDEX|UNIQUE \(|UPDATE" \
+  backend/migrations/*.sql
+
+# DML keyword inventory (handler + audit SQL-bearing lines)
+rg -n -i "\bSELECT\b" backend/src/api/handlers backend/src/infrastructure/audit.rs | wc -l
+rg -n -i "\bINSERT\s+INTO\b" backend/src/api/handlers backend/src/infrastructure/audit.rs | wc -l
+rg -n -i "\bUPDATE\b" backend/src/api/handlers backend/src/infrastructure/audit.rs | wc -l
+rg -n -i "\bDELETE\s+FROM\b" backend/src/api/handlers backend/src/infrastructure/audit.rs | wc -l
+\end{lstlisting}
+
+\subsection{Access Strategy}
+This compact appendix should be interpreted together with:
+\begin{itemize}[leftmargin=1.2em]
+  \item the ER and metric discussion in the main text,
+  \item report-to-repository synchronization discussion in the database section,
+  \item and source anchors in \cref{tab:db_source_index}.
+\end{itemize}
+This preserves full reproducibility while keeping manuscript appendices concise
+\cite{oc_migrations_dir,oc_main_rs,oc_db_schema_doc,oc_db_dml_queries}.

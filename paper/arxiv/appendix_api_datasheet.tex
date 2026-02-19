@@ -1,0 +1,121 @@
+\section{Comprehensive API Datasheet}
+\label{app:api_datasheet}
+This appendix presents API reproducibility artifacts in compact form.
+Instead of duplicating all implementation code, it provides:
+(1) canonical source anchors,
+(2) route-counting rules,
+(3) representative implementation excerpts, and
+(4) regeneration commands.
+
+Snapshot commit used for this manuscript state:
+\texttt{a3510b39}.
+
+\subsection{Canonical Source Index}
+\begin{table}[h]
+\centering
+\small
+\caption{Primary API evidence files for reproducibility.}
+\label{tab:api_source_index}
+\begin{tabular}{L{0.31\linewidth}L{0.44\linewidth}L{0.19\linewidth}}
+\toprule
+Artifact & Path & Role \\
+\midrule
+Router registration & \texttt{backend/src/api/routes.rs} & Source of truth for path and method declarations \\
+DTO contracts & \texttt{backend/src/api/dto/*.rs} & Request/response payload shapes at handler boundary \\
+Domain structs & \texttt{backend/src/domain/models.rs} & Persisted and transfer object field definitions \\
+Published API reference & \texttt{docs/en/specification/api-reference.md} & Human-readable endpoint contracts and examples \\
+Frontend API selector & \texttt{frontend/src/lib/api.ts} & Runtime dispatch across backend/Firebase/Supabase modes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Counting Rules and Route Statistics}
+Route availability uses two levels:
+\begin{enumerate}[leftmargin=1.2em]
+  \item \textbf{Distinct paths}: unique router declarations by path token.
+  \item \textbf{Method-path operations}: each HTTP method bound to a declared path.
+\end{enumerate}
+For this snapshot:
+\begin{itemize}[leftmargin=1.2em]
+  \item Distinct paths: 55
+  \item Method-path operations: 69
+  \item Method mix: GET 30, POST 30, PUT 3, DELETE 6
+\end{itemize}
+
+\subsection{Representative Router Excerpt}
+\begin{lstlisting}[language=Rust,caption={Representative excerpt from \texttt{backend/src/api/routes.rs}.}]
+fn codelab_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route("/api/codelabs/reference", get(get_reference_codelabs))
+        .route("/api/codelabs", get(list_codelabs).post(create_codelab))
+        .route(
+            "/api/codelabs/{id}",
+            get(get_codelab)
+                .put(update_codelab_info)
+                .delete(delete_codelab),
+        )
+        .route("/api/codelabs/{id}/steps", put(update_codelab_steps))
+        .route("/api/codelabs/{id}/export", get(export_codelab))
+        .route("/api/codelabs/import", post(import_codelab))
+        .route(
+            "/api/codelabs/{id}/inline-comments",
+            get(get_inline_comments).post(create_inline_comment),
+        )
+        .route(
+            "/api/codelabs/{id}/ai/conversations",
+            get(get_ai_conversations),
+        )
+}
+
+fn ai_routes() -> Router<Arc<AppState>> {
+    Router::new()
+        .route("/api/ai/stream", post(proxy_gemini_stream))
+        .route("/api/ai/conversations", post(save_ai_conversation))
+        .route(
+            "/api/ai/threads",
+            get(get_ai_threads).post(create_ai_thread),
+        )
+        .route(
+            "/api/ai/threads/{thread_id}",
+            get(get_ai_messages)
+                .post(add_ai_message)
+                .delete(delete_ai_thread),
+        )
+}
+\end{lstlisting}
+
+\subsection{Regeneration Commands}
+\begin{lstlisting}[caption={Commands used to regenerate API counts from source.}]
+# Distinct route declarations (path-level declarations)
+rg -n '\.route\(' backend/src/api/routes.rs | wc -l
+
+# Method-path operation counts by parsed method bindings
+perl -0777 -ne '
+  my $s=$_; my $i=0; my %m;
+  while(($i=index($s,".route(",$i))!=-1){
+    my $start=$i+7; my $d=1; my $j=$start;
+    while($j<length($s)&&$d>0){
+      my $c=substr($s,$j,1); $d++ if $c eq "("; $d-- if $c eq ")"; $j++;
+    }
+    my $arg=substr($s,$start,$j-$start-1);
+    my ($rhs)=$arg =~ /^\s*"[^"]+"\s*,\s*(.*)$/s;
+    if(defined $rhs){
+      while($rhs =~ /\b(get|post|put|delete|patch|options|head)\s*\(/g){ $m{uc($1)}++; }
+      if($rhs =~ /\bany\s*\(/){$m{ANY}++;}
+    }
+    $i=$j;
+  }
+  for my $k (sort keys %m){ print "$k=$m{$k}\n"; }
+  my $tot=0; $tot+=$_ for values %m; print "total=$tot\n";
+' backend/src/api/routes.rs
+\end{lstlisting}
+
+\subsection{Access Strategy}
+For peer review and reproduction, this compact appendix should be read with:
+\begin{itemize}[leftmargin=1.2em]
+  \item the method-normalized API catalog in \cref{app:api},
+  \item source anchors in \cref{tab:api_source_index},
+  \item and the published API reference document.
+\end{itemize}
+This preserves auditability while avoiding full-code duplication in manuscript pages
+\cite{oc_routes,oc_api_reference_doc,oc_frontend_api_selector}.
