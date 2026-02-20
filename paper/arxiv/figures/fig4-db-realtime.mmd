@@ -1,0 +1,55 @@
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontSize": "18px",
+    "fontFamily": "Helvetica",
+    "primaryTextColor": "#111111",
+    "lineColor": "#222222",
+    "primaryColor": "#EAF2F2",
+    "primaryBorderColor": "#5E6B73"
+  }
+}}%%
+erDiagram
+  CODELABS ||--o{ HELP_REQUESTS : "id -> codelab_id"
+  CODELABS ||--o{ INLINE_COMMENT_THREADS : "id -> codelab_id"
+  CODELABS ||--o{ CHAT_MESSAGES : "id -> codelab_id"
+
+  CODELABS {
+    string id PK
+    string title
+    int is_public
+  }
+
+  HELP_REQUESTS {
+    string id PK
+    string codelab_id FK
+    string attendee_id FK
+    int step_number
+    string status
+    datetime created_at
+  }
+
+  INLINE_COMMENT_THREADS {
+    string id PK
+    string codelab_id FK
+    string anchor_key
+    string target_type
+    string target_step_id
+    int start_offset
+    int end_offset
+    text selected_text
+    string content_hash
+    string created_by_attendee_id FK
+    datetime created_at
+  }
+
+  CHAT_MESSAGES {
+    string id PK
+    string codelab_id FK
+    string sender_name
+    text message
+    string msg_type
+    string target_id
+    string sender_id
+    datetime created_at
+  }

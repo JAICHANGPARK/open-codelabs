@@ -1,0 +1,77 @@
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontSize": "18px",
+    "fontFamily": "Helvetica",
+    "primaryTextColor": "#111111",
+    "lineColor": "#222222",
+    "primaryColor": "#EAF2F2",
+    "primaryBorderColor": "#5E6B73"
+  }
+}}%%
+erDiagram
+  CODELABS ||--o{ FEEDBACK : "id -> codelab_id"
+  CODELABS ||--o{ SUBMISSIONS : "id -> codelab_id"
+  CODELABS ||--o{ QUIZ_SUBMISSIONS : "id -> codelab_id"
+  CODELABS ||--o{ AI_CONVERSATIONS : "id -> codelab_id"
+  CODELABS ||--o{ CODESERVER_WORKSPACES : "id -> codelab_id"
+
+  CODELABS {
+    string id PK
+    string title
+    int is_public
+  }
+
+  FEEDBACK {
+    string id PK
+    string codelab_id FK
+    string attendee_id FK
+    string difficulty
+    string satisfaction
+    text comment
+    datetime created_at
+  }
+
+  SUBMISSIONS {
+    string id PK
+    string codelab_id FK
+    string attendee_id FK
+    string file_path
+    string file_name
+    int file_size
+    string submission_type
+    text link_url
+    datetime created_at
+  }
+
+  QUIZ_SUBMISSIONS {
+    string id PK
+    string codelab_id FK
+    string attendee_id FK
+    string quiz_id FK
+    text answer
+    int is_correct
+    datetime created_at
+  }
+
+  AI_CONVERSATIONS {
+    string id PK
+    string codelab_id FK
+    string user_id
+    string user_type
+    string user_name
+    int step_number
+    text question
+    text answer
+    string model
+    text usage_metadata
+    datetime created_at
+  }
+
+  CODESERVER_WORKSPACES {
+    string id PK
+    string codelab_id FK
+    text url
+    string structure_type
+    datetime created_at
+  }

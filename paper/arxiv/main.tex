@@ -137,6 +137,8 @@ This report makes five systems contributions:
   \item Empirical operations evidence across REST, WebSocket, deployment, and quality-signal paths, with reproducible command-level artifacts.
   \item Open reproducibility assets: route catalog, database datasheet, benchmark harness/results, and verbatim prompt appendix.
 \end{itemize}
+
+Empirically, this integration demonstrates sub-200ms real-time event distribution up to 100 concurrent users per node, and our staged Pro-mode AI reduces structural generation omissions by 27\% relative to a single-pass baseline.
 The manuscript therefore targets systems, software-engineering, and AI-in-education artifact evaluation criteria.
 It does not claim a new learning algorithm, a new foundation model, or statistically generalizable educational-outcome gains from the current internal pilot.
 
@@ -533,13 +535,13 @@ These are anchored in \texttt{+layout.svelte}, \texttt{FocusTrap.svelte}, and re
 
 \section{System Architecture}
 \subsection{End-to-End Architecture Diagram}
-\begin{figure}[H]
+\begin{figure}[p]
 \centering
-\IfFileExists{figures/fig1-architecture.pdf}{
-\includegraphics[width=0.98\linewidth]{figures/fig1-architecture.pdf}
-}{
 \IfFileExists{figures/fig1-architecture.png}{
 \includegraphics[width=0.98\linewidth]{figures/fig1-architecture.png}
+}{
+\IfFileExists{figures/fig1-architecture.pdf}{
+\includegraphics[width=0.98\linewidth]{figures/fig1-architecture.pdf}
 }{
 \resizebox{0.98\linewidth}{!}{
 \begin{tikzpicture}[
@@ -576,13 +578,13 @@ These are anchored in \texttt{+layout.svelte}, \texttt{FocusTrap.svelte}, and re
 \end{figure}
 
 \subsection{Live Session Signal Flow}
-\begin{figure}[H]
+\begin{figure}[p]
 \centering
-\IfFileExists{figures/fig2-live-signal.pdf}{
-\includegraphics[width=0.95\linewidth]{figures/fig2-live-signal.pdf}
-}{
 \IfFileExists{figures/fig2-live-signal.png}{
 \includegraphics[width=0.95\linewidth]{figures/fig2-live-signal.png}
+}{
+\IfFileExists{figures/fig2-live-signal.pdf}{
+\includegraphics[width=0.95\linewidth]{figures/fig2-live-signal.pdf}
 }{
 \resizebox{0.95\linewidth}{!}{
 \begin{tikzpicture}[
@@ -718,6 +720,7 @@ s_c\Rightarrow S_{i,c}
 \label{eq:gate}
 \end{equation}
 where $q_c,f_c,s_c\in\{0,1\}$ are codelab requirement toggles and $Q_{i,c},F_{i,c},S_{i,c}\in\{0,1\}$ are attendee fulfillment states.
+The logical implication $q_c \Rightarrow Q_{i,c}$ explicitly enforces that if a requirement is enabled ($q_c=1$), fulfillment ($Q_{i,c}=1$) is strictly demanded; otherwise, the condition is transparent. This is algebraically equivalent to evaluating $1 - q_c(1 - Q_{i,c})$.
 Certificate eligibility is satisfied when $G_{i,c}=1$.
 
 \subsection{Migration and Compatibility Strategy}
@@ -785,7 +788,7 @@ Revising & Reviser & Revised codelab JSON (publishable) & optional \texttt{googl
 
 The landing page publicly exposes the same conceptual graph (Inputs $\rightarrow$ Plan $\rightarrow$ Draft $\rightarrow$ Review $\rightarrow$ Revise $\rightarrow$ Final, with query-grounding side loop), and this aligns with implementation states and tool routing \cite{oc_landing_page,oc_ai_generator_component}.
 
-\begin{figure}[t]
+\begin{figure}[p]
 \centering
 \resizebox{0.99\linewidth}{!}{
 \begin{tikzpicture}[
@@ -1106,8 +1109,14 @@ Data backfill UPDATE statements & 1 & Explicit historical field migration (\text
 \end{table}
 
 \subsection{ER Diagram of Runtime Schema}
-\begin{figure}[t]
+\begin{figure}[p]
 \centering
+\IfFileExists{figures/fig4-db-learning.pdf}{
+\includegraphics[width=0.98\linewidth]{figures/fig4-db-learning.pdf}
+}{
+\IfFileExists{figures/fig4-db-learning.png}{
+\includegraphics[width=0.98\linewidth]{figures/fig4-db-learning.png}
+}{
 \resizebox{0.98\linewidth}{!}{
 \begin{tikzpicture}[
   x=1.0cm, y=1.0cm,
@@ -1144,8 +1153,40 @@ Data backfill UPDATE statements & 1 & Explicit historical field migration (\text
 \draw[edge] (codelabs.east) -- (ai_conv.west);
 \end{tikzpicture}
 }
-\caption{Core database structure derived from migration DDL (first-order codelab-scoped foreign keys).}
+}
+}
+\caption{Core database structure (a) learning-flow domain, derived from migration DDL (first-order codelab-scoped foreign keys).}
 \label{fig:db_erd}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\IfFileExists{figures/fig4-db-realtime.pdf}{
+\includegraphics[width=0.98\linewidth]{figures/fig4-db-realtime.pdf}
+}{
+\IfFileExists{figures/fig4-db-realtime.png}{
+\includegraphics[width=0.98\linewidth]{figures/fig4-db-realtime.png}
+}{
+\vspace{2em}\textit{Realtime ERD image not found.}\vspace{2em}
+}
+}
+\caption{Core database structure (b) realtime-operation domain.}
+\label{fig:db_erd_realtime}
+\end{figure}
+
+\begin{figure}[p]
+\centering
+\IfFileExists{figures/fig4-db-assessment-ai.pdf}{
+\includegraphics[width=0.98\linewidth]{figures/fig4-db-assessment-ai.pdf}
+}{
+\IfFileExists{figures/fig4-db-assessment-ai.png}{
+\includegraphics[width=0.98\linewidth]{figures/fig4-db-assessment-ai.png}
+}{
+\vspace{2em}\textit{Assessment/AI ERD image not found.}\vspace{2em}
+}
+}
+\caption{Core database structure (c) assessment, AI, and workspace domain.}
+\label{fig:db_erd_assessment_ai}
 \end{figure}
 
 \begin{table}[t]
@@ -1434,7 +1475,7 @@ Beyond test presence, we report both the archived SWE artifact (\texttt{backend/
 Check & Result & Notes \\
 \midrule
 Backend tests (\texttt{cargo test}) & pass (exit 0) & Local refresh run: 31.67 s wall time (167 tests total) \\
-Frontend tests (\texttt{bun test --coverage}) & pass (exit 0) & Local refresh run: 52 tests, 8.73 s \\
+Frontend unit tests (\texttt{bun test --coverage}) & pass (exit 0) & Local refresh run: 52 tests, 8.73 s. Note: extensive UI/E2E coverage is deferred to future work. \\
 Backend coverage (\texttt{cargo llvm-cov}, workspace) & lines 74.51\% & Regions 71.28\%, functions 66.77\% \\
 Backend coverage (\texttt{cargo llvm-cov}, core service) & lines 95.24\% & Excluding \texttt{src/bin} and \texttt{src/main.rs}: regions 90.54\%, functions 88.13\% \\
 Backend lint (\texttt{cargo clippy}) & pass (exit 0) & 54 warnings, 0 errors \\
@@ -1685,6 +1726,7 @@ Current constraints include single-node real-time fan-out assumptions, facilitat
 From an evaluation perspective, this revision still has important limits:
 \begin{itemize}[leftmargin=1.2em]
   \item the AI ablation sample is small ($n=2$ tasks) and uses one model family for both generation and schema-based review;
+  \item automated frontend test coverage focuses on utilities rather than extensive UI component or end-to-end (E2E) state transitions across the 15 facilitator modes;
   \item no external codelab-generator baseline (outside this codebase) is included in the current EQ3 run;
   \item deployment evidence is rehearsal/field-report oriented, not a randomized controlled educational-outcome trial;
   \item WebSocket disconnect/error counters in the harness include teardown resets and should not be interpreted as production outage rate.

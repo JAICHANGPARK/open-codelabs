@@ -1,0 +1,71 @@
+%%{init: {
+  "theme": "base",
+  "themeVariables": {
+    "fontSize": "18px",
+    "fontFamily": "Helvetica",
+    "primaryTextColor": "#111111",
+    "lineColor": "#222222",
+    "primaryColor": "#EAF2F2",
+    "primaryBorderColor": "#5E6B73"
+  }
+}}%%
+erDiagram
+  CODELABS ||--o{ STEPS : "id -> codelab_id"
+  CODELABS ||--o{ ATTENDEES : "id -> codelab_id"
+  CODELABS ||--o{ QUIZZES : "id -> codelab_id"
+  CODELABS ||--o{ MATERIALS : "id -> codelab_id"
+
+  CODELABS {
+    string id PK
+    string title
+    text description
+    string author
+    int is_public
+    int quiz_enabled
+    int require_quiz
+    int require_feedback
+    int require_submission
+    text guide_markdown
+    datetime created_at
+  }
+
+  STEPS {
+    string id PK
+    string codelab_id FK
+    int step_number
+    string title
+    text content_markdown
+  }
+
+  ATTENDEES {
+    string id PK
+    string codelab_id FK
+    string name
+    string code
+    int current_step
+    int is_completed
+    string email
+    datetime created_at
+    datetime completed_at
+  }
+
+  QUIZZES {
+    string id PK
+    string codelab_id FK
+    text question
+    text options
+    int correct_answer
+    string quiz_type
+    text correct_answers
+    datetime created_at
+  }
+
+  MATERIALS {
+    string id PK
+    string codelab_id FK
+    string title
+    string material_type
+    text link_url
+    text file_path
+    datetime created_at
+  }

@@ -1,29 +1,57 @@
 %%{init: {
   "theme": "base",
   "themeVariables": {
-    "fontSize": "30px",
+    "fontSize": "24px",
     "fontFamily": "Helvetica",
     "primaryTextColor": "#111111",
     "lineColor": "#222222",
     "primaryColor": "#EAF2F2",
     "primaryBorderColor": "#5E6B73"
   },
-  "er": {
-    "layoutDirection": "TB",
-    "minEntityWidth": 220,
-    "minEntityHeight": 70
+  "flowchart": {
+    "nodeSpacing": 52,
+    "rankSpacing": 90,
+    "curve": "basis"
   }
 }}%%
-erDiagram
-  CODELABS ||--o{ STEPS : contains
-  CODELABS ||--o{ ATTENDEES : enrolls
-  CODELABS ||--o{ QUIZZES : includes
-  CODELABS ||--o{ MATERIALS : provides
-  CODELABS ||--o{ HELP_REQUESTS : receives
-  CODELABS ||--o{ INLINE_COMMENT_THREADS : anchors
-  CODELABS ||--o{ FEEDBACK : collects
-  CODELABS ||--o{ CODESERVER_WORKSPACES : allocates
-  CODELABS ||--o{ CHAT_MESSAGES : stores
-  CODELABS ||--o{ SUBMISSIONS : stores
-  CODELABS ||--o{ QUIZ_SUBMISSIONS : stores
-  CODELABS ||--o{ AI_CONVERSATIONS : stores
+flowchart TB
+  C["codelabs"]
+
+  subgraph L["Learning Flow (FK to codelabs.id)"]
+    direction LR
+    S["steps"]
+    AT["attendees"]
+    Q["quizzes"]
+    M["materials"]
+  end
+
+  subgraph R["Realtime Operations (FK to codelabs.id)"]
+    direction LR
+    H["help_requests"]
+    I["inline_comment_threads"]
+    CH["chat_messages"]
+  end
+
+  subgraph A["Assessment + AI/Workspace (FK to codelabs.id)"]
+    direction LR
+    F["feedback"]
+    SUB["submissions"]
+    QS["quiz_submissions"]
+    AI["ai_conversations"]
+    CS["codeserver_workspaces"]
+  end
+
+  C -->|"1:N"| S
+  C -->|"1:N"| AT
+  C -->|"1:N"| Q
+  C -->|"1:N"| M
+
+  C -->|"1:N"| H
+  C -->|"1:N"| I
+  C -->|"1:N"| CH
+
+  C -->|"1:N"| F
+  C -->|"1:N"| SUB
+  C -->|"1:N"| QS
+  C -->|"1:N"| AI
+  C -->|"1:N"| CS
