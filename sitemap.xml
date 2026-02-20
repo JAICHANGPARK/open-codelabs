@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/CODE_SERVER_SETUP/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/CODE_SERVER_SETUP/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/CODE_SERVER_SETUP/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/PRD.ko/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/PRD.ko/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/PRD.ko/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/faq/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/faq/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/faq/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/license/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/license/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/license/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/architecture/backend/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/architecture/backend/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/architecture/backend/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/architecture/frontend/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/architecture/frontend/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/architecture/frontend/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/architecture/system-architecture/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/architecture/system-architecture/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/architecture/system-architecture/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/architecture/websocket/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/architecture/websocket/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/architecture/websocket/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/code-guide/api-usage/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/code-guide/api-usage/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/api-usage/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/code-guide/backend-examples/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/code-guide/backend-examples/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/backend-examples/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/code-guide/data-models/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/code-guide/data-models/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/data-models/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/code-guide/frontend-examples/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/code-guide/frontend-examples/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/frontend-examples/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/contributing/code-style/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/contributing/code-style/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/contributing/code-style/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/contributing/guide/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/contributing/guide/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/contributing/guide/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/contributing/workflow/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/contributing/workflow/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/contributing/workflow/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_AWS/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_AWS/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_AWS/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_DOCS/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_DOCS/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_DOCS/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_FIREBASE/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_FIREBASE/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_FIREBASE/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_GCP/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_GCP/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_GCP/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/getting-started/first-codelab/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/getting-started/first-codelab/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/getting-started/first-codelab/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/getting-started/installation/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/getting-started/installation/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/getting-started/installation/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/getting-started/quickstart/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/getting-started/quickstart/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/getting-started/quickstart/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/self-hosting/aws/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/aws/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/aws/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/self-hosting/docker/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/docker/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/docker/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/self-hosting/environment/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/environment/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/environment/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/self-hosting/firebase/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/firebase/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/firebase/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/self-hosting/gcp/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/gcp/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/gcp/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/self-hosting/github-pages/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/github-pages/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/github-pages/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/self-hosting/local-development/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/local-development/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/local-development/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/self-hosting/public-deployment/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/public-deployment/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/public-deployment/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/self-hosting/security/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/security/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/security/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/self-hosting/supabase/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/supabase/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/supabase/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/specification/api-reference/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/specification/api-reference/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/specification/api-reference/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/specification/database-schema/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/specification/database-schema/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/specification/database-schema/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/specification/features/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/specification/features/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/specification/features/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/specification/overview/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/specification/overview/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/specification/overview/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/user-guide/attendee/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/user-guide/attendee/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/user-guide/attendee/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/user-guide/facilitator/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/user-guide/facilitator/"/>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/user-guide/facilitator/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/CODE_SERVER_SETUP/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/CODE_SERVER_SETUP/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/CODE_SERVER_SETUP/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/PRD.ko/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/PRD.ko/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/PRD.ko/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/faq/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/faq/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/faq/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/license/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/license/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/license/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/architecture/backend/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/architecture/backend/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/architecture/backend/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/architecture/frontend/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/architecture/frontend/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/architecture/frontend/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/architecture/system-architecture/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/architecture/system-architecture/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/architecture/system-architecture/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/architecture/websocket/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/architecture/websocket/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/architecture/websocket/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/api-usage/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/api-usage/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/code-guide/api-usage/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/backend-examples/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/backend-examples/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/code-guide/backend-examples/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/data-models/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/data-models/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/code-guide/data-models/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/frontend-examples/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/code-guide/frontend-examples/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/code-guide/frontend-examples/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/contributing/code-style/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/contributing/code-style/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/contributing/code-style/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/contributing/guide/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/contributing/guide/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/contributing/guide/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/contributing/workflow/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/contributing/workflow/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/contributing/workflow/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_AWS/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_AWS/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_AWS/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_DOCS/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_DOCS/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_DOCS/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_FIREBASE/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_FIREBASE/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_FIREBASE/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_GCP/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/deploy/DEPLOY_GCP/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/deploy/DEPLOY_GCP/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/getting-started/first-codelab/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/getting-started/first-codelab/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/getting-started/first-codelab/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/getting-started/installation/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/getting-started/installation/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/getting-started/installation/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/getting-started/quickstart/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/getting-started/quickstart/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/getting-started/quickstart/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/aws/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/aws/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/aws/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/docker/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/docker/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/docker/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/environment/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/environment/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/environment/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/firebase/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/firebase/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/firebase/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/gcp/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/gcp/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/gcp/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/github-pages/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/github-pages/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/github-pages/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/local-development/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/local-development/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/local-development/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/public-deployment/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/public-deployment/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/public-deployment/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/security/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/security/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/security/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/supabase/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/self-hosting/supabase/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/self-hosting/supabase/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/specification/api-reference/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/specification/api-reference/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/specification/api-reference/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/specification/database-schema/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/specification/database-schema/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/specification/database-schema/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/specification/features/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/specification/features/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/specification/features/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/specification/overview/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/specification/overview/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/specification/overview/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/user-guide/attendee/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/user-guide/attendee/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/user-guide/attendee/"/>
+    </url>
+    <url>
+        <loc>https://JAICHANGPARK.github.io/open-codelabs/en/user-guide/facilitator/</loc>
+        <lastmod>2026-02-20</lastmod>
+        <changefreq>daily</changefreq>
+        <xhtml:link rel="alternate" hreflang="en" href="https://JAICHANGPARK.github.io/open-codelabs/en/user-guide/facilitator/"/>
+        <xhtml:link rel="alternate" hreflang="ko" href="https://JAICHANGPARK.github.io/open-codelabs/user-guide/facilitator/"/>
+    </url>
+</urlset>
