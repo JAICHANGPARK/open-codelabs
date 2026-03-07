@@ -102,11 +102,12 @@ cp .env.sample .env
 docker compose -f docker-compose.images.yml up
 ```
 
-더 자세한 설치 가이드는 [설치 가이드](getting-started/installation.md)를 참조하세요.
+CLI 중심으로 시작하려면 `oc init`으로 로컬 스택 실행 또는 기존 서버 연결을 질문형으로 진행할 수 있습니다. 설치와 삭제 방법은 [설치 가이드](getting-started/installation.md), 전체 명령군은 [CLI 레퍼런스](user-guide/cli.md)에서 확인할 수 있습니다.
 
 ## 문서 구조
 
 - **[시작하기](getting-started/quickstart.md)**: 빠른 시작 가이드 및 설치 방법
+- **[CLI 레퍼런스](user-guide/cli.md)**: `oc` 설치, 연결, 인증, 운영 명령
 - **[Self-Hosting](self-hosting/docker.md)**: Docker, 로컬 개발, 공개 배포 가이드
 - **[서버리스 배포](self-hosting/firebase.md)**: Firebase 배포 가이드
 - **[서버리스 배포](self-hosting/supabase.md)**: Supabase 배포 가이드

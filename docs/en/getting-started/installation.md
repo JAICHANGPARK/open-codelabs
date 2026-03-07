@@ -117,6 +117,50 @@ Sessions are stored under `~/.open-codelabs/` by default.
 
 See the [CLI Reference](../user-guide/cli.md) for the full supported command set and current usage.
 
+## Remove and clean up the CLI (`oc`)
+
+When you remove the CLI, check both how it was installed and whether you used the local runtime.
+
+### 1. Stop the local stack and remove runtime data
+
+```bash
+oc down
+oc down --volumes
+```
+
+- `oc down` stops the containers and tears down the compose runtime.
+- `oc down --volumes` also removes the local bind-mounted data created by `oc run`.
+
+### 2. Remove a Cargo-installed CLI
+
+```bash
+cargo uninstall oc
+```
+
+### 3. Remove a manually copied binary
+
+- If you built it locally with `cargo build --release --bin oc`, delete `backend/target/release/oc`.
+- If you installed a downloaded release binary, remove the `oc` binary you copied into your `PATH`.
+
+### 4. Clean up config, session, and runtime files
+
+```bash
+rm -rf ~/.open-codelabs
+```
+
+- `~/.open-codelabs/` stores profiles, sessions, browser auth state, and local runtime metadata.
+- On Windows, clean up the `.open-codelabs` directory under your user profile.
+
+### 5. Verify removal
+
+```bash
+which oc
+oc --help
+```
+
+- If `which oc` prints no path, the binary has been removed from your current shell lookup.
+- If your shell cached the old path, open a new terminal or run `hash -r`.
+
 ## Install with Docker
 
 Docker is the simplest and recommended approach.

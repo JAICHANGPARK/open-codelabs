@@ -17,6 +17,30 @@
 | `--json` | 사람이 읽기 쉬운 출력 대신 JSON을 출력합니다. |
 | `-h`, `--help` | 도움말을 출력합니다. |
 
+## 설치와 삭제
+
+### 설치
+
+```bash
+cargo install --path backend --bin oc
+oc init
+```
+
+- `oc init`은 로컬 스택 실행 또는 기존 서버 연결을 질문형으로 안내합니다.
+- 수동으로 바로 시작하려면 `oc run --open` 또는 `oc connect add --interactive`를 사용할 수 있습니다.
+
+### 삭제
+
+```bash
+oc down --volumes
+cargo uninstall oc
+rm -rf ~/.open-codelabs
+```
+
+- `cargo uninstall oc`는 Cargo 설치분을 제거합니다.
+- 직접 빌드한 바이너리나 다운로드한 바이너리는 `PATH`에 복사한 `oc` 파일을 직접 삭제해야 합니다.
+- 자세한 제거 시나리오는 [설치 가이드](../getting-started/installation.md)에 정리되어 있습니다.
+
 ## 기본 사용 흐름
 
 ### 0. 인터랙티브 온보딩

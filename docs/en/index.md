@@ -102,11 +102,12 @@ cp .env.sample .env
 docker compose -f docker-compose.images.yml up
 ```
 
-For more details, see the [Installation Guide](getting-started/installation.md).
+For a CLI-first flow, run `oc init` to start a local stack or connect to an existing server through prompts. Installation and removal details live in the [Installation Guide](getting-started/installation.md), and the full command surface is documented in the [CLI Reference](user-guide/cli.md).
 
 ## Documentation Map
 
 - **[Getting Started](getting-started/quickstart.md)**: Quickstart and setup
+- **[CLI Reference](user-guide/cli.md)**: `oc` install, connect, auth, and runtime commands
 - **[Self-Hosting](self-hosting/docker.md)**: Docker, local dev, public deployment
 - **[Serverless Deployment](self-hosting/firebase.md)**: Firebase guide
 - **[Serverless Deployment](self-hosting/supabase.md)**: Supabase guide

@@ -27,8 +27,22 @@ This guide is a manual for **facilitators (instructors/organizers)** who use Ope
 docker compose up --build
 ```
 
+Or start from the CLI:
+
+```bash
+oc init
+```
+
+If you do not need the guided setup, you can run:
+
+```bash
+oc run --open
+```
+
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8080
+
+CLI installation, removal, and cleanup steps are documented in the [Installation Guide](../getting-started/installation.md) and the [CLI Reference](cli.md).
 
 ### Accessing the Admin Page
 1. Access `http://localhost:5173` in your browser.
@@ -213,6 +227,7 @@ When a participant is stuck on a specific step:
 ## 10. Additional Resources
 
 - [Creating Your First Codelab](../getting-started/first-codelab.md)
+- [CLI Reference](cli.md)
 - [API Reference](../specification/api-reference.md)
 - [FAQ](../faq.md)
 - [Public Deployment Guide](../self-hosting/public-deployment.md)

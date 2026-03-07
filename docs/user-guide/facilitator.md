@@ -27,8 +27,22 @@
 docker compose up --build
 ```
 
+또는 CLI 중심으로 시작할 수 있습니다.
+
+```bash
+oc init
+```
+
+질문형 setup이 필요 없으면:
+
+```bash
+oc run --open
+```
+
 - **Frontend**: http://localhost:5173
 - **Backend API**: http://localhost:8080
+
+CLI 설치와 삭제, 설정 파일 정리 방법은 [설치 가이드](../getting-started/installation.md)와 [CLI 레퍼런스](cli.md)에서 확인할 수 있습니다.
 
 ### Admin 페이지 접속
 1. 브라우저에서 `http://localhost:5173` 접속
@@ -213,6 +227,7 @@ Admin 페이지에서 실시간으로 확인 가능:
 ## 10. 추가 리소스
 
 - [첫 번째 Codelab 만들기](../getting-started/first-codelab.md)
+- [CLI 레퍼런스](cli.md)
 - [API 레퍼런스](../specification/api-reference.md)
 - [FAQ](../faq.md)
 - [공개 배포 가이드](../self-hosting/public-deployment.md)

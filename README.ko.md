@@ -46,6 +46,15 @@ cd open-codelabs
 docker compose up --build
 ```
 
+CLI 중심으로 시작하려면 `oc`를 설치한 뒤 로컬 스택 실행 또는 기존 서버 연결을 질문형으로 진행할 수 있습니다.
+
+```bash
+cargo install --path backend --bin oc
+oc init
+```
+
+`oc`의 설치, 삭제, 런타임 정리 방법은 [설치 가이드](docs/getting-started/installation.md)와 [CLI 레퍼런스](docs/user-guide/cli.md)에 정리되어 있습니다.
+
 ### 🦭 Podman 사용자 가이드
 
 Podman을 사용하는 경우 `podman-compose`를 사용할 수 있습니다:
@@ -55,6 +64,33 @@ podman-compose up --build
 ```
 
 또는 Podman의 Docker 호환 레이어를 사용하세요.
+
+---
+
+## 💻 CLI (`oc`)
+
+질문형 온보딩으로 시작하려면:
+
+```bash
+cargo install --path backend --bin oc
+oc init
+```
+
+로컬 스택만 바로 띄우려면:
+
+```bash
+oc run --open
+```
+
+제거할 때는 설치 방식에 맞춰 아래 순서로 정리하면 됩니다.
+
+```bash
+oc down --volumes
+cargo uninstall oc
+rm -rf ~/.open-codelabs
+```
+
+직접 빌드했거나 release 바이너리를 따로 복사했다면 `PATH`에 넣은 `oc` 파일도 함께 삭제해야 합니다. 자세한 설명은 [설치 가이드](docs/getting-started/installation.md)를 참고하세요.
 
 ---
 
@@ -210,6 +246,7 @@ chmod +x run-public.sh
 **[📖 Open Codelabs 문서 보기](https://JAICHANGPARK.github.io/open-codelabs/)**
 
 추가 가이드:
+- [CLI 설치 및 삭제 가이드](docs/getting-started/installation.md)
 - [CLI 레퍼런스](docs/user-guide/cli.md)
 - [Code Server 워크스페이스 설정](docs/CODE_SERVER_SETUP.md)
 

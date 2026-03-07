@@ -49,6 +49,24 @@ docker compose -f docker-compose.images.yml up
   - PW: `admin`
 - **Attendee (참가자)**: [http://localhost:5173](http://localhost:5173)
 
+## CLI로 시작하기
+
+브라우저보다 먼저 CLI 중심으로 시작하고 싶다면 `oc`를 설치한 뒤 질문형 온보딩을 사용할 수 있습니다.
+
+```bash
+cargo install --path backend --bin oc
+oc init
+```
+
+원하면 바로 로컬 스택만 띄울 수도 있습니다.
+
+```bash
+oc run --open
+```
+
+- 설치와 삭제, 정리 방법은 [설치 가이드](installation.md)에서 확인할 수 있습니다.
+- 지원하는 전체 명령군은 [CLI 레퍼런스](../user-guide/cli.md)에 정리되어 있습니다.
+
 ## 로컬 개발 환경 실행
 
 개발자라면 로컬에서 직접 실행할 수도 있습니다.
@@ -154,6 +172,7 @@ Frontend는 `http://localhost:5173`에서 실행됩니다.
 이제 다음을 알아보세요:
 
 - [설치 가이드](installation.md) - 상세한 설치 옵션
+- [CLI 레퍼런스](../user-guide/cli.md) - `oc` 설치, 삭제, 연결, 운영 명령
 - [첫 번째 Codelab 만들기](first-codelab.md) - 고급 기능 활용
 - [공개 배포](../self-hosting/public-deployment.md) - ngrok/bore/cloudflare로 외부에 공개하기
 - [API 레퍼런스](../specification/api-reference.md) - API 활용법

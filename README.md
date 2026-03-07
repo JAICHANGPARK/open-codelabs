@@ -52,6 +52,8 @@ cargo install --path backend --bin oc
 oc run --open
 ```
 
+Install, removal, and cleanup guidance for `oc` is documented in the [Installation Guide](docs/getting-started/installation.md) and the grouped [CLI reference](docs/user-guide/cli.md).
+
 ### 🦭 For Podman Users
 If you are using Podman, you can use `podman-compose`:
 ```bash
@@ -88,6 +90,25 @@ cd backend
 cargo build --release --bin oc
 ./target/release/oc --help
 ```
+
+### Remove the CLI
+
+If you installed `oc` with Cargo:
+
+```bash
+cargo uninstall oc
+```
+
+If you built or downloaded a standalone binary, remove the copied `oc` binary from your `PATH`.
+
+If you started the local stack with `oc run`, stop and clean up the runtime data too:
+
+```bash
+oc down --volumes
+rm -rf ~/.open-codelabs
+```
+
+See the [Installation Guide](docs/getting-started/installation.md) for the full install/remove matrix.
 
 ### Start a local stack with published images
 

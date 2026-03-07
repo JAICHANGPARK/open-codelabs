@@ -5,6 +5,7 @@
 ## CLI 설치 문서 위치
 
 - 사용자용 `oc` CLI 설치 및 실행 가이드는 루트 [README](../README.md)와 `docs/getting-started/installation.md`에 정리합니다.
+- `oc` 제거, 세션/설정 정리, 로컬 런타임 cleanup도 `docs/getting-started/installation.md`를 기준 문서로 유지합니다.
 - 지원하는 전체 `oc` 명령군 레퍼런스는 `docs/user-guide/cli.md`에 정리합니다.
 - 다국어 문서를 맞출 때는 `docs/en/getting-started/installation.md`도 함께 업데이트합니다.
 - 명령군 레퍼런스를 바꿀 때는 `docs/en/user-guide/cli.md`도 함께 업데이트합니다.

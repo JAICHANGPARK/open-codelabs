@@ -17,6 +17,30 @@ Every command supports the following global flags.
 | `--json` | Print machine-friendly JSON instead of text/table output. |
 | `-h`, `--help` | Show help. |
 
+## Install and remove
+
+### Install
+
+```bash
+cargo install --path backend --bin oc
+oc init
+```
+
+- `oc init` walks through local stack startup or existing-server connection with prompts.
+- If you want to jump straight in, use `oc run --open` or `oc connect add --interactive`.
+
+### Remove
+
+```bash
+oc down --volumes
+cargo uninstall oc
+rm -rf ~/.open-codelabs
+```
+
+- `cargo uninstall oc` removes the Cargo-installed binary.
+- If you built or downloaded the binary manually, delete the copied `oc` binary from your `PATH`.
+- The full removal matrix is documented in the [Installation Guide](../getting-started/installation.md).
+
 ## Recommended workflows
 
 ### 0. Interactive onboarding

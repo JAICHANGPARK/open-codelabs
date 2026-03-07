@@ -117,6 +117,50 @@ oc connect add --interactive
 
 지원하는 전체 명령군과 최신 usage는 [CLI 레퍼런스](../user-guide/cli.md)에서 확인할 수 있습니다.
 
+## CLI (`oc`) 삭제와 정리
+
+CLI를 제거할 때는 설치 방식과 로컬 런타임 사용 여부를 함께 확인하면 됩니다.
+
+### 1. `oc run`으로 띄운 로컬 스택 중지 및 데이터 정리
+
+```bash
+oc down
+oc down --volumes
+```
+
+- `oc down`은 컨테이너만 중지하고 compose 런타임을 내립니다.
+- `oc down --volumes`는 `oc run`이 만든 로컬 bind mount 데이터도 함께 제거합니다.
+
+### 2. Cargo로 설치한 CLI 삭제
+
+```bash
+cargo uninstall oc
+```
+
+### 3. 수동으로 복사한 바이너리 삭제
+
+- `cargo build --release --bin oc`로 직접 빌드했다면 `backend/target/release/oc`를 삭제합니다.
+- GitHub Release나 별도 다운로드 바이너리를 사용했다면 `PATH`에 복사한 `oc` 파일을 삭제합니다.
+
+### 4. 설정, 세션, 런타임 파일 정리
+
+```bash
+rm -rf ~/.open-codelabs
+```
+
+- `~/.open-codelabs/`에는 profile, 세션, browser auth state, local runtime metadata가 저장됩니다.
+- Windows에서는 사용자 프로필 디렉터리 아래의 `.open-codelabs` 경로를 정리하면 됩니다.
+
+### 5. 제거 후 확인
+
+```bash
+which oc
+oc --help
+```
+
+- `which oc`가 아무 경로도 출력하지 않으면 제거가 완료된 상태입니다.
+- 셸 캐시가 남아 있으면 새 터미널을 열거나 `hash -r`을 실행하세요.
+
 ## Docker로 설치하기
 
 Docker는 가장 간단하고 권장되는 설치 방법입니다.

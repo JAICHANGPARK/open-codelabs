@@ -49,6 +49,24 @@ Once the build is done:
   - PW: `admin`
 - **Attendee**: [http://localhost:5173](http://localhost:5173)
 
+## Start with the CLI
+
+If you prefer to begin from the terminal, install `oc` and use the guided onboarding flow.
+
+```bash
+cargo install --path backend --bin oc
+oc init
+```
+
+If you already know you want a local stack, you can start it directly:
+
+```bash
+oc run --open
+```
+
+- Install, remove, and cleanup steps are documented in the [Installation Guide](installation.md).
+- The full command surface is listed in the [CLI Reference](../user-guide/cli.md).
+
 ## Run locally for development
 
 If you are developing, you can run everything locally.
@@ -152,6 +170,7 @@ Open the newly created codelab card to edit:
 You have created your first codelab. Explore the following:
 
 - [Installation Guide](installation.md) - detailed setup options
+- [CLI Reference](../user-guide/cli.md) - `oc` install, removal, connect, and runtime commands
 - [Create Your First Codelab](first-codelab.md) - advanced features
 - [Public Deployment](../self-hosting/public-deployment.md) - expose locally via ngrok/bore/cloudflare
 - [API Reference](../specification/api-reference.md) - automation and integrations
