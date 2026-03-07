@@ -125,7 +125,7 @@ oc auth login
 oc codelab list
 ```
 
-Use `oc --help` to see the full command set for codelabs, backups, workspaces, attendee flows, uploads, and AI tools.
+Use `oc --help` for the raw command list, or read the grouped [CLI reference](docs/user-guide/cli.md) for the current supported command set across connect/auth, runtime management, codelabs, workspaces, attendee flows, uploads, and AI tools.
 
 ---
 

@@ -98,6 +98,8 @@ oc codelab list
 
 기본적으로 세션은 `~/.open-codelabs/` 아래에 저장됩니다.
 
+지원하는 전체 명령군과 최신 usage는 [CLI 레퍼런스](../user-guide/cli.md)에서 확인할 수 있습니다.
+
 ## Docker로 설치하기
 
 Docker는 가장 간단하고 권장되는 설치 방법입니다.

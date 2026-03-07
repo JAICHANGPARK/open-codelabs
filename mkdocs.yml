@@ -63,6 +63,8 @@ plugins:
           User Guide: User Guide
           Facilitator Guide: Facilitator Guide
           Attendee Guide: Attendee Guide
+          CLI 레퍼런스: CLI Reference
+          CLI Reference: CLI Reference
           Self-Hosting: Self-Hosting
           Deploy with Docker: Deploy with Docker
           GCP (Google Cloud): GCP (Google Cloud)
@@ -133,6 +135,7 @@ nav:
   - 사용 가이드:
       - 퍼실리테이터 가이드: user-guide/facilitator.md
       - 참석자 가이드: user-guide/attendee.md
+      - CLI 레퍼런스: user-guide/cli.md
   - Self-Hosting:
       - Docker로 배포하기: self-hosting/docker.md
       - GCP (Google Cloud): self-hosting/gcp.md

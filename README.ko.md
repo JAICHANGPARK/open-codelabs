@@ -210,6 +210,7 @@ chmod +x run-public.sh
 **[📖 Open Codelabs 문서 보기](https://JAICHANGPARK.github.io/open-codelabs/)**
 
 추가 가이드:
+- [CLI 레퍼런스](docs/user-guide/cli.md)
 - [Code Server 워크스페이스 설정](docs/CODE_SERVER_SETUP.md)
 
 ---

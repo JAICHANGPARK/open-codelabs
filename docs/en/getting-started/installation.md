@@ -98,6 +98,8 @@ oc codelab list
 
 Sessions are stored under `~/.open-codelabs/` by default.
 
+See the [CLI Reference](../user-guide/cli.md) for the full supported command set and current usage.
+
 ## Install with Docker
 
 Docker is the simplest and recommended approach.
