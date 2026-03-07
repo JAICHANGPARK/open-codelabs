@@ -1,10 +1,15 @@
 use serde::Deserialize;
 
+/// Query parameters used to filter and page audit log results.
 #[derive(Deserialize)]
 pub struct AuditLogQuery {
+    /// Maximum number of rows to return.
     pub limit: Option<i32>,
+    /// Number of rows to skip for pagination.
     pub offset: Option<i32>,
+    /// Optional codelab id filter.
     pub codelab_id: Option<String>,
+    /// Optional action name filter.
     pub action: Option<String>,
 }
 
