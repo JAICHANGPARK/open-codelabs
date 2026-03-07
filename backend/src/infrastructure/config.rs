@@ -1,13 +1,21 @@
 use anyhow::{Context, Result};
 
+/// Runtime configuration loaded once during server startup.
 #[derive(Debug, Clone)]
 pub struct AppConfig {
+    /// Administrator login identifier used by the built-in admin endpoints.
     pub admin_id: String,
+    /// Administrator password used for login and fallback token signing.
     pub admin_pw: String,
+    /// Whether reverse-proxy headers such as `x-forwarded-proto` are trusted.
     pub trust_proxy: bool,
 }
 
 impl AppConfig {
+    /// Builds [`AppConfig`] from the process environment.
+    ///
+    /// `ADMIN_ID` and `ADMIN_PW` are required. `TRUST_PROXY` defaults to
+    /// `false` and only becomes `true` when explicitly set to `"true"`.
     pub fn from_env() -> Result<Self> {
         let admin_id = std::env::var("ADMIN_ID").context("ADMIN_ID must be set")?;
         let admin_pw = std::env::var("ADMIN_PW").context("ADMIN_PW must be set")?;

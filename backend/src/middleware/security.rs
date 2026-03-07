@@ -1,3 +1,5 @@
+//! Security-related middleware for headers, CORS, CSRF, and rate limiting.
+
 use axum::body::Body;
 use axum::extract::State;
 use axum::http::{header, Method, Request, StatusCode};
@@ -12,13 +14,17 @@ use crate::middleware::auth::generate_csrf_token;
 use crate::middleware::rate_limit::RateLimitConfig;
 use crate::utils::error::{bad_request, too_many_requests};
 
+/// Security header values injected by the response middleware.
 #[derive(Debug, Clone)]
 pub struct SecurityHeadersConfig {
+    /// Content-Security-Policy applied to non-API responses.
     pub content_security_policy: String,
+    /// Strict-Transport-Security header applied on HTTPS responses.
     pub hsts: String,
 }
 
 impl SecurityHeadersConfig {
+    /// Builds header values from environment variables with production defaults.
     pub fn from_env() -> Self {
         let csp_default = [
             "default-src 'self'",
@@ -45,6 +51,7 @@ impl SecurityHeadersConfig {
     }
 }
 
+/// Builds the CORS layer shared by all HTTP routes.
 pub fn build_cors_layer() -> CorsLayer {
     let allow_origins = std::env::var("CORS_ALLOWED_ORIGINS").unwrap_or_default();
     if allow_origins.trim().is_empty() {
@@ -91,6 +98,7 @@ pub fn build_cors_layer() -> CorsLayer {
     }
 }
 
+/// Adds security headers such as CSP, HSTS, and clickjacking protection.
 pub async fn security_headers_middleware(
     State(state): State<Arc<AppState>>,
     req: Request<Body>,
@@ -149,6 +157,7 @@ pub async fn security_headers_middleware(
     response
 }
 
+/// Enforces CSRF protection for authenticated non-idempotent requests.
 pub async fn csrf_middleware(
     State(state): State<Arc<AppState>>,
     req: Request<Body>,
@@ -188,6 +197,7 @@ pub async fn csrf_middleware(
     Ok(next.run(req).await)
 }
 
+/// Enforces per-bucket request rate limits keyed by client IP.
 pub async fn rate_limit_middleware(
     State(state): State<Arc<AppState>>,
     req: Request<Body>,
@@ -206,6 +216,7 @@ pub async fn rate_limit_middleware(
     Ok(next.run(req).await)
 }
 
+/// Ensures a CSRF cookie exists when issuing or refreshing authenticated flows.
 pub fn ensure_csrf_cookie(
     jar: CookieJar,
     state: &AppState,

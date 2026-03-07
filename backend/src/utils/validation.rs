@@ -1,3 +1,5 @@
+//! Shared validation helpers for API payloads.
+
 use axum::http::StatusCode;
 use url::Url;
 
@@ -7,6 +9,7 @@ use crate::domain::models::{
 };
 use crate::utils::error::bad_request;
 
+/// Validates a codelab create/update payload before persistence.
 pub fn validate_codelab(payload: &CreateCodelab) -> Result<(), (StatusCode, String)> {
     validate_text(&payload.title, "title", 1, 200)?;
     validate_text(&payload.description, "description", 1, 4000)?;
@@ -17,6 +20,7 @@ pub fn validate_codelab(payload: &CreateCodelab) -> Result<(), (StatusCode, Stri
     Ok(())
 }
 
+/// Validates an ordered list of codelab steps.
 pub fn validate_steps(payload: &UpdateStepsPayload) -> Result<(), (StatusCode, String)> {
     if payload.steps.is_empty() {
         return Err(bad_request("steps cannot be empty"));
@@ -30,18 +34,21 @@ pub fn validate_steps(payload: &UpdateStepsPayload) -> Result<(), (StatusCode, S
     Ok(())
 }
 
+/// Validates a single codelab step payload.
 pub fn validate_step(step: &CreateStep) -> Result<(), (StatusCode, String)> {
     validate_text(&step.title, "step title", 1, 200)?;
     validate_text(&step.content_markdown, "step content", 1, 50_000)?;
     Ok(())
 }
 
+/// Validates attendee registration input.
 pub fn validate_registration(payload: &RegistrationPayload) -> Result<(), (StatusCode, String)> {
     validate_text(&payload.name, "name", 1, 80)?;
     validate_text(&payload.code, "code", 1, 64)?;
     Ok(())
 }
 
+/// Validates material metadata based on whether it is a link or uploaded file.
 pub fn validate_material(payload: &CreateMaterial) -> Result<(), (StatusCode, String)> {
     validate_text(&payload.title, "title", 1, 200)?;
     match payload.material_type.as_str() {
@@ -71,6 +78,7 @@ pub fn validate_material(payload: &CreateMaterial) -> Result<(), (StatusCode, St
     Ok(())
 }
 
+/// Validates quiz structure and answer bounds.
 pub fn validate_quiz(quiz: &CreateQuiz) -> Result<(), (StatusCode, String)> {
     validate_text(&quiz.question, "question", 1, 500)?;
     if let Some(quiz_type) = &quiz.quiz_type {
@@ -89,6 +97,7 @@ pub fn validate_quiz(quiz: &CreateQuiz) -> Result<(), (StatusCode, String)> {
     Ok(())
 }
 
+/// Validates feedback scores and optional free-form comment text.
 pub fn validate_feedback(payload: &CreateFeedback) -> Result<(), (StatusCode, String)> {
     validate_rating(&payload.difficulty, "difficulty")?;
     validate_rating(&payload.satisfaction, "satisfaction")?;
@@ -98,6 +107,7 @@ pub fn validate_feedback(payload: &CreateFeedback) -> Result<(), (StatusCode, St
     Ok(())
 }
 
+/// Validates an AI prompt before forwarding it to the model provider.
 pub fn validate_prompt(text: &str) -> Result<(), (StatusCode, String)> {
     validate_text(text, "prompt", 1, 100_000)
 }

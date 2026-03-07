@@ -1,18 +1,32 @@
+//! Audit logging helpers backed by the `audit_logs` table.
+
 use crate::infrastructure::database::AppState;
 use serde_json::Value;
 
+/// Structured data recorded for an audit-log event.
 #[derive(Debug, Clone)]
 pub struct AuditEntry {
+    /// Machine-readable action name such as `codelab.created`.
     pub action: String,
+    /// Actor category, typically `admin` or `attendee`.
     pub actor_type: String,
+    /// Stable identifier for the acting user when available.
     pub actor_id: Option<String>,
+    /// Identifier of the entity affected by the action.
     pub target_id: Option<String>,
+    /// Related codelab identifier when the action is scoped to a codelab.
     pub codelab_id: Option<String>,
+    /// Best-effort client IP captured from the request.
     pub ip: Option<String>,
+    /// Best-effort client user agent captured from the request.
     pub user_agent: Option<String>,
+    /// Optional JSON metadata serialized as text for later inspection.
     pub metadata: Option<Value>,
 }
 
+/// Records an audit entry and intentionally ignores persistence failures.
+///
+/// Audit writes should never block the primary user action from succeeding.
 pub async fn record_audit(state: &AppState, entry: AuditEntry) {
     let _ = sqlx::query(
         &state.q(

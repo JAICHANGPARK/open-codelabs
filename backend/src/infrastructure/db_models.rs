@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+/// Raw audit-log row returned directly from SQL queries.
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct AuditLog {
     pub id: String,
@@ -14,6 +15,7 @@ pub struct AuditLog {
     pub created_at: String,
 }
 
+/// Submission row joined with attendee metadata before API-level normalization.
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct SubmissionWithAttendeeRaw {
     pub id: String,
@@ -28,6 +30,7 @@ pub struct SubmissionWithAttendeeRaw {
     pub created_at: Option<String>,
 }
 
+/// Database row describing the workspace URL and structure mode of a codelab.
 #[derive(sqlx::FromRow)]
 pub struct WorkspaceRow {
     pub url: String,

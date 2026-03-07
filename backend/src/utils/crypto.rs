@@ -1,3 +1,5 @@
+//! Symmetric encryption helpers for secrets stored in application state.
+
 use aes::Aes256;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
@@ -17,8 +19,10 @@ const KEY_LEN: usize = 32;
 const DERIVED_LEN: usize = 64;
 const PBKDF2_ITERS: u32 = 100_000;
 
+/// Prefix used to version encrypted payload formats.
 pub const ENCRYPTION_PREFIX: &str = "v1:";
 
+/// Encrypts plaintext with a password-derived AES-256-CBC key and HMAC tag.
 pub fn encrypt_with_password(plaintext: &str, password: &str) -> Result<String, String> {
     if plaintext.is_empty() {
         return Ok(String::new());
@@ -57,6 +61,7 @@ pub fn encrypt_with_password(plaintext: &str, password: &str) -> Result<String, 
     Ok(format!("{}{}", ENCRYPTION_PREFIX, STANDARD.encode(data)))
 }
 
+/// Decrypts a value produced by [`encrypt_with_password`].
 pub fn decrypt_with_password(value: &str, password: &str) -> Result<String, String> {
     if value.is_empty() {
         return Ok(String::new());
