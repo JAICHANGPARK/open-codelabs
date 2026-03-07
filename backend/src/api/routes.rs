@@ -1,3 +1,5 @@
+//! Axum router composition for the backend API and static assets.
+
 use crate::api::handlers::codelabs::get_reference_codelabs;
 use crate::api::handlers::{
     admin::{check_updates, get_session, login, logout, update_settings},
@@ -198,6 +200,10 @@ fn codeserver_routes() -> Router<Arc<AppState>> {
         )
 }
 
+/// Builds the full Axum router for the backend application.
+///
+/// The router mounts all API groups, serves static assets, and attaches the
+/// security, CSRF, and rate-limiting middleware layers shared across requests.
 pub fn create_router(state: Arc<AppState>) -> Router {
     auth_routes()
         .merge(admin_routes())

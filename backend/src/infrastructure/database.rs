@@ -1,3 +1,5 @@
+//! Shared application state and database-specific helpers.
+
 use axum::extract::ws::Message;
 use dashmap::DashMap;
 use sqlx::AnyPool;
@@ -9,37 +11,55 @@ use crate::middleware::auth::AuthConfig;
 use crate::middleware::rate_limit::{RateLimitConfig, RateLimiter};
 use crate::middleware::security::SecurityHeadersConfig;
 
+/// Supported database backends for SQL placeholder rewriting and setup.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DbKind {
+    /// PostgreSQL-compatible databases using `$1`, `$2`, ... placeholders.
     Postgres,
+    /// MySQL-compatible databases using `?` placeholders.
     Mysql,
+    /// SQLite databases using `?` placeholders.
     Sqlite,
 }
 
+/// Shared runtime state stored in Axum and accessed by handlers/middleware.
 pub struct AppState {
+    /// Shared SQLx connection pool for all database access.
     pub pool: AnyPool,
+    /// Active database backend for query placeholder translation.
     pub db_kind: DbKind,
+    /// Configured admin identifier for built-in authentication.
     pub admin_id: String,
+    /// Configured admin password for built-in authentication.
     pub admin_pw: String,
+    /// Session and cookie configuration used by auth helpers.
     pub auth: AuthConfig,
+    /// Tunable per-bucket rate-limit settings.
     pub rate_limit_config: RateLimitConfig,
+    /// In-memory sliding-window limiter shared by incoming requests.
     pub rate_limiter: Arc<RateLimiter>,
+    /// Security header values applied by response middleware.
     pub security_headers: SecurityHeadersConfig,
+    /// Whether proxy forwarding headers are trusted when deriving request info.
     pub trust_proxy: bool,
-    // Map of session/admin -> Gemini API Key
+    /// Decrypted API keys keyed by session or admin identifier.
     pub admin_api_keys: Arc<DashMap<String, String>>,
-    // Map of codelab_id -> broadcast sender
+    /// Broadcast channels keyed by codelab id for room-wide websocket events.
     pub channels: Arc<DashMap<String, broadcast::Sender<String>>>,
-    // Map of (codelab_id, user_id) -> list of (session_id, sender) for DMs (supports multiple tabs)
+    /// Per-user websocket senders keyed by `(codelab_id, user_id)`.
+    ///
+    /// Each value stores one sender per browser tab so direct messages can be
+    /// fanned out to every active session for the same user.
     pub sessions:
         Arc<DashMap<(String, String), Vec<(String, tokio::sync::mpsc::UnboundedSender<Message>)>>>,
-    // Map of codelab_id -> is_screen_sharing
+    /// Whether any attendee is actively screen-sharing in a codelab.
     pub active_screen_shares: Arc<DashMap<String, bool>>,
-    // Map of (codelab_id, attendee_id) -> is_sharing
+    /// Whether a specific attendee is actively sharing their screen.
     pub attendee_sharing: Arc<DashMap<(String, String), bool>>,
 }
 
 impl AppState {
+    /// Creates the full shared application state from explicit runtime values.
     pub fn new(
         pool: AnyPool,
         db_kind: DbKind,
@@ -65,6 +85,7 @@ impl AppState {
         }
     }
 
+    /// Creates [`AppState`] from a connection pool and [`AppConfig`].
     pub fn new_with_config(pool: AnyPool, db_kind: DbKind, config: AppConfig) -> Self {
         Self::new(
             pool,
@@ -75,7 +96,10 @@ impl AppState {
         )
     }
 
-    /// Fix query placeholders for different databases (e.g., ? -> $1 for Postgres)
+    /// Rewrites generic `?` placeholders for the active database backend.
+    ///
+    /// PostgreSQL requires numbered placeholders such as `$1` and `$2`, while
+    /// SQLite and MySQL accept raw `?`. Quoted string literals are left intact.
     pub fn q(&self, sql: &str) -> String {
         if self.db_kind == DbKind::Postgres {
             let mut result = String::new();
@@ -112,6 +136,7 @@ impl AppState {
     }
 }
 
+/// Determines the database backend from a SQLx Any connection URL.
 pub fn db_kind_from_url(database_url: &str) -> DbKind {
     if database_url.starts_with("postgres") {
         DbKind::Postgres
@@ -122,6 +147,9 @@ pub fn db_kind_from_url(database_url: &str) -> DbKind {
     }
 }
 
+/// Extracts the filesystem path for a file-backed SQLite connection string.
+///
+/// In-memory SQLite URLs return `None`.
 pub fn sqlite_path_from_url(database_url: &str) -> Option<std::path::PathBuf> {
     if !database_url.starts_with("sqlite:") {
         return None;
@@ -136,6 +164,7 @@ pub fn sqlite_path_from_url(database_url: &str) -> Option<std::path::PathBuf> {
     Some(std::path::PathBuf::from(path))
 }
 
+/// Ensures the parent directory exists for a file-backed SQLite database URL.
 pub fn ensure_sqlite_directory(database_url: &str) -> std::io::Result<()> {
     let Some(path) = sqlite_path_from_url(database_url) else {
         return Ok(());
