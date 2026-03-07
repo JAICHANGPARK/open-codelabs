@@ -139,13 +139,19 @@ cargo uninstall oc
 
 ### 3. Remove a manually copied binary
 
-- If you built it locally with `cargo build --release --bin oc`, delete `backend/target/release/oc`.
-- If you installed a downloaded release binary, remove the `oc` binary you copied into your `PATH`.
+- If you built it locally with `cargo build --release --bin oc`, delete `backend/target/release/oc` on macOS/Linux or `backend\\target\\release\\oc.exe` on Windows.
+- If you installed a downloaded release binary, remove the `oc` or `oc.exe` binary you copied into your `PATH`.
 
 ### 4. Clean up config, session, and runtime files
 
 ```bash
 rm -rf ~/.open-codelabs
+```
+
+In Windows PowerShell:
+
+```powershell
+Remove-Item -Recurse -Force "$HOME\\.open-codelabs"
 ```
 
 - `~/.open-codelabs/` stores profiles, sessions, browser auth state, and local runtime metadata.
@@ -158,8 +164,16 @@ which oc
 oc --help
 ```
 
+In Windows PowerShell:
+
+```powershell
+where.exe oc
+oc --help
+```
+
 - If `which oc` prints no path, the binary has been removed from your current shell lookup.
 - If your shell cached the old path, open a new terminal or run `hash -r`.
+- On Windows, if `where.exe oc` prints no path, the binary is no longer being resolved from `PATH`.
 
 ## Install with Docker
 

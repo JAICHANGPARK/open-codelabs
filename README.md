@@ -108,6 +108,13 @@ oc down --volumes
 rm -rf ~/.open-codelabs
 ```
 
+On Windows PowerShell, remove the CLI metadata with:
+
+```powershell
+oc down --volumes
+Remove-Item -Recurse -Force "$HOME\\.open-codelabs"
+```
+
 See the [Installation Guide](docs/getting-started/installation.md) for the full install/remove matrix.
 
 ### Start a local stack with published images

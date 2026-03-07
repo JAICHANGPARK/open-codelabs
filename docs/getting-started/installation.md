@@ -139,13 +139,19 @@ cargo uninstall oc
 
 ### 3. 수동으로 복사한 바이너리 삭제
 
-- `cargo build --release --bin oc`로 직접 빌드했다면 `backend/target/release/oc`를 삭제합니다.
-- GitHub Release나 별도 다운로드 바이너리를 사용했다면 `PATH`에 복사한 `oc` 파일을 삭제합니다.
+- `cargo build --release --bin oc`로 직접 빌드했다면 macOS/Linux에서는 `backend/target/release/oc`, Windows에서는 `backend\target\release\oc.exe`를 삭제합니다.
+- GitHub Release나 별도 다운로드 바이너리를 사용했다면 `PATH`에 복사한 `oc` 또는 `oc.exe` 파일을 삭제합니다.
 
 ### 4. 설정, 세션, 런타임 파일 정리
 
 ```bash
 rm -rf ~/.open-codelabs
+```
+
+Windows PowerShell에서는:
+
+```powershell
+Remove-Item -Recurse -Force "$HOME\\.open-codelabs"
 ```
 
 - `~/.open-codelabs/`에는 profile, 세션, browser auth state, local runtime metadata가 저장됩니다.
@@ -158,8 +164,16 @@ which oc
 oc --help
 ```
 
+Windows PowerShell에서는:
+
+```powershell
+where.exe oc
+oc --help
+```
+
 - `which oc`가 아무 경로도 출력하지 않으면 제거가 완료된 상태입니다.
 - 셸 캐시가 남아 있으면 새 터미널을 열거나 `hash -r`을 실행하세요.
+- Windows에서는 `where.exe oc`가 아무 경로도 출력하지 않으면 PATH에서 제거된 상태입니다.
 
 ## Docker로 설치하기
 

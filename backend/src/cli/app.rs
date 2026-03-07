@@ -7,6 +7,7 @@ use crate::cli::config::{
     default_config_path, default_profile_session_path, load_config, save_config, CliConfig,
     ConnectionProfile, RuntimePreference,
 };
+use crate::cli::paths::home_dir;
 use crate::cli::session::{
     clear_session, default_session_path, load_session, save_session, SessionSnapshot, StoredSession,
 };
@@ -586,7 +587,7 @@ impl ComposeCommandKind {
 
     fn format_command(&self, args: &[String]) -> String {
         let mut parts = vec![self.label().to_string()];
-        parts.extend(args.iter().cloned());
+        parts.extend(args.iter().map(|arg| format_shell_arg(arg)));
         parts.join(" ")
     }
 }
@@ -2849,12 +2850,6 @@ fn normalize_user_path(path: &Path) -> Result<PathBuf> {
         .join(path))
 }
 
-fn home_dir() -> Option<PathBuf> {
-    env::var_os("HOME")
-        .map(PathBuf::from)
-        .or_else(|| env::var_os("USERPROFILE").map(PathBuf::from))
-}
-
 fn ensure_local_stack_directories(data_dir: &Path, postgres: bool) -> Result<()> {
     for path in [
         data_dir.join("data"),
@@ -2954,7 +2949,7 @@ fn render_local_stack_compose(
             yaml_string("open_codelabs"),
             yaml_string("postgres"),
             yaml_string("postgres"),
-            yaml_string(&postgres_data_dir.display().to_string()),
+            yaml_string(&compose_host_path(postgres_data_dir)),
         )
     } else {
         String::new()
@@ -3011,9 +3006,9 @@ fn render_local_stack_compose(
         yaml_string("lax"),
         yaml_string("false"),
         yaml_string(&cors_allowed_origins),
-        yaml_string(&data_dir.join("data").display().to_string()),
-        yaml_string(&data_dir.join("uploads").display().to_string()),
-        yaml_string(&data_dir.join("workspaces").display().to_string()),
+        yaml_string(&compose_host_path(&data_dir.join("data"))),
+        yaml_string(&compose_host_path(&data_dir.join("uploads"))),
+        yaml_string(&compose_host_path(&data_dir.join("workspaces"))),
         backend_depends_on,
         yaml_string(&frontend_image),
         yaml_string("open-codelabs-frontend"),
@@ -3033,6 +3028,40 @@ fn render_local_stack_compose(
 
 fn yaml_string(value: &str) -> String {
     serde_json::to_string(value).expect("JSON string literal")
+}
+
+fn compose_host_path(path: &Path) -> String {
+    let display = path.display().to_string();
+    compose_host_path_for_os(&display, cfg!(target_os = "windows"))
+}
+
+fn format_shell_arg(arg: &str) -> String {
+    format_shell_arg_for_os(arg, cfg!(target_os = "windows"))
+}
+
+fn compose_host_path_for_os(display: &str, windows_style: bool) -> String {
+    if windows_style || display.contains(":\\") {
+        display.replace('\\', "/")
+    } else {
+        display.to_string()
+    }
+}
+
+fn format_shell_arg_for_os(arg: &str, windows_style: bool) -> String {
+    let needs_quotes = arg.is_empty()
+        || arg.chars().any(|ch| {
+            ch.is_whitespace() || matches!(ch, '"' | '\'' | '&' | '|' | '<' | '>' | '(' | ')' | ';')
+        });
+
+    if !needs_quotes {
+        return arg.to_string();
+    }
+
+    if windows_style {
+        format!("\"{}\"", arg.replace('"', "\\\""))
+    } else {
+        format!("'{}'", arg.replace('\'', "'\"'\"'"))
+    }
 }
 
 fn save_local_stack_state(runtime_dir: &Path, state: &LocalStackState) -> Result<()> {
@@ -3365,8 +3394,8 @@ fn open_browser(url: &str) -> Result<()> {
     let status = if cfg!(target_os = "macos") {
         ProcessCommand::new("open").arg(url).status()
     } else if cfg!(target_os = "windows") {
-        ProcessCommand::new("rundll32")
-            .args(["url.dll,FileProtocolHandler", url])
+        ProcessCommand::new("cmd")
+            .args(["/C", "start", "", url])
             .status()
     } else {
         ProcessCommand::new("xdg-open").arg(url).status()
@@ -5931,6 +5960,36 @@ mod tests {
         assert_eq!(
             suggest_profile_name_from_url("https://workshop.example.com"),
             "workshop"
+        );
+    }
+
+    #[test]
+    fn compose_host_path_normalizes_windows_style_paths() {
+        assert_eq!(
+            compose_host_path_for_os(r"C:\Users\Jane Doe\open-codelabs\data", true),
+            "C:/Users/Jane Doe/open-codelabs/data"
+        );
+    }
+
+    #[test]
+    fn format_shell_arg_quotes_windows_paths_with_spaces() {
+        assert_eq!(
+            format_shell_arg_for_os(
+                r"C:\Users\Jane Doe\.open-codelabs\runtime\local-stack\compose.yml",
+                true
+            ),
+            "\"C:\\Users\\Jane Doe\\.open-codelabs\\runtime\\local-stack\\compose.yml\""
+        );
+    }
+
+    #[test]
+    fn format_shell_arg_quotes_posix_paths_with_spaces() {
+        assert_eq!(
+            format_shell_arg_for_os(
+                "/Users/Jane Doe/.open-codelabs/runtime/local-stack/compose.yml",
+                false
+            ),
+            "'/Users/Jane Doe/.open-codelabs/runtime/local-stack/compose.yml'"
         );
     }
 }

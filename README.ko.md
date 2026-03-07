@@ -94,6 +94,14 @@ cargo uninstall oc
 rm -rf ~/.open-codelabs
 ```
 
+Windows PowerShell에서는 설정과 세션 정리를 이렇게 할 수 있습니다.
+
+```powershell
+oc down --volumes
+cargo uninstall oc
+Remove-Item -Recurse -Force "$HOME\\.open-codelabs"
+```
+
 직접 빌드했거나 release 바이너리를 따로 복사했다면 `PATH`에 넣은 `oc` 파일도 함께 삭제해야 합니다. 자세한 설명은 [설치 가이드](docs/getting-started/installation.md)를 참고하세요.
 
 ---

@@ -1,3 +1,4 @@
+use crate::cli::paths::home_dir;
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -133,12 +134,6 @@ fn sanitize_profile_name(name: &str) -> String {
     } else {
         sanitized
     }
-}
-
-fn home_dir() -> Option<PathBuf> {
-    env::var_os("HOME")
-        .map(PathBuf::from)
-        .or_else(|| env::var_os("USERPROFILE").map(PathBuf::from))
 }
 
 #[cfg(unix)]
