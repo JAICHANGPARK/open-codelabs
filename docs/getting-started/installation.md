@@ -78,6 +78,16 @@ oc run --engine docker
 oc run --engine podman
 ```
 
+실행 후 관리 명령:
+
+```bash
+oc ps
+oc logs --service backend --tail 200 --no-follow
+oc restart --service frontend
+oc down
+oc down --volumes
+```
+
 ### 실행 후 첫 연결
 
 ```bash

@@ -107,6 +107,16 @@ oc run --engine docker
 oc run --engine podman
 ```
 
+Local stack lifecycle:
+
+```bash
+oc ps
+oc logs --service backend --tail 200 --no-follow
+oc restart --service frontend
+oc down
+oc down --volumes
+```
+
 ### Connect after the local stack is up
 
 ```bash

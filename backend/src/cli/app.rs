@@ -19,7 +19,7 @@ use crate::infrastructure::db_models::AuditLog;
 use crate::middleware::auth::now_epoch_seconds;
 use crate::utils::crypto::encrypt_with_password;
 use anyhow::{anyhow, bail, Context, Result};
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use std::env;
 use std::fs;
@@ -55,6 +55,10 @@ enum Command {
     Auth(AuthCommand),
     Connect(ConnectCommand),
     Run(RunCommand),
+    Ps(PsCommand),
+    Logs(LogsCommand),
+    Restart(RestartCommand),
+    Down(DownCommand),
     Login(LoginCommand),
     Logout,
     Session,
@@ -123,7 +127,8 @@ struct RunCommand {
     image_tag: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 enum RunEnginePreference {
     Auto,
     Docker,
@@ -147,6 +152,28 @@ impl RunEnginePreference {
             Self::Podman => "podman",
         }
     }
+}
+
+#[derive(Debug)]
+struct PsCommand {
+    service: Option<String>,
+}
+
+#[derive(Debug)]
+struct LogsCommand {
+    service: Option<String>,
+    tail: Option<usize>,
+    follow: bool,
+}
+
+#[derive(Debug)]
+struct RestartCommand {
+    service: Option<String>,
+}
+
+#[derive(Debug)]
+struct DownCommand {
+    volumes: bool,
 }
 
 #[derive(Debug)]
@@ -490,6 +517,18 @@ struct RunOutput {
     stop_command: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct LocalStackState {
+    engine: RunEnginePreference,
+    compose_file: PathBuf,
+    runtime_dir: PathBuf,
+    frontend_url: String,
+    backend_url: String,
+    admin_url: String,
+    admin_id: String,
+    postgres: bool,
+}
+
 #[derive(Debug, Clone, Copy)]
 enum ComposeCommandKind {
     DockerPlugin,
@@ -577,6 +616,18 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
         }
         Command::Run(command) => {
             run_run_command(&global, command)?;
+        }
+        Command::Ps(command) => {
+            run_ps_command(&global, command)?;
+        }
+        Command::Logs(command) => {
+            run_logs_command(&global, command)?;
+        }
+        Command::Restart(command) => {
+            run_restart_command(&global, command)?;
+        }
+        Command::Down(command) => {
+            run_down_command(&global, command)?;
         }
         Command::Login(command) => {
             let config = load_config(&global.config_file)?;
@@ -2077,6 +2128,24 @@ fn run_run_command(global: &GlobalOptions, command: RunCommand) -> Result<()> {
     let frontend_url = format!("http://localhost:{}", command.frontend_port);
     let backend_url = format!("http://localhost:{}", command.backend_port);
     let admin_url = format!("{frontend_url}/login");
+    let state = LocalStackState {
+        engine: match engine.compose {
+            ComposeCommandKind::DockerPlugin | ComposeCommandKind::DockerStandalone => {
+                RunEnginePreference::Docker
+            }
+            ComposeCommandKind::PodmanPlugin | ComposeCommandKind::PodmanStandalone => {
+                RunEnginePreference::Podman
+            }
+        },
+        compose_file: compose_path.clone(),
+        runtime_dir: runtime_dir.clone(),
+        frontend_url: frontend_url.clone(),
+        backend_url: backend_url.clone(),
+        admin_url: admin_url.clone(),
+        admin_id: command.admin_id.clone(),
+        postgres: command.postgres,
+    };
+    save_local_stack_state(&runtime_dir, &state)?;
     let output = RunOutput {
         engine: engine.label().to_string(),
         runtime_dir,
@@ -2116,6 +2185,112 @@ fn run_run_command(global: &GlobalOptions, command: RunCommand) -> Result<()> {
         print_json(&output)?;
     } else {
         print_run_output(&output);
+    }
+
+    Ok(())
+}
+
+fn run_ps_command(global: &GlobalOptions, command: PsCommand) -> Result<()> {
+    let (engine, state) = load_local_stack_engine(&global.config_file)?;
+    let mut args = compose_base_args(&state.compose_file);
+    args.push("ps".to_string());
+    if let Some(service) = command.service {
+        args.push(service);
+    }
+    let output = run_compose_capture_output(&engine, &args, "list local stack containers")?;
+    if global.json {
+        print_json(&serde_json::json!({
+            "engine": engine.label(),
+            "compose_file": state.compose_file,
+            "stdout": output,
+        }))?;
+    } else {
+        print!("{output}");
+    }
+    Ok(())
+}
+
+fn run_logs_command(global: &GlobalOptions, command: LogsCommand) -> Result<()> {
+    let (engine, state) = load_local_stack_engine(&global.config_file)?;
+    let mut args = compose_base_args(&state.compose_file);
+    args.push("logs".to_string());
+    if command.follow {
+        args.push("-f".to_string());
+    }
+    if let Some(tail) = command.tail {
+        args.push("--tail".to_string());
+        args.push(tail.to_string());
+    }
+    if let Some(service) = command.service {
+        args.push(service);
+    }
+
+    if command.follow {
+        if global.json {
+            bail!("`--json` is not supported with `oc logs` while following output");
+        }
+        run_compose_command_with_args(&engine, &args, "stream local stack logs")?;
+    } else {
+        let output = run_compose_capture_output(&engine, &args, "read local stack logs")?;
+        if global.json {
+            print_json(&serde_json::json!({
+                "engine": engine.label(),
+                "compose_file": state.compose_file,
+                "stdout": output,
+            }))?;
+        } else {
+            print!("{output}");
+        }
+    }
+
+    Ok(())
+}
+
+fn run_restart_command(global: &GlobalOptions, command: RestartCommand) -> Result<()> {
+    let (engine, state) = load_local_stack_engine(&global.config_file)?;
+    let mut args = compose_base_args(&state.compose_file);
+    args.push("restart".to_string());
+    if let Some(service) = command.service.clone() {
+        args.push(service);
+    }
+    run_compose_command_with_args(&engine, &args, "restart the local stack")?;
+
+    if global.json {
+        print_json(&serde_json::json!({
+            "status": "ok",
+            "engine": engine.label(),
+            "compose_file": state.compose_file,
+            "service": command.service,
+        }))?;
+    } else if let Some(service) = command.service {
+        println!("Restarted {service}");
+    } else {
+        println!("Restarted local stack");
+    }
+
+    Ok(())
+}
+
+fn run_down_command(global: &GlobalOptions, command: DownCommand) -> Result<()> {
+    let (engine, state) = load_local_stack_engine(&global.config_file)?;
+    let mut args = compose_base_args(&state.compose_file);
+    args.push("down".to_string());
+    if command.volumes {
+        args.push("-v".to_string());
+    }
+    run_compose_command_with_args(&engine, &args, "stop the local stack")?;
+
+    if global.json {
+        print_json(&serde_json::json!({
+            "status": "ok",
+            "engine": engine.label(),
+            "compose_file": state.compose_file,
+            "volumes_removed": command.volumes,
+        }))?;
+    } else if command.volumes {
+        println!("Stopped local stack and removed volumes");
+    } else {
+        println!("Stopped local stack");
     }
 
     Ok(())
@@ -2469,6 +2644,10 @@ fn local_stack_runtime_dir(config_file: &Path) -> PathBuf {
         .join("local-stack")
 }
 
+fn local_stack_state_path(runtime_dir: &Path) -> PathBuf {
+    runtime_dir.join("state.json")
+}
+
 fn default_local_stack_data_dir() -> PathBuf {
     home_dir()
         .map(|dir| dir.join("open-codelabs"))
@@ -2656,6 +2835,53 @@ fn yaml_string(value: &str) -> String {
     serde_json::to_string(value).expect("JSON string literal")
 }
 
+fn save_local_stack_state(runtime_dir: &Path, state: &LocalStackState) -> Result<()> {
+    let path = local_stack_state_path(runtime_dir);
+    let raw =
+        serde_json::to_string_pretty(state).context("Failed to serialize local stack state")?;
+    fs::write(&path, raw).with_context(|| format!("Failed to write {}", path.display()))?;
+    secure_runtime_file(&path)?;
+    Ok(())
+}
+
+fn load_local_stack_state(config_file: &Path) -> Result<LocalStackState> {
+    let runtime_dir = local_stack_runtime_dir(config_file);
+    let state_path = local_stack_state_path(&runtime_dir);
+    if state_path.exists() {
+        let raw = fs::read_to_string(&state_path)
+            .with_context(|| format!("Failed to read {}", state_path.display()))?;
+        return serde_json::from_str(&raw)
+            .with_context(|| format!("Failed to parse {}", state_path.display()));
+    }
+
+    let compose_file = runtime_dir.join("compose.yml");
+    if compose_file.exists() {
+        return Ok(LocalStackState {
+            engine: RunEnginePreference::Auto,
+            compose_file,
+            runtime_dir,
+            frontend_url: "http://localhost:5173".to_string(),
+            backend_url: "http://localhost:8080".to_string(),
+            admin_url: "http://localhost:5173/login".to_string(),
+            admin_id: "admin".to_string(),
+            postgres: false,
+        });
+    }
+
+    bail!(
+        "No local stack runtime found. Run `{} run` first.",
+        program_name()
+    );
+}
+
+fn load_local_stack_engine(
+    config_file: &Path,
+) -> Result<(ContainerEngineSelection, LocalStackState)> {
+    let state = load_local_stack_state(config_file)?;
+    let engine = resolve_container_engine(state.engine)?;
+    Ok((engine, state))
+}
+
 fn compose_base_args(compose_path: &Path) -> Vec<String> {
     vec![
         "--project-name".to_string(),
@@ -2671,8 +2897,18 @@ fn run_compose_command(
     extra_args: &[String],
     action: &str,
 ) -> Result<()> {
+    let mut args = base_args.to_vec();
+    args.extend(extra_args.iter().cloned());
+    run_compose_command_with_args(engine, &args, action)
+}
+
+fn run_compose_command_with_args(
+    engine: &ContainerEngineSelection,
+    args: &[String],
+    action: &str,
+) -> Result<()> {
     let mut command = engine.compose.build_command();
-    command.args(base_args).args(extra_args);
+    command.args(args);
     let status = command
         .status()
         .with_context(|| format!("Failed to invoke {} to {action}", engine.label()))?;
@@ -2683,6 +2919,31 @@ fn run_compose_command(
         );
     }
     Ok(())
+}
+
+fn run_compose_capture_output(
+    engine: &ContainerEngineSelection,
+    args: &[String],
+    action: &str,
+) -> Result<String> {
+    let output = engine
+        .compose
+        .build_command()
+        .args(args)
+        .output()
+        .with_context(|| format!("Failed to invoke {} to {action}", engine.label()))?;
+    if !output.status.success() {
+        let detail = probe_output_detail(&output.stdout, &output.stderr)
+            .unwrap_or_else(|| "no additional output".to_string());
+        bail!("{} failed to {action}: {}", engine.label(), detail);
+    }
+
+    let mut text = String::from_utf8_lossy(&output.stdout).to_string();
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    if !stderr.trim().is_empty() {
+        text.push_str(&stderr);
+    }
+    Ok(text)
 }
 
 fn format_compose_command(
@@ -3351,6 +3612,10 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
         "auth" => Command::Auth(parse_auth(&mut args)?),
         "connect" => Command::Connect(parse_connect(&mut args)?),
         "run" => Command::Run(parse_run(&mut args)?),
+        "ps" => Command::Ps(parse_ps(&mut args)?),
+        "logs" => Command::Logs(parse_logs(&mut args)?),
+        "restart" => Command::Restart(parse_restart(&mut args)?),
+        "down" => Command::Down(parse_down(&mut args)?),
         "login" => Command::Login(parse_login(&mut args)?),
         "logout" => Command::Logout,
         "session" => Command::Session,
@@ -3597,6 +3862,71 @@ fn parse_run(args: &mut Args) -> Result<RunCommand> {
         image_namespace,
         image_tag,
     })
+}
+
+fn parse_ps(args: &mut Args) -> Result<PsCommand> {
+    let mut service = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--service" => service = Some(args.next_required("--service")?),
+            "-h" | "--help" => return Err(help_error("ps")),
+            other => bail!("Unknown ps option: {other}"),
+        }
+    }
+    Ok(PsCommand { service })
+}
+
+fn parse_logs(args: &mut Args) -> Result<LogsCommand> {
+    let mut service = None;
+    let mut tail = None;
+    let mut follow = true;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--service" => service = Some(args.next_required("--service")?),
+            "--tail" => {
+                let value = args.next_required("--tail")?;
+                tail = Some(
+                    value
+                        .parse::<usize>()
+                        .with_context(|| format!("Invalid value for --tail: {value}"))?,
+                );
+            }
+            "--no-follow" => follow = false,
+            "-h" | "--help" => return Err(help_error("logs")),
+            other => bail!("Unknown logs option: {other}"),
+        }
+    }
+
+    Ok(LogsCommand {
+        service,
+        tail,
+        follow,
+    })
+}
+
+fn parse_restart(args: &mut Args) -> Result<RestartCommand> {
+    let mut service = None;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--service" => service = Some(args.next_required("--service")?),
+            "-h" | "--help" => return Err(help_error("restart")),
+            other => bail!("Unknown restart option: {other}"),
+        }
+    }
+    Ok(RestartCommand { service })
+}
+
+fn parse_down(args: &mut Args) -> Result<DownCommand> {
+    let mut volumes = false;
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--volumes" => volumes = true,
+            "-h" | "--help" => return Err(help_error("down")),
+            other => bail!("Unknown down option: {other}"),
+        }
+    }
+    Ok(DownCommand { volumes })
 }
 
 fn parse_login(args: &mut Args) -> Result<LoginCommand> {
@@ -4683,6 +5013,10 @@ Commands:
   connect list
   connect status
   run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]
+  ps [--service <name>]
+  logs [--service <name>] [--tail <n>] [--no-follow]
+  restart [--service <name>]
+  down [--volumes]
   login --admin-id <id> --admin-pw <pw>   Legacy direct login
   logout                                   Legacy alias for auth logout
   session                                  Legacy alias for auth status
@@ -4812,6 +5146,7 @@ impl Args {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::fs;
 
     fn sample_run_command(postgres: bool) -> RunCommand {
         RunCommand {
@@ -4853,5 +5188,30 @@ mod tests {
         assert!(compose.contains("postgresql://postgres:postgres@postgres:5432/open_codelabs"));
         assert!(compose.contains("open-codelabs-postgres"));
         assert!(compose.contains("condition: service_healthy"));
+    }
+
+    #[test]
+    fn local_stack_state_round_trip() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let runtime_dir = dir.path().join("runtime");
+        fs::create_dir_all(&runtime_dir).expect("runtime dir");
+        let state = LocalStackState {
+            engine: RunEnginePreference::Docker,
+            compose_file: runtime_dir.join("compose.yml"),
+            runtime_dir: runtime_dir.clone(),
+            frontend_url: "http://localhost:5173".to_string(),
+            backend_url: "http://localhost:8080".to_string(),
+            admin_url: "http://localhost:5173/login".to_string(),
+            admin_id: "admin".to_string(),
+            postgres: false,
+        };
+
+        save_local_stack_state(&runtime_dir, &state).expect("save state");
+
+        let path = local_stack_state_path(&runtime_dir);
+        let raw = fs::read_to_string(path).expect("read state");
+        let loaded: LocalStackState = serde_json::from_str(&raw).expect("parse state");
+        assert_eq!(loaded.engine, RunEnginePreference::Docker);
+        assert_eq!(loaded.backend_url, "http://localhost:8080");
     }
 }

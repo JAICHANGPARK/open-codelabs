@@ -78,6 +78,16 @@ oc run --engine docker
 oc run --engine podman
 ```
 
+Lifecycle commands after startup:
+
+```bash
+oc ps
+oc logs --service backend --tail 200 --no-follow
+oc restart --service frontend
+oc down
+oc down --volumes
+```
+
 ### First connection after the stack is up
 
 ```bash
