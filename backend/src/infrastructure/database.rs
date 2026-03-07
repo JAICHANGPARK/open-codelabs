@@ -2,6 +2,7 @@
 
 use axum::extract::ws::Message;
 use dashmap::DashMap;
+use sqlx::migrate::Migrator;
 use sqlx::AnyPool;
 use std::sync::Arc;
 use tokio::sync::broadcast;
@@ -21,6 +22,9 @@ pub enum DbKind {
     /// SQLite databases using `?` placeholders.
     Sqlite,
 }
+
+static SQLITE_MIGRATOR: Migrator = sqlx::migrate!("./migrations");
+static POSTGRES_MIGRATOR: Migrator = sqlx::migrate!("./migrations-postgres");
 
 /// Shared runtime state stored in Axum and accessed by handlers/middleware.
 pub struct AppState {
@@ -175,6 +179,18 @@ pub fn ensure_sqlite_directory(database_url: &str) -> std::io::Result<()> {
         }
     }
     Ok(())
+}
+
+/// Runs the migration set for the active database backend.
+pub async fn run_migrations(
+    pool: &AnyPool,
+    db_kind: DbKind,
+) -> Result<(), sqlx::migrate::MigrateError> {
+    match db_kind {
+        DbKind::Postgres => POSTGRES_MIGRATOR.run(pool).await,
+        DbKind::Sqlite => SQLITE_MIGRATOR.run(pool).await,
+        DbKind::Mysql => unreachable!("MySQL is rejected during startup"),
+    }
 }
 
 #[cfg(test)]

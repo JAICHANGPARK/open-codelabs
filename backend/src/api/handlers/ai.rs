@@ -333,7 +333,7 @@ pub async fn add_ai_message(
     let admin = session.require_admin()?;
 
     // Verify thread belongs to user
-    let thread_exists = sqlx::query_scalar::<_, i32>(
+    let thread_exists = sqlx::query_scalar::<_, i64>(
         &state.q("SELECT COUNT(*) FROM ai_threads WHERE id = ? AND user_id = ?"),
     )
     .bind(&thread_id)
@@ -382,7 +382,7 @@ pub async fn get_ai_messages(
     let admin = session.require_admin()?;
 
     // Verify thread belongs to user
-    let thread_exists = sqlx::query_scalar::<_, i32>(
+    let thread_exists = sqlx::query_scalar::<_, i64>(
         &state.q("SELECT COUNT(*) FROM ai_threads WHERE id = ? AND user_id = ?"),
     )
     .bind(&thread_id)

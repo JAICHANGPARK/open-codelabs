@@ -1,4 +1,6 @@
-use backend::infrastructure::{db_kind_from_url, ensure_sqlite_directory, AppConfig};
+use backend::infrastructure::{
+    db_kind_from_url, ensure_sqlite_directory, run_migrations, AppConfig,
+};
 use backend::{create_router, AppState};
 use sqlx::any::AnyPoolOptions;
 use std::net::SocketAddr;
@@ -36,8 +38,8 @@ async fn main() -> anyhow::Result<()> {
 
     let db_kind = db_kind_from_url(&database_url);
 
-    // Run migrations
-    sqlx::migrate!("./migrations").run(&pool).await?;
+    // Run migrations for the active database backend.
+    run_migrations(&pool, db_kind).await?;
 
     let app_config = AppConfig::from_env()?;
 

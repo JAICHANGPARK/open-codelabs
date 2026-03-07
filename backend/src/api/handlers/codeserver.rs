@@ -65,13 +65,15 @@ pub async fn create_codeserver(
         .workspace_path(&payload.codelab_id)
         .to_string_lossy()
         .to_string();
+    let workspace_id = uuid::Uuid::new_v4().to_string();
 
     // Store workspace info in database
     sqlx::query(
         &state.q(
-            "INSERT INTO codeserver_workspaces (codelab_id, url, structure_type) VALUES (?, ?, ?)",
+            "INSERT INTO codeserver_workspaces (id, codelab_id, url, structure_type) VALUES (?, ?, ?, ?)",
         ),
     )
+    .bind(&workspace_id)
     .bind(&payload.codelab_id)
     .bind(&workspace_path)
     .bind(structure_type)

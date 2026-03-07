@@ -531,7 +531,7 @@ fn broadcast_inline_comment_changed(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::infrastructure::database::{AppState, DbKind};
+    use crate::infrastructure::database::{run_migrations, AppState, DbKind};
     use crate::middleware::auth::SessionClaims;
     use axum::extract::{Path, Query, State};
     use axum::http::StatusCode;
@@ -561,8 +561,7 @@ mod tests {
             .connect("sqlite::memory:?cache=shared")
             .await
             .expect("sqlite");
-        sqlx::migrate!("./migrations")
-            .run(&pool)
+        run_migrations(&pool, DbKind::Sqlite)
             .await
             .expect("migrate");
         Arc::new(AppState::new(

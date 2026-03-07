@@ -49,11 +49,11 @@ pub async fn record_audit(state: &AppState, entry: AuditEntry) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::infrastructure::database::{AppState, DbKind};
+    use crate::infrastructure::database::{run_migrations, AppState, DbKind};
     use serde_json::json;
     use sqlx::any::AnyPoolOptions;
 
-    async fn setup_state(run_migrations: bool) -> AppState {
+    async fn setup_state(apply_migrations: bool) -> AppState {
         sqlx::any::install_default_drivers();
         let pool = AnyPoolOptions::new()
             .max_connections(1)
@@ -61,9 +61,8 @@ mod tests {
             .await
             .expect("in-memory sqlite");
 
-        if run_migrations {
-            sqlx::migrate!("./migrations")
-                .run(&pool)
+        if apply_migrations {
+            run_migrations(&pool, DbKind::Sqlite)
                 .await
                 .expect("migrations");
         }

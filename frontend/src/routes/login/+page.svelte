@@ -306,7 +306,9 @@
                                 <pre
                                     class="mt-2 text-xs bg-accent/60 dark:bg-dark-bg text-foreground dark:text-dark-text rounded-xl p-3 overflow-auto border border-border dark:border-dark-border">ADMIN_ID=your_admin_id
 ADMIN_PW=your_admin_pw
-DATABASE_URL=sqlite://backend.db</pre>
+DATABASE_URL=sqlite:data/sqlite.db?mode=rwc
+# or
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/open_codelabs</pre>
                             </div>
                             <div>
                                 <div

@@ -5,6 +5,7 @@ use axum::{
 use backend::{
     create_router,
     domain::models::{Codelab, CreateCodelab},
+    infrastructure::run_migrations,
     AppState, DbKind,
 };
 use cookie::Cookie;
@@ -26,8 +27,7 @@ async fn setup_test_app() -> TestApp {
         .await
         .expect("Failed to connect to in-memory sqlite");
 
-    sqlx::migrate!("./migrations")
-        .run(&pool)
+    run_migrations(&pool, DbKind::Sqlite)
         .await
         .expect("Failed to run migrations");
 

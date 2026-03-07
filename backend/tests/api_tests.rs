@@ -5,6 +5,7 @@ use axum::{
 use backend::{
     create_router,
     domain::models::{Codelab, CreateCodelab},
+    infrastructure::run_migrations,
     middleware::auth::SessionClaims,
     utils::crypto::encrypt_with_password,
     AppState, DbKind,
@@ -37,8 +38,7 @@ async fn setup_test_app() -> TestApp {
         .expect("Failed to connect to in-memory sqlite");
 
     // Run migrations
-    sqlx::migrate!("./migrations")
-        .run(&pool)
+    run_migrations(&pool, DbKind::Sqlite)
         .await
         .expect("Failed to run migrations");
 

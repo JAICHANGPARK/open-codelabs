@@ -34,7 +34,7 @@ pub async fn get_materials(
     }
 
     let materials = sqlx::query_as::<_, Material>(
-        "SELECT * FROM materials WHERE codelab_id = ? ORDER BY created_at ASC",
+        &state.q("SELECT * FROM materials WHERE codelab_id = ? ORDER BY created_at ASC"),
     )
     .bind(codelab_id)
     .fetch_all(&state.pool)
@@ -57,7 +57,9 @@ pub async fn add_material(
     let id = Uuid::new_v4().to_string();
 
     sqlx::query(
-        "INSERT INTO materials (id, codelab_id, title, material_type, link_url, file_path) VALUES (?, ?, ?, ?, ?, ?)"
+        &state.q(
+            "INSERT INTO materials (id, codelab_id, title, material_type, link_url, file_path) VALUES (?, ?, ?, ?, ?, ?)",
+        ),
     )
     .bind(&id)
     .bind(&codelab_id)
@@ -69,7 +71,7 @@ pub async fn add_material(
     .await
     .map_err(internal_error)?;
 
-    let material = sqlx::query_as::<_, Material>("SELECT * FROM materials WHERE id = ?")
+    let material = sqlx::query_as::<_, Material>(&state.q("SELECT * FROM materials WHERE id = ?"))
         .bind(&id)
         .fetch_one(&state.pool)
         .await
@@ -105,7 +107,7 @@ pub async fn delete_material(
     // 우선 DB 레코드만 삭제하도록 구현하겠습니다.
     // 필요하다면 나중에 파일 삭제 로직을 추가할 수 있습니다.
 
-    sqlx::query("DELETE FROM materials WHERE id = ?")
+    sqlx::query(&state.q("DELETE FROM materials WHERE id = ?"))
         .bind(material_id)
         .execute(&state.pool)
         .await

@@ -110,12 +110,19 @@ docker compose up --build
 - **Frontend**: [http://localhost:5173](http://localhost:5173)
 - **Backend API**: [http://localhost:8080](http://localhost:8080)
 
+If you want Docker Compose to run PostgreSQL too, keep the base `.env` and start with the override file. The override points the backend at the bundled `postgres` service, and you can customize it with `POSTGRES_*` variables from `.env.sample`.
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.postgres.yml up --build
+```
+
 ### 2. Local Development
 
 #### Backend
 ```bash
 cd backend
 # Create .env (DATABASE_URL=sqlite:data/sqlite.db?mode=rwc)
+# Or use PostgreSQL: DATABASE_URL=postgresql://postgres:postgres@localhost:5432/open_codelabs
 # Required: ADMIN_ID, ADMIN_PW
 cargo run
 ```
@@ -133,10 +140,11 @@ bun run dev
 Docker Compose reads `.env` at the repo root. Copy `.env.sample` to `.env` and adjust as needed.
 
 **Backend**
-- `DATABASE_URL`: SQLx connection string (sqlite/postgres). Example: `sqlite:/app/data/sqlite.db?mode=rwc`.
+- `DATABASE_URL`: SQLx connection string (sqlite/postgres). Examples: `sqlite:/app/data/sqlite.db?mode=rwc`, `postgresql://postgres:postgres@postgres:5432/open_codelabs`.
 - `ADMIN_ID`: Admin login username.
 - `ADMIN_PW`: Admin login password; also used to decrypt Gemini API keys from the frontend.
 - `ALLOWED_GEMINI_MODELS`: Comma-separated allowlist of Gemini model IDs.
+- `POSTGRES_DB` / `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_PORT` / `POSTGRES_DATA_PATH`: Used by `docker-compose.postgres.yml`.
 
 **AI**
 - `GEMINI_API_KEY`: Default Gemini API key if an admin key is not provided.
@@ -160,7 +168,7 @@ Open Codelabs features a built-in AI generator that transforms your code into st
 - **Live Mode**: Real-time participant progress tracking, chat/DM, and help request resolution.
 - **Screen Share Monitoring**: Watch all attendee screens in a customizable grid. Enlarge specific streams for detailed guidance and provide real-time technical support.
 - **Audit Logs**: Track all administrative actions (login, codelab creation, settings updates) for accountability.
-- **Backup & Restore**: Easily export and import the entire system state (SQLite database) from the admin panel.
+- **Backup & Restore**: Easily export and import the entire system state from the admin panel.
 - **Quiz & Feedback**: Configure completion requirements; results are aggregated per attendee.
 - **Prep Guide & Materials**: Draft preparation guides and manage attachments.
 - **Certificate Raffle**: Spin a roulette that selects only certificate-issued attendees.

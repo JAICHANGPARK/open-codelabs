@@ -394,7 +394,7 @@ pub async fn complete_codelab(
         return Err((StatusCode::BAD_REQUEST, "SUBMISSION_REQUIRED".to_string()));
     }
 
-    sqlx::query(&state.q("UPDATE attendees SET is_completed = 1, completed_at = CURRENT_TIMESTAMP WHERE id = ? AND codelab_id = ?"))
+    sqlx::query(&state.q("UPDATE attendees SET is_completed = 1, completed_at = CAST(CURRENT_TIMESTAMP AS TEXT) WHERE id = ? AND codelab_id = ?"))
         .bind(&attendee_id)
         .bind(&id)
         .execute(&state.pool)
