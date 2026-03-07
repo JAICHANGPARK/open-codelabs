@@ -27,7 +27,7 @@ This guide covers different ways to install Open Codelabs.
 
 ## Install the CLI (`oc`)
 
-If you already have an Open Codelabs server running, you can manage it from the terminal with the `oc` CLI.
+The `oc` CLI can manage an existing Open Codelabs server and also start a local stack for you.
 
 ### Install from source
 
@@ -51,7 +51,34 @@ cargo build --release --bin oc
 ./target/release/oc --help
 ```
 
-### First connection
+### Start a local stack with the CLI only
+
+```bash
+oc run --open
+```
+
+`oc run` will:
+
+- Detect `docker` or `podman` automatically.
+- Print install/start guidance when the container engine is missing or not running.
+- Write `~/.open-codelabs/runtime/local-stack/compose.yml`.
+- Start the published frontend/backend images with SQLite by default.
+
+Common options:
+
+```bash
+# Pull the latest images first
+oc run --pull
+
+# Start with the bundled PostgreSQL container
+oc run --postgres
+
+# Force a specific engine
+oc run --engine docker
+oc run --engine podman
+```
+
+### First connection after the stack is up
 
 ```bash
 oc connect add --name local --url http://localhost:8080 --runtime backend --activate

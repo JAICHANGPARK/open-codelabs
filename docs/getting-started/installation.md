@@ -27,7 +27,7 @@ Open Codelabs를 설치하는 다양한 방법을 소개합니다.
 
 ## CLI (`oc`) 설치
 
-이미 실행 중인 Open Codelabs 서버를 터미널에서 관리하려면 `oc` CLI를 사용할 수 있습니다.
+`oc` CLI로 이미 실행 중인 Open Codelabs 서버를 관리할 수 있고, 로컬 스택도 바로 띄울 수 있습니다.
 
 ### 소스에서 설치
 
@@ -51,7 +51,34 @@ cargo build --release --bin oc
 ./target/release/oc --help
 ```
 
-### 첫 연결
+### CLI만으로 로컬 스택 실행
+
+```bash
+oc run --open
+```
+
+`oc run`은 다음을 자동으로 처리합니다.
+
+- `docker` 또는 `podman` 감지
+- 엔진이 없거나 실행 중이 아니면 설치/시작 방법 안내
+- `~/.open-codelabs/runtime/local-stack/compose.yml` 생성
+- 퍼블리시된 frontend/backend 이미지를 SQLite 기본 설정으로 실행
+
+자주 쓰는 옵션:
+
+```bash
+# 최신 이미지 먼저 pull
+oc run --pull
+
+# PostgreSQL 포함 실행
+oc run --postgres
+
+# 엔진 강제 선택
+oc run --engine docker
+oc run --engine podman
+```
+
+### 실행 후 첫 연결
 
 ```bash
 oc connect add --name local --url http://localhost:8080 --runtime backend --activate

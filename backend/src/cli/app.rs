@@ -22,6 +22,7 @@ use anyhow::{anyhow, bail, Context, Result};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::Value;
 use std::env;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command as ProcessCommand;
 use std::time::Duration;
@@ -53,6 +54,7 @@ enum Command {
     Admin(AdminCommand),
     Auth(AuthCommand),
     Connect(ConnectCommand),
+    Run(RunCommand),
     Login(LoginCommand),
     Logout,
     Session,
@@ -103,6 +105,48 @@ enum ConnectCommand {
     },
     List,
     Status,
+}
+
+#[derive(Debug)]
+struct RunCommand {
+    engine: RunEnginePreference,
+    postgres: bool,
+    pull: bool,
+    open: bool,
+    admin_id: String,
+    admin_pw: String,
+    data_dir: Option<PathBuf>,
+    frontend_port: u16,
+    backend_port: u16,
+    image_registry: String,
+    image_namespace: String,
+    image_tag: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum RunEnginePreference {
+    Auto,
+    Docker,
+    Podman,
+}
+
+impl RunEnginePreference {
+    fn parse(value: &str) -> Option<Self> {
+        match value {
+            "auto" => Some(Self::Auto),
+            "docker" => Some(Self::Docker),
+            "podman" => Some(Self::Podman),
+            _ => None,
+        }
+    }
+
+    fn as_str(&self) -> &'static str {
+        match self {
+            Self::Auto => "auto",
+            Self::Docker => "docker",
+            Self::Podman => "podman",
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -429,6 +473,85 @@ struct AuthStatusOutput {
     error: Option<String>,
 }
 
+#[derive(Debug, Serialize)]
+struct RunOutput {
+    engine: String,
+    runtime_dir: PathBuf,
+    compose_file: PathBuf,
+    frontend_url: String,
+    backend_url: String,
+    admin_url: String,
+    attendee_url: String,
+    admin_id: String,
+    admin_password_hint: String,
+    postgres: bool,
+    compose_command: String,
+    logs_command: String,
+    stop_command: String,
+}
+
+#[derive(Debug, Clone, Copy)]
+enum ComposeCommandKind {
+    DockerPlugin,
+    DockerStandalone,
+    PodmanPlugin,
+    PodmanStandalone,
+}
+
+impl ComposeCommandKind {
+    fn label(&self) -> &'static str {
+        match self {
+            Self::DockerPlugin => "docker compose",
+            Self::DockerStandalone => "docker-compose",
+            Self::PodmanPlugin => "podman compose",
+            Self::PodmanStandalone => "podman-compose",
+        }
+    }
+
+    fn build_command(&self) -> ProcessCommand {
+        let command = match self {
+            Self::DockerPlugin | Self::PodmanPlugin => {
+                let mut command = ProcessCommand::new(match self {
+                    Self::DockerPlugin => "docker",
+                    Self::PodmanPlugin => "podman",
+                    _ => unreachable!(),
+                });
+                command.arg("compose");
+                command
+            }
+            Self::DockerStandalone => ProcessCommand::new("docker-compose"),
+            Self::PodmanStandalone => ProcessCommand::new("podman-compose"),
+        };
+        command
+    }
+
+    fn format_command(&self, args: &[String]) -> String {
+        let mut parts = vec![self.label().to_string()];
+        parts.extend(args.iter().cloned());
+        parts.join(" ")
+    }
+}
+
+#[derive(Debug, Clone)]
+struct ContainerEngineSelection {
+    compose: ComposeCommandKind,
+}
+
+impl ContainerEngineSelection {
+    fn label(&self) -> &'static str {
+        self.compose.label()
+    }
+}
+
+#[derive(Debug)]
+struct EngineInspection {
+    preference: RunEnginePreference,
+    compose: Option<ComposeCommandKind>,
+    ready: bool,
+    summary: String,
+    guidance: Vec<String>,
+}
+
 pub async fn entry() -> Result<()> {
     let (global, command) = parse_cli()?;
     if matches!(command, Command::Help) {
@@ -451,6 +574,9 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
         }
         Command::Connect(command) => {
             run_connect_command(&global, command).await?;
+        }
+        Command::Run(command) => {
+            run_run_command(&global, command)?;
         }
         Command::Login(command) => {
             let config = load_config(&global.config_file)?;
@@ -1910,6 +2036,721 @@ async fn run_connect_command(global: &GlobalOptions, command: ConnectCommand) ->
     Ok(())
 }
 
+fn run_run_command(global: &GlobalOptions, command: RunCommand) -> Result<()> {
+    let engine = resolve_container_engine(command.engine)?;
+    let runtime_dir = local_stack_runtime_dir(&global.config_file);
+    fs::create_dir_all(&runtime_dir)
+        .with_context(|| format!("Failed to create {}", runtime_dir.display()))?;
+    secure_runtime_directory(&runtime_dir)?;
+
+    let data_dir = command
+        .data_dir
+        .as_deref()
+        .map(normalize_user_path)
+        .transpose()?
+        .unwrap_or_else(default_local_stack_data_dir);
+    ensure_local_stack_directories(&data_dir, command.postgres)?;
+    let postgres_data_dir = data_dir.join("postgres");
+
+    let compose_path = runtime_dir.join("compose.yml");
+    let compose_text = render_local_stack_compose(&command, &data_dir, &postgres_data_dir);
+    fs::write(&compose_path, compose_text)
+        .with_context(|| format!("Failed to write {}", compose_path.display()))?;
+    secure_runtime_file(&compose_path)?;
+
+    let compose_base_args = compose_base_args(&compose_path);
+    if command.pull {
+        run_compose_command(
+            &engine,
+            &compose_base_args,
+            &["pull".to_string()],
+            "pull images for the local stack",
+        )?;
+    }
+    run_compose_command(
+        &engine,
+        &compose_base_args,
+        &["up".to_string(), "-d".to_string()],
+        "start the local stack",
+    )?;
+
+    let frontend_url = format!("http://localhost:{}", command.frontend_port);
+    let backend_url = format!("http://localhost:{}", command.backend_port);
+    let admin_url = format!("{frontend_url}/login");
+    let output = RunOutput {
+        engine: engine.label().to_string(),
+        runtime_dir,
+        compose_file: compose_path.clone(),
+        frontend_url: frontend_url.clone(),
+        backend_url: backend_url.clone(),
+        admin_url: admin_url.clone(),
+        attendee_url: frontend_url.clone(),
+        admin_id: command.admin_id.clone(),
+        admin_password_hint: if command.admin_pw == "admin" {
+            "admin (default)".to_string()
+        } else {
+            "custom value you supplied".to_string()
+        },
+        postgres: command.postgres,
+        compose_command: format_compose_command(
+            &engine,
+            &compose_base_args,
+            &["up".to_string(), "-d".to_string()],
+        ),
+        logs_command: format_compose_command(
+            &engine,
+            &compose_base_args,
+            &["logs".to_string(), "-f".to_string()],
+        ),
+        stop_command: format_compose_command(&engine, &compose_base_args, &["down".to_string()]),
+    };
+
+    if command.open {
+        if let Err(error) = open_browser(&admin_url) {
+            eprintln!("Failed to open browser automatically: {error}");
+            eprintln!("Open this URL manually: {admin_url}");
+        }
+    }
+
+    if global.json {
+        print_json(&output)?;
+    } else {
+        print_run_output(&output);
+    }
+
+    Ok(())
+}
+
+fn resolve_container_engine(preference: RunEnginePreference) -> Result<ContainerEngineSelection> {
+    let docker = inspect_docker_engine();
+    let podman = inspect_podman_engine();
+
+    match preference {
+        RunEnginePreference::Auto => {
+            if docker.ready {
+                return Ok(ContainerEngineSelection {
+                    compose: docker.compose.expect("ready docker compose"),
+                });
+            }
+            if podman.ready {
+                return Ok(ContainerEngineSelection {
+                    compose: podman.compose.expect("ready podman compose"),
+                });
+            }
+            bail!(format_auto_engine_failure(&[docker, podman]));
+        }
+        RunEnginePreference::Docker => selection_from_inspection(docker),
+        RunEnginePreference::Podman => selection_from_inspection(podman),
+    }
+}
+
+fn selection_from_inspection(inspection: EngineInspection) -> Result<ContainerEngineSelection> {
+    if inspection.ready {
+        return Ok(ContainerEngineSelection {
+            compose: inspection.compose.expect("ready engine has compose"),
+        });
+    }
+
+    bail!(format_requested_engine_failure(&inspection));
+}
+
+fn inspect_docker_engine() -> EngineInspection {
+    let docker_exists = command_exists("docker");
+    let compose_plugin = if docker_exists {
+        probe_command("docker", &["compose", "version"])
+    } else {
+        CommandProbe::missing_binary()
+    };
+    let compose_standalone = probe_command("docker-compose", &["version"]);
+
+    if !docker_exists && compose_standalone.missing {
+        return EngineInspection {
+            preference: RunEnginePreference::Docker,
+            compose: None,
+            ready: false,
+            summary: "Docker was not found on this machine.".to_string(),
+            guidance: docker_install_guidance(),
+        };
+    }
+
+    let compose = if compose_plugin.success {
+        Some(ComposeCommandKind::DockerPlugin)
+    } else if compose_standalone.success {
+        Some(ComposeCommandKind::DockerStandalone)
+    } else {
+        None
+    };
+
+    let Some(compose) = compose else {
+        return EngineInspection {
+            preference: RunEnginePreference::Docker,
+            compose: None,
+            ready: false,
+            summary: "Docker is installed, but Docker Compose is not available.".to_string(),
+            guidance: docker_compose_guidance(),
+        };
+    };
+
+    if docker_exists {
+        let info = probe_command("docker", &["info"]);
+        if !info.success {
+            return EngineInspection {
+                preference: RunEnginePreference::Docker,
+                compose: Some(compose),
+                ready: false,
+                summary: format!(
+                    "Docker is installed, but the daemon is not ready{}",
+                    format_probe_suffix(&info)
+                ),
+                guidance: docker_start_guidance(),
+            };
+        }
+    }
+
+    EngineInspection {
+        preference: RunEnginePreference::Docker,
+        compose: Some(compose),
+        ready: true,
+        summary: format!("Docker is ready via {}", compose.label()),
+        guidance: Vec::new(),
+    }
+}
+
+fn inspect_podman_engine() -> EngineInspection {
+    let podman_exists = command_exists("podman");
+    let compose_plugin = if podman_exists {
+        probe_command("podman", &["compose", "version"])
+    } else {
+        CommandProbe::missing_binary()
+    };
+    let compose_standalone = {
+        let preferred = probe_command("podman-compose", &["--version"]);
+        if preferred.success || preferred.missing {
+            preferred
+        } else {
+            probe_command("podman-compose", &["version"])
+        }
+    };
+
+    if !podman_exists && compose_standalone.missing {
+        return EngineInspection {
+            preference: RunEnginePreference::Podman,
+            compose: None,
+            ready: false,
+            summary: "Podman was not found on this machine.".to_string(),
+            guidance: podman_install_guidance(),
+        };
+    }
+
+    let compose = if compose_plugin.success {
+        Some(ComposeCommandKind::PodmanPlugin)
+    } else if compose_standalone.success {
+        Some(ComposeCommandKind::PodmanStandalone)
+    } else {
+        None
+    };
+
+    let Some(compose) = compose else {
+        return EngineInspection {
+            preference: RunEnginePreference::Podman,
+            compose: None,
+            ready: false,
+            summary: "Podman is installed, but Compose support is not available.".to_string(),
+            guidance: podman_compose_guidance(),
+        };
+    };
+
+    if podman_exists {
+        let info = probe_command("podman", &["info"]);
+        if !info.success {
+            return EngineInspection {
+                preference: RunEnginePreference::Podman,
+                compose: Some(compose),
+                ready: false,
+                summary: format!(
+                    "Podman is installed, but it is not ready{}",
+                    format_probe_suffix(&info)
+                ),
+                guidance: podman_start_guidance(),
+            };
+        }
+    }
+
+    EngineInspection {
+        preference: RunEnginePreference::Podman,
+        compose: Some(compose),
+        ready: true,
+        summary: format!("Podman is ready via {}", compose.label()),
+        guidance: Vec::new(),
+    }
+}
+
+#[derive(Debug)]
+struct CommandProbe {
+    success: bool,
+    missing: bool,
+    detail: Option<String>,
+}
+
+impl CommandProbe {
+    fn missing_binary() -> Self {
+        Self {
+            success: false,
+            missing: true,
+            detail: None,
+        }
+    }
+}
+
+fn probe_command(program: &str, args: &[&str]) -> CommandProbe {
+    match ProcessCommand::new(program).args(args).output() {
+        Ok(output) => CommandProbe {
+            success: output.status.success(),
+            missing: false,
+            detail: probe_output_detail(&output.stdout, &output.stderr),
+        },
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => CommandProbe {
+            success: false,
+            missing: true,
+            detail: None,
+        },
+        Err(error) => CommandProbe {
+            success: false,
+            missing: false,
+            detail: Some(error.to_string()),
+        },
+    }
+}
+
+fn probe_output_detail(stdout: &[u8], stderr: &[u8]) -> Option<String> {
+    let stderr = String::from_utf8_lossy(stderr).trim().to_string();
+    if !stderr.is_empty() {
+        return Some(truncate(&stderr, 160));
+    }
+
+    let stdout = String::from_utf8_lossy(stdout).trim().to_string();
+    if stdout.is_empty() {
+        None
+    } else {
+        Some(truncate(&stdout, 160))
+    }
+}
+
+fn format_probe_suffix(probe: &CommandProbe) -> String {
+    probe
+        .detail
+        .as_deref()
+        .map(|detail| format!(" ({detail})"))
+        .unwrap_or_default()
+}
+
+fn command_exists(program: &str) -> bool {
+    ProcessCommand::new(program)
+        .arg("--version")
+        .output()
+        .is_ok()
+}
+
+fn docker_install_guidance() -> Vec<String> {
+    if cfg!(target_os = "macos") {
+        vec![
+            "Install Docker Desktop: https://www.docker.com/products/docker-desktop/".to_string(),
+            "Homebrew alternative: `brew install --cask docker`".to_string(),
+            "Open Docker Desktop once after install.".to_string(),
+        ]
+    } else if cfg!(target_os = "windows") {
+        vec![
+            "Install Docker Desktop: https://www.docker.com/products/docker-desktop/".to_string(),
+            "winget alternative: `winget install -e --id Docker.DockerDesktop`".to_string(),
+        ]
+    } else {
+        vec![
+            "Install Docker Engine and the Compose plugin for your distro.".to_string(),
+            "Ubuntu/Debian: `sudo apt-get install docker.io docker-compose-plugin`".to_string(),
+            "Fedora/RHEL: `sudo dnf install docker docker-compose-plugin`".to_string(),
+        ]
+    }
+}
+
+fn docker_compose_guidance() -> Vec<String> {
+    let mut guidance = docker_install_guidance();
+    guidance.push("Verify `docker compose version` succeeds.".to_string());
+    guidance
+}
+
+fn docker_start_guidance() -> Vec<String> {
+    if cfg!(target_os = "macos") || cfg!(target_os = "windows") {
+        vec![
+            "Start Docker Desktop and wait until the engine reports healthy.".to_string(),
+            "Verify with `docker info`.".to_string(),
+        ]
+    } else {
+        vec![
+            "Start the Docker daemon: `sudo systemctl enable --now docker`".to_string(),
+            "If your shell user is not in the docker group, run with sudo or re-login after `sudo usermod -aG docker $USER`.".to_string(),
+        ]
+    }
+}
+
+fn podman_install_guidance() -> Vec<String> {
+    if cfg!(target_os = "macos") {
+        vec![
+            "Install Podman: `brew install podman podman-compose`".to_string(),
+            "Initialize the VM once: `podman machine init`".to_string(),
+            "Start the VM: `podman machine start`".to_string(),
+        ]
+    } else if cfg!(target_os = "windows") {
+        vec![
+            "Install Podman Desktop or Podman CLI: https://podman-desktop.io/".to_string(),
+            "winget alternative: `winget install RedHat.Podman`".to_string(),
+        ]
+    } else {
+        vec![
+            "Install Podman and podman-compose for your distro.".to_string(),
+            "Ubuntu/Debian: `sudo apt-get install podman podman-compose`".to_string(),
+            "Fedora/RHEL: `sudo dnf install podman podman-compose`".to_string(),
+        ]
+    }
+}
+
+fn podman_compose_guidance() -> Vec<String> {
+    let mut guidance = podman_install_guidance();
+    guidance.push(
+        "Verify either `podman compose version` or `podman-compose --version` succeeds."
+            .to_string(),
+    );
+    guidance
+}
+
+fn podman_start_guidance() -> Vec<String> {
+    if cfg!(target_os = "macos") || cfg!(target_os = "windows") {
+        vec![
+            "Start the Podman VM: `podman machine start`".to_string(),
+            "If this is the first run, initialize it with `podman machine init`.".to_string(),
+        ]
+    } else {
+        vec![
+            "Verify the installation with `podman info`.".to_string(),
+            "If you use the API service explicitly, start it with `podman system service --time=0`.".to_string(),
+        ]
+    }
+}
+
+fn format_requested_engine_failure(inspection: &EngineInspection) -> String {
+    let mut message = inspection.summary.clone();
+    for step in &inspection.guidance {
+        message.push('\n');
+        message.push_str(step);
+    }
+    message
+}
+
+fn format_auto_engine_failure(inspections: &[EngineInspection]) -> String {
+    let mut message = String::from("No ready container engine found for `oc run`.");
+    for inspection in inspections {
+        message.push_str(&format!(
+            "\n\n{}: {}",
+            inspection.preference.as_str(),
+            inspection.summary
+        ));
+        for step in &inspection.guidance {
+            message.push_str(&format!("\n- {step}"));
+        }
+    }
+    message
+}
+
+fn local_stack_runtime_dir(config_file: &Path) -> PathBuf {
+    config_file
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."))
+        .join("runtime")
+        .join("local-stack")
+}
+
+fn default_local_stack_data_dir() -> PathBuf {
+    home_dir()
+        .map(|dir| dir.join("open-codelabs"))
+        .unwrap_or_else(|| PathBuf::from("open-codelabs"))
+}
+
+fn normalize_user_path(path: &Path) -> Result<PathBuf> {
+    let raw = path.to_string_lossy();
+    if raw == "~" {
+        return home_dir().ok_or_else(|| anyhow!("Could not resolve the home directory"));
+    }
+    if let Some(stripped) = raw.strip_prefix("~/").or_else(|| raw.strip_prefix("~\\")) {
+        let home = home_dir().ok_or_else(|| anyhow!("Could not resolve the home directory"))?;
+        return Ok(home.join(stripped));
+    }
+    if path.is_absolute() {
+        return Ok(path.to_path_buf());
+    }
+
+    Ok(env::current_dir()
+        .context("Failed to resolve current directory")?
+        .join(path))
+}
+
+fn home_dir() -> Option<PathBuf> {
+    env::var_os("HOME")
+        .map(PathBuf::from)
+        .or_else(|| env::var_os("USERPROFILE").map(PathBuf::from))
+}
+
+fn ensure_local_stack_directories(data_dir: &Path, postgres: bool) -> Result<()> {
+    for path in [
+        data_dir.join("data"),
+        data_dir.join("uploads"),
+        data_dir.join("workspaces"),
+    ] {
+        fs::create_dir_all(&path)
+            .with_context(|| format!("Failed to create {}", path.display()))?;
+    }
+    if postgres {
+        let postgres_dir = data_dir.join("postgres");
+        fs::create_dir_all(&postgres_dir)
+            .with_context(|| format!("Failed to create {}", postgres_dir.display()))?;
+    }
+    Ok(())
+}
+
+fn render_local_stack_compose(
+    command: &RunCommand,
+    data_dir: &Path,
+    postgres_data_dir: &Path,
+) -> String {
+    let backend_image = format!(
+        "{}/{}/open-codelabs-backend:{}",
+        command.image_registry.trim_end_matches('/'),
+        command.image_namespace,
+        command.image_tag
+    );
+    let frontend_image = format!(
+        "{}/{}/open-codelabs-frontend:{}",
+        command.image_registry.trim_end_matches('/'),
+        command.image_namespace,
+        command.image_tag
+    );
+    let database_url = if command.postgres {
+        "postgresql://postgres:postgres@postgres:5432/open_codelabs".to_string()
+    } else {
+        "sqlite:/app/data/sqlite.db?mode=rwc".to_string()
+    };
+    let cors_allowed_origins = format!(
+        "http://localhost:{0},http://127.0.0.1:{0}",
+        command.frontend_port
+    );
+    let backend_depends_on = if command.postgres {
+        "    depends_on:\n      postgres:\n        condition: service_healthy\n"
+    } else {
+        ""
+    };
+    let postgres_service = if command.postgres {
+        format!(
+            r#"
+  postgres:
+    image: {}
+    container_name: {}
+    environment:
+      POSTGRES_DB: {}
+      POSTGRES_USER: {}
+      POSTGRES_PASSWORD: {}
+    volumes:
+      - {}:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U postgres -d open_codelabs",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+"#,
+            yaml_string("postgres:16-alpine"),
+            yaml_string("open-codelabs-postgres"),
+            yaml_string("open_codelabs"),
+            yaml_string("postgres"),
+            yaml_string("postgres"),
+            yaml_string(&postgres_data_dir.display().to_string()),
+        )
+    } else {
+        String::new()
+    };
+
+    format!(
+        r#"services:
+  backend:
+    image: {}
+    container_name: {}
+    ports:
+      - {}
+    environment:
+      DATABASE_URL: {}
+      ADMIN_ID: {}
+      ADMIN_PW: {}
+      AUTH_SECRETS: {}
+      AUTH_ISSUER: {}
+      AUTH_AUDIENCE: {}
+      COOKIE_SECURE: {}
+      COOKIE_SAMESITE: {}
+      TRUST_PROXY: {}
+      CORS_ALLOWED_ORIGINS: {}
+    volumes:
+      - {}:/app/data
+      - {}:/app/static/uploads
+      - {}:/app/workspaces
+{}
+  frontend:
+    image: {}
+    container_name: {}
+    ports:
+      - {}
+    environment:
+      VITE_API_URL: {}
+      VITE_ADMIN_ENCRYPTION_PASSWORD: {}
+      VITE_ADMIN_ID: {}
+      VITE_ADMIN_PW: {}
+      PORT: {}
+      HOST: {}
+    depends_on:
+      - backend
+{}"#,
+        yaml_string(&backend_image),
+        yaml_string("open-codelabs-backend"),
+        yaml_string(&format!("{}:8080", command.backend_port)),
+        yaml_string(&database_url),
+        yaml_string(&command.admin_id),
+        yaml_string(&command.admin_pw),
+        yaml_string(&command.admin_pw),
+        yaml_string("open-codelabs"),
+        yaml_string("open-codelabs"),
+        yaml_string("false"),
+        yaml_string("lax"),
+        yaml_string("false"),
+        yaml_string(&cors_allowed_origins),
+        yaml_string(&data_dir.join("data").display().to_string()),
+        yaml_string(&data_dir.join("uploads").display().to_string()),
+        yaml_string(&data_dir.join("workspaces").display().to_string()),
+        backend_depends_on,
+        yaml_string(&frontend_image),
+        yaml_string("open-codelabs-frontend"),
+        yaml_string(&format!(
+            "{}:{}",
+            command.frontend_port, command.frontend_port
+        )),
+        yaml_string("http://backend:8080"),
+        yaml_string(&command.admin_pw),
+        yaml_string(&command.admin_id),
+        yaml_string(&command.admin_pw),
+        yaml_string(&command.frontend_port.to_string()),
+        yaml_string("0.0.0.0"),
+        postgres_service,
+    )
+}
+
+fn yaml_string(value: &str) -> String {
+    serde_json::to_string(value).expect("JSON string literal")
+}
+
+fn compose_base_args(compose_path: &Path) -> Vec<String> {
+    vec![
+        "--project-name".to_string(),
+        "open-codelabs".to_string(),
+        "-f".to_string(),
+        compose_path.display().to_string(),
+    ]
+}
+
+fn run_compose_command(
+    engine: &ContainerEngineSelection,
+    base_args: &[String],
+    extra_args: &[String],
+    action: &str,
+) -> Result<()> {
+    let mut command = engine.compose.build_command();
+    command.args(base_args).args(extra_args);
+    let status = command
+        .status()
+        .with_context(|| format!("Failed to invoke {} to {action}", engine.label()))?;
+    if !status.success() {
+        bail!(
+            "{} failed to {action} (exit status {status})",
+            engine.label()
+        );
+    }
+    Ok(())
+}
+
+fn format_compose_command(
+    engine: &ContainerEngineSelection,
+    base_args: &[String],
+    extra_args: &[String],
+) -> String {
+    let mut args = base_args.to_vec();
+    args.extend(extra_args.iter().cloned());
+    engine.compose.format_command(&args)
+}
+
+fn print_run_output(output: &RunOutput) {
+    println!("Started Open Codelabs with {}", output.engine);
+    println!("facilitator: {}", output.admin_url);
+    println!("attendee: {}", output.attendee_url);
+    println!("api: {}", output.backend_url);
+    println!("admin_id: {}", output.admin_id);
+    println!("admin_password: {}", output.admin_password_hint);
+    println!(
+        "postgres: {}",
+        if output.postgres {
+            "enabled"
+        } else {
+            "disabled"
+        }
+    );
+    println!("runtime_dir: {}", output.runtime_dir.display());
+    println!("compose_file: {}", output.compose_file.display());
+    println!("compose: {}", output.compose_command);
+    println!("logs: {}", output.logs_command);
+    println!("stop: {}", output.stop_command);
+    println!(
+        "next: {} connect add --name local --url {} --runtime backend --activate",
+        program_name(),
+        output.backend_url
+    );
+    println!("next: {} auth login", program_name());
+}
+
+#[cfg(unix)]
+fn secure_runtime_directory(path: &Path) -> Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+
+    fs::set_permissions(path, fs::Permissions::from_mode(0o700))
+        .with_context(|| format!("Failed to secure {}", path.display()))?;
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn secure_runtime_directory(_path: &Path) -> Result<()> {
+    Ok(())
+}
+
+#[cfg(unix)]
+fn secure_runtime_file(path: &Path) -> Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+
+    fs::set_permissions(path, fs::Permissions::from_mode(0o600))
+        .with_context(|| format!("Failed to secure {}", path.display()))?;
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn secure_runtime_file(_path: &Path) -> Result<()> {
+    Ok(())
+}
+
 fn load_api_client(global: &GlobalOptions) -> Result<ApiClient> {
     let (client, _, _) = load_api_client_with_session(global)?;
     Ok(client)
@@ -2509,6 +3350,7 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
         "admin" => Command::Admin(parse_admin(&mut args)?),
         "auth" => Command::Auth(parse_auth(&mut args)?),
         "connect" => Command::Connect(parse_connect(&mut args)?),
+        "run" => Command::Run(parse_run(&mut args)?),
         "login" => Command::Login(parse_login(&mut args)?),
         "logout" => Command::Logout,
         "session" => Command::Session,
@@ -2688,6 +3530,73 @@ fn parse_connect(args: &mut Args) -> Result<ConnectCommand> {
         "status" => Ok(ConnectCommand::Status),
         _ => Err(help_error("connect")),
     }
+}
+
+fn parse_run(args: &mut Args) -> Result<RunCommand> {
+    let mut engine = RunEnginePreference::Auto;
+    let mut postgres = false;
+    let mut pull = false;
+    let mut open = false;
+    let mut admin_id = env::var("OPEN_CODELABS_ADMIN_ID")
+        .ok()
+        .unwrap_or_else(|| "admin".to_string());
+    let mut admin_pw = env::var("OPEN_CODELABS_ADMIN_PW")
+        .ok()
+        .unwrap_or_else(|| "admin".to_string());
+    let mut data_dir = None;
+    let mut frontend_port = 5173;
+    let mut backend_port = 8080;
+    let mut image_registry = "ghcr.io".to_string();
+    let mut image_namespace = "jaichangpark".to_string();
+    let mut image_tag = "latest".to_string();
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--engine" => {
+                let value = args.next_required("--engine")?;
+                engine = RunEnginePreference::parse(&value)
+                    .ok_or_else(|| anyhow!("Invalid value for --engine: {value}"))?;
+            }
+            "--postgres" => postgres = true,
+            "--pull" => pull = true,
+            "--open" => open = true,
+            "--admin-id" => admin_id = args.next_required("--admin-id")?,
+            "--admin-pw" => admin_pw = args.next_required("--admin-pw")?,
+            "--data-dir" => data_dir = Some(PathBuf::from(args.next_required("--data-dir")?)),
+            "--frontend-port" => {
+                let value = args.next_required("--frontend-port")?;
+                frontend_port = value
+                    .parse::<u16>()
+                    .with_context(|| format!("Invalid value for --frontend-port: {value}"))?;
+            }
+            "--backend-port" => {
+                let value = args.next_required("--backend-port")?;
+                backend_port = value
+                    .parse::<u16>()
+                    .with_context(|| format!("Invalid value for --backend-port: {value}"))?;
+            }
+            "--image-registry" => image_registry = args.next_required("--image-registry")?,
+            "--image-namespace" => image_namespace = args.next_required("--image-namespace")?,
+            "--image-tag" => image_tag = args.next_required("--image-tag")?,
+            "-h" | "--help" => return Err(help_error("run")),
+            other => bail!("Unknown run option: {other}"),
+        }
+    }
+
+    Ok(RunCommand {
+        engine,
+        postgres,
+        pull,
+        open,
+        admin_id,
+        admin_pw,
+        data_dir,
+        frontend_port,
+        backend_port,
+        image_registry,
+        image_namespace,
+        image_tag,
+    })
 }
 
 fn parse_login(args: &mut Args) -> Result<LoginCommand> {
@@ -3773,6 +4682,7 @@ Commands:
   connect use --name <name>
   connect list
   connect status
+  run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]
   login --admin-id <id> --admin-pw <pw>   Legacy direct login
   logout                                   Legacy alias for auth logout
   session                                  Legacy alias for auth status
@@ -3896,5 +4806,52 @@ impl Args {
             bail!("Unexpected argument: {unexpected}");
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn sample_run_command(postgres: bool) -> RunCommand {
+        RunCommand {
+            engine: RunEnginePreference::Auto,
+            postgres,
+            pull: false,
+            open: false,
+            admin_id: "admin".to_string(),
+            admin_pw: "admin".to_string(),
+            data_dir: None,
+            frontend_port: 5173,
+            backend_port: 8080,
+            image_registry: "ghcr.io".to_string(),
+            image_namespace: "jaichangpark".to_string(),
+            image_tag: "latest".to_string(),
+        }
+    }
+
+    #[test]
+    fn render_local_stack_compose_uses_sqlite_by_default() {
+        let compose = render_local_stack_compose(
+            &sample_run_command(false),
+            Path::new("/tmp/open-codelabs"),
+            Path::new("/tmp/open-codelabs/postgres"),
+        );
+
+        assert!(compose.contains("sqlite:/app/data/sqlite.db?mode=rwc"));
+        assert!(!compose.contains("open-codelabs-postgres"));
+    }
+
+    #[test]
+    fn render_local_stack_compose_adds_postgres_service_when_requested() {
+        let compose = render_local_stack_compose(
+            &sample_run_command(true),
+            Path::new("/tmp/open-codelabs"),
+            Path::new("/tmp/open-codelabs/postgres"),
+        );
+
+        assert!(compose.contains("postgresql://postgres:postgres@postgres:5432/open_codelabs"));
+        assert!(compose.contains("open-codelabs-postgres"));
+        assert!(compose.contains("condition: service_healthy"));
     }
 }

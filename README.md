@@ -45,6 +45,13 @@ cd open-codelabs
 docker compose up --build
 ```
 
+If you prefer a CLI-first workflow, install `oc` and let it start the published frontend/backend images for you:
+
+```bash
+cargo install --path backend --bin oc
+oc run --open
+```
+
 ### 🦭 For Podman Users
 If you are using Podman, you can use `podman-compose`:
 ```bash
@@ -56,7 +63,7 @@ Or use the Podman Docker compatibility layer.
 
 ## 💻 CLI (`oc`)
 
-If you already have an Open Codelabs server running, you can manage it from the terminal with the `oc` CLI.
+The `oc` CLI can both launch a local Open Codelabs stack and manage an existing server.
 
 ### Install from source
 
@@ -74,7 +81,33 @@ cargo build --release --bin oc
 ./target/release/oc --help
 ```
 
-### First run
+### Start a local stack with published images
+
+```bash
+oc run --open
+```
+
+What `oc run` does:
+- Detects `docker` or `podman` automatically.
+- Prints install/start guidance if the container engine is missing or not running.
+- Writes a local runtime compose file under `~/.open-codelabs/runtime/local-stack/`.
+- Starts the published frontend/backend containers with SQLite by default.
+
+Useful options:
+
+```bash
+# Pull the latest images first
+oc run --pull
+
+# Start with the bundled PostgreSQL container
+oc run --postgres
+
+# Force a specific engine
+oc run --engine docker
+oc run --engine podman
+```
+
+### Connect after the local stack is up
 
 ```bash
 oc connect add --name local --url http://localhost:8080 --runtime backend --activate
