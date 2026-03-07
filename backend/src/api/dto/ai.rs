@@ -1,7 +1,7 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 /// Request payload forwarded to the AI streaming proxy endpoint.
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct AiRequest {
     /// Plain-text prompt used by simpler client flows.
     pub prompt: Option<String>,

@@ -1,12 +1,19 @@
 //! HTTP client used by the `oclabs` administrative CLI.
 
 use crate::api::dto::{
-    CliAuthExchangeRequest, CliAuthExchangeResponse, CliAuthPollResponse, CliAuthStartResponse,
-    CliRuntimeInfo, CodeServerInfo, CreateBranchRequest, CreateCodeServerRequest,
-    CreateFolderRequest, UpdateWorkspaceFilesRequest, WorkspaceFile,
+    AiRequest, CliAuthExchangeRequest, CliAuthExchangeResponse, CliAuthPollResponse,
+    CliAuthStartResponse, CliRuntimeInfo, CodeServerInfo, CreateBranchRequest,
+    CreateCodeServerRequest, CreateFolderRequest, UpdateWorkspaceFilesRequest, WorkspaceFile,
 };
 use crate::cli::session::{SessionSnapshot, StoredSession};
-use crate::domain::models::{Codelab, CreateCodelab, LoginPayload, Step, UpdateStepsPayload};
+use crate::domain::models::{
+    AddAiMessagePayload, AiConversation, AiMessage, AiThread, Attendee, AttendeePublic,
+    CertificateInfo, ChatMessageRow, Codelab, CreateCodelab, CreateInlineCommentPayload,
+    CreateMaterial, CreateQuiz, Feedback, HelpRequest, InlineCommentThreadWithMessages,
+    LoginPayload, Material, Quiz, QuizSubmissionPayload, QuizSubmissionWithAttendee,
+    ReplyInlineCommentPayload, SaveAiConversationPayload, Step, Submission, SubmissionWithAttendee,
+    UpdateStepsPayload,
+};
 use crate::infrastructure::db_models::AuditLog;
 use anyhow::{anyhow, bail, Context, Result};
 use reqwest::header;
@@ -79,6 +86,19 @@ pub struct UpdateStatusSummary {
 pub struct UpdateCheckSummary {
     pub frontend: UpdateStatusSummary,
     pub backend: UpdateStatusSummary,
+}
+
+/// Response returned when uploading a material asset.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UploadedMaterial {
+    pub url: String,
+    pub original_name: String,
+}
+
+/// Response returned when uploading an image asset.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UploadedImage {
+    pub url: String,
 }
 
 /// Thin wrapper around the backend HTTP API.
@@ -210,14 +230,29 @@ impl ApiClient {
 
     /// Lists codelabs visible to the current session.
     pub async fn list_codelabs(&self) -> Result<Vec<Codelab>> {
-        self.send_authed_json(Method::GET, "/api/codelabs", None)
+        self.send_optional_json(Method::GET, "/api/codelabs", None)
             .await
     }
 
     /// Fetches a single codelab and its ordered steps.
     pub async fn get_codelab(&self, id: &str) -> Result<(Codelab, Vec<Step>)> {
-        self.send_authed_json(Method::GET, &format!("/api/codelabs/{id}"), None)
+        self.send_optional_json(Method::GET, &format!("/api/codelabs/{id}"), None)
             .await
+    }
+
+    /// Returns the built-in reference codelab payload.
+    pub async fn reference_codelabs(&self) -> Result<String> {
+        let response = self
+            .http
+            .get(self.url("/api/codelabs/reference"))
+            .send()
+            .await
+            .context("Failed to call /api/codelabs/reference")?;
+        let response = ensure_success(response, "/api/codelabs/reference").await?;
+        response
+            .text()
+            .await
+            .context("Failed to read /api/codelabs/reference response")
     }
 
     /// Creates a new codelab.
@@ -279,6 +314,478 @@ impl ApiClient {
     pub async fn export_codelab(&self, id: &str) -> Result<Vec<u8>> {
         self.send_authed_bytes(Method::GET, &format!("/api/codelabs/{id}/export"), None)
             .await
+    }
+
+    /// Registers or rejoins an attendee and returns the issued attendee session.
+    pub async fn register_attendee(
+        &self,
+        codelab_id: &str,
+        name: &str,
+        code: &str,
+        email: Option<&str>,
+    ) -> Result<(StoredSession, AttendeePublic)> {
+        let path = format!("/api/codelabs/{codelab_id}/register");
+        let response = self
+            .send_optional(
+                Method::POST,
+                &path,
+                Some(serde_json::json!({
+                    "name": name,
+                    "code": code,
+                    "email": email,
+                })),
+            )
+            .await?;
+        let (mut session, attendee) =
+            read_session_json::<AttendeePublic>(response, &path, &self.base_url).await?;
+        let snapshot = self.fetch_session_with(&session).await?;
+        session.apply_snapshot(&snapshot);
+        Ok((session, attendee))
+    }
+
+    /// Lists attendees for a codelab.
+    pub async fn get_attendees(&self, codelab_id: &str) -> Result<Vec<Attendee>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codelabs/{codelab_id}/attendees"),
+            None,
+        )
+        .await
+    }
+
+    /// Marks the current attendee as completed.
+    pub async fn complete_codelab(&self, codelab_id: &str) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::POST,
+                &format!("/api/codelabs/{codelab_id}/complete"),
+                None,
+            )
+            .await?;
+        ensure_success(response, "/api/codelabs/{id}/complete").await?;
+        Ok(())
+    }
+
+    /// Fetches a certificate payload for a completed attendee.
+    pub async fn get_certificate(&self, attendee_id: &str) -> Result<CertificateInfo> {
+        let response = self
+            .http
+            .get(self.url(&format!("/api/certificates/{attendee_id}")))
+            .send()
+            .await
+            .with_context(|| format!("Failed to call /api/certificates/{attendee_id}"))?;
+        read_json(response, "/api/certificates/{id}").await
+    }
+
+    /// Creates a help request for the current attendee.
+    pub async fn request_help(&self, codelab_id: &str, step_number: i32) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::POST,
+                &format!("/api/codelabs/{codelab_id}/help"),
+                Some(serde_json::json!({ "step_number": step_number })),
+            )
+            .await?;
+        ensure_success(response, "/api/codelabs/{id}/help").await?;
+        Ok(())
+    }
+
+    /// Lists help requests for a codelab.
+    pub async fn get_help_requests(&self, codelab_id: &str) -> Result<Vec<HelpRequest>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codelabs/{codelab_id}/help"),
+            None,
+        )
+        .await
+    }
+
+    /// Resolves a help request.
+    pub async fn resolve_help_request(&self, codelab_id: &str, help_id: &str) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::POST,
+                &format!("/api/codelabs/{codelab_id}/help/{help_id}/resolve"),
+                None,
+            )
+            .await?;
+        ensure_success(response, "/api/codelabs/{id}/help/{help_id}/resolve").await?;
+        Ok(())
+    }
+
+    /// Submits attendee feedback for a codelab.
+    pub async fn submit_feedback(
+        &self,
+        codelab_id: &str,
+        difficulty: &str,
+        satisfaction: &str,
+        comment: Option<&str>,
+    ) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::POST,
+                &format!("/api/codelabs/{codelab_id}/feedback"),
+                Some(serde_json::json!({
+                    "difficulty": difficulty,
+                    "satisfaction": satisfaction,
+                    "comment": comment,
+                })),
+            )
+            .await?;
+        ensure_success(response, "/api/codelabs/{id}/feedback").await?;
+        Ok(())
+    }
+
+    /// Lists feedback rows for a codelab.
+    pub async fn get_feedback(&self, codelab_id: &str) -> Result<Vec<Feedback>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codelabs/{codelab_id}/feedback"),
+            None,
+        )
+        .await
+    }
+
+    /// Lists materials for a codelab.
+    pub async fn get_materials(&self, codelab_id: &str) -> Result<Vec<Material>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codelabs/{codelab_id}/materials"),
+            None,
+        )
+        .await
+    }
+
+    /// Adds a material row to a codelab.
+    pub async fn add_material(
+        &self,
+        codelab_id: &str,
+        payload: &CreateMaterial,
+    ) -> Result<Material> {
+        self.send_authed_json(
+            Method::POST,
+            &format!("/api/codelabs/{codelab_id}/materials"),
+            Some(serde_json::to_value(payload).context("serialize material payload")?),
+        )
+        .await
+    }
+
+    /// Deletes a material row from a codelab.
+    pub async fn delete_material(&self, codelab_id: &str, material_id: &str) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::DELETE,
+                &format!("/api/codelabs/{codelab_id}/materials/{material_id}"),
+                None,
+            )
+            .await?;
+        ensure_success(response, "/api/codelabs/{id}/materials/{material_id}").await?;
+        Ok(())
+    }
+
+    /// Uploads a material file asset.
+    pub async fn upload_material(&self, file_path: &Path) -> Result<UploadedMaterial> {
+        let form = file_form(file_path, "application/octet-stream").await?;
+        self.send_authed_multipart("/api/upload/material", form)
+            .await
+    }
+
+    /// Uploads an image asset and returns its public URL.
+    pub async fn upload_image(&self, file_path: &Path) -> Result<UploadedImage> {
+        let form = file_form(file_path, "application/octet-stream").await?;
+        self.send_authed_multipart("/api/upload/image", form).await
+    }
+
+    /// Lists quizzes for a codelab.
+    pub async fn get_quizzes(&self, codelab_id: &str) -> Result<Vec<Quiz>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codelabs/{codelab_id}/quizzes"),
+            None,
+        )
+        .await
+    }
+
+    /// Replaces the full quiz set for a codelab.
+    pub async fn update_quizzes(&self, codelab_id: &str, quizzes: &[CreateQuiz]) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::PUT,
+                &format!("/api/codelabs/{codelab_id}/quizzes"),
+                Some(serde_json::to_value(quizzes).context("serialize quizzes payload")?),
+            )
+            .await?;
+        ensure_success(response, "/api/codelabs/{id}/quizzes").await?;
+        Ok(())
+    }
+
+    /// Submits quiz answers for the current attendee.
+    pub async fn submit_quiz(
+        &self,
+        codelab_id: &str,
+        payload: &QuizSubmissionPayload,
+    ) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::POST,
+                &format!("/api/codelabs/{codelab_id}/quizzes/submit"),
+                Some(serde_json::to_value(payload).context("serialize quiz submission payload")?),
+            )
+            .await?;
+        ensure_success(response, "/api/codelabs/{id}/quizzes/submit").await?;
+        Ok(())
+    }
+
+    /// Lists quiz submissions for administrators.
+    pub async fn get_quiz_submissions(
+        &self,
+        codelab_id: &str,
+    ) -> Result<Vec<QuizSubmissionWithAttendee>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codelabs/{codelab_id}/quizzes/submissions"),
+            None,
+        )
+        .await
+    }
+
+    /// Lists submissions visible to the current actor.
+    pub async fn get_submissions(&self, codelab_id: &str) -> Result<Vec<SubmissionWithAttendee>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codelabs/{codelab_id}/submissions"),
+            None,
+        )
+        .await
+    }
+
+    /// Uploads a file submission for an attendee.
+    pub async fn submit_submission_file(
+        &self,
+        codelab_id: &str,
+        attendee_id: &str,
+        file_path: &Path,
+    ) -> Result<Submission> {
+        let form = file_form(file_path, "application/octet-stream").await?;
+        self.send_authed_multipart(
+            &format!("/api/codelabs/{codelab_id}/attendees/{attendee_id}/submissions"),
+            form,
+        )
+        .await
+    }
+
+    /// Creates a link submission for an attendee.
+    pub async fn submit_submission_link(
+        &self,
+        codelab_id: &str,
+        attendee_id: &str,
+        url: &str,
+        title: Option<&str>,
+    ) -> Result<Submission> {
+        self.send_authed_json(
+            Method::POST,
+            &format!("/api/codelabs/{codelab_id}/attendees/{attendee_id}/submissions/link"),
+            Some(serde_json::json!({
+                "url": url,
+                "title": title,
+            })),
+        )
+        .await
+    }
+
+    /// Deletes a submission visible to the current actor.
+    pub async fn delete_submission(
+        &self,
+        codelab_id: &str,
+        attendee_id: &str,
+        submission_id: &str,
+    ) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::DELETE,
+                &format!(
+                    "/api/codelabs/{codelab_id}/attendees/{attendee_id}/submissions/{submission_id}"
+                ),
+                None,
+            )
+            .await?;
+        ensure_success(
+            response,
+            "/api/codelabs/{id}/attendees/{attendee_id}/submissions/{submission_id}",
+        )
+        .await?;
+        Ok(())
+    }
+
+    /// Lists chat history for a codelab.
+    pub async fn get_chat_history(&self, codelab_id: &str) -> Result<Vec<ChatMessageRow>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codelabs/{codelab_id}/chat"),
+            None,
+        )
+        .await
+    }
+
+    /// Lists inline comment threads for a codelab.
+    pub async fn get_inline_comments(
+        &self,
+        codelab_id: &str,
+        target_type: Option<&str>,
+        target_step_id: Option<&str>,
+    ) -> Result<Vec<InlineCommentThreadWithMessages>> {
+        let mut serializer = Serializer::new(String::new());
+        if let Some(target_type) = target_type {
+            serializer.append_pair("target_type", target_type);
+        }
+        if let Some(target_step_id) = target_step_id {
+            serializer.append_pair("target_step_id", target_step_id);
+        }
+        let query = serializer.finish();
+        let path = if query.is_empty() {
+            format!("/api/codelabs/{codelab_id}/inline-comments")
+        } else {
+            format!("/api/codelabs/{codelab_id}/inline-comments?{query}")
+        };
+        self.send_authed_json(Method::GET, &path, None).await
+    }
+
+    /// Creates an inline comment thread.
+    pub async fn create_inline_comment(
+        &self,
+        codelab_id: &str,
+        payload: &CreateInlineCommentPayload,
+    ) -> Result<InlineCommentThreadWithMessages> {
+        self.send_authed_json(
+            Method::POST,
+            &format!("/api/codelabs/{codelab_id}/inline-comments"),
+            Some(serde_json::to_value(payload).context("serialize inline comment payload")?),
+        )
+        .await
+    }
+
+    /// Replies to an inline comment thread.
+    pub async fn reply_inline_comment(
+        &self,
+        codelab_id: &str,
+        thread_id: &str,
+        payload: &ReplyInlineCommentPayload,
+    ) -> Result<InlineCommentThreadWithMessages> {
+        self.send_authed_json(
+            Method::POST,
+            &format!("/api/codelabs/{codelab_id}/inline-comments/{thread_id}/comments"),
+            Some(serde_json::to_value(payload).context("serialize inline reply payload")?),
+        )
+        .await
+    }
+
+    /// Deletes an inline comment message.
+    pub async fn delete_inline_comment(
+        &self,
+        codelab_id: &str,
+        thread_id: &str,
+        comment_id: &str,
+    ) -> Result<Value> {
+        self.send_authed_json(
+            Method::DELETE,
+            &format!(
+                "/api/codelabs/{codelab_id}/inline-comments/{thread_id}/comments/{comment_id}"
+            ),
+            None,
+        )
+        .await
+    }
+
+    /// Lists stored AI conversations for a codelab.
+    pub async fn get_ai_conversations(&self, codelab_id: &str) -> Result<Vec<AiConversation>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codelabs/{codelab_id}/ai/conversations"),
+            None,
+        )
+        .await
+    }
+
+    /// Saves a single AI conversation exchange.
+    pub async fn save_ai_conversation(&self, payload: &SaveAiConversationPayload) -> Result<Value> {
+        self.send_authed_json(
+            Method::POST,
+            "/api/ai/conversations",
+            Some(serde_json::to_value(payload).context("serialize ai conversation payload")?),
+        )
+        .await
+    }
+
+    /// Lists AI threads owned by the current admin.
+    pub async fn get_ai_threads(&self) -> Result<Vec<AiThread>> {
+        self.send_authed_json(Method::GET, "/api/ai/threads", None)
+            .await
+    }
+
+    /// Creates an AI thread owned by the current admin.
+    pub async fn create_ai_thread(
+        &self,
+        title: &str,
+        codelab_id: Option<&str>,
+    ) -> Result<AiThread> {
+        self.send_authed_json(
+            Method::POST,
+            "/api/ai/threads",
+            Some(serde_json::json!({
+                "title": title,
+                "codelab_id": codelab_id,
+            })),
+        )
+        .await
+    }
+
+    /// Deletes an AI thread owned by the current admin.
+    pub async fn delete_ai_thread(&self, thread_id: &str) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::DELETE,
+                &format!("/api/ai/threads/{thread_id}"),
+                None,
+            )
+            .await?;
+        ensure_success(response, "/api/ai/threads/{thread_id}").await?;
+        Ok(())
+    }
+
+    /// Lists AI messages for a thread.
+    pub async fn get_ai_messages(&self, thread_id: &str) -> Result<Vec<AiMessage>> {
+        self.send_authed_json(Method::GET, &format!("/api/ai/threads/{thread_id}"), None)
+            .await
+    }
+
+    /// Appends a message to an AI thread.
+    pub async fn add_ai_message(
+        &self,
+        thread_id: &str,
+        payload: &AddAiMessagePayload,
+    ) -> Result<AiMessage> {
+        self.send_authed_json(
+            Method::POST,
+            &format!("/api/ai/threads/{thread_id}"),
+            Some(serde_json::to_value(payload).context("serialize ai message payload")?),
+        )
+        .await
+    }
+
+    /// Sends an AI streaming request and returns the final SSE response body as text.
+    pub async fn stream_ai(&self, payload: &AiRequest) -> Result<String> {
+        let response = self
+            .send_authed(
+                Method::POST,
+                "/api/ai/stream",
+                Some(serde_json::to_value(payload).context("serialize ai stream payload")?),
+            )
+            .await?;
+        let response = ensure_success(response, "/api/ai/stream").await?;
+        response
+            .text()
+            .await
+            .context("Failed to read /api/ai/stream response")
     }
 
     /// Exports a full platform backup archive.
@@ -592,9 +1099,9 @@ impl ApiClient {
     }
 
     fn require_session(&self) -> Result<&StoredSession> {
-        self.session
-            .as_ref()
-            .ok_or_else(|| anyhow!("No saved session. Run `oclabs login` first."))
+        self.session.as_ref().ok_or_else(|| {
+            anyhow!("No saved session. Run `oc auth login` or `oc attendee join` first.")
+        })
     }
 
     async fn fetch_session_with(&self, session: &StoredSession) -> Result<SessionSnapshot> {
@@ -611,6 +1118,16 @@ impl ApiClient {
         body: Option<Value>,
     ) -> Result<T> {
         let response = self.send_authed(method, path, body).await?;
+        read_json(response, path).await
+    }
+
+    async fn send_optional_json<T: DeserializeOwned>(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<Value>,
+    ) -> Result<T> {
+        let response = self.send_optional(method, path, body).await?;
         read_json(response, path).await
     }
 
@@ -645,6 +1162,19 @@ impl ApiClient {
         self.send_with_session(method, path, body, session).await
     }
 
+    async fn send_optional(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<Value>,
+    ) -> Result<Response> {
+        if let Some(session) = &self.session {
+            self.send_with_session(method, path, body, session).await
+        } else {
+            self.send_without_session(method, path, body).await
+        }
+    }
+
     async fn send_with_session(
         &self,
         method: Method,
@@ -665,6 +1195,26 @@ impl ApiClient {
                 session.csrf_token.as_deref().unwrap_or_default(),
             );
         }
+
+        if let Some(body) = body {
+            request = request
+                .header(header::CONTENT_TYPE, "application/json")
+                .json(&body);
+        }
+
+        request
+            .send()
+            .await
+            .with_context(|| format!("Request failed: {path}"))
+    }
+
+    async fn send_without_session(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<Value>,
+    ) -> Result<Response> {
+        let mut request = self.http.request(method, self.url(path));
 
         if let Some(body) = body {
             request = request
