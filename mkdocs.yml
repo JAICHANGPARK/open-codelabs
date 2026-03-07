@@ -76,6 +76,7 @@ plugins:
           Specifications: Specifications
           Overview: Overview
           Feature Specs: Feature Specs
+          CLI Proposal and Matrix: CLI Proposal and Matrix
           Database Schema: Database Schema
           API Reference: API Reference
           Architecture: Architecture
@@ -146,6 +147,7 @@ nav:
   - 프로젝트 명세:
       - 개요: specification/overview.md
       - 기능 명세: specification/features.md
+      - CLI 제안 및 매트릭스: specification/cli-proposal.md
       - 데이터베이스 스키마: specification/database-schema.md
       - API 레퍼런스: specification/api-reference.md
   - 아키텍처:
