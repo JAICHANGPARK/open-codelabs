@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Payload used to provision a workspace for a codelab.
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct CreateCodeServerRequest {
     /// Target codelab identifier.
     pub codelab_id: String,
@@ -21,7 +21,7 @@ pub struct WorkspaceFile {
 }
 
 /// Response returned for an existing provisioned workspace.
-#[derive(Serialize)]
+#[derive(Serialize, Deserialize)]
 pub struct CodeServerInfo {
     /// Filesystem path of the workspace root.
     pub path: String,
@@ -30,7 +30,7 @@ pub struct CodeServerInfo {
 }
 
 /// Payload used to create a git branch snapshot for a step.
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct CreateBranchRequest {
     /// Step number used to derive the branch name.
     pub step_number: i32,
@@ -39,7 +39,7 @@ pub struct CreateBranchRequest {
 }
 
 /// Payload used to create a folder snapshot for a step.
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct CreateFolderRequest {
     /// Step number used to derive the folder name.
     pub step_number: i32,
@@ -50,7 +50,7 @@ pub struct CreateFolderRequest {
 }
 
 /// Payload used to update a branch or folder workspace in place.
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct UpdateWorkspaceFilesRequest {
     /// Files to create or overwrite.
     pub files: Vec<WorkspaceFile>,
@@ -61,7 +61,7 @@ pub struct UpdateWorkspaceFilesRequest {
 }
 
 /// Query parameter used when reading a single file from a workspace.
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 pub struct ReadFileQuery {
     /// Relative file path inside the workspace.
     pub file: String,

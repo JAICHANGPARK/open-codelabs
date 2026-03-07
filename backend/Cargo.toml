@@ -61,3 +61,8 @@ test = false
 name = "ws_bench"
 path = "src/bin/ws_bench.rs"
 test = false
+
+[[bin]]
+name = "oclabs"
+path = "src/bin/oclabs.rs"
+test = false

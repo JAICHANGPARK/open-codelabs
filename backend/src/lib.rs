@@ -5,6 +5,8 @@
 
 /// HTTP routes, DTOs, and handlers exposed by the server.
 pub mod api;
+/// Shared helpers for the administrative CLI binary.
+pub mod cli;
 /// Shared business models and service helpers used across handlers.
 pub mod domain;
 /// Runtime configuration, database state, and persistence-facing models.
