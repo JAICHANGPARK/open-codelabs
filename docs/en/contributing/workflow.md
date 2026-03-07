@@ -329,35 +329,31 @@ git push --force-with-lease
 
 ### Version Management
 
-Use [Semantic Versioning](https://semver.org/):
+Use [Calendar Versioning](https://calver.org/):
 
-- `MAJOR.MINOR.PATCH`
-- e.g., `1.2.3`
+- `YYYY.M.D`
+- e.g., `2026.3.7`
 
 ### Preparing a Release
 
 ```bash
-# Update versions
-# backend/Cargo.toml
-version = "1.2.0"
-
-# frontend/package.json
-"version": "1.2.0"
+# Update and sync the shared version
+node ./scripts/set-version.mjs 2026.3.7
 
 # Create tag
-git tag -a v1.2.0 -m "Release version 1.2.0"
-git push origin v1.2.0
+git tag -a v2026.3.7 -m "Release version 2026.3.7"
+git push origin v2026.3.7
 ```
 
 ### GitHub Release
 
 1. Click "Releases" on GitHub.
 2. Click "Draft a new release".
-3. Select tag: `v1.2.0`.
+3. Select tag: `v2026.3.7`.
 4. Write release notes:
 
 ```markdown
-## What's New in v1.2.0
+## What's New in v2026.3.7
 
 ### Features
 - Add feedback export API (#123)

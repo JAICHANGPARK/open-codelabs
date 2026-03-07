@@ -329,35 +329,31 @@ git push --force-with-lease
 
 ### 버전 관리
 
-[Semantic Versioning](https://semver.org/) 사용:
+[Calendar Versioning](https://calver.org/) 사용:
 
-- `MAJOR.MINOR.PATCH`
-- 예: `1.2.3`
+- `YYYY.M.D`
+- 예: `2026.3.7`
 
 ### 릴리스 준비
 
 ```bash
-# 버전 업데이트
-# backend/Cargo.toml
-version = "1.2.0"
-
-# frontend/package.json
-"version": "1.2.0"
+# 공통 버전 업데이트 및 동기화
+node ./scripts/set-version.mjs 2026.3.7
 
 # 태그 생성
-git tag -a v1.2.0 -m "Release version 1.2.0"
-git push origin v1.2.0
+git tag -a v2026.3.7 -m "Release version 2026.3.7"
+git push origin v2026.3.7
 ```
 
 ### GitHub Release
 
 1. GitHub에서 "Releases" 클릭
 2. "Draft a new release" 클릭
-3. 태그 선택: `v1.2.0`
+3. 태그 선택: `v2026.3.7`
 4. 릴리스 노트 작성:
 
 ```markdown
-## What's New in v1.2.0
+## What's New in v2026.3.7
 
 ### Features
 - Add feedback export API (#123)
