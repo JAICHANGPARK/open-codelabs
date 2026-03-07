@@ -28,7 +28,7 @@
 
 	let lang = $state("ko");
 	let isDark = $state(true); // Default to dark mode
-	let quickstartType = $state("docker"); // 'docker' or 'podman'
+	let quickstartType = $state("docker"); // 'docker', 'podman', or 'cli'
 
 	onMount(() => {
 		const observer = new IntersectionObserver(
@@ -117,41 +117,79 @@
 					: "Ready in 5 minutes",
 			desc:
 				lang === "ko"
-					? "Docker 또는 Podman을 사용하여 복잡한 설정 없이 즉시 실행할 수 있습니다."
-					: "Launch instantly with Docker or Podman, no complex setup required.",
+					? "Docker, Podman, 또는 `oc` CLI로 복잡한 설정 없이 바로 시작할 수 있습니다."
+					: "Start with Docker, Podman, or the `oc` CLI without complex setup.",
 			tabs: {
 				docker: "Docker",
 				podman: "Podman",
+				cli: "CLI",
 			},
-			steps: [
-				{
-					title: lang === "ko" ? "저장소 클론" : "Clone Repository",
-					code: "git clone https://github.com/jaichangpark/open-codelabs.git\ncd open-codelabs",
-				},
-				{
-					title: lang === "ko" ? "컨테이너 실행" : "Run Container",
-					code:
-						(lang === "ko"
-							? "# 소스 빌드\n"
-							: "# Build from source\n") +
-						(quickstartType === "docker"
-							? "docker compose up --build\n"
-							: "podman-compose up --build\n") +
-						(lang === "ko"
-							? "# GitHub 이미지\n"
-							: "# GitHub image\n") +
-						(quickstartType === "docker"
-							? "docker compose -f docker-compose.images.yml up"
-							: "podman-compose -f docker-compose.images.yml up"),
-				},
-				{
-					title: lang === "ko" ? "접속 및 관리" : "Access & Manage",
-					desc:
-						lang === "ko"
-							? "http://localhost:5173 에 접속하여 관리를 시작하세요."
-							: "Open http://localhost:5173 to start managing.",
-				},
-			],
+			steps:
+				quickstartType === "cli"
+					? [
+							{
+								title:
+									lang === "ko"
+										? "CLI 설치"
+										: "Install the CLI",
+								code:
+									"git clone https://github.com/jaichangpark/open-codelabs.git\ncd open-codelabs\ncargo install --path backend --bin oc",
+							},
+							{
+								title:
+									lang === "ko"
+										? "로컬 스택 실행"
+										: "Start the local stack",
+								code:
+									"oc run --open\noc ps\noc logs --service backend --tail 100 --no-follow",
+							},
+							{
+								title:
+									lang === "ko"
+										? "연결 및 인증"
+										: "Connect and authenticate",
+								code:
+									"oc connect add --name local --url http://localhost:8080 --runtime backend --activate\noc auth login\noc codelab list",
+							},
+						]
+					: [
+							{
+								title:
+									lang === "ko"
+										? "저장소 클론"
+										: "Clone Repository",
+								code: "git clone https://github.com/jaichangpark/open-codelabs.git\ncd open-codelabs",
+							},
+							{
+								title:
+									lang === "ko"
+										? "컨테이너 실행"
+										: "Run Container",
+								code:
+									(lang === "ko"
+										? "# 소스 빌드\n"
+										: "# Build from source\n") +
+									(quickstartType === "docker"
+										? "docker compose up --build\n"
+										: "podman-compose up --build\n") +
+									(lang === "ko"
+										? "# GitHub 이미지\n"
+										: "# GitHub image\n") +
+									(quickstartType === "docker"
+										? "docker compose -f docker-compose.images.yml up"
+										: "podman-compose -f docker-compose.images.yml up"),
+							},
+							{
+								title:
+									lang === "ko"
+										? "접속 및 관리"
+										: "Access & Manage",
+								desc:
+									lang === "ko"
+										? "http://localhost:5173 에 접속하여 관리를 시작하세요."
+										: "Open http://localhost:5173 to start managing.",
+							},
+						],
 		},
 		features: {
 			title:
@@ -182,6 +220,17 @@
 						lang === "ko"
 							? "Google Gemini AI를 사용하여 고품질의 코드랩을 즉시 생성할 수 있습니다."
 							: "Generate high-quality codelab content instantly with AI assistance.",
+				},
+				{
+					icon: Rocket,
+					title:
+						lang === "ko"
+							? "CLI 운영 자동화"
+							: "CLI-first operations",
+					description:
+						lang === "ko"
+							? "`oc run`, `connect`, `auth`로 로컬 스택 실행부터 관리자 작업, 자동화 스크립트까지 터미널에서 처리합니다."
+							: "Use `oc run`, `connect`, and `auth` to launch stacks, manage workshops, and script automation from the terminal.",
 				},
 				{
 					icon: Shield,
@@ -909,7 +958,7 @@
 				</p>
 			</div>
 
-			<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+			<div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
 				{#each content.features.items as feature}
 					<div
 						class="p-8 rounded-3xl border transition-all group hover:shadow-2xl reveal {isDark
@@ -2025,6 +2074,22 @@
 						tabindex={quickstartType === "podman" ? 0 : -1}
 					>
 						{content.quickstart.tabs.podman}
+					</button>
+					<button
+						onclick={() => (quickstartType = "cli")}
+						id="quickstart-tab-cli"
+						class="px-6 py-2 rounded-lg text-sm font-bold transition-all {quickstartType ===
+						'cli'
+							? isDark
+								? 'bg-neutral-700 text-white shadow-lg'
+								: 'bg-white text-blue-600 shadow-sm'
+							: 'text-neutral-500 hover:text-neutral-400'}"
+						role="tab"
+						aria-selected={quickstartType === "cli"}
+						aria-controls="quickstart-panel"
+						tabindex={quickstartType === "cli" ? 0 : -1}
+					>
+						{content.quickstart.tabs.cli}
 					</button>
 				</div>
 			</div>
