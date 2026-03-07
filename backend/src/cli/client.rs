@@ -1,4 +1,4 @@
-//! HTTP client used by the `oclabs` administrative CLI.
+//! HTTP client used by the `oc` CLI.
 
 use crate::api::dto::{
     AiRequest, CliAuthExchangeRequest, CliAuthExchangeResponse, CliAuthPollResponse,

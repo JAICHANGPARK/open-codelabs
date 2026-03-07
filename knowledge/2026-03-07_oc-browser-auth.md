@@ -45,7 +45,6 @@
 
 - `cargo test api::handlers::cli --lib -- --nocapture`
 - `cargo test --bin oc --no-run`
-- `cargo test --bin oclabs --no-run`
 - `cargo run --bin oc -- auth status --json`
 
 `api::handlers::cli::tests::browser_auth_flow_round_trips` 테스트로 start -> approve -> poll -> exchange 전체 흐름을 검증했다.

@@ -9,7 +9,7 @@ COPY Cargo.toml Cargo.lock ./
 RUN mkdir -p src/bin && \
     echo "fn main() {}" > src/main.rs && \
     echo "fn main() {}" > src/bin/local_bench.rs && \
-    echo "fn main() {}" > src/bin/oclabs.rs && \
+    echo "fn main() {}" > src/bin/oc.rs && \
     echo "fn main() {}" > src/bin/ops_bench.rs && \
     echo "fn main() {}" > src/bin/ws_bench.rs
 RUN cargo build --release

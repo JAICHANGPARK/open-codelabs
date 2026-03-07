@@ -66,13 +66,11 @@ CLI는 아래 네 가지 문제를 해결해야 합니다.
 
 ### 제안하는 명령 이름
 
-작업용 문서 기준으로는 `oclabs`를 가칭으로 사용합니다.
+CLI 명령 이름은 `oc`로 고정합니다.
 
-- `oc`는 OpenShift CLI와 충돌 가능성이 큽니다.
-- `open-codelabs`는 설명적이지만 매번 입력하기 깁니다.
-- `oclabs`는 충돌 가능성이 낮고 저장소 이름과도 가깝습니다.
-
-최종 명칭은 구현 직전 확정해도 되지만, 문서와 설계에서는 하나로 고정하는 편이 좋습니다.
+- 구현과 문서가 이미 `oc` 기준으로 정리되어 있습니다.
+- 길이가 짧아 반복 사용에 유리합니다.
+- 충돌 가능성은 남아 있지만, Open Codelabs 저장소 문맥에서는 일관성이 더 중요합니다.
 
 ## 구현 가능성 근거
 
@@ -117,23 +115,23 @@ CLI는 아래 네 가지 문제를 해결해야 합니다.
 ### MVP 명령군
 
 ```text
-oclabs login
-oclabs session
-oclabs public up
-oclabs codelab list
-oclabs codelab create
-oclabs codelab export
-oclabs codelab import
-oclabs codelab push-steps
-oclabs backup export
-oclabs backup inspect
-oclabs backup restore
-oclabs workspace create
-oclabs workspace download
-oclabs audit logs
-oclabs bench local
-oclabs bench ops
-oclabs bench ws
+oc auth login
+oc auth status
+oc public up
+oc codelab list
+oc codelab create
+oc codelab export
+oc codelab import
+oc codelab push-steps
+oc backup export
+oc backup inspect
+oc backup restore
+oc workspace create
+oc workspace download
+oc audit logs
+oc bench local
+oc bench ops
+oc bench ws
 ```
 
 ### MVP에서 의도적으로 제외할 것
@@ -196,7 +194,7 @@ materials: []
 quizzes: []
 ```
 
-이 포맷은 추후 `oclabs codelab push` 같은 상위 명령으로 확장할 수 있습니다.
+이 포맷은 추후 `oc codelab push` 같은 상위 명령으로 확장할 수 있습니다.
 
 ## 설계 원칙
 
@@ -228,8 +226,8 @@ quizzes: []
 - 포맷이 흔들리면 CLI가 단순 API 래퍼에 머물게 된다.
 
 ### 명령 이름 충돌
-- 바이너리 이름은 구현 전에 확정해야 한다.
-- `oc`는 피하는 쪽이 안전하다.
+- `oc`는 다른 도구와 충돌 가능성이 있다.
+- 다만 현재 저장소에서는 이미 `oc`로 구현되어 있어 문서/배포 일관성을 유지하는 편이 낫다.
 
 ### 제품 포지셔닝 혼선
 - 참가자 CLI를 만들 것처럼 보이면 범위가 급격히 커진다.

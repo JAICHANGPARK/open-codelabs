@@ -63,11 +63,6 @@ path = "src/bin/ws_bench.rs"
 test = false
 
 [[bin]]
-name = "oclabs"
-path = "src/bin/oclabs.rs"
-test = false
-
-[[bin]]
 name = "oc"
 path = "src/bin/oc.rs"
 test = false
