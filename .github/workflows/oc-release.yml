@@ -1,0 +1,105 @@
+name: Release oc artifacts
+
+on:
+  push:
+    tags:
+      - "oc-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            archive_ext: tar.gz
+            binary_name: oc
+          - os: macos-13
+            target: x86_64-apple-darwin
+            archive_ext: tar.gz
+            binary_name: oc
+          - os: macos-14
+            target: aarch64-apple-darwin
+            archive_ext: tar.gz
+            binary_name: oc
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            archive_ext: zip
+            binary_name: oc.exe
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          target: ${{ matrix.target }}
+
+      - name: Build release binary
+        working-directory: backend
+        run: cargo build --locked --release --bin oc
+
+      - name: Compute version metadata
+        id: meta
+        shell: bash
+        run: |
+          REF_NAME="${GITHUB_REF_NAME}"
+          if [[ "${REF_NAME}" == oc-v* ]]; then
+            VERSION="${REF_NAME#oc-v}"
+          else
+            VERSION="${REF_NAME}"
+          fi
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          echo "package_dir=oc-${VERSION}-${{ matrix.target }}" >> "${GITHUB_OUTPUT}"
+
+      - name: Package archive (Unix)
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          PACKAGE_DIR="${{ steps.meta.outputs.package_dir }}"
+          mkdir -p "dist/${PACKAGE_DIR}"
+          cp "backend/target/release/${{ matrix.binary_name }}" "dist/${PACKAGE_DIR}/oc"
+          cp README.md LICENSE "dist/${PACKAGE_DIR}/"
+          tar -C dist -czf "dist/${PACKAGE_DIR}.tar.gz" "${PACKAGE_DIR}"
+
+      - name: Package archive (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $packageDir = "${{ steps.meta.outputs.package_dir }}"
+          New-Item -ItemType Directory -Force -Path "dist/$packageDir" | Out-Null
+          Copy-Item "backend/target/release/${{ matrix.binary_name }}" "dist/$packageDir/oc.exe"
+          Copy-Item "README.md" "dist/$packageDir/README.md"
+          Copy-Item "LICENSE" "dist/$packageDir/LICENSE"
+          Compress-Archive -Path "dist/$packageDir/*" -DestinationPath "dist/$packageDir.zip" -Force
+
+      - name: Upload packaged artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.meta.outputs.package_dir }}
+          path: dist/*.${{ matrix.archive_ext }}
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub release assets
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Publish release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
