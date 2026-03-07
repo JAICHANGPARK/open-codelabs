@@ -1,7 +1,7 @@
 use crate::api::dto::{
     CliRuntimeCapabilities, CliRuntimeInfo, CodeServerInfo, CreateCodeServerRequest, WorkspaceFile,
 };
-use crate::cli::client::{ApiClient, BackupSummary};
+use crate::cli::client::{ApiClient, BackupSummary, UpdateCheckSummary};
 use crate::cli::config::{
     default_config_path, default_profile_session_path, load_config, save_config, CliConfig,
     ConnectionProfile, RuntimePreference,
@@ -12,6 +12,7 @@ use crate::cli::session::{
 use crate::domain::models::{Codelab, CreateCodelab, CreateStep, Step, UpdateStepsPayload};
 use crate::infrastructure::db_models::AuditLog;
 use crate::middleware::auth::now_epoch_seconds;
+use crate::utils::crypto::encrypt_with_password;
 use anyhow::{anyhow, bail, Context, Result};
 use serde::Serialize;
 use serde_json::Value;
@@ -44,6 +45,7 @@ impl Default for GlobalOptions {
 #[derive(Debug)]
 enum Command {
     Help,
+    Admin(AdminCommand),
     Auth(AuthCommand),
     Connect(ConnectCommand),
     Login(LoginCommand),
@@ -89,13 +91,42 @@ enum ConnectCommand {
 }
 
 #[derive(Debug)]
+enum AdminCommand {
+    Settings {
+        gemini_api_key: String,
+        admin_password: Option<String>,
+    },
+    Updates,
+}
+
+#[derive(Debug)]
 enum CodelabCommand {
     List,
-    Get { id: String },
+    Get {
+        id: String,
+    },
     Create(CreateCodelabCommand),
-    Export { id: String, output: Option<PathBuf> },
-    Import { file: PathBuf },
-    PushSteps { id: String, file: PathBuf },
+    Update {
+        id: String,
+        command: CreateCodelabCommand,
+    },
+    Delete {
+        id: String,
+    },
+    Copy {
+        id: String,
+    },
+    Export {
+        id: String,
+        output: Option<PathBuf>,
+    },
+    Import {
+        file: PathBuf,
+    },
+    PushSteps {
+        id: String,
+        file: PathBuf,
+    },
 }
 
 #[derive(Debug)]
@@ -204,6 +235,9 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
     match command {
         Command::Help => {
             print_help();
+        }
+        Command::Admin(command) => {
+            run_admin_command(&global, command).await?;
         }
         Command::Auth(command) => {
             run_auth_command(&global, command).await?;
@@ -501,6 +535,64 @@ async fn run_auth_command(global: &GlobalOptions, command: AuthCommand) -> Resul
     Ok(())
 }
 
+async fn run_admin_command(global: &GlobalOptions, command: AdminCommand) -> Result<()> {
+    let config = load_config(&global.config_file)?;
+    let active_profile = resolve_active_profile(global, &config)?;
+    let session_file = resolve_session_file(global, active_profile.as_ref());
+    let session = load_session(&session_file).with_context(|| {
+        format!(
+            "No saved session found. Run `{}` auth login first.",
+            program_name()
+        )
+    })?;
+    let base_url = resolve_base_url(
+        global.base_url.as_deref(),
+        active_profile.as_ref().map(|(_, profile)| profile),
+        Some(&session),
+    );
+    let client = ApiClient::new(base_url, Some(session))?;
+
+    match command {
+        AdminCommand::Settings {
+            gemini_api_key,
+            admin_password,
+        } => {
+            let encrypted = if gemini_api_key.is_empty() {
+                String::new()
+            } else {
+                let password = admin_password
+                    .or_else(|| env::var("OPEN_CODELABS_ADMIN_PW").ok())
+                    .ok_or_else(|| {
+                        anyhow!(
+                            "Missing admin password. Use --admin-password or OPEN_CODELABS_ADMIN_PW to encrypt the key."
+                        )
+                    })?;
+                encrypt_with_password(&gemini_api_key, &password)
+                    .map_err(|error| anyhow!("Failed to encrypt Gemini API key: {error}"))?
+            };
+            client.save_admin_settings(&encrypted).await?;
+
+            if global.json {
+                print_json(&serde_json::json!({ "status": "ok" }))?;
+            } else if gemini_api_key.is_empty() {
+                println!("Cleared Gemini API key");
+            } else {
+                println!("Updated Gemini API key");
+            }
+        }
+        AdminCommand::Updates => {
+            let updates = client.check_updates().await?;
+            if global.json {
+                print_json(&updates)?;
+            } else {
+                print_updates_summary(&updates);
+            }
+        }
+    }
+
+    Ok(())
+}
+
 async fn run_codelab_command(
     global: &GlobalOptions,
     client: &ApiClient,
@@ -527,28 +619,8 @@ async fn run_codelab_command(
             }
         }
         CodelabCommand::Create(command) => {
-            let guide_markdown = match command.guide_file {
-                Some(path) => Some(
-                    tokio::fs::read_to_string(&path)
-                        .await
-                        .with_context(|| format!("Failed to read {}", path.display()))?,
-                ),
-                None => None,
-            };
-
-            let codelab = client
-                .create_codelab(&CreateCodelab {
-                    title: command.title,
-                    description: command.description,
-                    author: command.author,
-                    is_public: Some(command.is_public),
-                    quiz_enabled: Some(command.quiz_enabled),
-                    require_quiz: Some(command.require_quiz),
-                    require_feedback: Some(command.require_feedback),
-                    require_submission: Some(command.require_submission),
-                    guide_markdown,
-                })
-                .await?;
+            let payload = build_codelab_payload(command).await?;
+            let codelab = client.create_codelab(&payload).await?;
 
             if global.json {
                 print_json(&codelab)?;
@@ -556,6 +628,34 @@ async fn run_codelab_command(
                 println!("Created codelab {}", codelab.id);
                 println!("title: {}", codelab.title);
                 println!("author: {}", codelab.author);
+            }
+        }
+        CodelabCommand::Update { id, command } => {
+            let payload = build_codelab_payload(command).await?;
+            let codelab = client.update_codelab(&id, &payload).await?;
+            if global.json {
+                print_json(&codelab)?;
+            } else {
+                println!("Updated codelab {}", codelab.id);
+                println!("title: {}", codelab.title);
+                println!("author: {}", codelab.author);
+            }
+        }
+        CodelabCommand::Delete { id } => {
+            client.delete_codelab(&id).await?;
+            if global.json {
+                print_json(&serde_json::json!({ "status": "ok", "codelab_id": id }))?;
+            } else {
+                println!("Deleted codelab {id}");
+            }
+        }
+        CodelabCommand::Copy { id } => {
+            let codelab = client.copy_codelab(&id).await?;
+            if global.json {
+                print_json(&codelab)?;
+            } else {
+                println!("Copied codelab {} to {}", id, codelab.id);
+                println!("title: {}", codelab.title);
             }
         }
         CodelabCommand::Export { id, output } => {
@@ -598,6 +698,29 @@ async fn run_codelab_command(
         }
     }
     Ok(())
+}
+
+async fn build_codelab_payload(command: CreateCodelabCommand) -> Result<CreateCodelab> {
+    let guide_markdown = match command.guide_file {
+        Some(path) => Some(
+            tokio::fs::read_to_string(&path)
+                .await
+                .with_context(|| format!("Failed to read {}", path.display()))?,
+        ),
+        None => None,
+    };
+
+    Ok(CreateCodelab {
+        title: command.title,
+        description: command.description,
+        author: command.author,
+        is_public: Some(command.is_public),
+        quiz_enabled: Some(command.quiz_enabled),
+        require_quiz: Some(command.require_quiz),
+        require_feedback: Some(command.require_feedback),
+        require_submission: Some(command.require_submission),
+        guide_markdown,
+    })
 }
 
 async fn run_backup_command(
@@ -1201,6 +1324,27 @@ fn print_workspace_info(info: &CodeServerInfo) {
     println!("structure_type: {}", info.structure_type);
 }
 
+fn print_updates_summary(summary: &UpdateCheckSummary) {
+    println!(
+        "{:<10} {:<12} {:<12} {:<8} {}",
+        "component", "current", "latest", "update", "error"
+    );
+    println!("{}", "-".repeat(88));
+    for (name, status) in [
+        ("frontend", &summary.frontend),
+        ("backend", &summary.backend),
+    ] {
+        println!(
+            "{:<10} {:<12} {:<12} {:<8} {}",
+            name,
+            status.current.as_deref().unwrap_or("-"),
+            status.latest.as_deref().unwrap_or("-"),
+            if status.update_available { "yes" } else { "no" },
+            status.error.as_deref().unwrap_or("-")
+        );
+    }
+}
+
 fn print_connect_profiles(config: &CliConfig) {
     if config.profiles.is_empty() {
         println!("No saved profiles.");
@@ -1329,6 +1473,7 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
     };
 
     let command = match command.as_str() {
+        "admin" => Command::Admin(parse_admin(&mut args)?),
         "auth" => Command::Auth(parse_auth(&mut args)?),
         "connect" => Command::Connect(parse_connect(&mut args)?),
         "login" => Command::Login(parse_login(&mut args)?),
@@ -1344,6 +1489,39 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
 
     args.ensure_exhausted()?;
     Ok((global, command))
+}
+
+fn parse_admin(args: &mut Args) -> Result<AdminCommand> {
+    let Some(subcommand) = args.next() else {
+        return Err(help_error("admin"));
+    };
+
+    match subcommand.as_str() {
+        "settings" => {
+            let mut gemini_api_key = None;
+            let mut admin_password = None;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--gemini-api-key" => {
+                        gemini_api_key = Some(args.next_required("--gemini-api-key")?)
+                    }
+                    "--admin-password" => {
+                        admin_password = Some(args.next_required("--admin-password")?)
+                    }
+                    "-h" | "--help" => return Err(help_error("admin settings")),
+                    other => bail!("Unknown admin settings option: {other}"),
+                }
+            }
+
+            Ok(AdminCommand::Settings {
+                gemini_api_key: gemini_api_key.unwrap_or_default(),
+                admin_password,
+            })
+        }
+        "updates" => Ok(AdminCommand::Updates),
+        _ => Err(help_error("admin")),
+    }
 }
 
 fn parse_auth(args: &mut Args) -> Result<AuthCommand> {
@@ -1494,6 +1672,13 @@ fn parse_codelab(args: &mut Args) -> Result<CodelabCommand> {
             id: parse_required_string_flag(args, "--id", "codelab get")?,
         }),
         "create" => parse_create_codelab(args),
+        "update" => parse_update_codelab(args),
+        "delete" => Ok(CodelabCommand::Delete {
+            id: parse_required_string_flag(args, "--id", "codelab delete")?,
+        }),
+        "copy" => Ok(CodelabCommand::Copy {
+            id: parse_required_string_flag(args, "--id", "codelab copy")?,
+        }),
         "export" => parse_codelab_export(args),
         "import" => Ok(CodelabCommand::Import {
             file: PathBuf::from(parse_required_string_flag(
@@ -1545,6 +1730,51 @@ fn parse_create_codelab(args: &mut Args) -> Result<CodelabCommand> {
         require_submission,
         guide_file,
     }))
+}
+
+fn parse_update_codelab(args: &mut Args) -> Result<CodelabCommand> {
+    let mut id = None;
+    let mut title = None;
+    let mut description = None;
+    let mut author = None;
+    let mut guide_file = None;
+    let mut is_public = true;
+    let mut quiz_enabled = false;
+    let mut require_quiz = false;
+    let mut require_feedback = false;
+    let mut require_submission = false;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--id" => id = Some(args.next_required("--id")?),
+            "--title" => title = Some(args.next_required("--title")?),
+            "--description" => description = Some(args.next_required("--description")?),
+            "--author" => author = Some(args.next_required("--author")?),
+            "--guide-file" => guide_file = Some(PathBuf::from(args.next_required("--guide-file")?)),
+            "--private" => is_public = false,
+            "--quiz-enabled" => quiz_enabled = true,
+            "--require-quiz" => require_quiz = true,
+            "--require-feedback" => require_feedback = true,
+            "--require-submission" => require_submission = true,
+            "-h" | "--help" => return Err(help_error("codelab update")),
+            other => bail!("Unknown codelab update option: {other}"),
+        }
+    }
+
+    Ok(CodelabCommand::Update {
+        id: id.ok_or_else(|| anyhow!("Missing --id"))?,
+        command: CreateCodelabCommand {
+            title: title.ok_or_else(|| anyhow!("Missing --title"))?,
+            description: description.ok_or_else(|| anyhow!("Missing --description"))?,
+            author: author.ok_or_else(|| anyhow!("Missing --author"))?,
+            is_public,
+            quiz_enabled,
+            require_quiz,
+            require_feedback,
+            require_submission,
+            guide_file,
+        },
+    })
 }
 
 fn parse_codelab_export(args: &mut Args) -> Result<CodelabCommand> {
@@ -1825,6 +2055,8 @@ Global options:
   -h, --help              Show this help
 
 Commands:
+  admin settings [--gemini-api-key <key>] [--admin-password <pw>]
+  admin updates
   auth login [--no-open]
   auth logout
   auth status
@@ -1838,6 +2070,9 @@ Commands:
   codelab list
   codelab get --id <id>
   codelab create --title <title> --description <desc> --author <author> [--private] [--guide-file <path>] [--quiz-enabled] [--require-quiz] [--require-feedback] [--require-submission]
+  codelab update --id <id> --title <title> --description <desc> --author <author> [--private] [--guide-file <path>] [--quiz-enabled] [--require-quiz] [--require-feedback] [--require-submission]
+  codelab delete --id <id>
+  codelab copy --id <id>
   codelab export --id <id> [--output <path>]
   codelab import --file <zip>
   codelab push-steps --id <id> --file <json>

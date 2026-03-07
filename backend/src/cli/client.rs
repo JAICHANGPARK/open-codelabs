@@ -3,7 +3,7 @@
 use crate::api::dto::{
     CliAuthExchangeRequest, CliAuthExchangeResponse, CliAuthPollResponse, CliAuthStartResponse,
     CliRuntimeInfo, CodeServerInfo, CreateBranchRequest, CreateCodeServerRequest,
-    CreateFolderRequest, WorkspaceFile,
+    CreateFolderRequest, UpdateWorkspaceFilesRequest, WorkspaceFile,
 };
 use crate::cli::session::{SessionSnapshot, StoredSession};
 use crate::domain::models::{Codelab, CreateCodelab, LoginPayload, Step, UpdateStepsPayload};
@@ -63,6 +63,22 @@ pub struct BackupSummary {
     pub uploads_files: usize,
     /// Number of workspace files found in the ZIP.
     pub workspaces_files: usize,
+}
+
+/// Update status for a deployed component.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UpdateStatusSummary {
+    pub current: Option<String>,
+    pub latest: Option<String>,
+    pub update_available: bool,
+    pub error: Option<String>,
+}
+
+/// Combined update summary returned by `/api/admin/updates`.
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UpdateCheckSummary {
+    pub frontend: UpdateStatusSummary,
+    pub backend: UpdateStatusSummary,
 }
 
 /// Thin wrapper around the backend HTTP API.
@@ -214,6 +230,31 @@ impl ApiClient {
         .await
     }
 
+    /// Updates existing codelab metadata.
+    pub async fn update_codelab(&self, id: &str, payload: &CreateCodelab) -> Result<Codelab> {
+        self.send_authed_json(
+            Method::PUT,
+            &format!("/api/codelabs/{id}"),
+            Some(serde_json::to_value(payload).context("serialize update payload")?),
+        )
+        .await
+    }
+
+    /// Deletes a codelab and all related data.
+    pub async fn delete_codelab(&self, id: &str) -> Result<()> {
+        let response = self
+            .send_authed(Method::DELETE, &format!("/api/codelabs/{id}"), None)
+            .await?;
+        ensure_success(response, "/api/codelabs/{id}").await?;
+        Ok(())
+    }
+
+    /// Copies a codelab including its steps.
+    pub async fn copy_codelab(&self, id: &str) -> Result<Codelab> {
+        self.send_authed_json(Method::POST, &format!("/api/codelabs/{id}/copy"), None)
+            .await
+    }
+
     /// Uploads a replacement step list from a JSON payload.
     pub async fn push_steps(&self, id: &str, payload: &UpdateStepsPayload) -> Result<()> {
         let response = self
@@ -243,6 +284,25 @@ impl ApiClient {
     /// Exports a full platform backup archive.
     pub async fn export_backup(&self) -> Result<Vec<u8>> {
         self.send_authed_bytes(Method::GET, "/api/admin/backup/export", None)
+            .await
+    }
+
+    /// Updates encrypted administrator settings.
+    pub async fn save_admin_settings(&self, gemini_api_key: &str) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::POST,
+                "/api/admin/settings",
+                Some(serde_json::json!({ "gemini_api_key": gemini_api_key })),
+            )
+            .await?;
+        ensure_success(response, "/api/admin/settings").await?;
+        Ok(())
+    }
+
+    /// Checks frontend/backend image versions.
+    pub async fn check_updates(&self) -> Result<UpdateCheckSummary> {
+        self.send_authed_json(Method::GET, "/api/admin/updates", None)
             .await
     }
 
@@ -355,6 +415,128 @@ impl ApiClient {
             )
             .await?;
         ensure_success(response, "/api/codeserver/{codelab_id}/folder").await?;
+        Ok(())
+    }
+
+    /// Lists files in a workspace branch.
+    pub async fn list_workspace_files(
+        &self,
+        codelab_id: &str,
+        branch: &str,
+    ) -> Result<Vec<String>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codeserver/{codelab_id}/branches/{branch}/files"),
+            None,
+        )
+        .await
+    }
+
+    /// Reads a workspace file from a branch.
+    pub async fn read_workspace_file(
+        &self,
+        codelab_id: &str,
+        branch: &str,
+        file: &str,
+    ) -> Result<String> {
+        let mut serializer = Serializer::new(String::new());
+        serializer.append_pair("file", file);
+        let path = format!(
+            "/api/codeserver/{codelab_id}/branches/{branch}/file?{}",
+            serializer.finish()
+        );
+        let response = self.send_authed(Method::GET, &path, None).await?;
+        let response = ensure_success(
+            response,
+            "/api/codeserver/{codelab_id}/branches/{branch}/file",
+        )
+        .await?;
+        response
+            .text()
+            .await
+            .with_context(|| format!("Failed to read response body from {path}"))
+    }
+
+    /// Updates files in a workspace branch.
+    pub async fn update_workspace_branch_files(
+        &self,
+        codelab_id: &str,
+        branch: &str,
+        payload: &UpdateWorkspaceFilesRequest,
+    ) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::POST,
+                &format!("/api/codeserver/{codelab_id}/branches/{branch}/files"),
+                Some(serde_json::to_value(payload).context("serialize branch file payload")?),
+            )
+            .await?;
+        ensure_success(
+            response,
+            "/api/codeserver/{codelab_id}/branches/{branch}/files",
+        )
+        .await?;
+        Ok(())
+    }
+
+    /// Lists files in a workspace folder snapshot.
+    pub async fn list_workspace_folder_files(
+        &self,
+        codelab_id: &str,
+        folder: &str,
+    ) -> Result<Vec<String>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codeserver/{codelab_id}/folders/{folder}/files"),
+            None,
+        )
+        .await
+    }
+
+    /// Reads a workspace file from a folder snapshot.
+    pub async fn read_workspace_folder_file(
+        &self,
+        codelab_id: &str,
+        folder: &str,
+        file: &str,
+    ) -> Result<String> {
+        let mut serializer = Serializer::new(String::new());
+        serializer.append_pair("file", file);
+        let path = format!(
+            "/api/codeserver/{codelab_id}/folders/{folder}/file?{}",
+            serializer.finish()
+        );
+        let response = self.send_authed(Method::GET, &path, None).await?;
+        let response = ensure_success(
+            response,
+            "/api/codeserver/{codelab_id}/folders/{folder}/file",
+        )
+        .await?;
+        response
+            .text()
+            .await
+            .with_context(|| format!("Failed to read response body from {path}"))
+    }
+
+    /// Updates files inside a folder snapshot.
+    pub async fn update_workspace_folder_files(
+        &self,
+        codelab_id: &str,
+        folder: &str,
+        payload: &UpdateWorkspaceFilesRequest,
+    ) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::POST,
+                &format!("/api/codeserver/{codelab_id}/folders/{folder}/files"),
+                Some(serde_json::to_value(payload).context("serialize folder file payload")?),
+            )
+            .await?;
+        ensure_success(
+            response,
+            "/api/codeserver/{codelab_id}/folders/{folder}/files",
+        )
+        .await?;
         Ok(())
     }
 
