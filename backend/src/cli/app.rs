@@ -11,11 +11,14 @@ use crate::cli::session::{
 };
 use crate::domain::models::{Codelab, CreateCodelab, CreateStep, Step, UpdateStepsPayload};
 use crate::infrastructure::db_models::AuditLog;
+use crate::middleware::auth::now_epoch_seconds;
 use anyhow::{anyhow, bail, Context, Result};
 use serde::Serialize;
 use serde_json::Value;
 use std::env;
 use std::path::{Path, PathBuf};
+use std::process::Command as ProcessCommand;
+use std::time::Duration;
 
 #[derive(Debug, Clone)]
 struct GlobalOptions {
@@ -41,6 +44,7 @@ impl Default for GlobalOptions {
 #[derive(Debug)]
 enum Command {
     Help,
+    Auth(AuthCommand),
     Connect(ConnectCommand),
     Login(LoginCommand),
     Logout,
@@ -55,6 +59,18 @@ enum Command {
 struct LoginCommand {
     admin_id: String,
     admin_pw: String,
+}
+
+#[derive(Debug)]
+enum AuthCommand {
+    Login(AuthLoginCommand),
+    Logout,
+    Status,
+}
+
+#[derive(Debug, Default)]
+struct AuthLoginCommand {
+    no_open: bool,
 }
 
 #[derive(Debug)]
@@ -162,6 +178,19 @@ struct ConnectStatusOutput {
     probe_error: Option<String>,
 }
 
+#[derive(Debug, Serialize)]
+struct AuthStatusOutput {
+    authenticated: bool,
+    profile: Option<String>,
+    base_url: String,
+    session_file: PathBuf,
+    subject: Option<String>,
+    role: Option<String>,
+    codelab_id: Option<String>,
+    expires_at: Option<usize>,
+    error: Option<String>,
+}
+
 pub async fn entry() -> Result<()> {
     let (global, command) = parse_cli()?;
     if matches!(command, Command::Help) {
@@ -175,6 +204,9 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
     match command {
         Command::Help => {
             print_help();
+        }
+        Command::Auth(command) => {
+            run_auth_command(&global, command).await?;
         }
         Command::Connect(command) => {
             run_connect_command(&global, command).await?;
@@ -332,6 +364,137 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
             );
             let client = ApiClient::new(base_url, Some(session))?;
             run_workspace_command(&global, &client, command).await?;
+        }
+    }
+
+    Ok(())
+}
+
+async fn run_auth_command(global: &GlobalOptions, command: AuthCommand) -> Result<()> {
+    match command {
+        AuthCommand::Login(command) => {
+            let config = load_config(&global.config_file)?;
+            let active_profile = resolve_active_profile(global, &config)?;
+            let session_file = resolve_session_file(global, active_profile.as_ref());
+            let base_url = resolve_base_url(
+                global.base_url.as_deref(),
+                active_profile.as_ref().map(|(_, profile)| profile),
+                None,
+            );
+            let client = ApiClient::new(base_url.clone(), None)?;
+            let runtime = client.cli_runtime().await?;
+            if !runtime.capabilities.browser_auth {
+                bail!(
+                    "Connected runtime `{}` does not support browser-based CLI authentication",
+                    runtime.runtime
+                );
+            }
+
+            let challenge = client.start_browser_auth().await?;
+            let verification_url = format!(
+                "{}/{}",
+                base_url,
+                challenge.verification_path.trim_start_matches('/')
+            );
+
+            if !command.no_open {
+                if let Err(error) = open_browser(&verification_url) {
+                    eprintln!("Failed to open browser automatically: {error}");
+                    eprintln!("Open this URL manually: {verification_url}");
+                }
+            } else if !global.json {
+                println!("Open this URL in your browser:");
+                println!("{verification_url}");
+            }
+
+            let deadline = challenge.expires_at_epoch;
+            loop {
+                let poll = client
+                    .poll_browser_auth(&challenge.request_id, &challenge.poll_token)
+                    .await?;
+
+                match poll.status.as_str() {
+                    "approved" => {
+                        let session = client
+                            .exchange_browser_auth(&challenge.request_id, &challenge.poll_token)
+                            .await?;
+                        save_session(&session_file, &session)?;
+
+                        if global.json {
+                            print_json(&session)?;
+                        } else {
+                            println!(
+                                "Authenticated and saved session to {}",
+                                session_file.display()
+                            );
+                            println!("base_url: {}", session.base_url);
+                            if let Some(sub) = session.sub.as_deref() {
+                                println!("subject: {sub}");
+                            }
+                            if let Some(exp) = session.exp {
+                                println!("expires_at: {exp}");
+                            }
+                        }
+                        return Ok(());
+                    }
+                    "pending" => {
+                        let now = now_epoch_seconds() as i64;
+                        if now >= deadline {
+                            bail!("CLI auth request expired before approval");
+                        }
+                        tokio::time::sleep(Duration::from_secs(
+                            challenge.poll_interval_seconds.max(1),
+                        ))
+                        .await;
+                    }
+                    "expired" => bail!("CLI auth request expired"),
+                    "consumed" => bail!("CLI auth request was already exchanged"),
+                    other => bail!("Unexpected CLI auth state: {other}"),
+                }
+            }
+        }
+        AuthCommand::Logout => {
+            let config = load_config(&global.config_file)?;
+            let active_profile = resolve_active_profile(global, &config)?;
+            let session_file = resolve_session_file(global, active_profile.as_ref());
+            if !session_file.exists() {
+                if global.json {
+                    print_json(&serde_json::json!({ "status": "ok", "authenticated": false }))?;
+                } else {
+                    println!("No saved session at {}", session_file.display());
+                }
+                return Ok(());
+            }
+
+            let session = load_session(&session_file).with_context(|| {
+                format!(
+                    "No saved session found. Run `{}` auth login first.",
+                    program_name()
+                )
+            })?;
+            let base_url = resolve_base_url(
+                global.base_url.as_deref(),
+                active_profile.as_ref().map(|(_, profile)| profile),
+                Some(&session),
+            );
+            let client = ApiClient::new(base_url, Some(session))?;
+            let logout_result = client.logout().await;
+            clear_session(&session_file)?;
+            logout_result?;
+
+            if global.json {
+                print_json(&serde_json::json!({ "status": "ok" }))?;
+            } else {
+                println!("Logged out and removed {}", session_file.display());
+            }
+        }
+        AuthCommand::Status => {
+            let status = build_auth_status(global).await?;
+            if global.json {
+                print_json(&status)?;
+            } else {
+                print_auth_status(&status);
+            }
         }
     }
 
@@ -716,6 +879,68 @@ async fn run_connect_command(global: &GlobalOptions, command: ConnectCommand) ->
     Ok(())
 }
 
+async fn build_auth_status(global: &GlobalOptions) -> Result<AuthStatusOutput> {
+    let config = load_config(&global.config_file)?;
+    let active_profile = resolve_active_profile(global, &config)?;
+    let session_file = resolve_session_file(global, active_profile.as_ref());
+    let base_url = resolve_base_url(
+        global.base_url.as_deref(),
+        active_profile.as_ref().map(|(_, profile)| profile),
+        None,
+    );
+
+    if !session_file.exists() {
+        return Ok(AuthStatusOutput {
+            authenticated: false,
+            profile: active_profile.map(|(name, _)| name),
+            base_url,
+            session_file,
+            subject: None,
+            role: None,
+            codelab_id: None,
+            expires_at: None,
+            error: None,
+        });
+    }
+
+    let session = load_session(&session_file)?;
+    let base_url = resolve_base_url(
+        global.base_url.as_deref(),
+        active_profile.as_ref().map(|(_, profile)| profile),
+        Some(&session),
+    );
+    let client = ApiClient::new(base_url.clone(), Some(session.clone()))?;
+    match client.session().await {
+        Ok(snapshot) => {
+            let mut updated = session;
+            updated.apply_snapshot(&snapshot);
+            save_session(&session_file, &updated)?;
+            Ok(AuthStatusOutput {
+                authenticated: true,
+                profile: active_profile.map(|(name, _)| name),
+                base_url,
+                session_file,
+                subject: Some(snapshot.sub),
+                role: Some(snapshot.role),
+                codelab_id: snapshot.codelab_id,
+                expires_at: Some(snapshot.exp),
+                error: None,
+            })
+        }
+        Err(error) => Ok(AuthStatusOutput {
+            authenticated: false,
+            profile: active_profile.map(|(name, _)| name),
+            base_url,
+            session_file,
+            subject: session.sub,
+            role: session.role,
+            codelab_id: session.codelab_id,
+            expires_at: session.exp,
+            error: Some(error.to_string()),
+        }),
+    }
+}
+
 async fn build_connect_status(global: &GlobalOptions) -> Result<ConnectStatusOutput> {
     let config = load_config(&global.config_file)?;
     let active_profile = resolve_active_profile(global, &config)?;
@@ -772,6 +997,24 @@ async fn build_connect_status(global: &GlobalOptions) -> Result<ConnectStatusOut
             .unwrap_or_else(empty_capabilities),
         probe_error,
     })
+}
+
+fn open_browser(url: &str) -> Result<()> {
+    let status = if cfg!(target_os = "macos") {
+        ProcessCommand::new("open").arg(url).status()
+    } else if cfg!(target_os = "windows") {
+        ProcessCommand::new("rundll32")
+            .args(["url.dll,FileProtocolHandler", url])
+            .status()
+    } else {
+        ProcessCommand::new("xdg-open").arg(url).status()
+    }
+    .with_context(|| format!("Failed to launch browser for {url}"))?;
+
+    if !status.success() {
+        bail!("Browser launcher exited with status {status}");
+    }
+    Ok(())
 }
 
 async fn load_steps_payload(path: &Path) -> Result<UpdateStepsPayload> {
@@ -1014,6 +1257,34 @@ fn print_connect_status(status: &ConnectStatusOutput) {
     }
 }
 
+fn print_auth_status(status: &AuthStatusOutput) {
+    println!(
+        "profile: {}",
+        status.profile.as_deref().unwrap_or("(implicit default)")
+    );
+    println!("base_url: {}", status.base_url);
+    println!("session_file: {}", status.session_file.display());
+    println!(
+        "authenticated: {}",
+        if status.authenticated { "yes" } else { "no" }
+    );
+    if let Some(subject) = &status.subject {
+        println!("subject: {subject}");
+    }
+    if let Some(role) = &status.role {
+        println!("role: {role}");
+    }
+    if let Some(codelab_id) = &status.codelab_id {
+        println!("codelab_id: {codelab_id}");
+    }
+    if let Some(expires_at) = status.expires_at {
+        println!("expires_at: {expires_at}");
+    }
+    if let Some(error) = &status.error {
+        println!("error: {error}");
+    }
+}
+
 fn print_audit_logs(logs: &[AuditLog]) {
     println!(
         "{:<20} {:<24} {:<10} {:<38}",
@@ -1058,6 +1329,7 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
     };
 
     let command = match command.as_str() {
+        "auth" => Command::Auth(parse_auth(&mut args)?),
         "connect" => Command::Connect(parse_connect(&mut args)?),
         "login" => Command::Login(parse_login(&mut args)?),
         "logout" => Command::Logout,
@@ -1072,6 +1344,29 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
 
     args.ensure_exhausted()?;
     Ok((global, command))
+}
+
+fn parse_auth(args: &mut Args) -> Result<AuthCommand> {
+    let Some(subcommand) = args.next() else {
+        return Err(help_error("auth"));
+    };
+
+    match subcommand.as_str() {
+        "login" => {
+            let mut command = AuthLoginCommand::default();
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--no-open" => command.no_open = true,
+                    "-h" | "--help" => return Err(help_error("auth login")),
+                    other => bail!("Unknown auth login option: {other}"),
+                }
+            }
+            Ok(AuthCommand::Login(command))
+        }
+        "logout" => Ok(AuthCommand::Logout),
+        "status" => Ok(AuthCommand::Status),
+        _ => Err(help_error("auth")),
+    }
 }
 
 fn extract_global_options(items: Vec<String>, global: &mut GlobalOptions) -> Result<Vec<String>> {
@@ -1530,13 +1825,16 @@ Global options:
   -h, --help              Show this help
 
 Commands:
+  auth login [--no-open]
+  auth logout
+  auth status
   connect add --name <name> --url <url> [--runtime <auto|backend|firebase|supabase>] [--activate]
   connect use --name <name>
   connect list
   connect status
-  login --admin-id <id> --admin-pw <pw>
-  logout
-  session
+  login --admin-id <id> --admin-pw <pw>   Legacy direct login
+  logout                                   Legacy alias for auth logout
+  session                                  Legacy alias for auth status
   codelab list
   codelab get --id <id>
   codelab create --title <title> --description <desc> --author <author> [--private] [--guide-file <path>] [--quiz-enabled] [--require-quiz] [--require-feedback] [--require-submission]

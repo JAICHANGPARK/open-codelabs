@@ -16,6 +16,44 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use subtle::ConstantTimeEq;
 
+pub(crate) fn validate_admin_credentials(state: &AppState, admin_id: &str, admin_pw: &str) -> bool {
+    let id_ok = admin_id.as_bytes().ct_eq(state.admin_id.as_bytes()).into();
+    let pw_ok = admin_pw.as_bytes().ct_eq(state.admin_pw.as_bytes()).into();
+    id_ok && pw_ok
+}
+
+pub(crate) fn issue_admin_session(
+    state: &AppState,
+    jar: CookieJar,
+) -> Result<(CookieJar, SessionClaims, String), jsonwebtoken::errors::Error> {
+    let now = now_epoch_seconds();
+    let claims = SessionClaims {
+        sub: state.admin_id.clone(),
+        role: Role::Admin.as_str().to_string(),
+        codelab_id: None,
+        iss: state.auth.issuer.clone(),
+        aud: state.auth.audience.clone(),
+        iat: now,
+        exp: now + state.auth.admin_ttl.as_secs() as usize,
+    };
+    let token = state.auth.issue_token(&claims)?;
+    let csrf_token = crate::middleware::auth::generate_csrf_token();
+
+    let jar = jar
+        .add(build_session_cookie(
+            &state.auth,
+            token.clone(),
+            state.auth.admin_ttl,
+        ))
+        .add(build_csrf_cookie(
+            &state.auth,
+            csrf_token,
+            state.auth.admin_ttl,
+        ));
+
+    Ok((jar, claims, token))
+}
+
 /// Authenticates the built-in administrator and issues session cookies.
 pub async fn login(
     State(state): State<Arc<AppState>>,
@@ -27,18 +65,7 @@ pub async fn login(
         return Err(bad_request("admin_id and admin_pw are required"));
     }
 
-    let id_ok = payload
-        .admin_id
-        .as_bytes()
-        .ct_eq(state.admin_id.as_bytes())
-        .into();
-    let pw_ok = payload
-        .admin_pw
-        .as_bytes()
-        .ct_eq(state.admin_pw.as_bytes())
-        .into();
-
-    if !(id_ok && pw_ok) {
+    if !validate_admin_credentials(&state, &payload.admin_id, &payload.admin_pw) {
         record_audit(
             &state,
             AuditEntry {
@@ -56,30 +83,7 @@ pub async fn login(
         return Err(unauthorized());
     }
 
-    let now = now_epoch_seconds();
-    let claims = SessionClaims {
-        sub: state.admin_id.clone(),
-        role: Role::Admin.as_str().to_string(),
-        codelab_id: None,
-        iss: state.auth.issuer.clone(),
-        aud: state.auth.audience.clone(),
-        iat: now,
-        exp: now + state.auth.admin_ttl.as_secs() as usize,
-    };
-    let token = state.auth.issue_token(&claims).map_err(internal_error)?;
-    let csrf_token = crate::middleware::auth::generate_csrf_token();
-
-    let jar = jar
-        .add(build_session_cookie(
-            &state.auth,
-            token.clone(),
-            state.auth.admin_ttl,
-        ))
-        .add(build_csrf_cookie(
-            &state.auth,
-            csrf_token,
-            state.auth.admin_ttl,
-        ));
+    let (jar, _claims, token) = issue_admin_session(&state, jar).map_err(internal_error)?;
 
     record_audit(
         &state,

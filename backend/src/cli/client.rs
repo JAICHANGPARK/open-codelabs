@@ -1,6 +1,7 @@
 //! HTTP client used by the `oclabs` administrative CLI.
 
 use crate::api::dto::{
+    CliAuthExchangeRequest, CliAuthExchangeResponse, CliAuthPollResponse, CliAuthStartResponse,
     CliRuntimeInfo, CodeServerInfo, CreateBranchRequest, CreateCodeServerRequest,
     CreateFolderRequest, WorkspaceFile,
 };
@@ -120,6 +121,65 @@ impl ApiClient {
             .await
             .context("Failed to call /api/cli/runtime")?;
         read_json(response, "/api/cli/runtime").await
+    }
+
+    /// Starts a browser-based CLI authentication flow.
+    pub async fn start_browser_auth(&self) -> Result<CliAuthStartResponse> {
+        let response = self
+            .http
+            .post(self.url("/api/cli/auth/start"))
+            .send()
+            .await
+            .context("Failed to call /api/cli/auth/start")?;
+        read_json(response, "/api/cli/auth/start").await
+    }
+
+    /// Polls the approval state of a browser-based CLI authentication flow.
+    pub async fn poll_browser_auth(
+        &self,
+        request_id: &str,
+        poll_token: &str,
+    ) -> Result<CliAuthPollResponse> {
+        let mut serializer = Serializer::new(String::new());
+        serializer.append_pair("poll_token", poll_token);
+        let path = format!("/api/cli/auth/poll/{request_id}?{}", serializer.finish());
+        let response = self
+            .http
+            .get(self.url(&path))
+            .send()
+            .await
+            .with_context(|| format!("Failed to call {path}"))?;
+        read_json(response, "/api/cli/auth/poll/{id}").await
+    }
+
+    /// Exchanges an approved CLI browser auth challenge for a stored session.
+    pub async fn exchange_browser_auth(
+        &self,
+        request_id: &str,
+        poll_token: &str,
+    ) -> Result<StoredSession> {
+        let response = self
+            .http
+            .post(self.url(&format!("/api/cli/auth/exchange/{request_id}")))
+            .json(&CliAuthExchangeRequest {
+                poll_token: poll_token.to_string(),
+            })
+            .send()
+            .await
+            .with_context(|| format!("Failed to call /api/cli/auth/exchange/{request_id}"))?;
+        let (mut session, snapshot) = read_session_json::<CliAuthExchangeResponse>(
+            response,
+            "/api/cli/auth/exchange/{id}",
+            &self.base_url,
+        )
+        .await?;
+        session.apply_snapshot(&SessionSnapshot {
+            sub: snapshot.sub,
+            role: snapshot.role,
+            codelab_id: snapshot.codelab_id,
+            exp: snapshot.exp,
+        });
+        Ok(session)
     }
 
     /// Invokes the backend logout route using the active CLI session.
@@ -542,6 +602,43 @@ async fn build_session_from_response(
         exp: None,
         codelab_id: None,
     })
+}
+
+async fn read_session_json<T: DeserializeOwned>(
+    response: Response,
+    context_path: &str,
+    base_url: &str,
+) -> Result<(StoredSession, T)> {
+    let status = response.status();
+    let headers = response.headers().clone();
+    let body = response.text().await.unwrap_or_default();
+
+    if !status.is_success() {
+        bail!(
+            "{} failed: HTTP {} body={}",
+            context_path,
+            status.as_u16(),
+            truncate(&body, 200)
+        );
+    }
+
+    let cookies = parse_set_cookie_headers(&headers);
+    if cookies.is_empty() {
+        bail!("No Set-Cookie headers from {context_path}");
+    }
+
+    let session = StoredSession {
+        base_url: base_url.to_string(),
+        cookie_header: build_cookie_header(&cookies),
+        csrf_token: find_csrf_token(&cookies),
+        sub: None,
+        role: None,
+        exp: None,
+        codelab_id: None,
+    };
+    let payload = serde_json::from_str::<T>(&body)
+        .with_context(|| format!("Failed to parse JSON response from {context_path}"))?;
+    Ok((session, payload))
 }
 
 fn parse_set_cookie_headers(headers: &header::HeaderMap) -> HashMap<String, String> {
