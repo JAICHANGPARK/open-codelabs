@@ -66,3 +66,8 @@ test = false
 name = "oclabs"
 path = "src/bin/oclabs.rs"
 test = false
+
+[[bin]]
+name = "oc"
+path = "src/bin/oc.rs"
+test = false

@@ -77,6 +77,7 @@ pub fn save_session(path: &Path, session: &StoredSession) -> Result<()> {
     let raw = serde_json::to_string_pretty(session).context("Failed to serialize session")?;
     fs::write(path, raw)
         .with_context(|| format!("Failed to write session file {}", path.display()))?;
+    set_owner_only_permissions(path)?;
     Ok(())
 }
 
@@ -94,6 +95,21 @@ fn home_dir() -> Option<PathBuf> {
     env::var_os("HOME")
         .map(PathBuf::from)
         .or_else(|| env::var_os("USERPROFILE").map(PathBuf::from))
+}
+
+#[cfg(unix)]
+fn set_owner_only_permissions(path: &Path) -> Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+
+    let permissions = fs::Permissions::from_mode(0o600);
+    fs::set_permissions(path, permissions)
+        .with_context(|| format!("Failed to secure session file {}", path.display()))?;
+    Ok(())
+}
+
+#[cfg(not(unix))]
+fn set_owner_only_permissions(_path: &Path) -> Result<()> {
+    Ok(())
 }
 
 #[cfg(test)]
