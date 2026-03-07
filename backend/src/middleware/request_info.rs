@@ -1,3 +1,5 @@
+//! Request metadata extraction helpers.
+
 use axum::extract::ConnectInfo;
 use axum::extract::{FromRef, FromRequestParts, State};
 use axum::http::request::Parts;
@@ -8,9 +10,12 @@ use std::sync::Arc;
 use crate::infrastructure::database::AppState;
 use crate::utils::error::unauthorized;
 
+/// Best-effort client metadata derived from the current request.
 #[derive(Debug, Clone)]
 pub struct RequestInfo {
+    /// Client IP address, optionally derived from trusted proxy headers.
     pub ip: String,
+    /// Parsed `User-Agent` header when present and valid UTF-8.
     pub user_agent: Option<String>,
 }
 

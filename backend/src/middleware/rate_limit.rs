@@ -1,20 +1,32 @@
+//! Sliding-window request rate limiting.
+
 use dashmap::DashMap;
 use std::collections::VecDeque;
 use std::time::{Duration, Instant};
 
+/// Environment-backed limits for the middleware's request buckets.
 #[derive(Debug, Clone)]
 pub struct RateLimitConfig {
+    /// Requests allowed for general API traffic per window.
     pub general_limit: u32,
+    /// Window size for general API traffic.
     pub general_window: Duration,
+    /// Requests allowed for login attempts per window.
     pub login_limit: u32,
+    /// Window size for login attempts.
     pub login_window: Duration,
+    /// Requests allowed for AI endpoints per window.
     pub ai_limit: u32,
+    /// Window size for AI endpoints.
     pub ai_window: Duration,
+    /// Requests allowed for uploads and submissions per window.
     pub upload_limit: u32,
+    /// Window size for uploads and submissions.
     pub upload_window: Duration,
 }
 
 impl RateLimitConfig {
+    /// Builds rate-limit settings from environment variables with safe defaults.
     pub fn from_env() -> Self {
         let general_limit = env_u32("RATE_LIMIT_GENERAL_PER_MINUTE", 120);
         let login_limit = env_u32("RATE_LIMIT_LOGIN_PER_5_MIN", 20);
@@ -34,18 +46,21 @@ impl RateLimitConfig {
     }
 }
 
+/// In-memory sliding-window rate limiter keyed by bucket and client identity.
 #[derive(Debug)]
 pub struct RateLimiter {
     store: DashMap<String, VecDeque<Instant>>,
 }
 
 impl RateLimiter {
+    /// Creates an empty limiter store.
     pub fn new() -> Self {
         Self {
             store: DashMap::new(),
         }
     }
 
+    /// Returns `true` when a request fits inside the configured window.
     pub fn check(&self, key: &str, limit: u32, window: Duration) -> bool {
         let now = Instant::now();
         let mut entry = self

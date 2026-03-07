@@ -1,3 +1,5 @@
+//! Authentication helpers, JWT claims, and cookie builders.
+
 use axum::extract::{FromRef, FromRequestParts, State};
 use axum::http::request::Parts;
 use axum::http::StatusCode;
@@ -12,13 +14,17 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use crate::infrastructure::database::AppState;
 use crate::utils::error::{forbidden, unauthorized};
 
+/// User roles supported by the built-in session system.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Role {
+    /// Administrator with access to privileged endpoints.
     Admin,
+    /// Codelab attendee scoped to learner-facing endpoints.
     Attendee,
 }
 
 impl Role {
+    /// Returns the stable string representation stored in session claims.
     pub fn as_str(&self) -> &'static str {
         match self {
             Role::Admin => "admin",
@@ -26,6 +32,7 @@ impl Role {
         }
     }
 
+    /// Parses a role string from session claims or persisted state.
     pub fn from_str(value: &str) -> Option<Self> {
         match value {
             "admin" => Some(Role::Admin),
@@ -35,32 +42,52 @@ impl Role {
     }
 }
 
+/// JWT claims stored in the admin and attendee session cookies.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SessionClaims {
+    /// Stable subject identifier for the logged-in user.
     pub sub: String,
+    /// Serialized [`Role`] value.
     pub role: String,
+    /// Optional codelab scope for attendee sessions.
     pub codelab_id: Option<String>,
+    /// Token issuer expected during verification.
     pub iss: String,
+    /// Token audience expected during verification.
     pub aud: String,
+    /// Issued-at timestamp in epoch seconds.
     pub iat: usize,
+    /// Expiration timestamp in epoch seconds.
     pub exp: usize,
 }
 
+/// Runtime authentication settings derived from environment variables.
 #[derive(Debug, Clone)]
 pub struct AuthConfig {
+    /// Expected token issuer.
     pub issuer: String,
+    /// Expected token audience.
     pub audience: String,
+    /// Ordered signing secrets used for issue/verify and secret rotation.
     pub secrets: Vec<String>,
+    /// Lifetime of admin session cookies and tokens.
     pub admin_ttl: Duration,
+    /// Lifetime of attendee session cookies and tokens.
     pub attendee_ttl: Duration,
+    /// Cookie name for admin sessions.
     pub cookie_name: String,
+    /// Cookie name for attendee sessions.
     pub attendee_cookie_name: String,
+    /// Cookie name for the CSRF token.
     pub csrf_cookie_name: String,
+    /// Whether cookies should be marked `Secure`.
     pub cookie_secure: bool,
+    /// SameSite policy applied to issued cookies.
     pub cookie_same_site: SameSite,
 }
 
 impl AuthConfig {
+    /// Builds authentication configuration from the process environment.
     pub fn from_env() -> Self {
         let issuer = std::env::var("AUTH_ISSUER").unwrap_or_else(|_| "open-codelabs".to_string());
         let audience =
@@ -136,6 +163,7 @@ impl AuthConfig {
         }
     }
 
+    /// Issues a signed JWT using the primary configured secret.
     pub fn issue_token(
         &self,
         claims: &SessionClaims,
@@ -148,6 +176,7 @@ impl AuthConfig {
         )
     }
 
+    /// Verifies a JWT against all configured secrets in order.
     pub fn verify_token(&self, token: &str) -> Option<SessionClaims> {
         let mut validation = Validation::new(Algorithm::HS256);
         validation.set_issuer(&[self.issuer.clone()]);
@@ -165,14 +194,19 @@ impl AuthConfig {
     }
 }
 
+/// Authentication context extracted from request cookies.
 #[derive(Debug, Clone)]
 pub struct AuthSession {
+    /// First successfully verified claim set, regardless of role.
     pub claims: Option<SessionClaims>,
+    /// Verified admin claims when an admin cookie is present.
     pub admin_claims: Option<SessionClaims>,
+    /// Verified attendee claims when an attendee cookie is present.
     pub attendee_claims: Option<SessionClaims>,
 }
 
 impl AuthSession {
+    /// Returns verified admin claims or an authorization error.
     pub fn require_admin(&self) -> Result<SessionClaims, (StatusCode, String)> {
         if let Some(claims) = &self.admin_claims {
             return Ok(claims.clone());
@@ -184,6 +218,7 @@ impl AuthSession {
         }
     }
 
+    /// Returns verified attendee claims or an authorization error.
     pub fn require_attendee(&self) -> Result<SessionClaims, (StatusCode, String)> {
         if let Some(claims) = &self.attendee_claims {
             return Ok(claims.clone());
@@ -249,6 +284,7 @@ where
     }
 }
 
+/// Builds the HTTP-only admin session cookie for a freshly issued token.
 pub fn build_session_cookie(
     config: &AuthConfig,
     token: String,
@@ -263,6 +299,7 @@ pub fn build_session_cookie(
         .build()
 }
 
+/// Builds the HTTP-only attendee session cookie for a freshly issued token.
 pub fn build_attendee_session_cookie(
     config: &AuthConfig,
     token: String,
@@ -277,6 +314,7 @@ pub fn build_attendee_session_cookie(
         .build()
 }
 
+/// Builds the readable CSRF cookie paired with authenticated sessions.
 pub fn build_csrf_cookie(config: &AuthConfig, token: String, max_age: Duration) -> Cookie<'static> {
     Cookie::build((config.csrf_cookie_name.clone(), token))
         .path("/")
@@ -287,6 +325,7 @@ pub fn build_csrf_cookie(config: &AuthConfig, token: String, max_age: Duration) 
         .build()
 }
 
+/// Builds an immediately expired cookie used to clear an existing session.
 pub fn clear_cookie(name: &str) -> Cookie<'static> {
     Cookie::build((name.to_string(), ""))
         .path("/")
@@ -294,6 +333,7 @@ pub fn clear_cookie(name: &str) -> Cookie<'static> {
         .build()
 }
 
+/// Generates a random CSRF token suitable for storage in a cookie/header pair.
 pub fn generate_csrf_token() -> String {
     rand::thread_rng()
         .sample_iter(&Alphanumeric)
@@ -302,6 +342,7 @@ pub fn generate_csrf_token() -> String {
         .collect()
 }
 
+/// Returns the current Unix time in seconds for claim construction.
 pub fn now_epoch_seconds() -> usize {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)

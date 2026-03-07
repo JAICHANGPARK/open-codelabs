@@ -1,17 +1,23 @@
+//! Helpers for converting common failures into HTTP responses.
+
 use axum::http::StatusCode;
 
+/// Returns a `400 Bad Request` response with a caller-provided message.
 pub fn bad_request(message: &str) -> (StatusCode, String) {
     (StatusCode::BAD_REQUEST, message.to_string())
 }
 
+/// Returns a generic `401 Unauthorized` response.
 pub fn unauthorized() -> (StatusCode, String) {
     (StatusCode::UNAUTHORIZED, "Unauthorized".to_string())
 }
 
+/// Returns a generic `403 Forbidden` response.
 pub fn forbidden() -> (StatusCode, String) {
     (StatusCode::FORBIDDEN, "Forbidden".to_string())
 }
 
+/// Returns a generic `429 Too Many Requests` response.
 pub fn too_many_requests() -> (StatusCode, String) {
     (
         StatusCode::TOO_MANY_REQUESTS,
@@ -19,6 +25,7 @@ pub fn too_many_requests() -> (StatusCode, String) {
     )
 }
 
+/// Logs an internal error and returns a sanitized `500` response.
 pub fn internal_error<E: std::fmt::Display>(error: E) -> (StatusCode, String) {
     tracing::error!("Internal error: {}", error);
     (
