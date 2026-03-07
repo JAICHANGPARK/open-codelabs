@@ -23,6 +23,7 @@ use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use std::env;
 use std::fs;
+use std::io::{self, IsTerminal, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command as ProcessCommand;
 use std::time::Duration;
@@ -51,6 +52,7 @@ impl Default for GlobalOptions {
 #[derive(Debug)]
 enum Command {
     Help,
+    Init(InitCommand),
     Admin(AdminCommand),
     Auth(AuthCommand),
     Connect(ConnectCommand),
@@ -83,6 +85,9 @@ struct LoginCommand {
     admin_id: String,
     admin_pw: String,
 }
+
+#[derive(Debug, Default)]
+struct InitCommand;
 
 #[derive(Debug)]
 enum AuthCommand {
@@ -628,6 +633,9 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
         Command::Help => {
             print_help();
         }
+        Command::Init(command) => {
+            run_init_command(&global, command).await?;
+        }
         Command::Admin(command) => {
             run_admin_command(&global, command).await?;
         }
@@ -964,6 +972,91 @@ async fn run_auth_command(global: &GlobalOptions, command: AuthCommand) -> Resul
                 print_auth_status(&status);
             }
         }
+    }
+
+    Ok(())
+}
+
+async fn run_init_command(global: &GlobalOptions, _command: InitCommand) -> Result<()> {
+    ensure_interactive_terminal("`oc init`")?;
+
+    println!("Open Codelabs interactive setup");
+    println!("Press Enter to accept defaults.\n");
+
+    let mode = prompt_select(
+        "Choose how you want to get started",
+        &[
+            "Start a local stack on this machine",
+            "Connect to an existing Open Codelabs server",
+        ],
+        0,
+    )?;
+
+    match mode {
+        0 => {
+            let run_command = prompt_run_command(default_run_command())?;
+            let backend_url = format!("http://localhost:{}", run_command.backend_port);
+            run_run_command(global, run_command)?;
+
+            if prompt_confirm("Save this local stack as a reusable profile?", true)? {
+                let profile_name = prompt_line("Profile name", Some("local"))?;
+                let (_, became_current) = save_connection_profile(
+                    &global.config_file,
+                    &profile_name,
+                    &backend_url,
+                    RuntimePreference::Backend,
+                    true,
+                )?;
+                println!(
+                    "Saved profile `{profile_name}` to {}",
+                    global.config_file.display()
+                );
+                if became_current {
+                    println!("current_profile: {profile_name}");
+                }
+            }
+
+            if prompt_confirm("Open browser-based admin authentication now?", true)? {
+                run_auth_command(global, AuthCommand::Login(AuthLoginCommand::default())).await?;
+            } else {
+                println!("Next step: `oc auth login`");
+            }
+        }
+        1 => {
+            let (name, url, runtime, activate) =
+                prompt_connect_add(None, None, RuntimePreference::Backend, true)?;
+            run_connect_command(
+                global,
+                ConnectCommand::Add {
+                    name,
+                    url,
+                    runtime,
+                    activate,
+                },
+            )
+            .await?;
+
+            if prompt_confirm("Check the current connection status now?", true)? {
+                run_connect_command(global, ConnectCommand::Status).await?;
+            }
+
+            if matches!(
+                runtime,
+                RuntimePreference::Auto | RuntimePreference::Backend
+            ) {
+                if prompt_confirm("Open browser-based admin authentication now?", true)? {
+                    run_auth_command(global, AuthCommand::Login(AuthLoginCommand::default()))
+                        .await?;
+                } else {
+                    println!("Next step: `oc auth login`");
+                }
+            } else {
+                println!(
+                    "This runtime usually relies on frontend-managed authentication. Skip `oc auth login` unless the connected backend explicitly supports CLI auth."
+                );
+            }
+        }
+        _ => unreachable!("invalid setup mode"),
     }
 
     Ok(())
@@ -2031,19 +2124,8 @@ async fn run_connect_command(global: &GlobalOptions, command: ConnectCommand) ->
             runtime,
             activate,
         } => {
-            let mut config = load_config(&global.config_file)?;
-            config.profiles.insert(
-                name.clone(),
-                ConnectionProfile {
-                    base_url: url.trim_end_matches('/').to_string(),
-                    runtime,
-                },
-            );
-            let became_current = activate || config.current_profile.is_none();
-            if became_current {
-                config.current_profile = Some(name.clone());
-            }
-            save_config(&global.config_file, &config)?;
+            let (config, became_current) =
+                save_connection_profile(&global.config_file, &name, &url, runtime, activate)?;
 
             if global.json {
                 print_json(&serde_json::json!({
@@ -2108,6 +2190,29 @@ async fn run_connect_command(global: &GlobalOptions, command: ConnectCommand) ->
     }
 
     Ok(())
+}
+
+fn save_connection_profile(
+    config_file: &Path,
+    name: &str,
+    url: &str,
+    runtime: RuntimePreference,
+    activate: bool,
+) -> Result<(CliConfig, bool)> {
+    let mut config = load_config(config_file)?;
+    config.profiles.insert(
+        name.to_string(),
+        ConnectionProfile {
+            base_url: url.trim_end_matches('/').to_string(),
+            runtime,
+        },
+    );
+    let became_current = activate || config.current_profile.is_none();
+    if became_current {
+        config.current_profile = Some(name.to_string());
+    }
+    save_config(config_file, &config)?;
+    Ok((config, became_current))
 }
 
 fn run_run_command(global: &GlobalOptions, command: RunCommand) -> Result<()> {
@@ -3242,6 +3347,278 @@ fn open_browser(url: &str) -> Result<()> {
     Ok(())
 }
 
+fn interactive_terminal_available() -> bool {
+    io::stdin().is_terminal() && io::stdout().is_terminal()
+}
+
+fn ensure_interactive_terminal(command: &str) -> Result<()> {
+    if interactive_terminal_available() {
+        Ok(())
+    } else {
+        bail!("{command} requires an interactive terminal");
+    }
+}
+
+fn prompt_line(label: &str, default: Option<&str>) -> Result<String> {
+    loop {
+        match default {
+            Some(default) => print!("{label} [{default}]: "),
+            None => print!("{label}: "),
+        }
+        io::stdout().flush().context("Failed to flush stdout")?;
+
+        let mut input = String::new();
+        let bytes = io::stdin()
+            .read_line(&mut input)
+            .context("Failed to read interactive input")?;
+        if bytes == 0 {
+            bail!("Interactive input was closed");
+        }
+
+        let trimmed = input.trim();
+        if trimmed.is_empty() {
+            if let Some(default) = default {
+                return Ok(default.to_string());
+            }
+            eprintln!("A value is required.");
+            continue;
+        }
+
+        return Ok(trimmed.to_string());
+    }
+}
+
+fn prompt_confirm(label: &str, default: bool) -> Result<bool> {
+    loop {
+        let suffix = if default { "[Y/n]" } else { "[y/N]" };
+        print!("{label} {suffix}: ");
+        io::stdout().flush().context("Failed to flush stdout")?;
+
+        let mut input = String::new();
+        let bytes = io::stdin()
+            .read_line(&mut input)
+            .context("Failed to read interactive input")?;
+        if bytes == 0 {
+            bail!("Interactive input was closed");
+        }
+
+        let trimmed = input.trim().to_ascii_lowercase();
+        if trimmed.is_empty() {
+            return Ok(default);
+        }
+        match trimmed.as_str() {
+            "y" | "yes" => return Ok(true),
+            "n" | "no" => return Ok(false),
+            _ => eprintln!("Enter `y` or `n`."),
+        }
+    }
+}
+
+fn prompt_select(label: &str, options: &[&str], default: usize) -> Result<usize> {
+    println!("{label}");
+    for (index, option) in options.iter().enumerate() {
+        let marker = if index == default { " (default)" } else { "" };
+        println!("  {}. {}{}", index + 1, option, marker);
+    }
+
+    loop {
+        print!("Select an option [{}]: ", default + 1);
+        io::stdout().flush().context("Failed to flush stdout")?;
+
+        let mut input = String::new();
+        let bytes = io::stdin()
+            .read_line(&mut input)
+            .context("Failed to read interactive input")?;
+        if bytes == 0 {
+            bail!("Interactive input was closed");
+        }
+
+        let trimmed = input.trim();
+        if trimmed.is_empty() {
+            return Ok(default);
+        }
+
+        if let Ok(selected) = trimmed.parse::<usize>() {
+            if (1..=options.len()).contains(&selected) {
+                return Ok(selected - 1);
+            }
+        }
+
+        eprintln!("Choose a number between 1 and {}.", options.len());
+    }
+}
+
+fn prompt_u16(label: &str, default: u16) -> Result<u16> {
+    loop {
+        let default_text = default.to_string();
+        let value = prompt_line(label, Some(&default_text))?;
+        match value.parse::<u16>() {
+            Ok(parsed) => return Ok(parsed),
+            Err(_) => eprintln!("Enter a valid port number."),
+        }
+    }
+}
+
+fn prompt_path(label: &str, default: &Path) -> Result<PathBuf> {
+    let default_text = default.display().to_string();
+    let value = prompt_line(label, Some(&default_text))?;
+    Ok(PathBuf::from(value))
+}
+
+fn prompt_runtime_preference(default: RuntimePreference) -> Result<RuntimePreference> {
+    let choice = prompt_select(
+        "Select the runtime profile",
+        &["Auto-detect", "Backend", "Firebase", "Supabase"],
+        match default {
+            RuntimePreference::Auto => 0,
+            RuntimePreference::Backend => 1,
+            RuntimePreference::Firebase => 2,
+            RuntimePreference::Supabase => 3,
+        },
+    )?;
+
+    Ok(match choice {
+        0 => RuntimePreference::Auto,
+        1 => RuntimePreference::Backend,
+        2 => RuntimePreference::Firebase,
+        3 => RuntimePreference::Supabase,
+        _ => unreachable!("invalid runtime preference"),
+    })
+}
+
+fn prompt_run_engine(default: RunEnginePreference) -> Result<RunEnginePreference> {
+    let choice = prompt_select(
+        "Select the container engine",
+        &["Auto-detect", "Docker", "Podman"],
+        match default {
+            RunEnginePreference::Auto => 0,
+            RunEnginePreference::Docker => 1,
+            RunEnginePreference::Podman => 2,
+        },
+    )?;
+
+    Ok(match choice {
+        0 => RunEnginePreference::Auto,
+        1 => RunEnginePreference::Docker,
+        2 => RunEnginePreference::Podman,
+        _ => unreachable!("invalid engine selection"),
+    })
+}
+
+fn default_run_command() -> RunCommand {
+    RunCommand {
+        engine: RunEnginePreference::Auto,
+        postgres: false,
+        pull: false,
+        open: false,
+        admin_id: env::var("OPEN_CODELABS_ADMIN_ID")
+            .ok()
+            .unwrap_or_else(|| "admin".to_string()),
+        admin_pw: env::var("OPEN_CODELABS_ADMIN_PW")
+            .ok()
+            .unwrap_or_else(|| "admin".to_string()),
+        data_dir: None,
+        frontend_port: 5173,
+        backend_port: 8080,
+        image_registry: "ghcr.io".to_string(),
+        image_namespace: "jaichangpark".to_string(),
+        image_tag: "latest".to_string(),
+    }
+}
+
+fn prompt_run_command(mut command: RunCommand) -> Result<RunCommand> {
+    ensure_interactive_terminal("`oc run --interactive`")?;
+
+    println!("Open Codelabs local stack setup");
+    println!("Press Enter to keep the suggested values.\n");
+
+    command.engine = prompt_run_engine(command.engine)?;
+    command.postgres = prompt_confirm("Start the bundled PostgreSQL container?", command.postgres)?;
+    command.pull = prompt_confirm("Pull the latest published images first?", command.pull)?;
+    command.open = prompt_confirm("Open the workshop UI in a browser after startup?", true)?;
+
+    let default_credentials = if command.admin_id == "admin" && command.admin_pw == "admin" {
+        "default admin credentials (admin/admin)"
+    } else {
+        "configured admin credentials from the environment"
+    };
+    if !prompt_confirm(&format!("Use {default_credentials}?"), true)? {
+        command.admin_id = prompt_line("Admin username", Some(&command.admin_id))?;
+        command.admin_pw = prompt_line("Admin password", Some(&command.admin_pw))?;
+    }
+
+    if !prompt_confirm(
+        &format!(
+            "Use default ports (frontend {}, backend {})?",
+            command.frontend_port, command.backend_port
+        ),
+        true,
+    )? {
+        command.frontend_port = prompt_u16("Frontend port", command.frontend_port)?;
+        command.backend_port = prompt_u16("Backend port", command.backend_port)?;
+    }
+
+    let default_data_dir = command
+        .data_dir
+        .clone()
+        .unwrap_or_else(default_local_stack_data_dir);
+    if !prompt_confirm(
+        &format!(
+            "Use the default local data directory ({})?",
+            default_data_dir.display()
+        ),
+        true,
+    )? {
+        command.data_dir = Some(prompt_path("Host data directory", &default_data_dir)?);
+    }
+
+    Ok(command)
+}
+
+fn prompt_connect_add(
+    name: Option<String>,
+    url: Option<String>,
+    runtime: RuntimePreference,
+    activate: bool,
+) -> Result<(String, String, RuntimePreference, bool)> {
+    ensure_interactive_terminal("`oc connect add --interactive`")?;
+
+    println!("Open Codelabs connection setup");
+    println!("Press Enter to keep the suggested values.\n");
+
+    let url = prompt_line(
+        "Server URL",
+        Some(url.as_deref().unwrap_or("http://localhost:8080")),
+    )?;
+    let suggested_name = name.unwrap_or_else(|| suggest_profile_name_from_url(&url));
+    let name = prompt_line("Profile name", Some(&suggested_name))?;
+    let runtime = prompt_runtime_preference(runtime)?;
+    let activate = prompt_confirm("Make this the current profile?", activate)?;
+
+    Ok((name, url, runtime, activate))
+}
+
+fn suggest_profile_name_from_url(url: &str) -> String {
+    let parsed = match url::Url::parse(url) {
+        Ok(parsed) => parsed,
+        Err(_) => return "local".to_string(),
+    };
+
+    match parsed.host_str() {
+        Some("localhost") | Some("127.0.0.1") => match parsed.port() {
+            Some(port) if port != 8080 => format!("local-{port}"),
+            _ => "local".to_string(),
+        },
+        Some(host) => host
+            .split('.')
+            .next()
+            .filter(|value| !value.is_empty())
+            .unwrap_or("server")
+            .to_string(),
+        None => "server".to_string(),
+    }
+}
+
 async fn load_steps_payload(path: &Path) -> Result<UpdateStepsPayload> {
     let raw = tokio::fs::read_to_string(path)
         .await
@@ -3672,6 +4049,7 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
     };
 
     let command = match command.as_str() {
+        "init" => Command::Init(parse_init(&mut args)?),
         "admin" => Command::Admin(parse_admin(&mut args)?),
         "auth" => Command::Auth(parse_auth(&mut args)?),
         "connect" => Command::Connect(parse_connect(&mut args)?),
@@ -3708,6 +4086,17 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
 
     args.ensure_exhausted()?;
     Ok((global, command))
+}
+
+fn parse_init(args: &mut Args) -> Result<InitCommand> {
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "-h" | "--help" => return Err(help_error("init")),
+            other => bail!("Unknown init option: {other}"),
+        }
+    }
+
+    Ok(InitCommand)
 }
 
 fn parse_admin(args: &mut Args) -> Result<AdminCommand> {
@@ -3829,6 +4218,7 @@ fn parse_connect(args: &mut Args) -> Result<ConnectCommand> {
             let mut url = None;
             let mut runtime = RuntimePreference::Auto;
             let mut activate = false;
+            let mut interactive = false;
 
             while let Some(arg) = args.next() {
                 match arg.as_str() {
@@ -3840,9 +4230,22 @@ fn parse_connect(args: &mut Args) -> Result<ConnectCommand> {
                             .ok_or_else(|| anyhow!("Invalid runtime: {value}"))?;
                     }
                     "--activate" => activate = true,
+                    "--interactive" => interactive = true,
                     "-h" | "--help" => return Err(help_error("connect add")),
                     other => bail!("Unknown connect add option: {other}"),
                 }
+            }
+
+            if interactive
+                || ((name.is_none() || url.is_none()) && interactive_terminal_available())
+            {
+                let prompted = prompt_connect_add(name, url, runtime, true)?;
+                return Ok(ConnectCommand::Add {
+                    name: prompted.0,
+                    url: prompted.1,
+                    runtime: prompted.2,
+                    activate: prompted.3,
+                });
             }
 
             Ok(ConnectCommand::Add {
@@ -3862,70 +4265,56 @@ fn parse_connect(args: &mut Args) -> Result<ConnectCommand> {
 }
 
 fn parse_run(args: &mut Args) -> Result<RunCommand> {
-    let mut engine = RunEnginePreference::Auto;
-    let mut postgres = false;
-    let mut pull = false;
-    let mut open = false;
-    let mut admin_id = env::var("OPEN_CODELABS_ADMIN_ID")
-        .ok()
-        .unwrap_or_else(|| "admin".to_string());
-    let mut admin_pw = env::var("OPEN_CODELABS_ADMIN_PW")
-        .ok()
-        .unwrap_or_else(|| "admin".to_string());
-    let mut data_dir = None;
-    let mut frontend_port = 5173;
-    let mut backend_port = 8080;
-    let mut image_registry = "ghcr.io".to_string();
-    let mut image_namespace = "jaichangpark".to_string();
-    let mut image_tag = "latest".to_string();
+    let mut command = default_run_command();
+    let mut interactive = false;
+    let mut saw_option = false;
 
     while let Some(arg) = args.next() {
+        saw_option = true;
         match arg.as_str() {
             "--engine" => {
                 let value = args.next_required("--engine")?;
-                engine = RunEnginePreference::parse(&value)
+                command.engine = RunEnginePreference::parse(&value)
                     .ok_or_else(|| anyhow!("Invalid value for --engine: {value}"))?;
             }
-            "--postgres" => postgres = true,
-            "--pull" => pull = true,
-            "--open" => open = true,
-            "--admin-id" => admin_id = args.next_required("--admin-id")?,
-            "--admin-pw" => admin_pw = args.next_required("--admin-pw")?,
-            "--data-dir" => data_dir = Some(PathBuf::from(args.next_required("--data-dir")?)),
+            "--postgres" => command.postgres = true,
+            "--pull" => command.pull = true,
+            "--open" => command.open = true,
+            "--interactive" => interactive = true,
+            "--admin-id" => command.admin_id = args.next_required("--admin-id")?,
+            "--admin-pw" => command.admin_pw = args.next_required("--admin-pw")?,
+            "--data-dir" => {
+                command.data_dir = Some(PathBuf::from(args.next_required("--data-dir")?))
+            }
             "--frontend-port" => {
                 let value = args.next_required("--frontend-port")?;
-                frontend_port = value
+                command.frontend_port = value
                     .parse::<u16>()
                     .with_context(|| format!("Invalid value for --frontend-port: {value}"))?;
             }
             "--backend-port" => {
                 let value = args.next_required("--backend-port")?;
-                backend_port = value
+                command.backend_port = value
                     .parse::<u16>()
                     .with_context(|| format!("Invalid value for --backend-port: {value}"))?;
             }
-            "--image-registry" => image_registry = args.next_required("--image-registry")?,
-            "--image-namespace" => image_namespace = args.next_required("--image-namespace")?,
-            "--image-tag" => image_tag = args.next_required("--image-tag")?,
+            "--image-registry" => {
+                command.image_registry = args.next_required("--image-registry")?
+            }
+            "--image-namespace" => {
+                command.image_namespace = args.next_required("--image-namespace")?
+            }
+            "--image-tag" => command.image_tag = args.next_required("--image-tag")?,
             "-h" | "--help" => return Err(help_error("run")),
             other => bail!("Unknown run option: {other}"),
         }
     }
 
-    Ok(RunCommand {
-        engine,
-        postgres,
-        pull,
-        open,
-        admin_id,
-        admin_pw,
-        data_dir,
-        frontend_port,
-        backend_port,
-        image_registry,
-        image_namespace,
-        image_tag,
-    })
+    if interactive || (!saw_option && interactive_terminal_available()) {
+        command = prompt_run_command(command)?;
+    }
+
+    Ok(command)
 }
 
 fn parse_ps(args: &mut Args) -> Result<PsCommand> {
@@ -5062,16 +5451,17 @@ fn global_help_lines() -> &'static [&'static str] {
 
 fn command_help_lines() -> &'static [&'static str] {
     &[
+        "init",
         "admin settings [--gemini-api-key <key>] [--admin-password <pw>]",
         "admin updates",
         "auth login [--no-open]",
         "auth logout",
         "auth status",
-        "connect add --name <name> --url <url> [--runtime <auto|backend|firebase|supabase>] [--activate]",
+        "connect add --name <name> --url <url> [--runtime <auto|backend|firebase|supabase>] [--activate] [--interactive]",
         "connect use --name <name>",
         "connect list",
         "connect status",
-        "run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]",
+        "run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--interactive] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]",
         "ps [--service <name>]",
         "logs [--service <name>] [--tail <n>] [--no-follow]",
         "restart [--service <name>]",
@@ -5369,5 +5759,29 @@ mod tests {
             .downcast_ref::<HelpRequested>()
             .expect("help requested error");
         assert_eq!(help.topic, "run");
+    }
+
+    #[test]
+    fn default_run_command_uses_expected_ports() {
+        let command = default_run_command();
+        assert_eq!(command.frontend_port, 5173);
+        assert_eq!(command.backend_port, 8080);
+        assert_eq!(command.engine, RunEnginePreference::Auto);
+    }
+
+    #[test]
+    fn suggest_profile_name_from_url_prefers_local_for_localhost() {
+        assert_eq!(
+            suggest_profile_name_from_url("http://localhost:8080"),
+            "local"
+        );
+        assert_eq!(
+            suggest_profile_name_from_url("http://localhost:9090"),
+            "local-9090"
+        );
+        assert_eq!(
+            suggest_profile_name_from_url("https://workshop.example.com"),
+            "workshop"
+        );
     }
 }

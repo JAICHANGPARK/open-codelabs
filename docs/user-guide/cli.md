@@ -19,6 +19,16 @@
 
 ## 기본 사용 흐름
 
+### 0. 인터랙티브 온보딩
+
+```bash
+oc init
+```
+
+- 가장 쉬운 진입점입니다.
+- 로컬 스택 시작 또는 기존 서버 연결 중 하나를 선택하게 해줍니다.
+- setup이 끝나면 profile 저장과 `oc auth login`까지 이어서 진행할 수 있습니다.
+
 ### 1. CLI만으로 로컬 스택 실행
 
 ```bash
@@ -63,7 +73,7 @@ oc attendee join --codelab-id demo --name "Jane" --code ABC123
 ### 연결 프로필
 
 ```bash
-oc connect add --name <name> --url <url> [--runtime <auto|backend|firebase|supabase>] [--activate]
+oc connect add --name <name> --url <url> [--runtime <auto|backend|firebase|supabase>] [--activate] [--interactive]
 oc connect use --name <name>
 oc connect list
 oc connect status
@@ -71,6 +81,7 @@ oc connect status
 
 - 여러 서버를 프로필로 저장하고 전환할 때 사용합니다.
 - `connect status`는 현재 URL, 런타임 추정, capability를 보여줍니다.
+- `--interactive`를 주거나 필수 값 없이 TTY에서 실행하면 질문형 입력으로 내려갑니다.
 
 ### 관리자 인증
 
@@ -96,7 +107,7 @@ oc session
 ## 로컬 스택 런타임
 
 ```bash
-oc run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]
+oc run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--interactive] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]
 oc ps [--service <name>]
 oc logs [--service <name>] [--tail <n>] [--no-follow]
 oc restart [--service <name>]
@@ -105,6 +116,7 @@ oc down [--volumes]
 
 - `oc run`은 `docker` 또는 `podman`을 감지하고, 엔진이 없거나 꺼져 있으면 설치/실행 방법을 안내합니다.
 - `oc down --volumes`는 `oc run`이 만든 로컬 bind mount 데이터 디렉터리를 함께 정리합니다.
+- `oc run`을 플래그 없이 인터랙티브 터미널에서 실행하면 setup wizard가 시작됩니다.
 
 ## 관리 명령
 

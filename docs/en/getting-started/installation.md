@@ -29,6 +29,14 @@ This guide covers different ways to install Open Codelabs.
 
 The `oc` CLI can manage an existing Open Codelabs server and also start a local stack for you.
 
+The easiest first-run entry point is the interactive onboarding flow:
+
+```bash
+oc init
+```
+
+`oc init` guides you through starting a local stack or connecting to an existing server, then offers to save a profile and launch `oc auth login`.
+
 ### Install from source
 
 ```bash
@@ -63,6 +71,7 @@ oc run --open
 - Print install/start guidance when the container engine is missing or not running.
 - Write `~/.open-codelabs/runtime/local-stack/compose.yml`.
 - Start the published frontend/backend images with SQLite by default.
+- Start a guided setup flow when you run it without flags in an interactive terminal.
 
 Common options:
 
@@ -95,6 +104,14 @@ oc connect add --name local --url http://localhost:8080 --runtime backend --acti
 oc auth login
 oc codelab list
 ```
+
+Or use:
+
+```bash
+oc connect add --interactive
+```
+
+to fill in the profile values through prompts.
 
 Sessions are stored under `~/.open-codelabs/` by default.
 

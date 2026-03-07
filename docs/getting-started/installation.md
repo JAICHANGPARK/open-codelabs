@@ -29,6 +29,14 @@ Open Codelabs를 설치하는 다양한 방법을 소개합니다.
 
 `oc` CLI로 이미 실행 중인 Open Codelabs 서버를 관리할 수 있고, 로컬 스택도 바로 띄울 수 있습니다.
 
+가장 쉬운 시작 방법은 인터랙티브 온보딩입니다.
+
+```bash
+oc init
+```
+
+`oc init`은 로컬 스택 실행 또는 기존 서버 연결을 질문형으로 안내하고, 이어서 profile 저장과 `oc auth login`까지 연결해줍니다.
+
 ### 소스에서 설치
 
 ```bash
@@ -63,6 +71,7 @@ oc run --open
 - 엔진이 없거나 실행 중이 아니면 설치/시작 방법 안내
 - `~/.open-codelabs/runtime/local-stack/compose.yml` 생성
 - 퍼블리시된 frontend/backend 이미지를 SQLite 기본 설정으로 실행
+- 플래그 없이 실행하면 인터랙티브 터미널에서 guided setup을 시작
 
 자주 쓰는 옵션:
 
@@ -95,6 +104,14 @@ oc connect add --name local --url http://localhost:8080 --runtime backend --acti
 oc auth login
 oc codelab list
 ```
+
+또는:
+
+```bash
+oc connect add --interactive
+```
+
+를 사용하면 profile 이름, URL, runtime을 질문형으로 입력할 수 있습니다.
 
 기본적으로 세션은 `~/.open-codelabs/` 아래에 저장됩니다.
 

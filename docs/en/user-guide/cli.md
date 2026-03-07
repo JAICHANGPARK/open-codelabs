@@ -19,6 +19,16 @@ Every command supports the following global flags.
 
 ## Recommended workflows
 
+### 0. Interactive onboarding
+
+```bash
+oc init
+```
+
+- This is the easiest first-run entry point.
+- It lets you choose between starting a local stack and connecting to an existing server.
+- At the end, it can save a profile and continue into `oc auth login`.
+
 ### 1. Start a local stack with the CLI only
 
 ```bash
@@ -63,7 +73,7 @@ Final access control is enforced by the connected runtime and backend configurat
 ### Connection profiles
 
 ```bash
-oc connect add --name <name> --url <url> [--runtime <auto|backend|firebase|supabase>] [--activate]
+oc connect add --name <name> --url <url> [--runtime <auto|backend|firebase|supabase>] [--activate] [--interactive]
 oc connect use --name <name>
 oc connect list
 oc connect status
@@ -71,6 +81,7 @@ oc connect status
 
 - Use profiles to store and switch between multiple servers.
 - `connect status` reports the current URL, runtime probe, and available capabilities.
+- With `--interactive`, or when required fields are missing in a TTY, the CLI prompts for the profile values.
 
 ### Administrator authentication
 
@@ -96,7 +107,7 @@ oc session
 ## Local stack runtime
 
 ```bash
-oc run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]
+oc run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--interactive] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]
 oc ps [--service <name>]
 oc logs [--service <name>] [--tail <n>] [--no-follow]
 oc restart [--service <name>]
@@ -105,6 +116,7 @@ oc down [--volumes]
 
 - `oc run` detects `docker` or `podman` and prints install/start guidance when the engine is missing or not running.
 - `oc down --volumes` removes the local bind-mounted data directories created by `oc run`.
+- Running `oc run` without flags in an interactive terminal starts the setup wizard automatically.
 
 ## Administrative commands
 
