@@ -1,12 +1,12 @@
 # FAQ (자주 묻는 질문)
 
-Open Codelabs 사용 중 자주 묻는 질문과 답변입니다.
+현재 저장소의 실제 코드 기준으로 정리한 FAQ입니다. 동작은 배포 모드에 따라 다를 수 있으니 먼저 `backend`, `Supabase`, `Firebase` 중 어떤 모드로 실행 중인지 확인하세요.
 
-## 설치 및 실행
+## 실행 및 배포
 
 ### Q: Docker 없이 실행할 수 있나요?
 
-**A:** 네, 가능합니다. Rust와 Bun을 설치하고 로컬에서 실행할 수 있습니다.
+**A:** 가능합니다. 기본 개발 흐름은 다음과 같습니다.
 
 ```bash
 # Backend
@@ -15,341 +15,228 @@ cargo run
 
 # Frontend
 cd frontend
-bun install && bun run dev
+bun install
+bun run dev
 ```
 
-자세한 내용은 [로컬 개발 환경](self-hosting/local-development.md)을 참조하세요.
+기본 환경 변수와 로컬 실행 방법은 [로컬 개발 환경](self-hosting/local-development.md), [환경 변수](self-hosting/environment.md)를 참고하세요.
 
-### Q: M1/M2 Mac에서 Docker 빌드가 느려요
+### Q: SQLite만 지원하나요?
 
-**A:** Apple Silicon에서는 Rosetta 2를 통한 에뮬레이션으로 인해 느릴 수 있습니다.
+**A:** 기본값은 SQLite이지만 PostgreSQL도 지원합니다.
 
-해결 방법:
-1. Docker Desktop 설정에서 "Use Rosetta for x86/amd64 emulation" 활성화
-2. 네이티브 빌드 사용:
+- 기본 `DATABASE_URL`: `sqlite:data/sqlite.db?mode=rwc`
+- PostgreSQL 예시: `postgresql://postgres:postgres@localhost:5432/open_codelabs`
+- 서버 시작 시 마이그레이션은 자동 실행됩니다.
+- MySQL은 현재 런타임에서 지원하지 않습니다.
 
-```yaml
-# docker-compose.yml
-services:
-  backend:
-    platform: linux/arm64  # 추가
-```
+### Q: 어떤 배포 모드를 선택하는 게 좋나요?
 
-### Q: 포트 8080과 5173이 이미 사용 중입니다
+**A:** 현재 구현 기준으로는 다음처럼 보는 게 맞습니다.
 
-**A:** `docker-compose.yml`에서 포트를 변경하세요:
+| 모드 | 권장 상황 | 현재 지원 범위 |
+| --- | --- | --- |
+| `backend` | 자체 호스팅, 전체 기능 사용 | 가장 완전한 기능 세트. 백업, 코드랩 복제/가져오기/내보내기, 워크스페이스, 감사 로그, CLI 브라우저 인증, 링크 제출, 업데이트 확인 포함 |
+| `Supabase` | 서버리스 + 비교적 넓은 기능 범위 | Google 로그인, 수료증, 자료, 파일 제출, 퀴즈는 지원. 다만 백업, 워크스페이스, 코드랩 복제/가져오기/내보내기, 링크 제출, 업데이트 확인은 제한 |
+| `Firebase` | 가벼운 서버리스 데모/기본 운영 | 가장 제한이 큽니다. 수료증, 자료 관리, 제출물 관리, 퀴즈 관리, 백업, 워크스페이스, 코드랩 복제/가져오기/내보내기는 현재 미지원 |
 
-```yaml
-services:
-  backend:
-    ports:
-      - "3080:8080"  # 호스트:컨테이너
+### Q: 리버스 프록시 뒤에서 운영할 때 주의할 점이 있나요?
 
-  frontend:
-    ports:
-      - "3000:5173"
-```
+**A:** 있습니다.
 
-또는 기존 프로세스 종료:
+- 프록시의 `x-forwarded-*` 헤더를 신뢰하려면 `TRUST_PROXY=true`를 설정해야 합니다.
+- 쿠키를 `SameSite=None`으로 쓰려면 `COOKIE_SECURE=true`가 함께 필요합니다. 그렇지 않으면 서버가 `Lax`로 낮춰 처리합니다.
 
-```bash
-# 포트 사용 확인
-lsof -i :8080
-lsof -i :5173
+공개 배포 예시는 [공개 배포 가이드](self-hosting/public-deployment.md)를 참고하세요.
 
-# 프로세스 종료
-kill -9 <PID>
-```
+### Q: API 호출이 403으로 막히는 경우가 있습니다
 
-### Q: Windows에서 실행이 안 됩니다
+**A:** 세션 쿠키를 사용하는 상태 변경 요청은 CSRF 헤더가 필요합니다.
 
-**A:** WSL2를 사용하는 것을 권장합니다:
+- 브라우저 UI는 자동 처리합니다.
+- `curl`이나 별도 스크립트로 `POST`, `PUT`, `DELETE`를 호출할 때는 쿠키와 `x-csrf-token`을 함께 보내야 합니다.
 
-1. WSL2 설치
-2. Ubuntu 설치
-3. Docker Desktop for Windows 설치 및 WSL2 통합 활성화
-4. WSL2 Ubuntu에서 프로젝트 클론 및 실행
+## 참가자 및 세션 운영
 
-## 사용법
+### Q: 비공개 Codelab도 참가자 목록에 보이나요?
 
-### Q: 관리자 비밀번호를 잊어버렸어요
+**A:** 보이지 않습니다. 일반 참가자는 `is_public=true`인 코드랩만 목록에서 볼 수 있고, 비공개 코드랩은 관리자만 등록/접근시킬 수 있습니다.
 
-**A:** 환경 변수를 변경하고 재시작하세요:
+### Q: 참가자 이름이 중복되면 어떻게 되나요?
 
-```bash
-# Docker
-docker compose down
-# docker-compose.yml에서 ADMIN_PW 변경
-docker compose up
+**A:** 같은 코드랩 안에서는 닉네임 중복이 막혀 있습니다. 다만 예외가 하나 있습니다.
 
-# 로컬
-# backend/.env에서 ADMIN_PW 변경
-cargo run
-```
+- 같은 닉네임과 같은 참가 코드로 다시 들어오면 기존 참가자로 재입장합니다.
+- 다른 사람이 같은 닉네임을 쓰면 등록이 거부됩니다.
+- 입력 길이 제한은 이름 80자, 코드 64자입니다.
 
-### Q: 참가자 이름이 중복되면 어떻게 하나요?
+### Q: Google 로그인으로 관리자나 참가자를 등록할 수 있나요?
 
-**A:** 같은 Codelab 내에서 이름은 중복될 수 없습니다. 참가자에게 고유한 이름을 사용하도록 안내하세요:
+**A:** 서버리스 모드에서만 가능합니다.
 
-- "홍길동_1", "홍길동_2"
-- "홍길동", "길동홍"
-- 이메일 사용: "hong@example.com"
+- `Supabase` / `Firebase`: Google 로그인 지원
+- `backend`: 관리자 ID/PW 로그인, 참가자 닉네임+코드 방식
 
-### Q: Step을 삭제할 수 있나요?
+### Q: 참가 진행 상황은 어디에 저장되나요?
 
-**A:** 현재는 직접 Step 삭제 기능이 없습니다. Step 목록을 다시 작성하여 저장하면 기존 Step이 대체됩니다.
+**A:** 기본적으로 브라우저 `localStorage`에 저장됩니다. 같은 브라우저로 다시 접속하면 이어서 진행할 수 있습니다.
 
-또는 데이터베이스에서 직접 삭제:
+추가로 `backend` 모드에서는 WebSocket 이벤트를 통해 서버의 `current_step`도 함께 갱신됩니다.
 
-```bash
-sqlite3 backend/data/sqlite.db
-sqlite> DELETE FROM steps WHERE id = 'step_id';
-```
+### Q: 채팅 메시지나 DM은 새로고침하면 사라지나요?
 
-### Q: Markdown에서 이미지가 표시되지 않아요
+**A:** `backend` 모드 기준으로는 사라지지 않습니다.
 
-**A:** 이미지 경로를 확인하세요:
+- 공개 채팅과 DM 모두 DB에 저장됩니다.
+- 페이지를 다시 열면 채팅 기록을 다시 불러옵니다.
+- DM도 `sender_id`, `target_id`를 포함해 저장됩니다.
 
-1. 관리자 페이지에서 이미지 업로드
-2. 자동 생성된 URL 복사
-3. Markdown에 삽입:
+### Q: 수료증은 언제 발급되나요?
 
-```markdown
-![설명](http://localhost:8080/assets/images/xxx.png)
-```
+**A:** 현재 UI 기준으로는 코드랩 설정에 따라 다음 조건을 확인합니다.
 
-외부 이미지 URL도 사용 가능합니다:
+- `require_quiz`: 퀴즈 통과 필요
+- `require_feedback`: 피드백 제출 필요
+- `require_submission`: 제출물 최소 1개 필요
 
-```markdown
-![설명](https://example.com/image.png)
-```
+`backend` 모드에서는 완료 API가 제출물 필수 여부를 한 번 더 검사합니다. 발급된 수료증은 `/certificate/{attendee_id}`에서 열 수 있고, 검증 URL은 `/verify/{attendee_id}` 형식입니다. `Firebase` 모드에서는 수료증 기능이 현재 지원되지 않습니다.
 
-### Q: 채팅 메시지가 사라집니다
+### Q: 제출물 업로드 제한이 있나요?
 
-**A:** WebSocket 연결이 끊어지면 실시간 메시지가 손실될 수 있습니다. 하지만 모든 메시지는 데이터베이스에 저장됩니다.
+**A:** 있습니다.
 
-페이지를 새로고침하면 기존 채팅 기록을 불러옵니다.
+- 파일 제출: 파일당 5MB
+- 총 제출 용량: 참가자당 10MB
+- 이미지 제출: 서버에서 WebP로 변환될 수 있음
+- `HEIC` / `HEIF`: 현재 지원하지 않음
 
-## 공개 배포
+링크 제출은 백엔드 API에는 있지만, 현재 프런트엔드에서는 `backend` 모드에서만 지원됩니다. `Supabase`와 `Firebase` 모드에서는 링크 제출이 막혀 있습니다.
 
-### Q: ngrok 무료 플랜으로 충분한가요?
+### Q: 일반 이미지 업로드가 실패합니다
 
-**A:** 소규모 워크샵(~40명)이면 충분합니다.
+**A:** 일반 채팅/본문용 이미지 업로드는 관리자와 참가자 모두 가능하지만, 제한이 있습니다.
 
-ngrok 무료 플랜:
-- 연결 수: 40/분
-- 대역폭: 무제한
-- 터널 수: 1개
+- 최대 크기: 5MB
+- 서버 저장 형식: WebP
+- 저장 경로: `/uploads/{uuid}.webp`
 
-더 많은 참가자가 있다면:
-- ngrok Pro 플랜 사용
-- Cloudflare Tunnel 사용
-- 자체 서버에 배포
+### Q: 자료(Materials) 파일 업로드 제한은 어떻게 되나요?
 
-### Q: ngrok URL이 매번 바뀝니다
+**A:** 자료 업로드는 관리자만 할 수 있고 최대 10MB입니다.
 
-**A:** 무료 플랜에서는 세션마다 새로운 URL이 생성됩니다.
+- 저장 경로: `/uploads/materials/...`
+- 링크 자료는 `http` 또는 `https` URL만 허용됩니다.
+- 자료 삭제는 현재 DB 레코드만 삭제합니다. 실제 파일은 자동 삭제되지 않습니다.
 
-고정 URL이 필요하면:
-1. ngrok 유료 플랜 (Reserved Domain)
-2. Cloudflare Tunnel
-3. 자체 도메인에 배포
+### Q: 화면 공유가 되나요?
 
-### Q: 참가자가 "ngrok 경고 페이지"를 봅니다
+**A:** 됩니다. 관리자와 참가자 모두 화면 공유 기능이 있습니다.
 
-**A:** ngrok 무료 플랜은 처음 접속 시 경고 페이지를 표시합니다.
+- WebRTC 기반
+- 품질 프리셋: `auto`, `low`, `medium`, `high`
+- 브라우저가 `getDisplayMedia`를 지원해야 함
 
-"Visit Site" 버튼을 클릭하면 접속됩니다.
+네트워크 상태와 품질 제한 여부도 UI에 표시됩니다.
 
-경고 페이지를 제거하려면:
-- ngrok 유료 플랜 사용
-- 다른 터널링 서비스 (Cloudflare Tunnel)
+### Q: 본문에 인라인 댓글을 달 수 있나요?
 
-## 성능 및 확장
+**A:** 가능합니다. 참가자는 가이드/스텝 본문에서 텍스트를 선택해 스레드를 만들고, 답글과 삭제도 할 수 있습니다.
 
-### Q: 최대 몇 명까지 지원하나요?
+관리자가 본문을 크게 수정한 뒤 저장하면 기존 인라인 댓글이 stale 될 수 있어서, 저장 전에 영향 범위를 경고하는 UI가 표시됩니다.
 
-**A:** 테스트 결과:
+## 관리자, AI, 워크스페이스
 
-- **동시 사용자**: 100명 (안정적)
-- **최대 테스트**: 200명 (CPU 사용률 증가)
+### Q: Gemini API 키 저장이 실패합니다
 
-제약 요소:
-- SQLite 동시 쓰기
-- 단일 서버 WebSocket
+**A:** 현재 관리자 설정 API는 암호화된 키만 받습니다. 평문 키는 거부됩니다.
 
-더 많은 사용자:
-- PostgreSQL로 마이그레이션
-- Redis로 WebSocket 메시지 브로커
-- 로드 밸런서 추가
+실무적으로는 다음 둘 중 하나가 필요합니다.
 
-### Q: 메모리 사용량이 높습니다
+- 로그인 과정에서 저장된 관리자 비밀번호
+- `VITE_ADMIN_ENCRYPTION_PASSWORD` 환경 변수
 
-**A:** 확인 사항:
+또한 백엔드에서 Gemini API 키를 사용할 때 우선순위는 다음과 같습니다.
 
-```bash
-# 컨테이너 리소스 확인
-docker stats
+1. 관리자 설정에 저장된 키
+2. 요청 payload로 전달된 키
+3. `GEMINI_API_KEY` 환경 변수
 
-# 로그 크기 확인
-docker compose logs backend | wc -l
-```
+### Q: 참가자도 Gemini를 사용할 수 있나요?
 
-최적화:
-1. 로그 레벨 낮추기: `RUST_LOG=info`
-2. 리소스 제한 설정:
+**A:** 가능합니다. 참가자 화면에는 `AskGemini` 패널이 있으며, 브라우저 로컬에 저장한 API 키를 사용해 스트리밍 응답을 받을 수 있습니다.
 
-```yaml
-services:
-  backend:
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-```
+### Q: 코드랩 워크스페이스 기능은 어떤 모드에서 쓸 수 있나요?
 
-### Q: 데이터베이스 파일이 계속 커집니다
+**A:** 현재는 `backend` 모드 전용입니다.
 
-**A:** 정기적으로 VACUUM 실행:
+- 워크스페이스 생성/삭제
+- `branch` 또는 `folder` 구조 선택
+- 초기 파일 업로드
+- step별 start/end 브랜치 또는 폴더 생성
+- 파일 읽기/수정
+- `tar.gz` 다운로드
 
-```bash
-sqlite3 backend/data/sqlite.db "VACUUM;"
-```
+서버리스 모드에서는 현재 지원되지 않습니다.
 
-또는 오래된 데이터 삭제:
+### Q: 백업에는 무엇이 포함되나요?
 
-```sql
--- 30일 이상 된 Codelab 삭제
-DELETE FROM codelabs WHERE created_at < datetime('now', '-30 days');
-```
+**A:** `backend` 모드의 관리자 백업은 상당히 넓게 담습니다.
 
-## 문제 해결
+- 코드랩, 스텝, 참가자
+- 채팅, 도움 요청, 피드백
+- 자료, 퀴즈, 퀴즈 제출, 제출물
+- AI conversations / threads / messages
+- inline comments
+- audit logs
+- 업로드 파일
+- 워크스페이스 메타데이터와 워크스페이스 파일
 
-### Q: "Database is locked" 에러가 발생합니다
+관리자 전용 `export`, `inspect`, `restore` API가 있으며, 복원 업로드 제한은 기본 200MB입니다. 서버리스 모드에서는 현재 백업/복원이 지원되지 않습니다.
 
-**A:** SQLite는 동시 쓰기를 지원하지 않습니다.
+### Q: 감사 로그는 어디까지 남나요?
 
-해결 방법:
-1. `?mode=rwc` 확인: `DATABASE_URL=sqlite:data/sqlite.db?mode=rwc`
-2. 연결 풀 크기 줄이기:
+**A:** 주요 동작은 best-effort로 감사 로그에 기록됩니다. 기록 실패가 원래 요청까지 막지는 않습니다.
 
-```rust
-let pool = SqlitePoolOptions::new()
-    .max_connections(1)  // 기본값 5
-    .connect(&database_url)
-    .await?;
-```
+- 조회는 관리자 전용
+- 기본 조회 수: 100건
+- 최대 조회 수: 1000건
+- `action`, `codelab_id` 필터 지원
 
-3. PostgreSQL로 마이그레이션 고려
+### Q: CLI 로그인 방식이 어떻게 바뀌었나요?
 
-### Q: WebSocket 연결이 자꾸 끊어집니다
+**A:** 현재 `oc auth login`은 브라우저 승인 기반 로그인 흐름을 사용합니다.
 
-**A:** 원인:
-- 방화벽/프록시
-- 네트워크 불안정
-- 서버 재시작
+- 인증 요청 TTL: 10분
+- poll interval: 2초
+- 상태 흐름: `pending -> approved -> consumed`
 
-디버깅:
-
-```javascript
-// Frontend에서 재연결 로직 확인
-const ws = new WebSocket(wsUrl);
-
-ws.onclose = (event) => {
-    console.log('WebSocket closed:', event.code, event.reason);
-
-    // 재연결
-    setTimeout(() => reconnect(), 3000);
-};
-```
-
-### Q: 이미지 업로드가 실패합니다
-
-**A:** 확인 사항:
-
-1. 파일 크기: 최대 10MB (기본값)
-2. 파일 형식: PNG, JPG, GIF, WebP
-3. 디렉토리 권한:
-
-```bash
-# Docker
-docker compose exec backend ls -la /app/static/assets/images
-
-# 권한 문제시
-docker compose exec backend chmod 755 /app/static/assets
-```
-
-### Q: Frontend에서 API 호출이 실패합니다
-
-**A:** CORS 문제일 수 있습니다.
-
-Backend 로그 확인:
-
-```bash
-docker compose logs backend | grep CORS
-```
-
-`main.rs`에서 CORS 설정 확인:
-
-```rust
-.layer(tower_http::cors::CorsLayer::permissive())
-```
+자세한 사용법은 [CLI 가이드](user-guide/cli.md)를 참고하세요.
 
 ## 기타
 
-### Q: 다국어 지원이 되나요?
+### Q: 429 Too Many Requests가 발생합니다
 
-**A:** 현재는 한국어만 지원합니다. 하지만 i18n 구조는 준비되어 있습니다.
+**A:** 기본 rate limit이 걸린 것일 수 있습니다. 현재 기본값은 다음과 같습니다.
 
-기여 방법:
-1. `frontend/src/lib/i18n/` 에 언어 파일 추가
-2. Pull Request 제출
+- 일반 요청: 분당 120회
+- 로그인: 5분당 20회
+- AI 요청: 분당 30회
+- 업로드: 분당 20회
 
-### Q: 모바일에서 사용할 수 있나요?
+### Q: 다국어를 지원하나요?
 
-**A:** 네, 반응형 디자인으로 모바일과 태블릿을 지원합니다.
-
-테스트된 환경:
-- iOS Safari
-- Android Chrome
-- iPad
-
-### Q: Codelab을 PDF로 내보낼 수 있나요?
-
-**A:** 현재는 직접 지원하지 않지만:
-
-1. Export로 ZIP 다운로드
-2. Markdown을 Pandoc으로 변환:
-
-```bash
-pandoc step_1.md -o step_1.pdf
-```
-
-또는 브라우저 인쇄 기능 사용 (Ctrl/Cmd+P)
-
-### Q: 프로젝트에 기여하고 싶어요
-
-**A:** 환영합니다! [기여 가이드](contributing/guide.md)를 참조하세요.
-
-간단한 기여 방법:
-- 버그 리포트: [GitHub Issues](https://github.com/JAICHANGPARK/open-codelabs/issues)
-- 기능 제안: [Discussions](https://github.com/JAICHANGPARK/open-codelabs/discussions)
-- Pull Request: [기여 워크플로우](contributing/workflow.md)
+**A:** 네. 현재 프런트엔드에는 21개 언어 번역 파일이 포함되어 있습니다. 최소한 `ko`, `en`, `ja`, `zh`, `zh-TW`, `es`, `fr`, `de`, `ru` 등을 포함한 다국어 구조가 이미 들어 있습니다.
 
 ### Q: 상업적으로 사용할 수 있나요?
 
-**A:** 네, MIT 라이선스로 자유롭게 사용, 수정, 배포할 수 있습니다.
-
-단, 다음을 포함해야 합니다:
-- 원본 저작권 고지
-- MIT 라이선스 텍스트
-
-자세한 내용은 [라이선스](license.md)를 참조하세요.
+**A:** 가능합니다. 현재 프로젝트 라이선스는 MIT가 아니라 **Apache License 2.0**입니다. 자세한 내용은 [라이선스](license.md)를 참고하세요.
 
 ## 추가 도움
 
-위에서 답을 찾지 못하셨나요?
+위에서 답을 찾지 못했다면 다음 문서를 함께 보세요.
 
-- [GitHub Issues](https://github.com/JAICHANGPARK/open-codelabs/issues) - 버그 리포트
-- [GitHub Discussions](https://github.com/JAICHANGPARK/open-codelabs/discussions) - 질문 및 토론
-- [문서](index.md) - 전체 문서 탐색
+- [문서 홈](index.md)
+- [로컬 개발 환경](self-hosting/local-development.md)
+- [환경 변수](self-hosting/environment.md)
+- [공개 배포](self-hosting/public-deployment.md)
+- [CLI 가이드](user-guide/cli.md)
