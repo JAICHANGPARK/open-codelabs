@@ -10,6 +10,7 @@ use axum::{
 };
 use std::sync::Arc;
 
+/// Lists audit log rows with optional action and codelab filters.
 pub async fn get_audit_logs(
     State(state): State<Arc<AppState>>,
     session: AuthSession,

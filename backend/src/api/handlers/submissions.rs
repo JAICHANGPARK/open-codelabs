@@ -23,6 +23,7 @@ use uuid::Uuid;
 const MAX_TOTAL_SIZE: i64 = 10 * 1024 * 1024; // 10MB
 const MAX_UPLOAD_SIZE: usize = 5 * 1024 * 1024; // 5MB per file
 
+/// Uploads a file submission for an attendee.
 pub async fn submit_file(
     State(state): State<Arc<AppState>>,
     Path((codelab_id, attendee_id)): Path<(String, String)>,
@@ -157,6 +158,7 @@ pub async fn submit_file(
     Err(bad_request("No file uploaded"))
 }
 
+/// Stores a link-based submission for an attendee.
 pub async fn submit_link(
     State(state): State<Arc<AppState>>,
     Path((codelab_id, attendee_id)): Path<(String, String)>,
@@ -241,6 +243,7 @@ pub async fn submit_link(
     Ok(Json(submission))
 }
 
+/// Lists submissions visible to the current actor.
 pub async fn get_submissions(
     State(state): State<Arc<AppState>>,
     Path(codelab_id): Path<String>,
@@ -353,6 +356,7 @@ fn sanitize_original_name(value: &str) -> String {
     out
 }
 
+/// Deletes a submission visible to the current actor.
 pub async fn delete_submission(
     State(state): State<Arc<AppState>>,
     Path((_codelab_id, _attendee_id, submission_id)): Path<(String, String, String)>,

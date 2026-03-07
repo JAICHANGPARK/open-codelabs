@@ -64,6 +64,7 @@ struct BackupPayload {
     data: BackupData,
 }
 
+/// Summary of the contents found inside a backup archive.
 #[derive(Debug, Serialize)]
 pub struct BackupSummary {
     version: u32,
@@ -223,6 +224,7 @@ fn map_multipart_error<E: std::fmt::Display>(error: E) -> (StatusCode, String) {
     bad_request(&error.to_string())
 }
 
+/// Exports database records plus uploaded assets into a backup archive.
 pub async fn export_backup(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -387,6 +389,7 @@ pub async fn export_backup(
     Ok((headers, buf))
 }
 
+/// Restores a backup archive into the current backend state.
 pub async fn restore_backup(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -787,6 +790,7 @@ pub async fn restore_backup(
     Ok(StatusCode::OK)
 }
 
+/// Inspects a backup archive and returns high-level counts without restoring it.
 pub async fn inspect_backup(
     State(_state): State<Arc<AppState>>,
     session: AuthSession,

@@ -1,46 +1,69 @@
 use serde::{Deserialize, Serialize};
 
+/// Payload used to provision a workspace for a codelab.
 #[derive(Deserialize)]
 pub struct CreateCodeServerRequest {
+    /// Target codelab identifier.
     pub codelab_id: String,
+    /// Optional seed files written into the workspace on creation.
     pub workspace_files: Option<Vec<WorkspaceFile>>,
-    pub structure_type: Option<String>, // "branch" or "folder"
+    /// Workspace structure mode, typically `branch` or `folder`.
+    pub structure_type: Option<String>,
 }
 
+/// Path/content pair used when writing files into a workspace.
 #[derive(Deserialize, Serialize)]
 pub struct WorkspaceFile {
+    /// Relative file path inside the workspace.
     pub path: String,
+    /// Full file contents to write.
     pub content: String,
 }
 
+/// Response returned for an existing provisioned workspace.
 #[derive(Serialize)]
 pub struct CodeServerInfo {
+    /// Filesystem path of the workspace root.
     pub path: String,
+    /// Workspace structure mode, typically `branch` or `folder`.
     pub structure_type: String,
 }
 
+/// Payload used to create a git branch snapshot for a step.
 #[derive(Deserialize)]
 pub struct CreateBranchRequest {
+    /// Step number used to derive the branch name.
     pub step_number: i32,
-    pub branch_type: String, // "start" or "end"
+    /// Branch variant, typically `start` or `end`.
+    pub branch_type: String,
 }
 
+/// Payload used to create a folder snapshot for a step.
 #[derive(Deserialize)]
 pub struct CreateFolderRequest {
+    /// Step number used to derive the folder name.
     pub step_number: i32,
-    pub folder_type: String, // "start" or "end"
+    /// Folder variant, typically `start` or `end`.
+    pub folder_type: String,
+    /// Files that should exist inside the created folder snapshot.
     pub files: Vec<WorkspaceFile>,
 }
 
+/// Payload used to update a branch or folder workspace in place.
 #[derive(Deserialize)]
 pub struct UpdateWorkspaceFilesRequest {
+    /// Files to create or overwrite.
     pub files: Vec<WorkspaceFile>,
+    /// Relative file paths to delete.
     pub delete_files: Option<Vec<String>>,
+    /// Optional git commit message when the workspace is branch-based.
     pub commit_message: Option<String>,
 }
 
+/// Query parameter used when reading a single file from a workspace.
 #[derive(Deserialize)]
 pub struct ReadFileQuery {
+    /// Relative file path inside the workspace.
     pub file: String,
 }
 

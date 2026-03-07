@@ -17,6 +17,7 @@ use uuid::Uuid;
 
 const MAX_MATERIAL_UPLOAD_SIZE: usize = 10 * 1024 * 1024; // 10MB
 
+/// Lists materials for a codelab visible to the current actor.
 pub async fn get_materials(
     State(state): State<Arc<AppState>>,
     Path(codelab_id): Path<String>,
@@ -43,6 +44,7 @@ pub async fn get_materials(
     Ok(Json(materials))
 }
 
+/// Creates a new material entry for a codelab.
 pub async fn add_material(
     State(state): State<Arc<AppState>>,
     Path(codelab_id): Path<String>,
@@ -91,6 +93,7 @@ pub async fn add_material(
     Ok(Json(material))
 }
 
+/// Deletes a material entry from a codelab.
 pub async fn delete_material(
     State(state): State<Arc<AppState>>,
     Path((_codelab_id, material_id)): Path<(String, String)>,
@@ -126,6 +129,7 @@ pub async fn delete_material(
     Ok(StatusCode::NO_CONTENT)
 }
 
+/// Uploads a material file and returns the public asset URL.
 pub async fn upload_material_file(
     State(state): State<Arc<AppState>>,
     session: AuthSession,

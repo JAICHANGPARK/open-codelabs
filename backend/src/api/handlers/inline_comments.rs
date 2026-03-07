@@ -15,9 +15,12 @@ use serde_json::json;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+/// Query parameters used to scope inline comment threads to a target.
 #[derive(Debug, Deserialize, Default)]
 pub struct InlineCommentQuery {
+    /// Target kind filter, typically `guide` or `step`.
     pub target_type: Option<String>,
+    /// Step id filter when `target_type` is `step`.
     pub target_step_id: Option<String>,
 }
 
@@ -36,6 +39,7 @@ struct MessageDeleteRow {
     target_step_id: Option<String>,
 }
 
+/// Lists inline comment threads for a codelab, optionally filtered by target.
 pub async fn get_inline_comments(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -98,6 +102,7 @@ pub async fn get_inline_comments(
     Ok(Json(result))
 }
 
+/// Creates a new inline comment thread or appends to an existing anchor thread.
 pub async fn create_inline_comment(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -210,6 +215,7 @@ pub async fn create_inline_comment(
     Ok(Json(thread))
 }
 
+/// Appends a reply to an existing inline comment thread.
 pub async fn reply_inline_comment(
     Path((id, thread_id)): Path<(String, String)>,
     State(state): State<Arc<AppState>>,
@@ -262,6 +268,7 @@ pub async fn reply_inline_comment(
     Ok(Json(thread))
 }
 
+/// Deletes an inline comment message when the actor is allowed to do so.
 pub async fn delete_inline_comment(
     Path((id, thread_id, comment_id)): Path<(String, String, String)>,
     State(state): State<Arc<AppState>>,

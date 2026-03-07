@@ -1,7 +1,9 @@
 use serde::Deserialize;
 
+/// Admin settings payload submitted from the frontend settings screen.
 #[derive(Deserialize)]
 pub struct SettingsPayload {
+    /// Gemini API key encrypted or provided by the administrator.
     pub gemini_api_key: String,
 }
 

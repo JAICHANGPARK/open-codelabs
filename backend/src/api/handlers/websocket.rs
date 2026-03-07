@@ -20,13 +20,17 @@ fn generate_session_id() -> String {
     uuid::Uuid::new_v4().to_string()
 }
 
+/// Query parameters accepted when establishing a websocket connection.
 #[derive(serde::Deserialize, Default)]
 pub struct WsQuery {
     #[serde(rename = "as")]
+    /// Optional role hint used to select the right cookie or token.
     pub role_hint: Option<String>,
+    /// Optional session token fallback passed via query string.
     pub token: Option<String>,
 }
 
+/// Upgrades an authenticated request into the codelab websocket channel.
 pub async fn ws_handler(
     Path(id): Path<String>,
     ws: WebSocketUpgrade,

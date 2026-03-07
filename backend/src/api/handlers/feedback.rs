@@ -13,6 +13,7 @@ use axum::{
 use std::sync::Arc;
 use uuid::Uuid;
 
+/// Stores feedback submitted by an attendee for a codelab.
 pub async fn submit_feedback(
     State(state): State<Arc<AppState>>,
     Path(id): Path<String>,
@@ -80,6 +81,7 @@ fn is_duplicate_feedback_error(err_msg: &str) -> bool {
     .any(|needle| err_msg.contains(needle))
 }
 
+/// Lists feedback rows for a codelab.
 pub async fn get_feedback(
     State(state): State<Arc<AppState>>,
     Path(id): Path<String>,

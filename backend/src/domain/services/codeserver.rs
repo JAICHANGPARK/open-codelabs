@@ -7,6 +7,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::fs;
 use tokio::process::Command;
 
+/// Manages per-codelab workspaces, snapshots, and git operations.
 pub struct CodeServerManager {
     workspace_base: PathBuf,
 }
@@ -60,10 +61,12 @@ impl CodeServerManager {
         std::env::temp_dir().join("open-codelabs-workspaces")
     }
 
+    /// Returns the default root directory used for codelab workspaces.
     pub fn default_workspace_base() -> PathBuf {
         Self::resolve_default_workspace_base()
     }
 
+    /// Returns the filesystem path for a given codelab workspace.
     pub fn workspace_path(&self, codelab_id: &str) -> PathBuf {
         self.workspace_base.join(codelab_id)
     }
@@ -105,10 +108,12 @@ impl CodeServerManager {
         Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
     }
 
+    /// Creates a manager rooted at the provided workspace base path.
     pub fn new(workspace_base: PathBuf) -> Self {
         Self { workspace_base }
     }
 
+    /// Creates a manager using the workspace base resolved from environment.
     pub fn from_env() -> Result<Self> {
         let workspace_base = Self::resolve_default_workspace_base();
         Ok(Self { workspace_base })
@@ -197,6 +202,7 @@ impl CodeServerManager {
         Ok(())
     }
 
+    /// Returns the currently checked out git branch for a workspace.
     pub async fn current_branch(&self, codelab_id: &str) -> Result<String> {
         let workspace_path = self.workspace_base.join(codelab_id);
         Self::run_command_output(
@@ -213,6 +219,7 @@ impl CodeServerManager {
         .await
     }
 
+    /// Checks out an existing git branch inside the workspace.
     pub async fn checkout_branch(&self, codelab_id: &str, branch: &str) -> Result<()> {
         let workspace_path = self.workspace_base.join(codelab_id);
         Self::run_command(
@@ -226,6 +233,7 @@ impl CodeServerManager {
         .await
     }
 
+    /// Stages all workspace changes and creates a git commit.
     pub async fn commit_changes(&self, codelab_id: &str, message: &str) -> Result<()> {
         let workspace_path = self.workspace_base.join(codelab_id);
         Self::run_command(

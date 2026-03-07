@@ -1,8 +1,8 @@
 use crate::infrastructure::audit::{record_audit, AuditEntry};
-use crate::middleware::auth::AuthSession;
-use crate::utils::error::{bad_request, internal_error, unauthorized};
-use crate::middleware::request_info::RequestInfo;
 use crate::infrastructure::database::AppState;
+use crate::middleware::auth::AuthSession;
+use crate::middleware::request_info::RequestInfo;
+use crate::utils::error::{bad_request, internal_error, unauthorized};
 use axum::{extract::State, http::StatusCode, response::Json};
 use axum_extra::extract::Multipart;
 use image::ImageReader;
@@ -41,6 +41,7 @@ fn decode_image_bytes(bytes: &[u8]) -> Result<image::DynamicImage, String> {
     decode_with_fallback(&mut decode, &mut fallback)
 }
 
+/// Uploads an image, converts it to WebP, and returns the public asset URL.
 pub async fn upload_image(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -140,8 +141,8 @@ mod tests {
     fn decode_with_fallback_uses_fallback_decoder() {
         let mut decode = || Err(image_io_error("primary failed"));
         let mut fallback = || Ok(sample_image());
-        let decoded =
-            decode_with_fallback(&mut decode, &mut fallback).expect("fallback decode should succeed");
+        let decoded = decode_with_fallback(&mut decode, &mut fallback)
+            .expect("fallback decode should succeed");
         assert_eq!(decoded.width(), 1);
     }
 
@@ -149,8 +150,8 @@ mod tests {
     fn decode_with_fallback_surfaces_fallback_error() {
         let mut decode = || Err(image_io_error("primary failed"));
         let mut fallback = || Err(image_io_error("fallback failed"));
-        let err =
-            decode_with_fallback(&mut decode, &mut fallback).expect_err("both decoders should fail");
+        let err = decode_with_fallback(&mut decode, &mut fallback)
+            .expect_err("both decoders should fail");
         assert!(err.contains("Failed to load image"));
     }
 }
