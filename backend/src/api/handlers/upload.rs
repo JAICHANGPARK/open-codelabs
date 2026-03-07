@@ -41,6 +41,7 @@ fn decode_image_bytes(bytes: &[u8]) -> Result<image::DynamicImage, String> {
     decode_with_fallback(&mut decode, &mut fallback)
 }
 
+/// Uploads an image, converts it to WebP, and returns the public asset URL.
 pub async fn upload_image(
     State(state): State<Arc<AppState>>,
     session: AuthSession,

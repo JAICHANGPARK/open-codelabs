@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use subtle::ConstantTimeEq;
 
+/// Authenticates the built-in administrator and issues session cookies.
 pub async fn login(
     State(state): State<Arc<AppState>>,
     jar: CookieJar,
@@ -101,6 +102,7 @@ pub async fn login(
     ))
 }
 
+/// Stores or clears administrator settings such as the encrypted Gemini API key.
 pub async fn update_settings(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -153,6 +155,7 @@ pub async fn update_settings(
     Ok(StatusCode::OK)
 }
 
+/// Update status for a single deployable component.
 #[derive(Debug, Serialize, PartialEq, Eq)]
 pub struct UpdateStatus {
     current: Option<String>,
@@ -161,12 +164,14 @@ pub struct UpdateStatus {
     error: Option<String>,
 }
 
+/// Combined update-check response for frontend and backend images.
 #[derive(Debug, Serialize)]
 pub struct UpdateCheckResponse {
     frontend: UpdateStatus,
     backend: UpdateStatus,
 }
 
+/// Minimal GHCR tags response used by the update checker.
 #[derive(Debug, Deserialize)]
 pub struct GhcrTagsResponse {
     tags: Option<Vec<String>>,
@@ -244,6 +249,7 @@ fn build_update_status(
     }
 }
 
+/// Compares the currently deployed image tags with the latest GHCR tags.
 pub async fn check_updates(
     State(_state): State<Arc<AppState>>,
     session: AuthSession,
@@ -265,6 +271,7 @@ pub async fn check_updates(
     }))
 }
 
+/// Clears the admin session cookie and, when appropriate, the CSRF cookie.
 pub async fn logout(
     State(state): State<Arc<AppState>>,
     jar: CookieJar,
@@ -278,6 +285,7 @@ pub async fn logout(
     Ok((jar, StatusCode::NO_CONTENT))
 }
 
+/// Returns the currently authenticated session claims and ensures a CSRF cookie exists.
 pub async fn get_session(
     State(state): State<Arc<AppState>>,
     jar: CookieJar,

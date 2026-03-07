@@ -20,6 +20,7 @@ use axum::{
 use std::sync::Arc;
 use std::time::Duration;
 
+/// Proxies a Gemini streaming request on behalf of an authenticated user.
 pub async fn proxy_gemini_stream(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -193,6 +194,7 @@ pub async fn proxy_gemini_stream(
         .unwrap()
 }
 
+/// Persists a single AI conversation exchange for later review.
 pub async fn save_ai_conversation(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -241,6 +243,7 @@ pub async fn save_ai_conversation(
     Ok(Json(serde_json::json!({ "id": conversation_id })))
 }
 
+/// Lists stored AI conversations for a codelab.
 pub async fn get_ai_conversations(
     Path(codelab_id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -260,6 +263,7 @@ pub async fn get_ai_conversations(
     Ok(Json(conversations))
 }
 
+/// Creates a new admin-owned AI thread.
 pub async fn create_ai_thread(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -283,6 +287,7 @@ pub async fn create_ai_thread(
     Ok(Json(thread))
 }
 
+/// Lists AI threads owned by the authenticated administrator.
 pub async fn get_ai_threads(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -300,6 +305,7 @@ pub async fn get_ai_threads(
     Ok(Json(threads))
 }
 
+/// Deletes an admin-owned AI thread.
 pub async fn delete_ai_thread(
     Path(thread_id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -317,6 +323,7 @@ pub async fn delete_ai_thread(
     Ok(StatusCode::NO_CONTENT)
 }
 
+/// Appends a message to an admin-owned AI thread.
 pub async fn add_ai_message(
     Path(thread_id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -366,6 +373,7 @@ pub async fn add_ai_message(
     Ok(Json(message))
 }
 
+/// Lists messages for an admin-owned AI thread.
 pub async fn get_ai_messages(
     Path(thread_id): Path<String>,
     State(state): State<Arc<AppState>>,

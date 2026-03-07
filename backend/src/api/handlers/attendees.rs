@@ -22,6 +22,7 @@ use sqlx;
 use std::sync::Arc;
 use uuid;
 
+/// Registers or rejoins an attendee for a codelab and issues attendee cookies.
 pub async fn register_attendee(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -157,6 +158,7 @@ pub async fn register_attendee(
     Ok((jar, Json(attendee_public)))
 }
 
+/// Lists attendees for a codelab, with different visibility for admins and attendees.
 pub async fn get_attendees(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -209,6 +211,7 @@ pub async fn get_attendees(
     Ok(Json(attendees))
 }
 
+/// Creates a help request for the authenticated attendee.
 pub async fn request_help(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -286,6 +289,7 @@ pub async fn request_help(
     Ok(Json(serde_json::json!({ "status": "ok" })))
 }
 
+/// Lists pending help requests visible to the current actor.
 pub async fn get_help_requests(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -320,6 +324,7 @@ pub async fn get_help_requests(
     Ok(Json(requests))
 }
 
+/// Marks a help request as resolved.
 pub async fn resolve_help_request(
     State(state): State<Arc<AppState>>,
     Path((_id, help_id)): Path<(String, String)>,
@@ -351,6 +356,7 @@ pub async fn resolve_help_request(
     Ok(Json(serde_json::json!({ "status": "ok" })))
 }
 
+/// Marks the authenticated attendee as having completed the codelab.
 pub async fn complete_codelab(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -413,6 +419,7 @@ pub async fn complete_codelab(
     Ok(Json(serde_json::json!({ "status": "ok" })))
 }
 
+/// Returns certificate metadata for a completed attendee.
 pub async fn get_certificate(
     Path(attendee_id): Path<String>,
     State(state): State<Arc<AppState>>,

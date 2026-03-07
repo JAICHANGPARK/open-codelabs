@@ -16,6 +16,7 @@ use serde_json;
 use std::sync::Arc;
 use uuid::Uuid;
 
+/// Lists quizzes for a codelab visible to the current actor.
 pub async fn get_quizzes(
     State(state): State<Arc<AppState>>,
     Path(codelab_id): Path<String>,
@@ -42,6 +43,7 @@ pub async fn get_quizzes(
     Ok(Json(quizzes))
 }
 
+/// Replaces the quiz set for a codelab.
 pub async fn update_quizzes(
     State(state): State<Arc<AppState>>,
     Path(codelab_id): Path<String>,
@@ -105,6 +107,7 @@ pub async fn update_quizzes(
     Ok(StatusCode::OK)
 }
 
+/// Stores quiz submissions for the authenticated attendee.
 pub async fn submit_quiz(
     State(state): State<Arc<AppState>>,
     Path(codelab_id): Path<String>,
@@ -144,6 +147,7 @@ pub async fn submit_quiz(
     Ok(StatusCode::OK)
 }
 
+/// Lists quiz submissions with attendee metadata for admins.
 pub async fn get_quiz_submissions(
     State(state): State<Arc<AppState>>,
     Path(codelab_id): Path<String>,

@@ -19,6 +19,7 @@ use std::sync::Arc;
 use uuid;
 use zip;
 
+/// Lists codelabs visible to the current session.
 pub async fn list_codelabs(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -43,6 +44,7 @@ pub async fn list_codelabs(
     Ok(Json(codelabs))
 }
 
+/// Returns a single codelab and its ordered steps.
 pub async fn get_codelab(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -70,6 +72,7 @@ pub async fn get_codelab(
     Ok(Json((codelab, steps)))
 }
 
+/// Creates a new codelab.
 pub async fn create_codelab(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -124,6 +127,7 @@ pub async fn create_codelab(
     Ok(Json(codelab))
 }
 
+/// Duplicates an existing codelab and its steps.
 pub async fn copy_codelab(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -207,6 +211,7 @@ pub async fn copy_codelab(
     Ok(Json(new_codelab))
 }
 
+/// Updates editable metadata for a codelab.
 pub async fn update_codelab_info(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -261,6 +266,7 @@ pub async fn update_codelab_info(
     Ok(Json(codelab))
 }
 
+/// Replaces the ordered step set for a codelab.
 pub async fn update_codelab_steps(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -321,6 +327,7 @@ pub async fn update_codelab_steps(
     Ok(Json(serde_json::json!({ "status": "ok" })))
 }
 
+/// Exports a codelab definition as a zip archive.
 pub async fn export_codelab(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -407,6 +414,7 @@ pub async fn export_codelab(
     Ok((headers, buf))
 }
 
+/// Imports a codelab definition from an uploaded zip archive.
 pub async fn import_codelab(
     State(state): State<Arc<AppState>>,
     session: AuthSession,
@@ -539,6 +547,7 @@ pub async fn import_codelab(
     Ok(Json(codelab))
 }
 
+/// Returns chat history for a codelab.
 pub async fn get_chat_history(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -572,6 +581,7 @@ pub async fn get_chat_history(
     Ok(Json(messages))
 }
 
+/// Deletes a codelab and its associated records.
 pub async fn delete_codelab(
     Path(id): Path<String>,
     State(state): State<Arc<AppState>>,
@@ -747,6 +757,7 @@ fn sanitize_filename(value: &str) -> String {
     }
 }
 
+/// Returns the built-in reference codelab dataset placeholder response.
 pub async fn get_reference_codelabs() -> Result<impl IntoResponse, (StatusCode, String)> {
     // Commented out as requested. Now using direct raw import in frontend.
     /*
