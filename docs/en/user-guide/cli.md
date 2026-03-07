@@ -61,14 +61,17 @@ The CLI resolves base URLs and session files in a fixed order.
 
 ## Interactive behavior
 
-The CLI currently supports prompt-based interaction. It is not yet an arrow-key or space-to-toggle TUI; selection is done through numbered choices and typed input.
+The CLI now supports `dialoguer`-based terminal interaction. Use the arrow keys to move between options, use Space to toggle items in multi-select screens, press Enter to continue, type directly into text inputs, and rely on hidden prompts for passwords.
 
 | Command | Interactive behavior |
 | --- | --- |
-| `oc init` | Always requires an interactive terminal. It guides you through local stack startup or server connection, then optionally saves a profile and starts auth. |
-| `oc run` | When run without flags in a TTY, it starts the local stack wizard. `--interactive` forces the wizard even if some flags are already set. |
-| `oc connect add` | With `--interactive`, or when required values are missing in a TTY, it prompts for the profile fields. |
-| Most other commands | Non-interactive. All required values must be passed as flags. |
+| `oc init` | Always requires an interactive terminal. It guides you through the startup mode, the `oc run` wizard, profile saving, and browser auth handoff. |
+| `oc run` | When run without flags in a TTY, it opens the local stack wizard. After choosing the engine, you toggle startup options and the settings you want to review. `--interactive` forces the wizard even if some flags are already set. |
+| `oc connect add` | With `--interactive`, or when required values are missing in a TTY, it prompts for the URL, profile name, runtime, and activation behavior. |
+| `oc connect use` | In a TTY, if you omit `--name`, the CLI shows the saved profiles and lets you pick one interactively. |
+| `oc auth login` | In a TTY, running it without flags opens a choice between automatically opening the browser and only printing the login URL. |
+| `oc login` | With `--interactive`, or when required values are missing in a TTY, it prompts for the admin ID and password. The password input is hidden. |
+| Most other commands | Non-interactive. Required values must be provided as flags or input files. |
 
 ## Permission scopes
 
@@ -145,7 +148,7 @@ Runtime value meanings:
 ### `oc connect use`
 
 ```bash
-oc connect use --name <name>
+oc connect use [--name <name>]
 ```
 
 What it does:
@@ -154,7 +157,7 @@ What it does:
 
 | Option | Required | Meaning |
 | --- | --- | --- |
-| `--name <name>` | yes | The saved profile name to activate. |
+| `--name <name>` | no | The saved profile name to activate. In an interactive terminal, omitting it opens a profile picker. |
 
 ### `oc connect list`
 
@@ -188,7 +191,7 @@ Options:
 ### `oc auth login`
 
 ```bash
-oc auth login [--no-open]
+oc auth login [--no-open] [--interactive]
 ```
 
 What it does:
@@ -200,6 +203,7 @@ What it does:
 | Option | Required | Meaning |
 | --- | --- | --- |
 | `--no-open` | no | Do not automatically open the browser. Print the verification URL instead. Useful for SSH or headless terminals. |
+| `--interactive` | no | Forces the browser-launch picker even when you already know the defaults. In a TTY with no flags, the picker is shown automatically. |
 
 ### `oc auth logout`
 
@@ -234,7 +238,7 @@ Options:
 #### `oc login`
 
 ```bash
-oc login --admin-id <id> --admin-pw <pw>
+oc login [--admin-id <id>] [--admin-pw <pw>] [--interactive]
 ```
 
 What it does:
@@ -244,8 +248,9 @@ What it does:
 
 | Option | Required | Meaning |
 | --- | --- | --- |
-| `--admin-id <id>` | yes | Admin ID. Can be omitted if `OPEN_CODELABS_ADMIN_ID` is set. |
-| `--admin-pw <pw>` | yes | Admin password. Can be omitted if `OPEN_CODELABS_ADMIN_PW` is set. |
+| `--admin-id <id>` | no | Admin ID. Can be omitted if `OPEN_CODELABS_ADMIN_ID` is set. In interactive mode it becomes the suggested default. |
+| `--admin-pw <pw>` | no | Admin password. Can be omitted if `OPEN_CODELABS_ADMIN_PW` is set. In interactive mode it is collected through a hidden prompt. |
+| `--interactive` | no | Forces a prompt-driven legacy login flow. |
 
 #### `oc logout`
 

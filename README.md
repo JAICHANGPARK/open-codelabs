@@ -73,7 +73,7 @@ If you want a guided first-run experience, start with:
 oc init
 ```
 
-`oc init` walks you through local stack startup or existing-server connection, then offers to save a profile and start browser-based admin authentication.
+`oc init` opens an interactive terminal flow with arrow-key menus, Space-based multi-select screens, profile saving, hidden password prompts where needed, and browser-based admin authentication handoff.
 
 ### Install from source
 
@@ -121,7 +121,7 @@ What `oc run` does:
 - Prints install/start guidance if the container engine is missing or not running.
 - Writes a local runtime compose file under `~/.open-codelabs/runtime/local-stack/`.
 - Starts the published frontend/backend containers with SQLite by default.
-- In an interactive terminal, `oc run` with no flags opens a guided setup prompt.
+- In an interactive terminal, `oc run` with no flags opens a guided setup flow with arrow-key menus and Space-based multi-selects.
 
 Useful options:
 
@@ -155,7 +155,7 @@ oc auth login
 oc codelab list
 ```
 
-`oc connect add` also supports `--interactive` when you want the CLI to ask for the profile values.
+`oc connect add` also supports `--interactive` when you want the CLI to ask for the profile values, and `oc connect use` can open a profile picker when `--name` is omitted in a TTY.
 
 Use `oc --help` for the raw command list, or read the grouped [CLI reference](docs/user-guide/cli.md) for the current supported command set across connect/auth, runtime management, codelabs, workspaces, attendee flows, uploads, and AI tools.
 

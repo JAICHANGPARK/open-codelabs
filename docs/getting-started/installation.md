@@ -35,7 +35,7 @@ Open Codelabs를 설치하는 다양한 방법을 소개합니다.
 oc init
 ```
 
-`oc init`은 로컬 스택 실행 또는 기존 서버 연결을 질문형으로 안내하고, 이어서 profile 저장과 `oc auth login`까지 연결해줍니다.
+`oc init`은 로컬 스택 실행 또는 기존 서버 연결을 인터랙티브 TUI로 안내하고, 이어서 profile 저장과 `oc auth login`까지 연결해줍니다. 선택형 단계에서는 화살표로 이동하고, 멀티 선택 단계에서는 스페이스로 토글한 뒤 엔터로 다음 단계로 넘어갑니다.
 
 ### 소스에서 설치
 
@@ -71,7 +71,7 @@ oc run --open
 - 엔진이 없거나 실행 중이 아니면 설치/시작 방법 안내
 - `~/.open-codelabs/runtime/local-stack/compose.yml` 생성
 - 퍼블리시된 frontend/backend 이미지를 SQLite 기본 설정으로 실행
-- 플래그 없이 실행하면 인터랙티브 터미널에서 guided setup을 시작
+- 플래그 없이 실행하면 인터랙티브 터미널에서 화살표/스페이스 기반 guided setup을 시작
 
 자주 쓰는 옵션:
 
@@ -111,7 +111,7 @@ oc codelab list
 oc connect add --interactive
 ```
 
-를 사용하면 profile 이름, URL, runtime을 질문형으로 입력할 수 있습니다.
+를 사용하면 profile 이름, URL, runtime을 질문형으로 입력할 수 있습니다. `oc connect use`도 TTY에서 `--name` 없이 실행하면 저장된 profile 목록에서 바로 선택할 수 있습니다.
 
 기본적으로 세션은 `~/.open-codelabs/` 아래에 저장됩니다.
 

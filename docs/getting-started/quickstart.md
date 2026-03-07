@@ -51,7 +51,7 @@ docker compose -f docker-compose.images.yml up
 
 ## CLI로 시작하기
 
-브라우저보다 먼저 CLI 중심으로 시작하고 싶다면 `oc`를 설치한 뒤 질문형 온보딩을 사용할 수 있습니다.
+브라우저보다 먼저 CLI 중심으로 시작하고 싶다면 `oc`를 설치한 뒤 화살표 선택, 스페이스 멀티 선택, 숨김 비밀번호 입력을 포함한 온보딩을 사용할 수 있습니다.
 
 ```bash
 cargo install --path backend --bin oc

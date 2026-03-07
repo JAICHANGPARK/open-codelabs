@@ -21,6 +21,7 @@ tempfile = "3.10"
 axum-extra = { version = "0.12.3", features = ["multipart", "cookie"] }
 cookie = "0.18"
 dashmap = "6.0"
+dialoguer = "0.12"
 futures-util = "0.3"
 image = "0.25.9"
 reqwest = { version = "0.13.1", features = ["json", "stream", "multipart"] }

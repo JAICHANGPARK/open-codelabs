@@ -19,11 +19,12 @@ use crate::infrastructure::db_models::AuditLog;
 use crate::middleware::auth::now_epoch_seconds;
 use crate::utils::crypto::encrypt_with_password;
 use anyhow::{anyhow, bail, Context, Result};
+use dialoguer::{theme::ColorfulTheme, Input, MultiSelect, Password, Select};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use std::env;
 use std::fs;
-use std::io::{self, IsTerminal, Write};
+use std::io::{self, IsTerminal};
 use std::path::{Path, PathBuf};
 use std::process::Command as ProcessCommand;
 use std::time::Duration;
@@ -110,7 +111,7 @@ enum ConnectCommand {
         activate: bool,
     },
     Use {
-        name: String,
+        name: Option<String>,
     },
     List,
     Status,
@@ -981,7 +982,7 @@ async fn run_init_command(global: &GlobalOptions, _command: InitCommand) -> Resu
     ensure_interactive_terminal("`oc init`")?;
 
     println!("Open Codelabs interactive setup");
-    println!("Press Enter to accept defaults.\n");
+    println!("Use arrows to move, Space to toggle multi-select items, and Enter to continue.\n");
 
     let mode = prompt_select(
         "Choose how you want to get started",
@@ -994,11 +995,20 @@ async fn run_init_command(global: &GlobalOptions, _command: InitCommand) -> Resu
 
     match mode {
         0 => {
-            let run_command = prompt_run_command(default_run_command())?;
+            let run_command = prompt_run_command(default_run_command(), true)?;
             let backend_url = format!("http://localhost:{}", run_command.backend_port);
             run_run_command(global, run_command)?;
 
-            if prompt_confirm("Save this local stack as a reusable profile?", true)? {
+            let next_steps = prompt_multi_select(
+                "Choose what to do next",
+                &[
+                    "Save this local stack as a reusable profile",
+                    "Open browser-based admin authentication now",
+                ],
+                &[true, true],
+            )?;
+
+            if next_steps.contains(&0) {
                 let profile_name = prompt_line("Profile name", Some("local"))?;
                 let (_, became_current) = save_connection_profile(
                     &global.config_file,
@@ -1016,7 +1026,7 @@ async fn run_init_command(global: &GlobalOptions, _command: InitCommand) -> Resu
                 }
             }
 
-            if prompt_confirm("Open browser-based admin authentication now?", true)? {
+            if next_steps.contains(&1) {
                 run_auth_command(global, AuthCommand::Login(AuthLoginCommand::default())).await?;
             } else {
                 println!("Next step: `oc auth login`");
@@ -1036,21 +1046,38 @@ async fn run_init_command(global: &GlobalOptions, _command: InitCommand) -> Resu
             )
             .await?;
 
-            if prompt_confirm("Check the current connection status now?", true)? {
-                run_connect_command(global, ConnectCommand::Status).await?;
-            }
-
             if matches!(
                 runtime,
                 RuntimePreference::Auto | RuntimePreference::Backend
             ) {
-                if prompt_confirm("Open browser-based admin authentication now?", true)? {
+                let next_steps = prompt_multi_select(
+                    "Choose what to do next",
+                    &[
+                        "Check the current connection status now",
+                        "Open browser-based admin authentication now",
+                    ],
+                    &[true, true],
+                )?;
+
+                if next_steps.contains(&0) {
+                    run_connect_command(global, ConnectCommand::Status).await?;
+                }
+
+                if next_steps.contains(&1) {
                     run_auth_command(global, AuthCommand::Login(AuthLoginCommand::default()))
                         .await?;
                 } else {
                     println!("Next step: `oc auth login`");
                 }
             } else {
+                let next_steps = prompt_multi_select(
+                    "Choose what to do next",
+                    &["Check the current connection status now"],
+                    &[true],
+                )?;
+                if next_steps.contains(&0) {
+                    run_connect_command(global, ConnectCommand::Status).await?;
+                }
                 println!(
                     "This runtime usually relies on frontend-managed authentication. Skip `oc auth login` unless the connected backend explicitly supports CLI auth."
                 );
@@ -2143,6 +2170,11 @@ async fn run_connect_command(global: &GlobalOptions, command: ConnectCommand) ->
         }
         ConnectCommand::Use { name } => {
             let mut config = load_config(&global.config_file)?;
+            let name = match name {
+                Some(name) => name,
+                None if interactive_terminal_available() => prompt_connect_use_name(&config)?,
+                None => bail!("Missing --name"),
+            };
             if !config.profiles.contains_key(&name) {
                 bail!("Unknown profile: {name}");
             }
@@ -3359,92 +3391,75 @@ fn ensure_interactive_terminal(command: &str) -> Result<()> {
     }
 }
 
-fn prompt_line(label: &str, default: Option<&str>) -> Result<String> {
-    loop {
-        match default {
-            Some(default) => print!("{label} [{default}]: "),
-            None => print!("{label}: "),
-        }
-        io::stdout().flush().context("Failed to flush stdout")?;
-
-        let mut input = String::new();
-        let bytes = io::stdin()
-            .read_line(&mut input)
-            .context("Failed to read interactive input")?;
-        if bytes == 0 {
-            bail!("Interactive input was closed");
-        }
-
-        let trimmed = input.trim();
-        if trimmed.is_empty() {
-            if let Some(default) = default {
-                return Ok(default.to_string());
-            }
-            eprintln!("A value is required.");
-            continue;
-        }
-
-        return Ok(trimmed.to_string());
-    }
+fn prompt_theme() -> ColorfulTheme {
+    ColorfulTheme::default()
 }
 
-fn prompt_confirm(label: &str, default: bool) -> Result<bool> {
-    loop {
-        let suffix = if default { "[Y/n]" } else { "[y/N]" };
-        print!("{label} {suffix}: ");
-        io::stdout().flush().context("Failed to flush stdout")?;
-
-        let mut input = String::new();
-        let bytes = io::stdin()
-            .read_line(&mut input)
-            .context("Failed to read interactive input")?;
-        if bytes == 0 {
-            bail!("Interactive input was closed");
-        }
-
-        let trimmed = input.trim().to_ascii_lowercase();
-        if trimmed.is_empty() {
-            return Ok(default);
-        }
-        match trimmed.as_str() {
-            "y" | "yes" => return Ok(true),
-            "n" | "no" => return Ok(false),
-            _ => eprintln!("Enter `y` or `n`."),
-        }
+fn prompt_line(label: &str, default: Option<&str>) -> Result<String> {
+    let theme = prompt_theme();
+    let mut input = Input::<String>::with_theme(&theme).with_prompt(label.to_string());
+    if let Some(default) = default {
+        input = input.default(default.to_string());
     }
+    input = input.validate_with(|value: &String| -> std::result::Result<(), &str> {
+        if value.trim().is_empty() {
+            Err("A value is required.")
+        } else {
+            Ok(())
+        }
+    });
+
+    input
+        .interact_text()
+        .map(|value| value.trim().to_string())
+        .context("Failed to read interactive input")
 }
 
 fn prompt_select(label: &str, options: &[&str], default: usize) -> Result<usize> {
-    println!("{label}");
-    for (index, option) in options.iter().enumerate() {
-        let marker = if index == default { " (default)" } else { "" };
-        println!("  {}. {}{}", index + 1, option, marker);
+    let theme = prompt_theme();
+    Select::with_theme(&theme)
+        .with_prompt(label.to_string())
+        .items(options)
+        .default(default.min(options.len().saturating_sub(1)))
+        .interact()
+        .context("Failed to read interactive input")
+}
+
+fn prompt_multi_select(label: &str, options: &[&str], defaults: &[bool]) -> Result<Vec<usize>> {
+    let theme = prompt_theme();
+    MultiSelect::with_theme(&theme)
+        .with_prompt(label.to_string())
+        .items(options)
+        .defaults(defaults)
+        .interact()
+        .context("Failed to read interactive input")
+}
+
+fn prompt_password(label: &str) -> Result<String> {
+    let theme = prompt_theme();
+    let value = Password::with_theme(&theme)
+        .with_prompt(label.to_string())
+        .interact()
+        .context("Failed to read interactive input")?;
+
+    if value.trim().is_empty() {
+        bail!("A value is required.");
     }
+    Ok(value)
+}
 
-    loop {
-        print!("Select an option [{}]: ", default + 1);
-        io::stdout().flush().context("Failed to flush stdout")?;
+fn prompt_optional_password(label: &str) -> Result<Option<String>> {
+    let theme = prompt_theme();
+    let value = Password::with_theme(&theme)
+        .with_prompt(label.to_string())
+        .allow_empty_password(true)
+        .interact()
+        .context("Failed to read interactive input")?;
 
-        let mut input = String::new();
-        let bytes = io::stdin()
-            .read_line(&mut input)
-            .context("Failed to read interactive input")?;
-        if bytes == 0 {
-            bail!("Interactive input was closed");
-        }
-
-        let trimmed = input.trim();
-        if trimmed.is_empty() {
-            return Ok(default);
-        }
-
-        if let Ok(selected) = trimmed.parse::<usize>() {
-            if (1..=options.len()).contains(&selected) {
-                return Ok(selected - 1);
-            }
-        }
-
-        eprintln!("Choose a number between 1 and {}.", options.len());
+    if value.is_empty() {
+        Ok(None)
+    } else {
+        Ok(Some(value))
     }
 }
 
@@ -3463,6 +3478,40 @@ fn prompt_path(label: &str, default: &Path) -> Result<PathBuf> {
     let default_text = default.display().to_string();
     let value = prompt_line(label, Some(&default_text))?;
     Ok(PathBuf::from(value))
+}
+
+fn prompt_connect_use_name(config: &CliConfig) -> Result<String> {
+    ensure_interactive_terminal("`oc connect use`")?;
+
+    if config.profiles.is_empty() {
+        bail!("No saved profiles. Run `oc connect add` first.");
+    }
+
+    let mut names = config.profiles.keys().cloned().collect::<Vec<_>>();
+    names.sort();
+    let items = names.iter().map(String::as_str).collect::<Vec<_>>();
+    let default = config
+        .current_profile
+        .as_deref()
+        .and_then(|current| names.iter().position(|name| name == current))
+        .unwrap_or(0);
+    let index = prompt_select("Select the profile to activate", &items, default)?;
+    Ok(names[index].clone())
+}
+
+fn run_command_uses_custom_credentials(command: &RunCommand) -> bool {
+    let defaults = default_run_command();
+    command.admin_id != defaults.admin_id || command.admin_pw != defaults.admin_pw
+}
+
+fn run_command_uses_custom_ports(command: &RunCommand) -> bool {
+    command.frontend_port != 5173 || command.backend_port != 8080
+}
+
+fn run_command_uses_custom_image_source(command: &RunCommand) -> bool {
+    command.image_registry != "ghcr.io"
+        || command.image_namespace != "jaichangpark"
+        || command.image_tag != "latest"
 }
 
 fn prompt_runtime_preference(default: RuntimePreference) -> Result<RuntimePreference> {
@@ -3526,50 +3575,78 @@ fn default_run_command() -> RunCommand {
     }
 }
 
-fn prompt_run_command(mut command: RunCommand) -> Result<RunCommand> {
+fn prompt_run_command(
+    mut command: RunCommand,
+    prefer_open_after_start: bool,
+) -> Result<RunCommand> {
     ensure_interactive_terminal("`oc run --interactive`")?;
 
     println!("Open Codelabs local stack setup");
-    println!("Press Enter to keep the suggested values.\n");
+    println!("Use arrows to move, Space to toggle options, and Enter to continue.\n");
 
     command.engine = prompt_run_engine(command.engine)?;
-    command.postgres = prompt_confirm("Start the bundled PostgreSQL container?", command.postgres)?;
-    command.pull = prompt_confirm("Pull the latest published images first?", command.pull)?;
-    command.open = prompt_confirm("Open the workshop UI in a browser after startup?", true)?;
 
-    let default_credentials = if command.admin_id == "admin" && command.admin_pw == "admin" {
-        "default admin credentials (admin/admin)"
-    } else {
-        "configured admin credentials from the environment"
-    };
-    if !prompt_confirm(&format!("Use {default_credentials}?"), true)? {
+    let startup_defaults = [
+        command.postgres,
+        command.pull,
+        command.open || prefer_open_after_start,
+    ];
+    let startup_options = prompt_multi_select(
+        "Choose startup options",
+        &[
+            "Use the bundled PostgreSQL container",
+            "Pull the latest published images before startup",
+            "Open the workshop UI in a browser after startup",
+        ],
+        &startup_defaults,
+    )?;
+    command.postgres = startup_options.contains(&0);
+    command.pull = startup_options.contains(&1);
+    command.open = startup_options.contains(&2);
+
+    let advanced_defaults = [
+        run_command_uses_custom_credentials(&command),
+        run_command_uses_custom_ports(&command),
+        command.data_dir.is_some(),
+        run_command_uses_custom_image_source(&command),
+    ];
+    let advanced_options = prompt_multi_select(
+        "Choose which settings to review",
+        &[
+            "Admin credentials",
+            "Ports",
+            "Host data directory",
+            "Container image source",
+        ],
+        &advanced_defaults,
+    )?;
+
+    if advanced_options.contains(&0) {
         command.admin_id = prompt_line("Admin username", Some(&command.admin_id))?;
-        command.admin_pw = prompt_line("Admin password", Some(&command.admin_pw))?;
+        if let Some(password) =
+            prompt_optional_password("Admin password (leave blank to keep the current value)")?
+        {
+            command.admin_pw = password;
+        }
     }
 
-    if !prompt_confirm(
-        &format!(
-            "Use default ports (frontend {}, backend {})?",
-            command.frontend_port, command.backend_port
-        ),
-        true,
-    )? {
+    if advanced_options.contains(&1) {
         command.frontend_port = prompt_u16("Frontend port", command.frontend_port)?;
         command.backend_port = prompt_u16("Backend port", command.backend_port)?;
     }
 
-    let default_data_dir = command
-        .data_dir
-        .clone()
-        .unwrap_or_else(default_local_stack_data_dir);
-    if !prompt_confirm(
-        &format!(
-            "Use the default local data directory ({})?",
-            default_data_dir.display()
-        ),
-        true,
-    )? {
+    if advanced_options.contains(&2) {
+        let default_data_dir = command
+            .data_dir
+            .clone()
+            .unwrap_or_else(default_local_stack_data_dir);
         command.data_dir = Some(prompt_path("Host data directory", &default_data_dir)?);
+    }
+
+    if advanced_options.contains(&3) {
+        command.image_registry = prompt_line("Image registry", Some(&command.image_registry))?;
+        command.image_namespace = prompt_line("Image namespace", Some(&command.image_namespace))?;
+        command.image_tag = prompt_line("Image tag", Some(&command.image_tag))?;
     }
 
     Ok(command)
@@ -3584,7 +3661,7 @@ fn prompt_connect_add(
     ensure_interactive_terminal("`oc connect add --interactive`")?;
 
     println!("Open Codelabs connection setup");
-    println!("Press Enter to keep the suggested values.\n");
+    println!("Use arrows to move, Space to toggle options, and Enter to continue.\n");
 
     let url = prompt_line(
         "Server URL",
@@ -3593,9 +3670,32 @@ fn prompt_connect_add(
     let suggested_name = name.unwrap_or_else(|| suggest_profile_name_from_url(&url));
     let name = prompt_line("Profile name", Some(&suggested_name))?;
     let runtime = prompt_runtime_preference(runtime)?;
-    let activate = prompt_confirm("Make this the current profile?", activate)?;
+    let connect_options = prompt_multi_select(
+        "Choose connection options",
+        &["Make this the current profile"],
+        &[activate],
+    )?;
+    let activate = connect_options.contains(&0);
 
     Ok((name, url, runtime, activate))
+}
+
+fn prompt_auth_login_command(mut command: AuthLoginCommand) -> Result<AuthLoginCommand> {
+    ensure_interactive_terminal("`oc auth login --interactive`")?;
+
+    println!("Open Codelabs browser authentication");
+    println!("Use arrows to move and Enter to continue.\n");
+
+    let choice = prompt_select(
+        "Choose how to start the browser login flow",
+        &[
+            "Open the login page in my browser automatically",
+            "Print the login URL without opening a browser",
+        ],
+        if command.no_open { 1 } else { 0 },
+    )?;
+    command.no_open = choice == 1;
+    Ok(command)
 }
 
 fn suggest_profile_name_from_url(url: &str) -> String {
@@ -4140,12 +4240,19 @@ fn parse_auth(args: &mut Args) -> Result<AuthCommand> {
     match subcommand.as_str() {
         "login" => {
             let mut command = AuthLoginCommand::default();
+            let mut interactive = false;
+            let mut saw_option = false;
             while let Some(arg) = args.next() {
+                saw_option = true;
                 match arg.as_str() {
                     "--no-open" => command.no_open = true,
+                    "--interactive" => interactive = true,
                     "-h" | "--help" => return Err(help_error("auth login")),
                     other => bail!("Unknown auth login option: {other}"),
                 }
+            }
+            if interactive || (!saw_option && interactive_terminal_available()) {
+                command = prompt_auth_login_command(command)?;
             }
             Ok(AuthCommand::Login(command))
         }
@@ -4239,7 +4346,7 @@ fn parse_connect(args: &mut Args) -> Result<ConnectCommand> {
             if interactive
                 || ((name.is_none() || url.is_none()) && interactive_terminal_available())
             {
-                let prompted = prompt_connect_add(name, url, runtime, true)?;
+                let prompted = prompt_connect_add(name, url, runtime, activate)?;
                 return Ok(ConnectCommand::Add {
                     name: prompted.0,
                     url: prompted.1,
@@ -4255,9 +4362,17 @@ fn parse_connect(args: &mut Args) -> Result<ConnectCommand> {
                 activate,
             })
         }
-        "use" => Ok(ConnectCommand::Use {
-            name: parse_required_string_flag(args, "--name", "connect use")?,
-        }),
+        "use" => {
+            let mut name = None;
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--name" => name = Some(args.next_required("--name")?),
+                    "-h" | "--help" => return Err(help_error("connect use")),
+                    other => bail!("Unknown connect use option: {other}"),
+                }
+            }
+            Ok(ConnectCommand::Use { name })
+        }
         "list" => Ok(ConnectCommand::List),
         "status" => Ok(ConnectCommand::Status),
         _ => Err(help_error("connect")),
@@ -4311,7 +4426,7 @@ fn parse_run(args: &mut Args) -> Result<RunCommand> {
     }
 
     if interactive || (!saw_option && interactive_terminal_available()) {
-        command = prompt_run_command(command)?;
+        command = prompt_run_command(command, !saw_option)?;
     }
 
     Ok(command)
@@ -4385,14 +4500,48 @@ fn parse_down(args: &mut Args) -> Result<DownCommand> {
 fn parse_login(args: &mut Args) -> Result<LoginCommand> {
     let mut admin_id = env::var("OPEN_CODELABS_ADMIN_ID").ok();
     let mut admin_pw = env::var("OPEN_CODELABS_ADMIN_PW").ok();
+    let mut interactive = false;
 
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--admin-id" => admin_id = Some(args.next_required("--admin-id")?),
             "--admin-pw" => admin_pw = Some(args.next_required("--admin-pw")?),
+            "--interactive" => interactive = true,
             "-h" | "--help" => return Err(help_error("login")),
             other => bail!("Unknown login option: {other}"),
         }
+    }
+
+    if interactive
+        || ((admin_id.is_none() || admin_pw.is_none()) && interactive_terminal_available())
+    {
+        ensure_interactive_terminal("`oc login`")?;
+
+        println!("Open Codelabs direct admin login");
+        println!("Use arrows to move and Enter to continue.\n");
+
+        admin_id = Some(prompt_line(
+            "Admin username",
+            Some(admin_id.as_deref().unwrap_or("admin")),
+        )?);
+
+        admin_pw = if admin_pw.is_some() {
+            let password_choice = prompt_select(
+                "How should the password be provided?",
+                &[
+                    "Keep the current password from the environment",
+                    "Type a password now",
+                ],
+                0,
+            )?;
+            if password_choice == 0 {
+                admin_pw
+            } else {
+                Some(prompt_password("Admin password")?)
+            }
+        } else {
+            Some(prompt_password("Admin password")?)
+        };
     }
 
     Ok(LoginCommand {
@@ -5454,11 +5603,11 @@ fn command_help_lines() -> &'static [&'static str] {
         "init",
         "admin settings [--gemini-api-key <key>] [--admin-password <pw>]",
         "admin updates",
-        "auth login [--no-open]",
+        "auth login [--no-open] [--interactive]",
         "auth logout",
         "auth status",
         "connect add --name <name> --url <url> [--runtime <auto|backend|firebase|supabase>] [--activate] [--interactive]",
-        "connect use --name <name>",
+        "connect use [--name <name>]",
         "connect list",
         "connect status",
         "run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--interactive] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]",
@@ -5466,7 +5615,7 @@ fn command_help_lines() -> &'static [&'static str] {
         "logs [--service <name>] [--tail <n>] [--no-follow]",
         "restart [--service <name>]",
         "down [--volumes]",
-        "login --admin-id <id> --admin-pw <pw>   Legacy direct login",
+        "login [--admin-id <id>] [--admin-pw <pw>] [--interactive]   Legacy direct login",
         "logout                                   Legacy alias for auth logout",
         "session                                  Legacy alias for auth status",
         "codelab list",

@@ -51,7 +51,7 @@ Once the build is done:
 
 ## Start with the CLI
 
-If you prefer to begin from the terminal, install `oc` and use the guided onboarding flow.
+If you prefer to begin from the terminal, install `oc` and use the guided onboarding flow with arrow-key menus, Space-based multi-selects, and hidden password prompts.
 
 ```bash
 cargo install --path backend --bin oc

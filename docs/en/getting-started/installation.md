@@ -35,7 +35,7 @@ The easiest first-run entry point is the interactive onboarding flow:
 oc init
 ```
 
-`oc init` guides you through starting a local stack or connecting to an existing server, then offers to save a profile and launch `oc auth login`.
+`oc init` guides you through starting a local stack or connecting to an existing server, then offers to save a profile and launch `oc auth login`. Selection screens use arrow keys, multi-select screens use Space to toggle items, and password prompts stay hidden.
 
 ### Install from source
 
@@ -71,7 +71,7 @@ oc run --open
 - Print install/start guidance when the container engine is missing or not running.
 - Write `~/.open-codelabs/runtime/local-stack/compose.yml`.
 - Start the published frontend/backend images with SQLite by default.
-- Start a guided setup flow when you run it without flags in an interactive terminal.
+- Start a guided setup flow with arrow-key menus and Space-based multi-selects when you run it without flags in an interactive terminal.
 
 Common options:
 
@@ -111,7 +111,7 @@ Or use:
 oc connect add --interactive
 ```
 
-to fill in the profile values through prompts.
+to fill in the profile values through prompts. `oc connect use` can also open a picker when you omit `--name` in a TTY.
 
 Sessions are stored under `~/.open-codelabs/` by default.
 

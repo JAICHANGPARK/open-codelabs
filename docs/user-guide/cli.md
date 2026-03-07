@@ -61,14 +61,17 @@ CLI는 base URL과 session file을 아래 우선순위로 결정합니다.
 
 ## 인터랙티브 동작
 
-현재 `oc`는 질문형 프롬프트를 지원합니다. 다만 화살표 이동, 스페이스 체크박스형 TUI가 아니라 숫자 선택과 텍스트 입력 기반입니다.
+현재 `oc`는 `dialoguer` 기반의 터미널 인터랙션을 지원합니다. 선택형 단계에서는 화살표로 이동하고, 멀티 선택 화면에서는 스페이스로 토글한 뒤 엔터로 다음 단계로 넘어갑니다. 텍스트 값은 입력 필드에서 직접 수정하고, 비밀번호는 숨김 입력으로 처리됩니다.
 
 | 명령 | 인터랙티브 동작 |
 | --- | --- |
-| `oc init` | 항상 인터랙티브 터미널이 필요합니다. 시작 방식 선택, local stack 설정, profile 저장, auth login까지 안내합니다. |
-| `oc run` | 옵션 없이 TTY에서 실행하면 setup wizard로 진입합니다. `--interactive`를 붙이면 옵션 일부를 미리 준 상태에서도 wizard를 강제할 수 있습니다. |
-| `oc connect add` | `--interactive`를 붙이거나, TTY에서 `--name`/`--url` 없이 실행하면 질문형 입력으로 profile을 만듭니다. |
-| 나머지 명령 | 일반적으로 비대화형입니다. 필요한 값은 플래그로 모두 전달해야 합니다. |
+| `oc init` | 항상 인터랙티브 터미널이 필요합니다. 시작 모드 선택, `oc run` wizard, profile 저장, `oc auth login` 연결까지 한 흐름으로 안내합니다. |
+| `oc run` | 옵션 없이 TTY에서 실행하면 local stack wizard로 진입합니다. 엔진 선택 후 startup 옵션과 검토할 설정을 스페이스로 토글합니다. `--interactive`를 붙이면 일부 플래그를 미리 준 상태에서도 wizard를 강제합니다. |
+| `oc connect add` | `--interactive`를 붙이거나, TTY에서 `--name`/`--url` 없이 실행하면 URL, profile 이름, runtime, activation을 순서대로 질문합니다. |
+| `oc connect use` | TTY에서 `--name` 없이 실행하면 저장된 profile 목록이 뜨고, 화살표로 골라 바로 current profile로 전환할 수 있습니다. |
+| `oc auth login` | TTY에서 옵션 없이 실행하면 브라우저를 자동으로 열지, 로그인 URL만 출력할지 선택하게 합니다. |
+| `oc login` | `--interactive`를 붙이거나 필수 값이 빠진 상태에서 TTY로 실행하면 관리자 ID와 비밀번호를 질문형으로 받습니다. 비밀번호는 숨김 입력입니다. |
+| 나머지 명령 | 일반적으로 비대화형입니다. 필요한 값은 플래그나 입력 파일로 모두 전달해야 합니다. |
 
 ## 권한 범위
 
@@ -145,7 +148,7 @@ runtime 값 의미:
 ### `oc connect use`
 
 ```bash
-oc connect use --name <name>
+oc connect use [--name <name>]
 ```
 
 무엇을 하는가:
@@ -154,7 +157,7 @@ oc connect use --name <name>
 
 | 옵션 | 필수 | 의미 |
 | --- | --- | --- |
-| `--name <name>` | 예 | 활성화할 profile 이름입니다. |
+| `--name <name>` | 선택 | 활성화할 profile 이름입니다. 인터랙티브 터미널에서 생략하면 저장된 profile 목록에서 선택합니다. |
 
 ### `oc connect list`
 
@@ -189,7 +192,7 @@ oc connect status
 ### `oc auth login`
 
 ```bash
-oc auth login [--no-open]
+oc auth login [--no-open] [--interactive]
 ```
 
 무엇을 하는가:
@@ -201,6 +204,7 @@ oc auth login [--no-open]
 | 옵션 | 필수 | 의미 |
 | --- | --- | --- |
 | `--no-open` | 선택 | 브라우저를 자동으로 열지 않고, 인증 URL만 출력합니다. 원격 SSH나 헤드리스 터미널에서 유용합니다. |
+| `--interactive` | 선택 | 브라우저 자동 열기와 URL만 출력 중 하나를 선택하는 화면을 강제로 엽니다. TTY에서 옵션 없이 실행해도 같은 선택 화면이 기본으로 표시됩니다. |
 
 ### `oc auth logout`
 
@@ -235,7 +239,7 @@ oc auth status
 #### `oc login`
 
 ```bash
-oc login --admin-id <id> --admin-pw <pw>
+oc login [--admin-id <id>] [--admin-pw <pw>] [--interactive]
 ```
 
 무엇을 하는가:
@@ -245,8 +249,9 @@ oc login --admin-id <id> --admin-pw <pw>
 
 | 옵션 | 필수 | 의미 |
 | --- | --- | --- |
-| `--admin-id <id>` | 예 | 관리자 ID입니다. `OPEN_CODELABS_ADMIN_ID`가 있으면 생략 가능합니다. |
-| `--admin-pw <pw>` | 예 | 관리자 비밀번호입니다. `OPEN_CODELABS_ADMIN_PW`가 있으면 생략 가능합니다. |
+| `--admin-id <id>` | 선택 | 관리자 ID입니다. `OPEN_CODELABS_ADMIN_ID`가 있으면 생략 가능합니다. 인터랙티브 입력에서는 기본값으로 제안됩니다. |
+| `--admin-pw <pw>` | 선택 | 관리자 비밀번호입니다. `OPEN_CODELABS_ADMIN_PW`가 있으면 생략 가능합니다. 인터랙티브 입력에서는 숨김 상태로 받습니다. |
+| `--interactive` | 선택 | 관리자 ID와 비밀번호를 질문형으로 입력받습니다. |
 
 #### `oc logout`
 
