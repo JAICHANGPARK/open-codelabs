@@ -25,6 +25,42 @@ This guide covers different ways to install Open Codelabs.
     - Podman 4.0+
     - podman-compose 1.0+
 
+## Install the CLI (`oc`)
+
+If you already have an Open Codelabs server running, you can manage it from the terminal with the `oc` CLI.
+
+### Install from source
+
+```bash
+git clone https://github.com/JAICHANGPARK/open-codelabs.git
+cd open-codelabs
+cargo install --path backend --bin oc
+```
+
+Verify the install:
+
+```bash
+oc --help
+```
+
+### Build a local release binary
+
+```bash
+cd backend
+cargo build --release --bin oc
+./target/release/oc --help
+```
+
+### First connection
+
+```bash
+oc connect add --name local --url http://localhost:8080 --runtime backend --activate
+oc auth login
+oc codelab list
+```
+
+Sessions are stored under `~/.open-codelabs/` by default.
+
 ## Install with Docker
 
 Docker is the simplest and recommended approach.

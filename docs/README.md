@@ -2,6 +2,11 @@
 
 이 디렉토리는 MkDocs로 작성된 Open Codelabs 프로젝트 문서입니다.
 
+## CLI 설치 문서 위치
+
+- 사용자용 `oc` CLI 설치 및 실행 가이드는 루트 [README](../README.md)와 `docs/getting-started/installation.md`에 정리합니다.
+- 다국어 문서를 맞출 때는 `docs/en/getting-started/installation.md`도 함께 업데이트합니다.
+
 ## MkDocs 설치 및 실행
 
 ### 1. Python 및 MkDocs 설치

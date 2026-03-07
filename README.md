@@ -54,6 +54,38 @@ Or use the Podman Docker compatibility layer.
 
 ---
 
+## 💻 CLI (`oc`)
+
+If you already have an Open Codelabs server running, you can manage it from the terminal with the `oc` CLI.
+
+### Install from source
+
+```bash
+git clone https://github.com/JAICHANGPARK/open-codelabs.git
+cd open-codelabs
+cargo install --path backend --bin oc
+```
+
+### Build a local release binary
+
+```bash
+cd backend
+cargo build --release --bin oc
+./target/release/oc --help
+```
+
+### First run
+
+```bash
+oc connect add --name local --url http://localhost:8080 --runtime backend --activate
+oc auth login
+oc codelab list
+```
+
+Use `oc --help` to see the full command set for codelabs, backups, workspaces, attendee flows, uploads, and AI tools.
+
+---
+
 ## 🛠 Tech Stack
 
 ### Frontend
