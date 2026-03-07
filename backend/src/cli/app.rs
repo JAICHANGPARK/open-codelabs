@@ -522,12 +522,26 @@ struct LocalStackState {
     engine: RunEnginePreference,
     compose_file: PathBuf,
     runtime_dir: PathBuf,
+    data_dir: PathBuf,
     frontend_url: String,
     backend_url: String,
     admin_url: String,
     admin_id: String,
     postgres: bool,
 }
+
+#[derive(Debug)]
+struct HelpRequested {
+    topic: String,
+}
+
+impl std::fmt::Display for HelpRequested {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Help requested for `{}`", self.topic)
+    }
+}
+
+impl std::error::Error for HelpRequested {}
 
 #[derive(Debug, Clone, Copy)]
 enum ComposeCommandKind {
@@ -592,7 +606,16 @@ struct EngineInspection {
 }
 
 pub async fn entry() -> Result<()> {
-    let (global, command) = parse_cli()?;
+    let (global, command) = match parse_cli() {
+        Ok(parsed) => parsed,
+        Err(error) => {
+            if let Some(help) = error.downcast_ref::<HelpRequested>() {
+                print_help_topic(&help.topic);
+                return Ok(());
+            }
+            return Err(error);
+        }
+    };
     if matches!(command, Command::Help) {
         print_help();
         return Ok(());
@@ -2139,6 +2162,7 @@ fn run_run_command(global: &GlobalOptions, command: RunCommand) -> Result<()> {
         },
         compose_file: compose_path.clone(),
         runtime_dir: runtime_dir.clone(),
+        data_dir: data_dir.clone(),
         frontend_url: frontend_url.clone(),
         backend_url: backend_url.clone(),
         admin_url: admin_url.clone(),
@@ -2279,16 +2303,32 @@ fn run_down_command(global: &GlobalOptions, command: DownCommand) -> Result<()> 
         args.push("-v".to_string());
     }
     run_compose_command_with_args(&engine, &args, "stop the local stack")?;
+    let removed_data_paths = if command.volumes {
+        remove_local_stack_data(&state)?
+    } else {
+        Vec::new()
+    };
 
     if global.json {
         print_json(&serde_json::json!({
             "status": "ok",
             "engine": engine.label(),
             "compose_file": state.compose_file,
-            "volumes_removed": command.volumes,
+            "data_dir": state.data_dir,
+            "local_data_removed": removed_data_paths,
         }))?;
     } else if command.volumes {
-        println!("Stopped local stack and removed volumes");
+        if removed_data_paths.is_empty() {
+            println!(
+                "Stopped local stack. No local data directories were present under {}",
+                state.data_dir.display()
+            );
+        } else {
+            println!(
+                "Stopped local stack and removed local data under {}",
+                state.data_dir.display()
+            );
+        }
     } else {
         println!("Stopped local stack");
     }
@@ -2695,6 +2735,29 @@ fn ensure_local_stack_directories(data_dir: &Path, postgres: bool) -> Result<()>
     Ok(())
 }
 
+fn remove_local_stack_data(state: &LocalStackState) -> Result<Vec<PathBuf>> {
+    let mut removed = Vec::new();
+    for path in [
+        state.data_dir.join("data"),
+        state.data_dir.join("uploads"),
+        state.data_dir.join("workspaces"),
+        state.data_dir.join("postgres"),
+    ] {
+        if path.exists() {
+            fs::remove_dir_all(&path)
+                .with_context(|| format!("Failed to remove {}", path.display()))?;
+            removed.push(path);
+        }
+    }
+
+    if state.data_dir.exists() && state.data_dir.read_dir()?.next().is_none() {
+        fs::remove_dir(&state.data_dir)
+            .with_context(|| format!("Failed to remove {}", state.data_dir.display()))?;
+    }
+
+    Ok(removed)
+}
+
 fn render_local_stack_compose(
     command: &RunCommand,
     data_dir: &Path,
@@ -2860,6 +2923,7 @@ fn load_local_stack_state(config_file: &Path) -> Result<LocalStackState> {
             engine: RunEnginePreference::Auto,
             compose_file,
             runtime_dir,
+            data_dir: default_local_stack_data_dir(),
             frontend_url: "http://localhost:5173".to_string(),
             backend_url: "http://localhost:8080".to_string(),
             admin_url: "http://localhost:5173/login".to_string(),
@@ -4980,119 +5044,169 @@ fn parse_required_string_flag(args: &mut Args, flag: &str, help_topic: &str) -> 
 }
 
 fn help_error(topic: &str) -> anyhow::Error {
-    anyhow!(
-        "Usage help requested for `{topic}`. Run `{}` help for command overview.",
-        program_name()
-    )
+    anyhow::Error::new(HelpRequested {
+        topic: topic.to_string(),
+    })
+}
+
+fn global_help_lines() -> &'static [&'static str] {
+    &[
+        "--base-url <url>        Backend base URL (default: OPEN_CODELABS_BASE_URL or http://localhost:8080)",
+        "--session-file <path>   Session file path override",
+        "--config-file <path>    CLI config path (default: ~/.open-codelabs/config.json)",
+        "--profile <name>        Saved connection profile to use",
+        "--json                  Print JSON instead of table/text output",
+        "-h, --help              Show this help",
+    ]
+}
+
+fn command_help_lines() -> &'static [&'static str] {
+    &[
+        "admin settings [--gemini-api-key <key>] [--admin-password <pw>]",
+        "admin updates",
+        "auth login [--no-open]",
+        "auth logout",
+        "auth status",
+        "connect add --name <name> --url <url> [--runtime <auto|backend|firebase|supabase>] [--activate]",
+        "connect use --name <name>",
+        "connect list",
+        "connect status",
+        "run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]",
+        "ps [--service <name>]",
+        "logs [--service <name>] [--tail <n>] [--no-follow]",
+        "restart [--service <name>]",
+        "down [--volumes]",
+        "login --admin-id <id> --admin-pw <pw>   Legacy direct login",
+        "logout                                   Legacy alias for auth logout",
+        "session                                  Legacy alias for auth status",
+        "codelab list",
+        "codelab reference",
+        "codelab get --id <id>",
+        "codelab create --title <title> --description <desc> --author <author> [--private] [--guide-file <path>] [--quiz-enabled] [--require-quiz] [--require-feedback] [--require-submission]",
+        "codelab update --id <id> --title <title> --description <desc> --author <author> [--private] [--guide-file <path>] [--quiz-enabled] [--require-quiz] [--require-feedback] [--require-submission]",
+        "codelab delete --id <id>",
+        "codelab copy --id <id>",
+        "codelab export --id <id> [--output <path>]",
+        "codelab import --file <zip>",
+        "codelab push-steps --id <id> --file <json>",
+        "backup export [--output <path>]",
+        "backup inspect --file <zip>",
+        "backup restore --file <zip>",
+        "audit logs [--limit <n>] [--offset <n>] [--action <name>] [--codelab-id <id>]",
+        "workspace create --codelab-id <id> [--structure-type <branch|folder>] [--files-json <path>]",
+        "workspace info --codelab-id <id>",
+        "workspace download --codelab-id <id> [--output <path>]",
+        "workspace delete --codelab-id <id>",
+        "workspace branches --codelab-id <id>",
+        "workspace branch-create --codelab-id <id> --step-number <n> [--branch-type <start|end>]",
+        "workspace branch-files --codelab-id <id> --branch <name>",
+        "workspace branch-read --codelab-id <id> --branch <name> --file <path>",
+        "workspace branch-update --codelab-id <id> --branch <name> --files-json <path> [--delete-json <path>] [--commit-message <message>]",
+        "workspace folders --codelab-id <id>",
+        "workspace folder-create --codelab-id <id> --step-number <n> --files-json <path> [--folder-type <start|end>]",
+        "workspace folder-files --codelab-id <id> --folder <name>",
+        "workspace folder-read --codelab-id <id> --folder <name> --file <path>",
+        "workspace folder-update --codelab-id <id> --folder <name> --files-json <path> [--delete-json <path>]",
+        "attendee join --codelab-id <id> --name <name> --code <code> [--email <email>]",
+        "attendee list --codelab-id <id>",
+        "attendee complete --codelab-id <id>",
+        "attendee certificate [--attendee-id <id>]",
+        "help request --codelab-id <id> --step-number <n>",
+        "help list --codelab-id <id>",
+        "help resolve --codelab-id <id> --help-id <id>",
+        "feedback submit --codelab-id <id> --difficulty <1-5> --satisfaction <1-5> [--comment <text>]",
+        "feedback list --codelab-id <id>",
+        "materials list --codelab-id <id>",
+        "materials upload --file <path>",
+        "materials add --codelab-id <id> --title <title> --type <link|file> [--url <url>] [--file-path <path>]",
+        "materials delete --codelab-id <id> --material-id <id>",
+        "quiz list --codelab-id <id>",
+        "quiz update --codelab-id <id> --file <json>",
+        "quiz submit --codelab-id <id> --file <json>",
+        "quiz submissions --codelab-id <id>",
+        "submission list --codelab-id <id>",
+        "submission file --codelab-id <id> [--attendee-id <id>] --file <path>",
+        "submission link --codelab-id <id> [--attendee-id <id>] --url <url> [--title <title>]",
+        "submission delete --codelab-id <id> [--attendee-id <id>] --submission-id <id>",
+        "chat history --codelab-id <id>",
+        "upload image --file <path>",
+        "inline list --codelab-id <id> [--target-type <guide|step>] [--target-step-id <id>]",
+        "inline create --codelab-id <id> --file <json>",
+        "inline reply --codelab-id <id> --thread-id <id> --file <json>",
+        "inline delete --codelab-id <id> --thread-id <id> --comment-id <id>",
+        "ai conversations --codelab-id <id>",
+        "ai stream --file <json>",
+        "ai save --file <json>",
+        "ai threads",
+        "ai thread-create --title <title> [--codelab-id <id>]",
+        "ai thread-delete --thread-id <id>",
+        "ai messages --thread-id <id>",
+        "ai message-add --thread-id <id> --file <json>",
+    ]
+}
+
+fn environment_help_lines() -> &'static [&'static str] {
+    &[
+        "OPEN_CODELABS_BASE_URL",
+        "OPEN_CODELABS_ADMIN_ID",
+        "OPEN_CODELABS_ADMIN_PW",
+        "OPEN_CODELABS_CONFIG_FILE",
+        "OPEN_CODELABS_PROFILE",
+        "OPEN_CODELABS_SESSION_FILE",
+    ]
 }
 
 fn print_help() {
     let program_name = program_name();
-    println!(
-        r#"Open Codelabs CLI
+    println!("Open Codelabs CLI\n");
+    println!("Usage:");
+    println!("  {program_name} [global options] <command>\n");
 
-Usage:
-  {program_name} [global options] <command>
+    println!("Global options:");
+    for line in global_help_lines() {
+        println!("  {line}");
+    }
 
-Global options:
-  --base-url <url>        Backend base URL (default: OPEN_CODELABS_BASE_URL or http://localhost:8080)
-  --session-file <path>   Session file path override
-  --config-file <path>    CLI config path (default: ~/.open-codelabs/config.json)
-  --profile <name>        Saved connection profile to use
-  --json                  Print JSON instead of table/text output
-  -h, --help              Show this help
+    println!("\nCommands:");
+    for line in command_help_lines() {
+        println!("  {line}");
+    }
 
-Commands:
-  admin settings [--gemini-api-key <key>] [--admin-password <pw>]
-  admin updates
-  auth login [--no-open]
-  auth logout
-  auth status
-  connect add --name <name> --url <url> [--runtime <auto|backend|firebase|supabase>] [--activate]
-  connect use --name <name>
-  connect list
-  connect status
-  run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]
-  ps [--service <name>]
-  logs [--service <name>] [--tail <n>] [--no-follow]
-  restart [--service <name>]
-  down [--volumes]
-  login --admin-id <id> --admin-pw <pw>   Legacy direct login
-  logout                                   Legacy alias for auth logout
-  session                                  Legacy alias for auth status
-  codelab list
-  codelab reference
-  codelab get --id <id>
-  codelab create --title <title> --description <desc> --author <author> [--private] [--guide-file <path>] [--quiz-enabled] [--require-quiz] [--require-feedback] [--require-submission]
-  codelab update --id <id> --title <title> --description <desc> --author <author> [--private] [--guide-file <path>] [--quiz-enabled] [--require-quiz] [--require-feedback] [--require-submission]
-  codelab delete --id <id>
-  codelab copy --id <id>
-  codelab export --id <id> [--output <path>]
-  codelab import --file <zip>
-  codelab push-steps --id <id> --file <json>
-  backup export [--output <path>]
-  backup inspect --file <zip>
-  backup restore --file <zip>
-  audit logs [--limit <n>] [--offset <n>] [--action <name>] [--codelab-id <id>]
-  workspace create --codelab-id <id> [--structure-type <branch|folder>] [--files-json <path>]
-  workspace info --codelab-id <id>
-  workspace download --codelab-id <id> [--output <path>]
-  workspace delete --codelab-id <id>
-  workspace branches --codelab-id <id>
-  workspace branch-create --codelab-id <id> --step-number <n> [--branch-type <start|end>]
-  workspace branch-files --codelab-id <id> --branch <name>
-  workspace branch-read --codelab-id <id> --branch <name> --file <path>
-  workspace branch-update --codelab-id <id> --branch <name> --files-json <path> [--delete-json <path>] [--commit-message <message>]
-  workspace folders --codelab-id <id>
-  workspace folder-create --codelab-id <id> --step-number <n> --files-json <path> [--folder-type <start|end>]
-  workspace folder-files --codelab-id <id> --folder <name>
-  workspace folder-read --codelab-id <id> --folder <name> --file <path>
-  workspace folder-update --codelab-id <id> --folder <name> --files-json <path> [--delete-json <path>]
-  attendee join --codelab-id <id> --name <name> --code <code> [--email <email>]
-  attendee list --codelab-id <id>
-  attendee complete --codelab-id <id>
-  attendee certificate [--attendee-id <id>]
-  help request --codelab-id <id> --step-number <n>
-  help list --codelab-id <id>
-  help resolve --codelab-id <id> --help-id <id>
-  feedback submit --codelab-id <id> --difficulty <1-5> --satisfaction <1-5> [--comment <text>]
-  feedback list --codelab-id <id>
-  materials list --codelab-id <id>
-  materials upload --file <path>
-  materials add --codelab-id <id> --title <title> --type <link|file> [--url <url>] [--file-path <path>]
-  materials delete --codelab-id <id> --material-id <id>
-  quiz list --codelab-id <id>
-  quiz update --codelab-id <id> --file <json>
-  quiz submit --codelab-id <id> --file <json>
-  quiz submissions --codelab-id <id>
-  submission list --codelab-id <id>
-  submission file --codelab-id <id> [--attendee-id <id>] --file <path>
-  submission link --codelab-id <id> [--attendee-id <id>] --url <url> [--title <title>]
-  submission delete --codelab-id <id> [--attendee-id <id>] --submission-id <id>
-  chat history --codelab-id <id>
-  upload image --file <path>
-  inline list --codelab-id <id> [--target-type <guide|step>] [--target-step-id <id>]
-  inline create --codelab-id <id> --file <json>
-  inline reply --codelab-id <id> --thread-id <id> --file <json>
-  inline delete --codelab-id <id> --thread-id <id> --comment-id <id>
-  ai conversations --codelab-id <id>
-  ai stream --file <json>
-  ai save --file <json>
-  ai threads
-  ai thread-create --title <title> [--codelab-id <id>]
-  ai thread-delete --thread-id <id>
-  ai messages --thread-id <id>
-  ai message-add --thread-id <id> --file <json>
+    println!("\nEnvironment:");
+    for line in environment_help_lines() {
+        println!("  {line}");
+    }
+}
 
-Environment:
-  OPEN_CODELABS_BASE_URL
-  OPEN_CODELABS_ADMIN_ID
-  OPEN_CODELABS_ADMIN_PW
-  OPEN_CODELABS_CONFIG_FILE
-  OPEN_CODELABS_PROFILE
-  OPEN_CODELABS_SESSION_FILE
-"#
-    );
+fn print_help_topic(topic: &str) {
+    let normalized_topic = topic.trim();
+    let usage_lines: Vec<&str> = command_help_lines()
+        .iter()
+        .copied()
+        .filter(|line| {
+            *line == normalized_topic
+                || line
+                    .strip_prefix(normalized_topic)
+                    .is_some_and(|rest| rest.starts_with(' '))
+        })
+        .collect();
+
+    if usage_lines.is_empty() {
+        print_help();
+        return;
+    }
+
+    let program = program_name();
+    println!("Open Codelabs CLI\n");
+    println!("Usage:");
+    for line in usage_lines {
+        println!("  {program} {line}");
+    }
+    println!("\nGlobal options:");
+    for line in global_help_lines() {
+        println!("  {line}");
+    }
+    println!("\nRun `{program} --help` for the full command list.");
 }
 
 fn program_name() -> String {
@@ -5199,6 +5313,7 @@ mod tests {
             engine: RunEnginePreference::Docker,
             compose_file: runtime_dir.join("compose.yml"),
             runtime_dir: runtime_dir.clone(),
+            data_dir: dir.path().join("open-codelabs"),
             frontend_url: "http://localhost:5173".to_string(),
             backend_url: "http://localhost:8080".to_string(),
             admin_url: "http://localhost:5173/login".to_string(),
@@ -5213,5 +5328,46 @@ mod tests {
         let loaded: LocalStackState = serde_json::from_str(&raw).expect("parse state");
         assert_eq!(loaded.engine, RunEnginePreference::Docker);
         assert_eq!(loaded.backend_url, "http://localhost:8080");
+        assert_eq!(loaded.data_dir, dir.path().join("open-codelabs"));
+    }
+
+    #[test]
+    fn remove_local_stack_data_deletes_bind_mount_directories() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let data_dir = dir.path().join("open-codelabs");
+        for path in [
+            data_dir.join("data"),
+            data_dir.join("uploads"),
+            data_dir.join("workspaces"),
+            data_dir.join("postgres"),
+        ] {
+            fs::create_dir_all(&path).expect("create path");
+            fs::write(path.join("marker.txt"), "test").expect("write marker");
+        }
+        let state = LocalStackState {
+            engine: RunEnginePreference::Docker,
+            compose_file: dir.path().join("compose.yml"),
+            runtime_dir: dir.path().join("runtime"),
+            data_dir: data_dir.clone(),
+            frontend_url: "http://localhost:5173".to_string(),
+            backend_url: "http://localhost:8080".to_string(),
+            admin_url: "http://localhost:5173/login".to_string(),
+            admin_id: "admin".to_string(),
+            postgres: true,
+        };
+
+        let removed = remove_local_stack_data(&state).expect("remove local stack data");
+        assert_eq!(removed.len(), 4);
+        assert!(!data_dir.exists());
+    }
+
+    #[test]
+    fn subcommand_help_returns_help_requested_error() {
+        let mut args = Args::new(vec!["--help".to_string()]);
+        let error = parse_run(&mut args).expect_err("help error");
+        let help = error
+            .downcast_ref::<HelpRequested>()
+            .expect("help requested error");
+        assert_eq!(help.topic, "run");
     }
 }
