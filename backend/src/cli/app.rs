@@ -1,5 +1,11 @@
-use crate::api::dto::{CodeServerInfo, CreateCodeServerRequest, WorkspaceFile};
+use crate::api::dto::{
+    CliRuntimeCapabilities, CliRuntimeInfo, CodeServerInfo, CreateCodeServerRequest, WorkspaceFile,
+};
 use crate::cli::client::{ApiClient, BackupSummary};
+use crate::cli::config::{
+    default_config_path, default_profile_session_path, load_config, save_config, CliConfig,
+    ConnectionProfile, RuntimePreference,
+};
 use crate::cli::session::{
     clear_session, default_session_path, load_session, save_session, SessionSnapshot, StoredSession,
 };
@@ -14,7 +20,9 @@ use std::path::{Path, PathBuf};
 #[derive(Debug, Clone)]
 struct GlobalOptions {
     base_url: Option<String>,
-    session_file: PathBuf,
+    session_file: Option<PathBuf>,
+    config_file: PathBuf,
+    profile: Option<String>,
     json: bool,
 }
 
@@ -22,7 +30,9 @@ impl Default for GlobalOptions {
     fn default() -> Self {
         Self {
             base_url: env::var("OPEN_CODELABS_BASE_URL").ok(),
-            session_file: default_session_path(),
+            session_file: env::var_os("OPEN_CODELABS_SESSION_FILE").map(PathBuf::from),
+            config_file: default_config_path(),
+            profile: env::var("OPEN_CODELABS_PROFILE").ok(),
             json: false,
         }
     }
@@ -31,6 +41,7 @@ impl Default for GlobalOptions {
 #[derive(Debug)]
 enum Command {
     Help,
+    Connect(ConnectCommand),
     Login(LoginCommand),
     Logout,
     Session,
@@ -44,6 +55,21 @@ enum Command {
 struct LoginCommand {
     admin_id: String,
     admin_pw: String,
+}
+
+#[derive(Debug)]
+enum ConnectCommand {
+    Add {
+        name: String,
+        url: String,
+        runtime: RuntimePreference,
+        activate: bool,
+    },
+    Use {
+        name: String,
+    },
+    List,
+    Status,
 }
 
 #[derive(Debug)]
@@ -122,6 +148,20 @@ enum WorkspaceCommand {
     },
 }
 
+#[derive(Debug, Serialize)]
+struct ConnectStatusOutput {
+    profile: Option<String>,
+    base_url: String,
+    session_file: PathBuf,
+    runtime_preference: String,
+    runtime: String,
+    version: Option<String>,
+    reachable: bool,
+    auth_methods: Vec<String>,
+    capabilities: CliRuntimeCapabilities,
+    probe_error: Option<String>,
+}
+
 pub async fn entry() -> Result<()> {
     let (global, command) = parse_cli()?;
     if matches!(command, Command::Help) {
@@ -136,18 +176,28 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
         Command::Help => {
             print_help();
         }
+        Command::Connect(command) => {
+            run_connect_command(&global, command).await?;
+        }
         Command::Login(command) => {
-            let base_url = resolve_base_url(global.base_url.as_deref(), None);
+            let config = load_config(&global.config_file)?;
+            let active_profile = resolve_active_profile(&global, &config)?;
+            let session_file = resolve_session_file(&global, active_profile.as_ref());
+            let base_url = resolve_base_url(
+                global.base_url.as_deref(),
+                active_profile.as_ref().map(|(_, profile)| profile),
+                None,
+            );
             let client = ApiClient::new(base_url, None)?;
             let session = client
                 .login_admin(&command.admin_id, &command.admin_pw)
                 .await?;
-            save_session(&global.session_file, &session)?;
+            save_session(&session_file, &session)?;
 
             if global.json {
                 print_json(&session)?;
             } else {
-                println!("Saved admin session to {}", global.session_file.display());
+                println!("Saved admin session to {}", session_file.display());
                 if let Some(sub) = session.sub.as_deref() {
                     println!("subject: {sub}");
                 }
@@ -158,38 +208,52 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
             }
         }
         Command::Logout => {
-            let session = load_session(&global.session_file).with_context(|| {
+            let config = load_config(&global.config_file)?;
+            let active_profile = resolve_active_profile(&global, &config)?;
+            let session_file = resolve_session_file(&global, active_profile.as_ref());
+            let session = load_session(&session_file).with_context(|| {
                 format!(
                     "No saved session found. Run `{}` login first.",
                     program_name()
                 )
             })?;
-            let base_url = resolve_base_url(global.base_url.as_deref(), Some(&session));
+            let base_url = resolve_base_url(
+                global.base_url.as_deref(),
+                active_profile.as_ref().map(|(_, profile)| profile),
+                Some(&session),
+            );
             let client = ApiClient::new(base_url, Some(session))?;
             let logout_result = client.logout().await;
-            clear_session(&global.session_file)?;
+            clear_session(&session_file)?;
             logout_result?;
 
             if global.json {
                 print_json(&serde_json::json!({ "status": "ok" }))?;
             } else {
-                println!("Logged out and removed {}", global.session_file.display());
+                println!("Logged out and removed {}", session_file.display());
             }
         }
         Command::Session => {
-            let session = load_session(&global.session_file).with_context(|| {
+            let config = load_config(&global.config_file)?;
+            let active_profile = resolve_active_profile(&global, &config)?;
+            let session_file = resolve_session_file(&global, active_profile.as_ref());
+            let session = load_session(&session_file).with_context(|| {
                 format!(
                     "No saved session found. Run `{}` login first.",
                     program_name()
                 )
             })?;
-            let base_url = resolve_base_url(global.base_url.as_deref(), Some(&session));
+            let base_url = resolve_base_url(
+                global.base_url.as_deref(),
+                active_profile.as_ref().map(|(_, profile)| profile),
+                Some(&session),
+            );
             let client = ApiClient::new(base_url, Some(session.clone()))?;
             let snapshot = client.session().await?;
 
             let mut updated = session;
             updated.apply_snapshot(&snapshot);
-            save_session(&global.session_file, &updated)?;
+            save_session(&session_file, &updated)?;
 
             if global.json {
                 print_json(&snapshot)?;
@@ -198,46 +262,74 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
             }
         }
         Command::Codelab(command) => {
-            let session = load_session(&global.session_file).with_context(|| {
+            let config = load_config(&global.config_file)?;
+            let active_profile = resolve_active_profile(&global, &config)?;
+            let session_file = resolve_session_file(&global, active_profile.as_ref());
+            let session = load_session(&session_file).with_context(|| {
                 format!(
                     "No saved session found. Run `{}` login first.",
                     program_name()
                 )
             })?;
-            let base_url = resolve_base_url(global.base_url.as_deref(), Some(&session));
+            let base_url = resolve_base_url(
+                global.base_url.as_deref(),
+                active_profile.as_ref().map(|(_, profile)| profile),
+                Some(&session),
+            );
             let client = ApiClient::new(base_url, Some(session))?;
             run_codelab_command(&global, &client, command).await?;
         }
         Command::Backup(command) => {
-            let session = load_session(&global.session_file).with_context(|| {
+            let config = load_config(&global.config_file)?;
+            let active_profile = resolve_active_profile(&global, &config)?;
+            let session_file = resolve_session_file(&global, active_profile.as_ref());
+            let session = load_session(&session_file).with_context(|| {
                 format!(
                     "No saved session found. Run `{}` login first.",
                     program_name()
                 )
             })?;
-            let base_url = resolve_base_url(global.base_url.as_deref(), Some(&session));
+            let base_url = resolve_base_url(
+                global.base_url.as_deref(),
+                active_profile.as_ref().map(|(_, profile)| profile),
+                Some(&session),
+            );
             let client = ApiClient::new(base_url, Some(session))?;
             run_backup_command(&global, &client, command).await?;
         }
         Command::Audit(command) => {
-            let session = load_session(&global.session_file).with_context(|| {
+            let config = load_config(&global.config_file)?;
+            let active_profile = resolve_active_profile(&global, &config)?;
+            let session_file = resolve_session_file(&global, active_profile.as_ref());
+            let session = load_session(&session_file).with_context(|| {
                 format!(
                     "No saved session found. Run `{}` login first.",
                     program_name()
                 )
             })?;
-            let base_url = resolve_base_url(global.base_url.as_deref(), Some(&session));
+            let base_url = resolve_base_url(
+                global.base_url.as_deref(),
+                active_profile.as_ref().map(|(_, profile)| profile),
+                Some(&session),
+            );
             let client = ApiClient::new(base_url, Some(session))?;
             run_audit_command(&global, &client, command).await?;
         }
         Command::Workspace(command) => {
-            let session = load_session(&global.session_file).with_context(|| {
+            let config = load_config(&global.config_file)?;
+            let active_profile = resolve_active_profile(&global, &config)?;
+            let session_file = resolve_session_file(&global, active_profile.as_ref());
+            let session = load_session(&session_file).with_context(|| {
                 format!(
                     "No saved session found. Run `{}` login first.",
                     program_name()
                 )
             })?;
-            let base_url = resolve_base_url(global.base_url.as_deref(), Some(&session));
+            let base_url = resolve_base_url(
+                global.base_url.as_deref(),
+                active_profile.as_ref().map(|(_, profile)| profile),
+                Some(&session),
+            );
             let client = ApiClient::new(base_url, Some(session))?;
             run_workspace_command(&global, &client, command).await?;
         }
@@ -537,6 +629,151 @@ async fn run_workspace_command(
     Ok(())
 }
 
+async fn run_connect_command(global: &GlobalOptions, command: ConnectCommand) -> Result<()> {
+    match command {
+        ConnectCommand::Add {
+            name,
+            url,
+            runtime,
+            activate,
+        } => {
+            let mut config = load_config(&global.config_file)?;
+            config.profiles.insert(
+                name.clone(),
+                ConnectionProfile {
+                    base_url: url.trim_end_matches('/').to_string(),
+                    runtime,
+                },
+            );
+            let became_current = activate || config.current_profile.is_none();
+            if became_current {
+                config.current_profile = Some(name.clone());
+            }
+            save_config(&global.config_file, &config)?;
+
+            if global.json {
+                print_json(&serde_json::json!({
+                    "status": "ok",
+                    "profile": name,
+                    "current": config.current_profile,
+                    "config_file": global.config_file,
+                }))?;
+            } else {
+                println!("Saved profile `{name}` to {}", global.config_file.display());
+                if became_current {
+                    println!("current_profile: {name}");
+                }
+            }
+        }
+        ConnectCommand::Use { name } => {
+            let mut config = load_config(&global.config_file)?;
+            if !config.profiles.contains_key(&name) {
+                bail!("Unknown profile: {name}");
+            }
+            config.current_profile = Some(name.clone());
+            save_config(&global.config_file, &config)?;
+
+            if global.json {
+                print_json(&serde_json::json!({
+                    "status": "ok",
+                    "profile": name,
+                    "config_file": global.config_file,
+                }))?;
+            } else {
+                println!("Current profile: {name}");
+            }
+        }
+        ConnectCommand::List => {
+            let config = load_config(&global.config_file)?;
+            if global.json {
+                let profiles = config
+                    .profiles
+                    .iter()
+                    .map(|(name, profile)| {
+                        serde_json::json!({
+                            "name": name,
+                            "base_url": profile.base_url,
+                            "runtime": profile.runtime.as_str(),
+                            "current": config.current_profile.as_deref() == Some(name.as_str()),
+                        })
+                    })
+                    .collect::<Vec<_>>();
+                print_json(&profiles)?;
+            } else {
+                print_connect_profiles(&config);
+            }
+        }
+        ConnectCommand::Status => {
+            let status = build_connect_status(global).await?;
+            if global.json {
+                print_json(&status)?;
+            } else {
+                print_connect_status(&status);
+            }
+        }
+    }
+
+    Ok(())
+}
+
+async fn build_connect_status(global: &GlobalOptions) -> Result<ConnectStatusOutput> {
+    let config = load_config(&global.config_file)?;
+    let active_profile = resolve_active_profile(global, &config)?;
+    let session_file = resolve_session_file(global, active_profile.as_ref());
+    let base_url = resolve_base_url(
+        global.base_url.as_deref(),
+        active_profile.as_ref().map(|(_, profile)| profile),
+        None,
+    );
+    let runtime_preference = active_profile
+        .as_ref()
+        .map(|(_, profile)| profile.runtime)
+        .unwrap_or(RuntimePreference::Auto);
+
+    let client = ApiClient::new(base_url.clone(), None)?;
+    let probe = if matches!(
+        runtime_preference,
+        RuntimePreference::Auto | RuntimePreference::Backend
+    ) {
+        match client.cli_runtime().await {
+            Ok(info) => (Some(info), true, None),
+            Err(error) => (
+                static_runtime_info(runtime_preference),
+                false,
+                Some(error.to_string()),
+            ),
+        }
+    } else {
+        (
+            static_runtime_info(runtime_preference),
+            false,
+            Some("This runtime does not expose the backend CLI probe endpoint.".to_string()),
+        )
+    };
+
+    let (runtime_info, reachable, probe_error) = probe;
+    Ok(ConnectStatusOutput {
+        profile: active_profile.map(|(name, _)| name),
+        base_url,
+        session_file,
+        runtime_preference: runtime_preference.as_str().to_string(),
+        runtime: runtime_info
+            .as_ref()
+            .map(|info| info.runtime.clone())
+            .unwrap_or_else(|| "unknown".to_string()),
+        version: runtime_info.as_ref().map(|info| info.version.clone()),
+        reachable,
+        auth_methods: runtime_info
+            .as_ref()
+            .map(|info| info.auth_methods.clone())
+            .unwrap_or_default(),
+        capabilities: runtime_info
+            .map(|info| info.capabilities)
+            .unwrap_or_else(empty_capabilities),
+        probe_error,
+    })
+}
+
 async fn load_steps_payload(path: &Path) -> Result<UpdateStepsPayload> {
     let raw = tokio::fs::read_to_string(path)
         .await
@@ -570,9 +807,51 @@ async fn load_workspace_files(path: &Path) -> Result<Vec<WorkspaceFile>> {
         .with_context(|| format!("Invalid workspace file array in {}", path.display()))
 }
 
-fn resolve_base_url(explicit: Option<&str>, session: Option<&StoredSession>) -> String {
+fn resolve_active_profile(
+    global: &GlobalOptions,
+    config: &CliConfig,
+) -> Result<Option<(String, ConnectionProfile)>> {
+    let profile_name = global
+        .profile
+        .as_deref()
+        .or(config.current_profile.as_deref());
+
+    match profile_name {
+        Some(profile_name) => {
+            let profile = config
+                .profiles
+                .get(profile_name)
+                .cloned()
+                .ok_or_else(|| anyhow!("Unknown profile: {profile_name}"))?;
+            Ok(Some((profile_name.to_string(), profile)))
+        }
+        None => Ok(None),
+    }
+}
+
+fn resolve_session_file(
+    global: &GlobalOptions,
+    active_profile: Option<&(String, ConnectionProfile)>,
+) -> PathBuf {
+    if let Some(path) = &global.session_file {
+        return path.clone();
+    }
+    if let Some((profile_name, _)) = active_profile {
+        return default_profile_session_path(profile_name);
+    }
+    default_session_path()
+}
+
+fn resolve_base_url(
+    explicit: Option<&str>,
+    profile: Option<&ConnectionProfile>,
+    session: Option<&StoredSession>,
+) -> String {
     if let Some(explicit) = explicit {
         return explicit.trim_end_matches('/').to_string();
+    }
+    if let Some(profile) = profile {
+        return profile.base_url.trim_end_matches('/').to_string();
     }
     if let Some(session) = session {
         return session.base_url.trim_end_matches('/').to_string();
@@ -581,6 +860,46 @@ fn resolve_base_url(explicit: Option<&str>, session: Option<&StoredSession>) -> 
         .unwrap_or_else(|_| "http://localhost:8080".to_string())
         .trim_end_matches('/')
         .to_string()
+}
+
+fn static_runtime_info(runtime: RuntimePreference) -> Option<CliRuntimeInfo> {
+    match runtime {
+        RuntimePreference::Auto => None,
+        RuntimePreference::Backend => Some(CliRuntimeInfo {
+            runtime: "backend".to_string(),
+            version: "unknown".to_string(),
+            auth_methods: vec!["browser".to_string(), "password".to_string()],
+            capabilities: CliRuntimeCapabilities {
+                admin_api: true,
+                backup: true,
+                workspace: true,
+                audit: true,
+                browser_auth: true,
+            },
+        }),
+        RuntimePreference::Firebase => Some(CliRuntimeInfo {
+            runtime: "firebase".to_string(),
+            version: "frontend-managed".to_string(),
+            auth_methods: vec!["google".to_string()],
+            capabilities: empty_capabilities(),
+        }),
+        RuntimePreference::Supabase => Some(CliRuntimeInfo {
+            runtime: "supabase".to_string(),
+            version: "frontend-managed".to_string(),
+            auth_methods: vec!["google".to_string()],
+            capabilities: empty_capabilities(),
+        }),
+    }
+}
+
+fn empty_capabilities() -> CliRuntimeCapabilities {
+    CliRuntimeCapabilities {
+        admin_api: false,
+        backup: false,
+        workspace: false,
+        audit: false,
+        browser_auth: false,
+    }
 }
 
 fn print_session(snapshot: &SessionSnapshot) {
@@ -639,6 +958,62 @@ fn print_workspace_info(info: &CodeServerInfo) {
     println!("structure_type: {}", info.structure_type);
 }
 
+fn print_connect_profiles(config: &CliConfig) {
+    if config.profiles.is_empty() {
+        println!("No saved profiles.");
+        return;
+    }
+
+    println!(
+        "{:<9} {:<20} {:<10} {}",
+        "current", "name", "runtime", "base_url"
+    );
+    println!("{}", "-".repeat(96));
+    for (name, profile) in &config.profiles {
+        let marker = if config.current_profile.as_deref() == Some(name.as_str()) {
+            "*"
+        } else {
+            ""
+        };
+        println!(
+            "{:<9} {:<20} {:<10} {}",
+            marker,
+            name,
+            profile.runtime.as_str(),
+            profile.base_url
+        );
+    }
+}
+
+fn print_connect_status(status: &ConnectStatusOutput) {
+    println!(
+        "profile: {}",
+        status.profile.as_deref().unwrap_or("(implicit default)")
+    );
+    println!("base_url: {}", status.base_url);
+    println!("session_file: {}", status.session_file.display());
+    println!("runtime_preference: {}", status.runtime_preference);
+    println!("runtime: {}", status.runtime);
+    if let Some(version) = &status.version {
+        println!("version: {version}");
+    }
+    println!("reachable: {}", if status.reachable { "yes" } else { "no" });
+    if !status.auth_methods.is_empty() {
+        println!("auth_methods: {}", status.auth_methods.join(", "));
+    }
+    println!(
+        "capabilities: admin_api={}, backup={}, workspace={}, audit={}, browser_auth={}",
+        status.capabilities.admin_api,
+        status.capabilities.backup,
+        status.capabilities.workspace,
+        status.capabilities.audit,
+        status.capabilities.browser_auth
+    );
+    if let Some(error) = &status.probe_error {
+        println!("probe_error: {error}");
+    }
+}
+
 fn print_audit_logs(logs: &[AuditLog]) {
     println!(
         "{:<20} {:<24} {:<10} {:<38}",
@@ -674,35 +1049,16 @@ fn truncate(value: &str, max_len: usize) -> String {
 }
 
 fn parse_cli() -> Result<(GlobalOptions, Command)> {
-    let mut args = Args::new(env::args().skip(1).collect());
     let mut global = GlobalOptions::default();
-
-    loop {
-        match args.peek() {
-            Some("--base-url") => {
-                args.next();
-                global.base_url = Some(args.next_required("--base-url")?);
-            }
-            Some("--session-file") => {
-                args.next();
-                global.session_file = PathBuf::from(args.next_required("--session-file")?);
-            }
-            Some("--json") => {
-                args.next();
-                global.json = true;
-            }
-            Some("-h") | Some("--help") => {
-                return Ok((global, Command::Help));
-            }
-            _ => break,
-        }
-    }
+    let filtered_args = extract_global_options(env::args().skip(1).collect(), &mut global)?;
+    let mut args = Args::new(filtered_args);
 
     let Some(command) = args.next() else {
         return Ok((global, Command::Help));
     };
 
     let command = match command.as_str() {
+        "connect" => Command::Connect(parse_connect(&mut args)?),
         "login" => Command::Login(parse_login(&mut args)?),
         "logout" => Command::Logout,
         "session" => Command::Session,
@@ -716,6 +1072,101 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
 
     args.ensure_exhausted()?;
     Ok((global, command))
+}
+
+fn extract_global_options(items: Vec<String>, global: &mut GlobalOptions) -> Result<Vec<String>> {
+    let mut filtered = Vec::new();
+    let mut index = 0;
+
+    while index < items.len() {
+        match items[index].as_str() {
+            "--base-url" => {
+                index += 1;
+                let value = items
+                    .get(index)
+                    .cloned()
+                    .ok_or_else(|| anyhow!("Missing value for --base-url"))?;
+                global.base_url = Some(value);
+            }
+            "--session-file" => {
+                index += 1;
+                let value = items
+                    .get(index)
+                    .cloned()
+                    .ok_or_else(|| anyhow!("Missing value for --session-file"))?;
+                global.session_file = Some(PathBuf::from(value));
+            }
+            "--config-file" => {
+                index += 1;
+                let value = items
+                    .get(index)
+                    .cloned()
+                    .ok_or_else(|| anyhow!("Missing value for --config-file"))?;
+                global.config_file = PathBuf::from(value);
+            }
+            "--profile" => {
+                index += 1;
+                let value = items
+                    .get(index)
+                    .cloned()
+                    .ok_or_else(|| anyhow!("Missing value for --profile"))?;
+                global.profile = Some(value);
+            }
+            "--json" => {
+                global.json = true;
+            }
+            "-h" | "--help" if filtered.is_empty() => {
+                return Ok(Vec::new());
+            }
+            _ => filtered.push(items[index].clone()),
+        }
+        index += 1;
+    }
+
+    Ok(filtered)
+}
+
+fn parse_connect(args: &mut Args) -> Result<ConnectCommand> {
+    let Some(subcommand) = args.next() else {
+        return Err(help_error("connect"));
+    };
+
+    match subcommand.as_str() {
+        "add" => {
+            let mut name = None;
+            let mut url = None;
+            let mut runtime = RuntimePreference::Auto;
+            let mut activate = false;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--name" => name = Some(args.next_required("--name")?),
+                    "--url" => url = Some(args.next_required("--url")?),
+                    "--runtime" => {
+                        let value = args.next_required("--runtime")?;
+                        runtime = RuntimePreference::parse(&value)
+                            .ok_or_else(|| anyhow!("Invalid runtime: {value}"))?;
+                    }
+                    "--activate" => activate = true,
+                    "-h" | "--help" => return Err(help_error("connect add")),
+                    other => bail!("Unknown connect add option: {other}"),
+                }
+            }
+
+            Ok(ConnectCommand::Add {
+                name: name.ok_or_else(|| anyhow!("Missing --name"))?,
+                url: url.ok_or_else(|| anyhow!("Missing --url"))?,
+                runtime,
+                activate,
+            })
+        }
+        "use" => Ok(ConnectCommand::Use {
+            name: parse_required_string_flag(args, "--name", "connect use")?,
+        }),
+        "list" => Ok(ConnectCommand::List),
+        "status" => Ok(ConnectCommand::Status),
+        _ => Err(help_error("connect")),
+    }
 }
 
 fn parse_login(args: &mut Args) -> Result<LoginCommand> {
@@ -1072,11 +1523,17 @@ Usage:
 
 Global options:
   --base-url <url>        Backend base URL (default: OPEN_CODELABS_BASE_URL or http://localhost:8080)
-  --session-file <path>   Session file path (default: ~/.open-codelabs/session.json)
+  --session-file <path>   Session file path override
+  --config-file <path>    CLI config path (default: ~/.open-codelabs/config.json)
+  --profile <name>        Saved connection profile to use
   --json                  Print JSON instead of table/text output
   -h, --help              Show this help
 
 Commands:
+  connect add --name <name> --url <url> [--runtime <auto|backend|firebase|supabase>] [--activate]
+  connect use --name <name>
+  connect list
+  connect status
   login --admin-id <id> --admin-pw <pw>
   logout
   session
@@ -1103,6 +1560,8 @@ Environment:
   OPEN_CODELABS_BASE_URL
   OPEN_CODELABS_ADMIN_ID
   OPEN_CODELABS_ADMIN_PW
+  OPEN_CODELABS_CONFIG_FILE
+  OPEN_CODELABS_PROFILE
   OPEN_CODELABS_SESSION_FILE
 "#
     );

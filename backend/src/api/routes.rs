@@ -13,6 +13,7 @@ use crate::api::handlers::{
     },
     audit::get_audit_logs,
     backup::{export_backup, inspect_backup, restore_backup},
+    cli::get_cli_runtime,
     codelabs::{
         copy_codelab, create_codelab, delete_codelab, export_codelab, get_chat_history,
         get_codelab, import_codelab, list_codelabs, update_codelab_info, update_codelab_steps,
@@ -50,6 +51,7 @@ fn auth_routes() -> Router<Arc<AppState>> {
         .route("/api/login", post(login))
         .route("/api/logout", post(logout))
         .route("/api/session", get(get_session))
+        .route("/api/cli/runtime", get(get_cli_runtime))
 }
 
 fn admin_routes() -> Router<Arc<AppState>> {

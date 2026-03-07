@@ -1,8 +1,8 @@
 //! HTTP client used by the `oclabs` administrative CLI.
 
 use crate::api::dto::{
-    CodeServerInfo, CreateBranchRequest, CreateCodeServerRequest, CreateFolderRequest,
-    WorkspaceFile,
+    CliRuntimeInfo, CodeServerInfo, CreateBranchRequest, CreateCodeServerRequest,
+    CreateFolderRequest, WorkspaceFile,
 };
 use crate::cli::session::{SessionSnapshot, StoredSession};
 use crate::domain::models::{Codelab, CreateCodelab, LoginPayload, Step, UpdateStepsPayload};
@@ -109,6 +109,17 @@ impl ApiClient {
     pub async fn session(&self) -> Result<SessionSnapshot> {
         let session = self.require_session()?;
         self.fetch_session_with(session).await
+    }
+
+    /// Returns runtime and capability metadata for the connected server.
+    pub async fn cli_runtime(&self) -> Result<CliRuntimeInfo> {
+        let response = self
+            .http
+            .get(self.url("/api/cli/runtime"))
+            .send()
+            .await
+            .context("Failed to call /api/cli/runtime")?;
+        read_json(response, "/api/cli/runtime").await
     }
 
     /// Invokes the backend logout route using the active CLI session.

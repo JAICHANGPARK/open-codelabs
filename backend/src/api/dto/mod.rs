@@ -6,6 +6,8 @@ pub mod admin;
 pub mod ai;
 /// Audit log query parameters.
 pub mod audit;
+/// CLI runtime metadata and capability DTOs.
+pub mod cli;
 /// Code-server and workspace management DTOs.
 pub mod codeserver;
 
@@ -15,5 +17,7 @@ pub use admin::*;
 pub use ai::*;
 #[doc(inline)]
 pub use audit::*;
+#[doc(inline)]
+pub use cli::*;
 #[doc(inline)]
 pub use codeserver::*;

@@ -10,6 +10,8 @@ pub mod attendees;
 pub mod audit;
 /// Backup export, restore, and inspection handlers.
 pub mod backup;
+/// CLI runtime discovery and browser-auth support handlers.
+pub mod cli;
 /// Codelab CRUD, import/export, and chat history handlers.
 pub mod codelabs;
 /// Workspace and code-server orchestration handlers.
