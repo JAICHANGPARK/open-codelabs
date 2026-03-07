@@ -1,5 +1,6 @@
 use crate::api::dto::{
-    CliRuntimeCapabilities, CliRuntimeInfo, CodeServerInfo, CreateCodeServerRequest, WorkspaceFile,
+    CliRuntimeCapabilities, CliRuntimeInfo, CodeServerInfo, CreateCodeServerRequest,
+    UpdateWorkspaceFilesRequest, WorkspaceFile,
 };
 use crate::cli::client::{ApiClient, BackupSummary, UpdateCheckSummary};
 use crate::cli::config::{
@@ -184,6 +185,22 @@ enum WorkspaceCommand {
         step_number: i32,
         branch_type: String,
     },
+    BranchFiles {
+        codelab_id: String,
+        branch: String,
+    },
+    BranchRead {
+        codelab_id: String,
+        branch: String,
+        file: String,
+    },
+    BranchUpdate {
+        codelab_id: String,
+        branch: String,
+        files_json: PathBuf,
+        delete_json: Option<PathBuf>,
+        commit_message: Option<String>,
+    },
     Folders {
         codelab_id: String,
     },
@@ -192,6 +209,21 @@ enum WorkspaceCommand {
         step_number: i32,
         folder_type: String,
         files_json: PathBuf,
+    },
+    FolderFiles {
+        codelab_id: String,
+        folder: String,
+    },
+    FolderRead {
+        codelab_id: String,
+        folder: String,
+        file: String,
+    },
+    FolderUpdate {
+        codelab_id: String,
+        folder: String,
+        files_json: PathBuf,
+        delete_json: Option<PathBuf>,
     },
 }
 
@@ -881,6 +913,71 @@ async fn run_workspace_command(
                 );
             }
         }
+        WorkspaceCommand::BranchFiles { codelab_id, branch } => {
+            let files = client.list_workspace_files(&codelab_id, &branch).await?;
+            if global.json {
+                print_json(&files)?;
+            } else {
+                println!("Branch files for {codelab_id} ({branch}):");
+                for file in files {
+                    println!("- {file}");
+                }
+            }
+        }
+        WorkspaceCommand::BranchRead {
+            codelab_id,
+            branch,
+            file,
+        } => {
+            let content = client
+                .read_workspace_file(&codelab_id, &branch, &file)
+                .await?;
+            if global.json {
+                print_json(&serde_json::json!({
+                    "codelab_id": codelab_id,
+                    "branch": branch,
+                    "file": file,
+                    "content": content,
+                }))?;
+            } else {
+                println!("{content}");
+            }
+        }
+        WorkspaceCommand::BranchUpdate {
+            codelab_id,
+            branch,
+            files_json,
+            delete_json,
+            commit_message,
+        } => {
+            let payload =
+                load_workspace_update_request(&files_json, delete_json.as_deref(), commit_message)
+                    .await?;
+            client
+                .update_workspace_branch_files(&codelab_id, &branch, &payload)
+                .await?;
+            if global.json {
+                print_json(&serde_json::json!({
+                    "status": "ok",
+                    "codelab_id": codelab_id,
+                    "branch": branch,
+                    "files_updated": payload.files.len(),
+                    "files_deleted": payload.delete_files.as_ref().map(|items| items.len()).unwrap_or(0),
+                }))?;
+            } else {
+                println!(
+                    "Updated branch {} for {} ({} writes, {} deletes)",
+                    branch,
+                    codelab_id,
+                    payload.files.len(),
+                    payload
+                        .delete_files
+                        .as_ref()
+                        .map(|items| items.len())
+                        .unwrap_or(0)
+                );
+            }
+        }
         WorkspaceCommand::Folders { codelab_id } => {
             let folders = client.list_workspace_folders(&codelab_id).await?;
             if global.json {
@@ -908,6 +1005,71 @@ async fn run_workspace_command(
                 println!(
                     "Created folder snapshot for codelab {} step {} ({})",
                     codelab_id, step_number, folder_type
+                );
+            }
+        }
+        WorkspaceCommand::FolderFiles { codelab_id, folder } => {
+            let files = client
+                .list_workspace_folder_files(&codelab_id, &folder)
+                .await?;
+            if global.json {
+                print_json(&files)?;
+            } else {
+                println!("Folder files for {codelab_id} ({folder}):");
+                for file in files {
+                    println!("- {file}");
+                }
+            }
+        }
+        WorkspaceCommand::FolderRead {
+            codelab_id,
+            folder,
+            file,
+        } => {
+            let content = client
+                .read_workspace_folder_file(&codelab_id, &folder, &file)
+                .await?;
+            if global.json {
+                print_json(&serde_json::json!({
+                    "codelab_id": codelab_id,
+                    "folder": folder,
+                    "file": file,
+                    "content": content,
+                }))?;
+            } else {
+                println!("{content}");
+            }
+        }
+        WorkspaceCommand::FolderUpdate {
+            codelab_id,
+            folder,
+            files_json,
+            delete_json,
+        } => {
+            let payload =
+                load_workspace_update_request(&files_json, delete_json.as_deref(), None).await?;
+            client
+                .update_workspace_folder_files(&codelab_id, &folder, &payload)
+                .await?;
+            if global.json {
+                print_json(&serde_json::json!({
+                    "status": "ok",
+                    "codelab_id": codelab_id,
+                    "folder": folder,
+                    "files_updated": payload.files.len(),
+                    "files_deleted": payload.delete_files.as_ref().map(|items| items.len()).unwrap_or(0),
+                }))?;
+            } else {
+                println!(
+                    "Updated folder {} for {} ({} writes, {} deletes)",
+                    folder,
+                    codelab_id,
+                    payload.files.len(),
+                    payload
+                        .delete_files
+                        .as_ref()
+                        .map(|items| items.len())
+                        .unwrap_or(0)
                 );
             }
         }
@@ -1171,6 +1333,58 @@ async fn load_workspace_files(path: &Path) -> Result<Vec<WorkspaceFile>> {
 
     serde_json::from_value(value)
         .with_context(|| format!("Invalid workspace file array in {}", path.display()))
+}
+
+async fn load_workspace_update_request(
+    files_path: &Path,
+    delete_path: Option<&Path>,
+    commit_message: Option<String>,
+) -> Result<UpdateWorkspaceFilesRequest> {
+    let raw = tokio::fs::read_to_string(files_path)
+        .await
+        .with_context(|| format!("Failed to read {}", files_path.display()))?;
+    let value: Value = serde_json::from_str(&raw)
+        .with_context(|| format!("Failed to parse JSON from {}", files_path.display()))?;
+
+    let mut payload = if value.get("files").is_some() {
+        serde_json::from_value::<UpdateWorkspaceFilesRequest>(value).with_context(|| {
+            format!(
+                "Invalid workspace update payload in {}",
+                files_path.display()
+            )
+        })?
+    } else {
+        UpdateWorkspaceFilesRequest {
+            files: load_workspace_files(files_path).await?,
+            delete_files: None,
+            commit_message: None,
+        }
+    };
+
+    if let Some(delete_path) = delete_path {
+        payload.delete_files = Some(load_delete_files(delete_path).await?);
+    }
+    if let Some(commit_message) = commit_message {
+        payload.commit_message = Some(commit_message);
+    }
+
+    Ok(payload)
+}
+
+async fn load_delete_files(path: &Path) -> Result<Vec<String>> {
+    let raw = tokio::fs::read_to_string(path)
+        .await
+        .with_context(|| format!("Failed to read {}", path.display()))?;
+    let value: Value = serde_json::from_str(&raw)
+        .with_context(|| format!("Failed to parse JSON from {}", path.display()))?;
+
+    if let Some(delete_files) = value.get("delete_files") {
+        return serde_json::from_value(delete_files.clone())
+            .with_context(|| format!("Invalid delete file list in {}", path.display()));
+    }
+
+    serde_json::from_value(value)
+        .with_context(|| format!("Invalid delete file array in {}", path.display()))
 }
 
 fn resolve_active_profile(
@@ -1981,6 +2195,78 @@ fn parse_workspace(args: &mut Args) -> Result<WorkspaceCommand> {
                 branch_type,
             })
         }
+        "branch-files" => {
+            let mut codelab_id = None;
+            let mut branch = None;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--codelab-id" => codelab_id = Some(args.next_required("--codelab-id")?),
+                    "--branch" => branch = Some(args.next_required("--branch")?),
+                    "-h" | "--help" => return Err(help_error("workspace branch-files")),
+                    other => bail!("Unknown workspace branch-files option: {other}"),
+                }
+            }
+
+            Ok(WorkspaceCommand::BranchFiles {
+                codelab_id: codelab_id.ok_or_else(|| anyhow!("Missing --codelab-id"))?,
+                branch: branch.ok_or_else(|| anyhow!("Missing --branch"))?,
+            })
+        }
+        "branch-read" => {
+            let mut codelab_id = None;
+            let mut branch = None;
+            let mut file = None;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--codelab-id" => codelab_id = Some(args.next_required("--codelab-id")?),
+                    "--branch" => branch = Some(args.next_required("--branch")?),
+                    "--file" => file = Some(args.next_required("--file")?),
+                    "-h" | "--help" => return Err(help_error("workspace branch-read")),
+                    other => bail!("Unknown workspace branch-read option: {other}"),
+                }
+            }
+
+            Ok(WorkspaceCommand::BranchRead {
+                codelab_id: codelab_id.ok_or_else(|| anyhow!("Missing --codelab-id"))?,
+                branch: branch.ok_or_else(|| anyhow!("Missing --branch"))?,
+                file: file.ok_or_else(|| anyhow!("Missing --file"))?,
+            })
+        }
+        "branch-update" => {
+            let mut codelab_id = None;
+            let mut branch = None;
+            let mut files_json = None;
+            let mut delete_json = None;
+            let mut commit_message = None;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--codelab-id" => codelab_id = Some(args.next_required("--codelab-id")?),
+                    "--branch" => branch = Some(args.next_required("--branch")?),
+                    "--files-json" => {
+                        files_json = Some(PathBuf::from(args.next_required("--files-json")?))
+                    }
+                    "--delete-json" => {
+                        delete_json = Some(PathBuf::from(args.next_required("--delete-json")?))
+                    }
+                    "--commit-message" => {
+                        commit_message = Some(args.next_required("--commit-message")?)
+                    }
+                    "-h" | "--help" => return Err(help_error("workspace branch-update")),
+                    other => bail!("Unknown workspace branch-update option: {other}"),
+                }
+            }
+
+            Ok(WorkspaceCommand::BranchUpdate {
+                codelab_id: codelab_id.ok_or_else(|| anyhow!("Missing --codelab-id"))?,
+                branch: branch.ok_or_else(|| anyhow!("Missing --branch"))?,
+                files_json: files_json.ok_or_else(|| anyhow!("Missing --files-json"))?,
+                delete_json,
+                commit_message,
+            })
+        }
         "folders" => Ok(WorkspaceCommand::Folders {
             codelab_id: parse_required_string_flag(args, "--codelab-id", "workspace folders")?,
         }),
@@ -2013,6 +2299,73 @@ fn parse_workspace(args: &mut Args) -> Result<WorkspaceCommand> {
                 step_number: step_number.ok_or_else(|| anyhow!("Missing --step-number"))?,
                 folder_type,
                 files_json: files_json.ok_or_else(|| anyhow!("Missing --files-json"))?,
+            })
+        }
+        "folder-files" => {
+            let mut codelab_id = None;
+            let mut folder = None;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--codelab-id" => codelab_id = Some(args.next_required("--codelab-id")?),
+                    "--folder" => folder = Some(args.next_required("--folder")?),
+                    "-h" | "--help" => return Err(help_error("workspace folder-files")),
+                    other => bail!("Unknown workspace folder-files option: {other}"),
+                }
+            }
+
+            Ok(WorkspaceCommand::FolderFiles {
+                codelab_id: codelab_id.ok_or_else(|| anyhow!("Missing --codelab-id"))?,
+                folder: folder.ok_or_else(|| anyhow!("Missing --folder"))?,
+            })
+        }
+        "folder-read" => {
+            let mut codelab_id = None;
+            let mut folder = None;
+            let mut file = None;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--codelab-id" => codelab_id = Some(args.next_required("--codelab-id")?),
+                    "--folder" => folder = Some(args.next_required("--folder")?),
+                    "--file" => file = Some(args.next_required("--file")?),
+                    "-h" | "--help" => return Err(help_error("workspace folder-read")),
+                    other => bail!("Unknown workspace folder-read option: {other}"),
+                }
+            }
+
+            Ok(WorkspaceCommand::FolderRead {
+                codelab_id: codelab_id.ok_or_else(|| anyhow!("Missing --codelab-id"))?,
+                folder: folder.ok_or_else(|| anyhow!("Missing --folder"))?,
+                file: file.ok_or_else(|| anyhow!("Missing --file"))?,
+            })
+        }
+        "folder-update" => {
+            let mut codelab_id = None;
+            let mut folder = None;
+            let mut files_json = None;
+            let mut delete_json = None;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--codelab-id" => codelab_id = Some(args.next_required("--codelab-id")?),
+                    "--folder" => folder = Some(args.next_required("--folder")?),
+                    "--files-json" => {
+                        files_json = Some(PathBuf::from(args.next_required("--files-json")?))
+                    }
+                    "--delete-json" => {
+                        delete_json = Some(PathBuf::from(args.next_required("--delete-json")?))
+                    }
+                    "-h" | "--help" => return Err(help_error("workspace folder-update")),
+                    other => bail!("Unknown workspace folder-update option: {other}"),
+                }
+            }
+
+            Ok(WorkspaceCommand::FolderUpdate {
+                codelab_id: codelab_id.ok_or_else(|| anyhow!("Missing --codelab-id"))?,
+                folder: folder.ok_or_else(|| anyhow!("Missing --folder"))?,
+                files_json: files_json.ok_or_else(|| anyhow!("Missing --files-json"))?,
+                delete_json,
             })
         }
         _ => Err(help_error("workspace")),
@@ -2086,8 +2439,14 @@ Commands:
   workspace delete --codelab-id <id>
   workspace branches --codelab-id <id>
   workspace branch-create --codelab-id <id> --step-number <n> [--branch-type <start|end>]
+  workspace branch-files --codelab-id <id> --branch <name>
+  workspace branch-read --codelab-id <id> --branch <name> --file <path>
+  workspace branch-update --codelab-id <id> --branch <name> --files-json <path> [--delete-json <path>] [--commit-message <message>]
   workspace folders --codelab-id <id>
   workspace folder-create --codelab-id <id> --step-number <n> --files-json <path> [--folder-type <start|end>]
+  workspace folder-files --codelab-id <id> --folder <name>
+  workspace folder-read --codelab-id <id> --folder <name> --file <path>
+  workspace folder-update --codelab-id <id> --folder <name> --files-json <path> [--delete-json <path>]
 
 Environment:
   OPEN_CODELABS_BASE_URL
