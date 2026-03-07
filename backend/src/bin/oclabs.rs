@@ -1,4 +1,5 @@
 use anyhow::{anyhow, bail, Context, Result};
+use backend::api::dto::{CodeServerInfo, CreateCodeServerRequest, WorkspaceFile};
 use backend::cli::client::{ApiClient, BackupSummary};
 use backend::cli::session::{
     clear_session, default_session_path, load_session, save_session, SessionSnapshot, StoredSession,
@@ -36,6 +37,7 @@ enum Command {
     Codelab(CodelabCommand),
     Backup(BackupCommand),
     Audit(AuditCommand),
+    Workspace(WorkspaceCommand),
 }
 
 #[derive(Debug)]
@@ -81,6 +83,42 @@ enum AuditCommand {
         offset: Option<usize>,
         action: Option<String>,
         codelab_id: Option<String>,
+    },
+}
+
+#[derive(Debug)]
+enum WorkspaceCommand {
+    Create {
+        codelab_id: String,
+        structure_type: Option<String>,
+        files_json: Option<PathBuf>,
+    },
+    Info {
+        codelab_id: String,
+    },
+    Download {
+        codelab_id: String,
+        output: Option<PathBuf>,
+    },
+    Delete {
+        codelab_id: String,
+    },
+    Branches {
+        codelab_id: String,
+    },
+    BranchCreate {
+        codelab_id: String,
+        step_number: i32,
+        branch_type: String,
+    },
+    Folders {
+        codelab_id: String,
+    },
+    FolderCreate {
+        codelab_id: String,
+        step_number: i32,
+        folder_type: String,
+        files_json: PathBuf,
     },
 }
 
@@ -172,6 +210,13 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
             let base_url = resolve_base_url(global.base_url.as_deref(), Some(&session));
             let client = ApiClient::new(base_url, Some(session))?;
             run_audit_command(&global, &client, command).await?;
+        }
+        Command::Workspace(command) => {
+            let session = load_session(&global.session_file)
+                .context("No saved session found. Run `oclabs login` first.")?;
+            let base_url = resolve_base_url(global.base_url.as_deref(), Some(&session));
+            let client = ApiClient::new(base_url, Some(session))?;
+            run_workspace_command(&global, &client, command).await?;
         }
     }
 
@@ -344,6 +389,131 @@ async fn run_audit_command(
     Ok(())
 }
 
+async fn run_workspace_command(
+    global: &GlobalOptions,
+    client: &ApiClient,
+    command: WorkspaceCommand,
+) -> Result<()> {
+    match command {
+        WorkspaceCommand::Create {
+            codelab_id,
+            structure_type,
+            files_json,
+        } => {
+            let workspace_files = match files_json {
+                Some(path) => Some(load_workspace_files(&path).await?),
+                None => None,
+            };
+            let info = client
+                .create_workspace(&CreateCodeServerRequest {
+                    codelab_id,
+                    workspace_files,
+                    structure_type,
+                })
+                .await?;
+            if global.json {
+                print_json(&info)?;
+            } else {
+                print_workspace_info(&info);
+            }
+        }
+        WorkspaceCommand::Info { codelab_id } => {
+            let info = client.workspace_info(&codelab_id).await?;
+            if global.json {
+                print_json(&info)?;
+            } else {
+                print_workspace_info(&info);
+            }
+        }
+        WorkspaceCommand::Download { codelab_id, output } => {
+            let archive = client.download_workspace(&codelab_id).await?;
+            let output =
+                output.unwrap_or_else(|| PathBuf::from(format!("workspace_{codelab_id}.tar.gz")));
+            tokio::fs::write(&output, archive)
+                .await
+                .with_context(|| format!("Failed to write {}", output.display()))?;
+            if global.json {
+                print_json(&serde_json::json!({
+                    "status": "ok",
+                    "output": output,
+                }))?;
+            } else {
+                println!(
+                    "Downloaded workspace for {codelab_id} to {}",
+                    output.display()
+                );
+            }
+        }
+        WorkspaceCommand::Delete { codelab_id } => {
+            client.delete_workspace(&codelab_id).await?;
+            if global.json {
+                print_json(&serde_json::json!({ "status": "ok" }))?;
+            } else {
+                println!("Deleted workspace for {codelab_id}");
+            }
+        }
+        WorkspaceCommand::Branches { codelab_id } => {
+            let branches = client.list_workspace_branches(&codelab_id).await?;
+            if global.json {
+                print_json(&branches)?;
+            } else {
+                println!("Branches for {codelab_id}:");
+                for branch in branches {
+                    println!("- {branch}");
+                }
+            }
+        }
+        WorkspaceCommand::BranchCreate {
+            codelab_id,
+            step_number,
+            branch_type,
+        } => {
+            client
+                .create_workspace_branch(&codelab_id, step_number, &branch_type)
+                .await?;
+            if global.json {
+                print_json(&serde_json::json!({ "status": "ok" }))?;
+            } else {
+                println!(
+                    "Created branch snapshot for codelab {} step {} ({})",
+                    codelab_id, step_number, branch_type
+                );
+            }
+        }
+        WorkspaceCommand::Folders { codelab_id } => {
+            let folders = client.list_workspace_folders(&codelab_id).await?;
+            if global.json {
+                print_json(&folders)?;
+            } else {
+                println!("Folders for {codelab_id}:");
+                for folder in folders {
+                    println!("- {folder}");
+                }
+            }
+        }
+        WorkspaceCommand::FolderCreate {
+            codelab_id,
+            step_number,
+            folder_type,
+            files_json,
+        } => {
+            let files = load_workspace_files(&files_json).await?;
+            client
+                .create_workspace_folder(&codelab_id, step_number, &folder_type, files)
+                .await?;
+            if global.json {
+                print_json(&serde_json::json!({ "status": "ok" }))?;
+            } else {
+                println!(
+                    "Created folder snapshot for codelab {} step {} ({})",
+                    codelab_id, step_number, folder_type
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
 async fn load_steps_payload(path: &Path) -> Result<UpdateStepsPayload> {
     let raw = tokio::fs::read_to_string(path)
         .await
@@ -359,6 +529,22 @@ async fn load_steps_payload(path: &Path) -> Result<UpdateStepsPayload> {
     let steps: Vec<CreateStep> = serde_json::from_value(value)
         .with_context(|| format!("Invalid steps array in {}", path.display()))?;
     Ok(UpdateStepsPayload { steps })
+}
+
+async fn load_workspace_files(path: &Path) -> Result<Vec<WorkspaceFile>> {
+    let raw = tokio::fs::read_to_string(path)
+        .await
+        .with_context(|| format!("Failed to read {}", path.display()))?;
+    let value: Value = serde_json::from_str(&raw)
+        .with_context(|| format!("Failed to parse JSON from {}", path.display()))?;
+
+    if let Some(files) = value.get("files") {
+        return serde_json::from_value(files.clone())
+            .with_context(|| format!("Invalid workspace file list in {}", path.display()));
+    }
+
+    serde_json::from_value(value)
+        .with_context(|| format!("Invalid workspace file array in {}", path.display()))
 }
 
 fn resolve_base_url(explicit: Option<&str>, session: Option<&StoredSession>) -> String {
@@ -423,6 +609,11 @@ fn print_backup_summary(summary: &BackupSummary) {
     println!("audit_logs: {}", summary.audit_logs);
     println!("uploads_files: {}", summary.uploads_files);
     println!("workspaces_files: {}", summary.workspaces_files);
+}
+
+fn print_workspace_info(info: &CodeServerInfo) {
+    println!("path: {}", info.path);
+    println!("structure_type: {}", info.structure_type);
 }
 
 fn print_audit_logs(logs: &[AuditLog]) {
@@ -495,6 +686,7 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
         "codelab" => Command::Codelab(parse_codelab(&mut args)?),
         "backup" => Command::Backup(parse_backup(&mut args)?),
         "audit" => Command::Audit(parse_audit(&mut args)?),
+        "workspace" => Command::Workspace(parse_workspace(&mut args)?),
         "help" => Command::Help,
         other => bail!("Unknown command: {other}"),
     };
@@ -706,6 +898,128 @@ fn parse_audit(args: &mut Args) -> Result<AuditCommand> {
     }
 }
 
+fn parse_workspace(args: &mut Args) -> Result<WorkspaceCommand> {
+    let Some(subcommand) = args.next() else {
+        return Err(help_error("workspace"));
+    };
+
+    match subcommand.as_str() {
+        "create" => {
+            let mut codelab_id = None;
+            let mut structure_type = None;
+            let mut files_json = None;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--codelab-id" => codelab_id = Some(args.next_required("--codelab-id")?),
+                    "--structure-type" => {
+                        structure_type = Some(args.next_required("--structure-type")?)
+                    }
+                    "--files-json" => {
+                        files_json = Some(PathBuf::from(args.next_required("--files-json")?))
+                    }
+                    "-h" | "--help" => return Err(help_error("workspace create")),
+                    other => bail!("Unknown workspace create option: {other}"),
+                }
+            }
+
+            Ok(WorkspaceCommand::Create {
+                codelab_id: codelab_id.ok_or_else(|| anyhow!("Missing --codelab-id"))?,
+                structure_type,
+                files_json,
+            })
+        }
+        "info" => Ok(WorkspaceCommand::Info {
+            codelab_id: parse_required_string_flag(args, "--codelab-id", "workspace info")?,
+        }),
+        "download" => {
+            let mut codelab_id = None;
+            let mut output = None;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--codelab-id" => codelab_id = Some(args.next_required("--codelab-id")?),
+                    "--output" => output = Some(PathBuf::from(args.next_required("--output")?)),
+                    "-h" | "--help" => return Err(help_error("workspace download")),
+                    other => bail!("Unknown workspace download option: {other}"),
+                }
+            }
+
+            Ok(WorkspaceCommand::Download {
+                codelab_id: codelab_id.ok_or_else(|| anyhow!("Missing --codelab-id"))?,
+                output,
+            })
+        }
+        "delete" => Ok(WorkspaceCommand::Delete {
+            codelab_id: parse_required_string_flag(args, "--codelab-id", "workspace delete")?,
+        }),
+        "branches" => Ok(WorkspaceCommand::Branches {
+            codelab_id: parse_required_string_flag(args, "--codelab-id", "workspace branches")?,
+        }),
+        "branch-create" => {
+            let mut codelab_id = None;
+            let mut step_number = None;
+            let mut branch_type = "start".to_string();
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--codelab-id" => codelab_id = Some(args.next_required("--codelab-id")?),
+                    "--step-number" => {
+                        let value = args.next_required("--step-number")?;
+                        step_number = Some(value.parse::<i32>().with_context(|| {
+                            format!("Invalid value for --step-number: {value}")
+                        })?);
+                    }
+                    "--branch-type" => branch_type = args.next_required("--branch-type")?,
+                    "-h" | "--help" => return Err(help_error("workspace branch-create")),
+                    other => bail!("Unknown workspace branch-create option: {other}"),
+                }
+            }
+
+            Ok(WorkspaceCommand::BranchCreate {
+                codelab_id: codelab_id.ok_or_else(|| anyhow!("Missing --codelab-id"))?,
+                step_number: step_number.ok_or_else(|| anyhow!("Missing --step-number"))?,
+                branch_type,
+            })
+        }
+        "folders" => Ok(WorkspaceCommand::Folders {
+            codelab_id: parse_required_string_flag(args, "--codelab-id", "workspace folders")?,
+        }),
+        "folder-create" => {
+            let mut codelab_id = None;
+            let mut step_number = None;
+            let mut folder_type = "start".to_string();
+            let mut files_json = None;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--codelab-id" => codelab_id = Some(args.next_required("--codelab-id")?),
+                    "--step-number" => {
+                        let value = args.next_required("--step-number")?;
+                        step_number = Some(value.parse::<i32>().with_context(|| {
+                            format!("Invalid value for --step-number: {value}")
+                        })?);
+                    }
+                    "--folder-type" => folder_type = args.next_required("--folder-type")?,
+                    "--files-json" => {
+                        files_json = Some(PathBuf::from(args.next_required("--files-json")?))
+                    }
+                    "-h" | "--help" => return Err(help_error("workspace folder-create")),
+                    other => bail!("Unknown workspace folder-create option: {other}"),
+                }
+            }
+
+            Ok(WorkspaceCommand::FolderCreate {
+                codelab_id: codelab_id.ok_or_else(|| anyhow!("Missing --codelab-id"))?,
+                step_number: step_number.ok_or_else(|| anyhow!("Missing --step-number"))?,
+                folder_type,
+                files_json: files_json.ok_or_else(|| anyhow!("Missing --files-json"))?,
+            })
+        }
+        _ => Err(help_error("workspace")),
+    }
+}
+
 fn parse_required_string_flag(args: &mut Args, flag: &str, help_topic: &str) -> Result<String> {
     let mut value = None;
     while let Some(arg) = args.next() {
@@ -749,6 +1063,14 @@ Commands:
   backup inspect --file <zip>
   backup restore --file <zip>
   audit logs [--limit <n>] [--offset <n>] [--action <name>] [--codelab-id <id>]
+  workspace create --codelab-id <id> [--structure-type <branch|folder>] [--files-json <path>]
+  workspace info --codelab-id <id>
+  workspace download --codelab-id <id> [--output <path>]
+  workspace delete --codelab-id <id>
+  workspace branches --codelab-id <id>
+  workspace branch-create --codelab-id <id> --step-number <n> [--branch-type <start|end>]
+  workspace folders --codelab-id <id>
+  workspace folder-create --codelab-id <id> --step-number <n> --files-json <path> [--folder-type <start|end>]
 
 Environment:
   OPEN_CODELABS_BASE_URL

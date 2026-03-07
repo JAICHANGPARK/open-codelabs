@@ -1,5 +1,9 @@
 //! HTTP client used by the `oclabs` administrative CLI.
 
+use crate::api::dto::{
+    CodeServerInfo, CreateBranchRequest, CreateCodeServerRequest, CreateFolderRequest,
+    WorkspaceFile,
+};
 use crate::cli::session::{SessionSnapshot, StoredSession};
 use crate::domain::models::{Codelab, CreateCodelab, LoginPayload, Step, UpdateStepsPayload};
 use crate::infrastructure::db_models::AuditLog;
@@ -169,6 +173,118 @@ impl ApiClient {
     pub async fn export_backup(&self) -> Result<Vec<u8>> {
         self.send_authed_bytes(Method::GET, "/api/admin/backup/export", None)
             .await
+    }
+
+    /// Creates a workspace for a codelab.
+    pub async fn create_workspace(
+        &self,
+        payload: &CreateCodeServerRequest,
+    ) -> Result<CodeServerInfo> {
+        self.send_authed_json(
+            Method::POST,
+            "/api/codeserver",
+            Some(serde_json::to_value(payload).context("serialize workspace payload")?),
+        )
+        .await
+    }
+
+    /// Fetches workspace metadata for a codelab.
+    pub async fn workspace_info(&self, codelab_id: &str) -> Result<CodeServerInfo> {
+        self.send_authed_json(Method::GET, &format!("/api/codeserver/{codelab_id}"), None)
+            .await
+    }
+
+    /// Downloads a workspace archive for a codelab.
+    pub async fn download_workspace(&self, codelab_id: &str) -> Result<Vec<u8>> {
+        self.send_authed_bytes(
+            Method::GET,
+            &format!("/api/codeserver/{codelab_id}/download"),
+            None,
+        )
+        .await
+    }
+
+    /// Deletes a workspace for a codelab.
+    pub async fn delete_workspace(&self, codelab_id: &str) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::DELETE,
+                &format!("/api/codeserver/{codelab_id}"),
+                None,
+            )
+            .await?;
+        ensure_success(response, "/api/codeserver/{codelab_id}").await?;
+        Ok(())
+    }
+
+    /// Lists branch snapshots for a codelab workspace.
+    pub async fn list_workspace_branches(&self, codelab_id: &str) -> Result<Vec<String>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codeserver/{codelab_id}/branches"),
+            None,
+        )
+        .await
+    }
+
+    /// Creates a branch snapshot for a codelab workspace.
+    pub async fn create_workspace_branch(
+        &self,
+        codelab_id: &str,
+        step_number: i32,
+        branch_type: &str,
+    ) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::POST,
+                &format!("/api/codeserver/{codelab_id}/branch"),
+                Some(
+                    serde_json::to_value(CreateBranchRequest {
+                        step_number,
+                        branch_type: branch_type.to_string(),
+                    })
+                    .context("serialize branch payload")?,
+                ),
+            )
+            .await?;
+        ensure_success(response, "/api/codeserver/{codelab_id}/branch").await?;
+        Ok(())
+    }
+
+    /// Lists folder snapshots for a codelab workspace.
+    pub async fn list_workspace_folders(&self, codelab_id: &str) -> Result<Vec<String>> {
+        self.send_authed_json(
+            Method::GET,
+            &format!("/api/codeserver/{codelab_id}/folders"),
+            None,
+        )
+        .await
+    }
+
+    /// Creates a folder snapshot for a codelab workspace.
+    pub async fn create_workspace_folder(
+        &self,
+        codelab_id: &str,
+        step_number: i32,
+        folder_type: &str,
+        files: Vec<WorkspaceFile>,
+    ) -> Result<()> {
+        let response = self
+            .send_authed(
+                Method::POST,
+                &format!("/api/codeserver/{codelab_id}/folder"),
+                Some(
+                    serde_json::to_value(CreateFolderRequest {
+                        step_number,
+                        folder_type: folder_type.to_string(),
+                        files,
+                    })
+                    .context("serialize folder payload")?,
+                ),
+            )
+            .await?;
+        ensure_success(response, "/api/codeserver/{codelab_id}/folder").await?;
+        Ok(())
     }
 
     /// Inspects a backup archive without restoring it.
