@@ -18,7 +18,7 @@ oc auth login
 ```
 
 - If you only need public read-only codelabs, some tools and resources can still work without `oc auth login`.
-- `create_codelab`, `update_codelab`, `replace_codelab_steps`, `list_attendees`, `list_help_requests`, and `resolve_help_request` require an admin session.
+- `create_codelab`, `update_codelab`, `copy_codelab`, `delete_codelab`, `replace_codelab_steps`, the material/quiz/workspace tools, `list_attendees`, `list_help_requests`, and `resolve_help_request` require an admin session.
 
 ## Start the server
 
@@ -39,14 +39,35 @@ The command has no dedicated flags of its own, but it accepts the normal global 
 | Tool | Meaning | Access |
 | --- | --- | --- |
 | `get_connection` | Returns the current profile, base URL, runtime probe, and session status. | Any session |
+| `get_codelab_reference` | Returns the built-in reference payload. | Any session |
 | `list_codelabs` | Returns codelabs visible to the current session. | Any session |
 | `get_codelab` | Returns metadata, guide markdown, and ordered steps for one codelab. | Any session |
+| `get_codelab_bundle` | Returns metadata, guide, steps, materials, and quizzes together. | Admin |
 | `create_codelab` | Creates a new codelab. | Admin |
 | `update_codelab` | Updates existing codelab metadata. | Admin |
+| `copy_codelab` | Copies an existing codelab. | Admin |
+| `delete_codelab` | Deletes an existing codelab. | Admin |
 | `replace_codelab_steps` | Replaces the full ordered step list for a codelab. | Admin |
+| `list_materials` | Returns codelab materials. | Admin |
+| `upload_material_asset` | Uploads a local file and returns the material asset URL. | Admin |
+| `add_material` | Adds a link or file material record to a codelab. | Admin |
+| `delete_material` | Deletes a material record. | Admin |
+| `list_quizzes` | Returns quiz definitions for a codelab. | Admin |
+| `update_quizzes` | Replaces the full quiz set for a codelab. | Admin |
+| `list_feedback` | Returns attendee feedback for a codelab. | Admin |
+| `list_submissions` | Returns learner submissions for a codelab. | Admin |
+| `list_quiz_submissions` | Returns quiz submissions for a codelab. | Admin |
+| `get_chat_history` | Returns stored chat history for a codelab. | Admin |
 | `list_attendees` | Returns attendee records for one codelab. | Admin |
 | `list_help_requests` | Returns the help queue for one codelab. | Admin |
 | `resolve_help_request` | Resolves one help request. | Admin |
+| `get_workspace_info` | Returns workspace metadata for a codelab. | Admin |
+| `list_workspace_branches` | Returns branch snapshot names for a workspace. | Admin |
+| `list_workspace_folders` | Returns folder snapshot names for a workspace. | Admin |
+| `list_workspace_branch_files` | Returns file paths inside a branch snapshot. | Admin |
+| `read_workspace_branch_file` | Returns file contents from a branch snapshot. | Admin |
+| `list_workspace_folder_files` | Returns file paths inside a folder snapshot. | Admin |
+| `read_workspace_folder_file` | Returns file contents from a folder snapshot. | Admin |
 
 ## Exposed resources
 
@@ -54,12 +75,23 @@ The command has no dedicated flags of its own, but it accepts the normal global 
 | --- | --- |
 | `oc://connection` | Current connection state and runtime probe result |
 | `oc://session` | Current session subject, role, and session file |
+| `oc://reference` | Built-in reference payload |
 | `oc://codelabs` | Codelabs visible to the current session |
 | `oc://codelabs/{id}` | Codelab metadata |
+| `oc://codelabs/{id}/bundle` | Combined metadata, guide, steps, materials, and quizzes |
 | `oc://codelabs/{id}/guide` | Guide markdown |
 | `oc://codelabs/{id}/steps` | Ordered steps |
 | `oc://codelabs/{id}/attendees` | Attendee list, requires admin session |
 | `oc://codelabs/{id}/help` | Help request list, requires admin session |
+| `oc://codelabs/{id}/materials` | Material list, requires admin session |
+| `oc://codelabs/{id}/quizzes` | Quiz definition list, requires admin session |
+| `oc://codelabs/{id}/quiz-submissions` | Quiz submission list, requires admin session |
+| `oc://codelabs/{id}/feedback` | Feedback rows, requires admin session |
+| `oc://codelabs/{id}/submissions` | Learner submissions, requires admin session |
+| `oc://codelabs/{id}/chat` | Stored chat history, requires admin session |
+| `oc://codelabs/{id}/workspace` | Workspace metadata, requires admin session |
+| `oc://codelabs/{id}/workspace/branches` | Workspace branch snapshot list, requires admin session |
+| `oc://codelabs/{id}/workspace/folders` | Workspace folder snapshot list, requires admin session |
 
 The resource list expands dynamically from `oc://codelabs`, so each visible codelab also exposes its own detail, guide, and steps resources.
 
@@ -94,6 +126,6 @@ If you want to pin the server to a specific saved profile, place the global opti
 ## Operational tips
 
 - Read `oc://connection` first so the model understands the current server target and permission scope.
-- The guide and steps are split into `oc://codelabs/{id}/guide` and `oc://codelabs/{id}/steps`, which makes it easier to add only the required context.
+- Use `oc://codelabs/{id}/bundle` when you need the full authoring context, or read `guide`, `steps`, `materials`, and `quizzes` separately when you want tighter context control.
 - Refresh the same profile with `oc auth login` before using admin write tools.
 - If you want to isolate the MCP session from your normal terminal usage, point the host at a dedicated `--session-file`.

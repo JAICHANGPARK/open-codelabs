@@ -18,7 +18,7 @@ oc auth login
 ```
 
 - 읽기 전용 public codelab만 다룰 거면 `oc auth login` 없이도 일부 도구와 리소스는 동작할 수 있습니다.
-- `create_codelab`, `update_codelab`, `replace_codelab_steps`, `list_attendees`, `list_help_requests`, `resolve_help_request`는 관리자 세션이 필요합니다.
+- `create_codelab`, `update_codelab`, `copy_codelab`, `delete_codelab`, `replace_codelab_steps`, material/quiz/workspace 계열 도구, `list_attendees`, `list_help_requests`, `resolve_help_request`는 관리자 세션이 필요합니다.
 
 ## 서버 실행
 
@@ -41,14 +41,35 @@ oc mcp serve
 | Tool | 의미 | 권한 |
 | --- | --- | --- |
 | `get_connection` | 현재 profile, base URL, runtime probe, session 상태를 반환합니다. | 누구나 |
+| `get_codelab_reference` | 내장 reference payload를 반환합니다. | 누구나 |
 | `list_codelabs` | 현재 세션에서 볼 수 있는 codelab 목록을 반환합니다. | 누구나 |
 | `get_codelab` | 특정 codelab의 metadata, guide markdown, ordered steps를 반환합니다. | 누구나 |
+| `get_codelab_bundle` | metadata, guide, steps, materials, quizzes를 한 번에 반환합니다. | 관리자 |
 | `create_codelab` | 새 codelab을 생성합니다. | 관리자 |
 | `update_codelab` | 기존 codelab metadata를 수정합니다. | 관리자 |
+| `copy_codelab` | 기존 codelab을 복제합니다. | 관리자 |
+| `delete_codelab` | 기존 codelab을 삭제합니다. | 관리자 |
 | `replace_codelab_steps` | codelab step 전체를 교체합니다. | 관리자 |
+| `list_materials` | codelab materials를 반환합니다. | 관리자 |
+| `upload_material_asset` | 로컬 파일을 업로드하고 material asset URL을 반환합니다. | 관리자 |
+| `add_material` | codelab에 link/file material 레코드를 추가합니다. | 관리자 |
+| `delete_material` | material 레코드를 삭제합니다. | 관리자 |
+| `list_quizzes` | codelab quiz 정의를 반환합니다. | 관리자 |
+| `update_quizzes` | codelab quiz 세트를 전체 교체합니다. | 관리자 |
+| `list_feedback` | attendee feedback를 반환합니다. | 관리자 |
+| `list_submissions` | learner submission 목록을 반환합니다. | 관리자 |
+| `list_quiz_submissions` | quiz submission 목록을 반환합니다. | 관리자 |
+| `get_chat_history` | 저장된 codelab chat history를 반환합니다. | 관리자 |
 | `list_attendees` | codelab 참석자 목록을 반환합니다. | 관리자 |
 | `list_help_requests` | codelab help queue를 반환합니다. | 관리자 |
 | `resolve_help_request` | help request 하나를 해결 처리합니다. | 관리자 |
+| `get_workspace_info` | codelab workspace metadata를 반환합니다. | 관리자 |
+| `list_workspace_branches` | branch snapshot 이름 목록을 반환합니다. | 관리자 |
+| `list_workspace_folders` | folder snapshot 이름 목록을 반환합니다. | 관리자 |
+| `list_workspace_branch_files` | 특정 branch snapshot 안의 파일 목록을 반환합니다. | 관리자 |
+| `read_workspace_branch_file` | branch snapshot 안의 파일 내용을 반환합니다. | 관리자 |
+| `list_workspace_folder_files` | 특정 folder snapshot 안의 파일 목록을 반환합니다. | 관리자 |
+| `read_workspace_folder_file` | folder snapshot 안의 파일 내용을 반환합니다. | 관리자 |
 
 ## 노출되는 resources
 
@@ -56,12 +77,23 @@ oc mcp serve
 | --- | --- |
 | `oc://connection` | 현재 연결 상태와 runtime probe 결과 |
 | `oc://session` | 현재 session subject, role, session file |
+| `oc://reference` | 내장 reference payload |
 | `oc://codelabs` | 현재 세션에서 볼 수 있는 codelab 목록 |
 | `oc://codelabs/{id}` | codelab metadata |
+| `oc://codelabs/{id}/bundle` | metadata, guide, steps, materials, quizzes를 합친 bundle |
 | `oc://codelabs/{id}/guide` | guide markdown |
 | `oc://codelabs/{id}/steps` | ordered steps |
 | `oc://codelabs/{id}/attendees` | attendee 목록, 관리자 세션 필요 |
 | `oc://codelabs/{id}/help` | help request 목록, 관리자 세션 필요 |
+| `oc://codelabs/{id}/materials` | material 목록, 관리자 세션 필요 |
+| `oc://codelabs/{id}/quizzes` | quiz 정의 목록, 관리자 세션 필요 |
+| `oc://codelabs/{id}/quiz-submissions` | quiz submission 목록, 관리자 세션 필요 |
+| `oc://codelabs/{id}/feedback` | feedback 목록, 관리자 세션 필요 |
+| `oc://codelabs/{id}/submissions` | learner submission 목록, 관리자 세션 필요 |
+| `oc://codelabs/{id}/chat` | 저장된 chat history, 관리자 세션 필요 |
+| `oc://codelabs/{id}/workspace` | workspace metadata, 관리자 세션 필요 |
+| `oc://codelabs/{id}/workspace/branches` | workspace branch snapshot 목록, 관리자 세션 필요 |
+| `oc://codelabs/{id}/workspace/folders` | workspace folder snapshot 목록, 관리자 세션 필요 |
 
 리소스 목록은 `oc://codelabs`를 기준으로 동적으로 확장됩니다. 즉 현재 보이는 codelab마다 detail, guide, steps 리소스가 같이 노출됩니다.
 
@@ -96,6 +128,6 @@ oc mcp serve
 ## 운영 팁
 
 - 먼저 `oc://connection`을 읽게 하면 AI가 현재 서버와 권한 상태를 빠르게 이해할 수 있습니다.
-- guide와 steps는 각각 `oc://codelabs/{id}/guide`, `oc://codelabs/{id}/steps`로 분리돼 있어 필요한 쪽만 컨텍스트로 넣기 좋습니다.
+- 전체 작성 맥락이 필요하면 `oc://codelabs/{id}/bundle`, 일부만 필요하면 `guide`, `steps`, `materials`, `quizzes` 리소스를 개별로 읽는 편이 좋습니다.
 - 관리자 write tool을 쓰려면 `oc auth login`으로 같은 profile의 세션을 먼저 갱신해두는 편이 안전합니다.
 - 세션을 분리하고 싶다면 `--session-file`로 MCP 전용 세션 파일을 따로 둘 수 있습니다.

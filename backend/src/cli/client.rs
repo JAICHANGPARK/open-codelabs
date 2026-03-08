@@ -963,12 +963,14 @@ impl ApiClient {
         branch: &str,
         file: &str,
     ) -> Result<String> {
-        let mut serializer = Serializer::new(String::new());
-        serializer.append_pair("file", file);
-        let path = format!(
-            "/api/codeserver/{codelab_id}/branches/{branch}/file?{}",
-            serializer.finish()
-        );
+        let path = {
+            let mut serializer = Serializer::new(String::new());
+            serializer.append_pair("file", file);
+            format!(
+                "/api/codeserver/{codelab_id}/branches/{branch}/file?{}",
+                serializer.finish()
+            )
+        };
         let response = self.send_authed(Method::GET, &path, None).await?;
         let response = ensure_success(
             response,
@@ -1024,12 +1026,14 @@ impl ApiClient {
         folder: &str,
         file: &str,
     ) -> Result<String> {
-        let mut serializer = Serializer::new(String::new());
-        serializer.append_pair("file", file);
-        let path = format!(
-            "/api/codeserver/{codelab_id}/folders/{folder}/file?{}",
-            serializer.finish()
-        );
+        let path = {
+            let mut serializer = Serializer::new(String::new());
+            serializer.append_pair("file", file);
+            format!(
+                "/api/codeserver/{codelab_id}/folders/{folder}/file?{}",
+                serializer.finish()
+            )
+        };
         let response = self.send_authed(Method::GET, &path, None).await?;
         let response = ensure_success(
             response,

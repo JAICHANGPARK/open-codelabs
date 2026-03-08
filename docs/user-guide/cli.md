@@ -273,8 +273,8 @@ oc mcp serve
 무엇을 하는가:
 
 - 현재 `oc` profile과 session을 재사용해 stdio 기반 MCP 서버를 실행합니다.
-- MCP host에서 Open Codelabs 연결 상태, codelab, guide, steps를 읽을 수 있게 합니다.
-- 관리자 세션이 있으면 일부 write tool도 함께 노출합니다.
+- MCP host에서 Open Codelabs 연결 상태, reference payload, codelab, materials, quizzes, feedback, submissions, workspace metadata를 읽을 수 있게 합니다.
+- 관리자 세션이 있으면 codelab copy/delete, materials/quizzes 갱신, help resolve 같은 write tool도 함께 노출합니다.
 
 명령 전용 옵션:
 
@@ -288,8 +288,8 @@ oc mcp serve
 
 현재 노출되는 주요 capabilities:
 
-- tools: `get_connection`, `list_codelabs`, `get_codelab`, `create_codelab`, `update_codelab`, `replace_codelab_steps`, `list_attendees`, `list_help_requests`, `resolve_help_request`
-- resources: `oc://connection`, `oc://session`, `oc://codelabs`, `oc://codelabs/{id}`, `oc://codelabs/{id}/guide`, `oc://codelabs/{id}/steps`, `oc://codelabs/{id}/attendees`, `oc://codelabs/{id}/help`
+- tools: `get_connection`, `get_codelab_reference`, `list_codelabs`, `get_codelab`, `get_codelab_bundle`, `create_codelab`, `update_codelab`, `copy_codelab`, `delete_codelab`, `replace_codelab_steps`, `list_materials`, `upload_material_asset`, `add_material`, `delete_material`, `list_quizzes`, `update_quizzes`, `list_feedback`, `list_submissions`, `list_quiz_submissions`, `get_chat_history`, `list_attendees`, `list_help_requests`, `resolve_help_request`, `get_workspace_info`, `list_workspace_branches`, `list_workspace_folders`, `list_workspace_branch_files`, `read_workspace_branch_file`, `list_workspace_folder_files`, `read_workspace_folder_file`
+- resources: `oc://connection`, `oc://session`, `oc://reference`, `oc://codelabs`, `oc://codelabs/{id}`, `oc://codelabs/{id}/bundle`, `oc://codelabs/{id}/guide`, `oc://codelabs/{id}/steps`, `oc://codelabs/{id}/materials`, `oc://codelabs/{id}/quizzes`, `oc://codelabs/{id}/quiz-submissions`, `oc://codelabs/{id}/feedback`, `oc://codelabs/{id}/submissions`, `oc://codelabs/{id}/chat`, `oc://codelabs/{id}/workspace`, `oc://codelabs/{id}/workspace/branches`, `oc://codelabs/{id}/workspace/folders`, `oc://codelabs/{id}/attendees`, `oc://codelabs/{id}/help`
 
 운영 팁:
 

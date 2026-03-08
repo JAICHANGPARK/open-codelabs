@@ -272,8 +272,8 @@ oc mcp serve
 What it does:
 
 - Starts a stdio MCP server that reuses the current `oc` profile and session.
-- Lets an MCP host read Open Codelabs connection status, codelabs, guides, and steps.
-- Exposes a small set of admin write tools when the session is authenticated as admin.
+- Lets an MCP host read Open Codelabs connection status, the reference payload, codelabs, materials, quizzes, feedback, submissions, and workspace metadata.
+- Exposes admin write tools such as codelab copy/delete, material and quiz updates, and help resolution when the session is authenticated as admin.
 
 Command-specific options:
 
@@ -287,8 +287,8 @@ Use the normal global options when you need to override the target:
 
 Current high-level capabilities:
 
-- tools: `get_connection`, `list_codelabs`, `get_codelab`, `create_codelab`, `update_codelab`, `replace_codelab_steps`, `list_attendees`, `list_help_requests`, `resolve_help_request`
-- resources: `oc://connection`, `oc://session`, `oc://codelabs`, `oc://codelabs/{id}`, `oc://codelabs/{id}/guide`, `oc://codelabs/{id}/steps`, `oc://codelabs/{id}/attendees`, `oc://codelabs/{id}/help`
+- tools: `get_connection`, `get_codelab_reference`, `list_codelabs`, `get_codelab`, `get_codelab_bundle`, `create_codelab`, `update_codelab`, `copy_codelab`, `delete_codelab`, `replace_codelab_steps`, `list_materials`, `upload_material_asset`, `add_material`, `delete_material`, `list_quizzes`, `update_quizzes`, `list_feedback`, `list_submissions`, `list_quiz_submissions`, `get_chat_history`, `list_attendees`, `list_help_requests`, `resolve_help_request`, `get_workspace_info`, `list_workspace_branches`, `list_workspace_folders`, `list_workspace_branch_files`, `read_workspace_branch_file`, `list_workspace_folder_files`, `read_workspace_folder_file`
+- resources: `oc://connection`, `oc://session`, `oc://reference`, `oc://codelabs`, `oc://codelabs/{id}`, `oc://codelabs/{id}/bundle`, `oc://codelabs/{id}/guide`, `oc://codelabs/{id}/steps`, `oc://codelabs/{id}/materials`, `oc://codelabs/{id}/quizzes`, `oc://codelabs/{id}/quiz-submissions`, `oc://codelabs/{id}/feedback`, `oc://codelabs/{id}/submissions`, `oc://codelabs/{id}/chat`, `oc://codelabs/{id}/workspace`, `oc://codelabs/{id}/workspace/branches`, `oc://codelabs/{id}/workspace/folders`, `oc://codelabs/{id}/attendees`, `oc://codelabs/{id}/help`
 
 Operational notes:
 
