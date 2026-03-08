@@ -11,6 +11,8 @@ pub mod cli;
 pub mod domain;
 /// Runtime configuration, database state, and persistence-facing models.
 pub mod infrastructure;
+/// MCP server implementation exposed by the CLI.
+pub mod mcp;
 /// Cross-cutting request middleware and extractors.
 pub mod middleware;
 /// Small reusable helpers such as validation and crypto utilities.

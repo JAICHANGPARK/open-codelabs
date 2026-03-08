@@ -164,7 +164,15 @@ oc codelab list
 
 `oc connect add` also supports `--interactive` when you want the CLI to ask for the profile values, and `oc connect use` can open a profile picker when `--name` is omitted in a TTY.
 
-Use `oc --help` for the raw command list, or read the grouped [CLI reference](docs/user-guide/cli.md) for the current supported command set across connect/auth, runtime management, codelabs, workspaces, attendee flows, uploads, and AI tools.
+### Expose Open Codelabs as an MCP server
+
+```bash
+oc mcp serve
+```
+
+`oc mcp serve` reuses the active `oc` profile and session to expose Open Codelabs as a stdio MCP server. That lets Claude Desktop, Codex, Cursor, and other MCP hosts read codelabs, guides, and steps directly, and perform a small set of admin actions when the session is authenticated as admin.
+
+Use `oc --help` for the raw command list, read the grouped [CLI reference](docs/user-guide/cli.md) for command details, and see the dedicated [MCP Server guide](docs/user-guide/mcp.md) for host configuration examples.
 
 ---
 

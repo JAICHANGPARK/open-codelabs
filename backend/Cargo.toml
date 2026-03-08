@@ -31,6 +31,7 @@ jsonwebtoken = "9.3.0"
 rand = "0.8.5"
 subtle = "2.6.1"
 url = "2.5.4"
+schemars = "1.0"
 aes = "0.8.4"
 base64 = "0.22.1"
 cbc = "0.1.2"
@@ -40,6 +41,7 @@ pbkdf2 = "0.12.2"
 sha2 = "0.10.8"
 bollard = "0.18"
 tar = "0.4"
+rmcp = { version = "0.16.0", features = ["server", "transport-io", "macros"] }
 
 [dev-dependencies]
 tower = { version = "0.5", features = ["util"] }

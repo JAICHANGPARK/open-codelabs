@@ -86,6 +86,14 @@ oc run --open
 
 인터랙티브 터미널에서 `oc run`만 실행하면 엔진 선택과 startup 옵션 토글도 같은 방식으로 진행할 수 있습니다.
 
+Open Codelabs를 MCP 서버로 노출하려면:
+
+```bash
+oc mcp serve
+```
+
+`oc mcp serve`는 현재 `oc` profile과 session을 재사용해서 stdio MCP 서버를 띄웁니다. 그래서 Claude Desktop, Codex, Cursor 같은 MCP host에서 codelab, guide, steps를 바로 읽을 수 있고, 관리자 세션이 있으면 일부 관리 작업도 수행할 수 있습니다. 자세한 명령 설명은 [CLI 레퍼런스](docs/user-guide/cli.md), host 설정 예시는 [MCP 서버 가이드](docs/user-guide/mcp.md)를 참고하면 됩니다.
+
 제거할 때는 설치 방식에 맞춰 아래 순서로 정리하면 됩니다.
 
 ```bash

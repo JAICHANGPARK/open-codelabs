@@ -17,6 +17,7 @@ use crate::domain::models::{
     SaveAiConversationPayload, Step, UpdateStepsPayload,
 };
 use crate::infrastructure::db_models::AuditLog;
+use crate::mcp::{serve_stdio, McpServerState};
 use crate::middleware::auth::now_epoch_seconds;
 use crate::utils::crypto::encrypt_with_password;
 use anyhow::{anyhow, bail, Context, Result};
@@ -59,6 +60,7 @@ enum Command {
     Auth(AuthCommand),
     Connect(ConnectCommand),
     Public(PublicCommand),
+    Mcp(McpCommand),
     Bench(BenchCommand),
     Run(RunCommand),
     Ps(PsCommand),
@@ -125,6 +127,11 @@ enum PublicCommand {
     Up(PublicUpCommand),
     Status,
     Down,
+}
+
+#[derive(Debug)]
+enum McpCommand {
+    Serve,
 }
 
 #[derive(Debug)]
@@ -850,6 +857,9 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
         }
         Command::Public(command) => {
             run_public_command(&global, command).await?;
+        }
+        Command::Mcp(command) => {
+            run_mcp_command(&global, command).await?;
         }
         Command::Bench(command) => {
             run_bench_command(command)?;
@@ -3198,6 +3208,47 @@ async fn run_public_command(global: &GlobalOptions, command: PublicCommand) -> R
         },
     }
 
+    Ok(())
+}
+
+async fn run_mcp_command(global: &GlobalOptions, command: McpCommand) -> Result<()> {
+    match command {
+        McpCommand::Serve => {
+            let config = load_config(&global.config_file)?;
+            let active_profile = resolve_active_profile(global, &config)?;
+            let session_file = resolve_session_file(global, active_profile.as_ref());
+            let session = if session_file.exists() {
+                Some(load_session(&session_file).with_context(|| {
+                    format!("Failed to load saved session {}", session_file.display())
+                })?)
+            } else {
+                None
+            };
+            let base_url = resolve_base_url(
+                global.base_url.as_deref(),
+                active_profile.as_ref().map(|(_, profile)| profile),
+                session.as_ref(),
+            );
+            let client = ApiClient::new(base_url.clone(), session.clone())?;
+            let profile_name = active_profile.as_ref().map(|(name, _)| name.clone());
+            let runtime_preference = active_profile
+                .as_ref()
+                .map(|(_, profile)| profile.runtime.as_str().to_string())
+                .unwrap_or_else(|| RuntimePreference::Auto.as_str().to_string());
+
+            let state = McpServerState {
+                client,
+                profile_name,
+                base_url,
+                session_file,
+                session_role: session.as_ref().and_then(|stored| stored.role.clone()),
+                session_subject: session.as_ref().and_then(|stored| stored.sub.clone()),
+                runtime_preference,
+            };
+
+            serve_stdio(state).await?;
+        }
+    }
     Ok(())
 }
 
@@ -5621,6 +5672,7 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
         "auth" => Command::Auth(parse_auth(&mut args)?),
         "connect" => Command::Connect(parse_connect(&mut args)?),
         "public" => Command::Public(parse_public(&mut args)?),
+        "mcp" => Command::Mcp(parse_mcp(&mut args)?),
         "bench" => Command::Bench(parse_bench(&mut args)?),
         "run" => Command::Run(parse_run(&mut args)?),
         "ps" => Command::Ps(parse_ps(&mut args)?),
@@ -5897,6 +5949,25 @@ fn parse_public(args: &mut Args) -> Result<PublicCommand> {
         "status" => Ok(PublicCommand::Status),
         "down" => Ok(PublicCommand::Down),
         _ => Err(help_error("public")),
+    }
+}
+
+fn parse_mcp(args: &mut Args) -> Result<McpCommand> {
+    let Some(subcommand) = args.next() else {
+        return Err(help_error("mcp"));
+    };
+
+    match subcommand.as_str() {
+        "serve" => {
+            if let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "-h" | "--help" => return Err(help_error("mcp serve")),
+                    other => bail!("Unknown mcp serve option: {other}"),
+                }
+            }
+            Ok(McpCommand::Serve)
+        }
+        _ => Err(help_error("mcp")),
     }
 }
 
@@ -7192,6 +7263,7 @@ fn command_help_lines() -> &'static [&'static str] {
         "public up [--tunnel <ngrok|bore|cloudflare>] [--ngrok|--bore|--cloudflare] [--port <port>] [--log-file <path>] [--no-open]",
         "public status",
         "public down",
+        "mcp serve",
         "bench <local|ops|ws> [-- <bench options...>]",
         "run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--interactive] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]",
         "ps [--service <name>]",

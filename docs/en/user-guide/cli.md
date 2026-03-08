@@ -261,6 +261,41 @@ What it does:
 
 - Alias for `oc auth status`.
 
+## MCP integration
+
+### `oc mcp serve`
+
+```bash
+oc mcp serve
+```
+
+What it does:
+
+- Starts a stdio MCP server that reuses the current `oc` profile and session.
+- Lets an MCP host read Open Codelabs connection status, codelabs, guides, and steps.
+- Exposes a small set of admin write tools when the session is authenticated as admin.
+
+Command-specific options:
+
+- None
+
+Use the normal global options when you need to override the target:
+
+- `oc --profile prod mcp serve`
+- `oc --base-url https://labs.example.com mcp serve`
+- `oc --session-file /tmp/oc-mcp-session.json mcp serve`
+
+Current high-level capabilities:
+
+- tools: `get_connection`, `list_codelabs`, `get_codelab`, `create_codelab`, `update_codelab`, `replace_codelab_steps`, `list_attendees`, `list_help_requests`, `resolve_help_request`
+- resources: `oc://connection`, `oc://session`, `oc://codelabs`, `oc://codelabs/{id}`, `oc://codelabs/{id}/guide`, `oc://codelabs/{id}/steps`, `oc://codelabs/{id}/attendees`, `oc://codelabs/{id}/help`
+
+Operational notes:
+
+- Run `oc auth login` before launching the MCP host if you need admin tools.
+- Admin write tools fail when the active session is not an admin session.
+- See the dedicated [MCP Server guide](mcp.md) for host configuration examples.
+
 ## Public exposure
 
 ### `oc public up`

@@ -102,6 +102,7 @@ pub struct UploadedImage {
 }
 
 /// Thin wrapper around the backend HTTP API.
+#[derive(Clone)]
 pub struct ApiClient {
     base_url: String,
     http: Client,

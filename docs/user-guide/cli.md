@@ -262,6 +262,41 @@ oc login [--admin-id <id>] [--admin-pw <pw>] [--interactive]
 
 - `oc auth status`의 별칭입니다.
 
+## MCP 연동
+
+### `oc mcp serve`
+
+```bash
+oc mcp serve
+```
+
+무엇을 하는가:
+
+- 현재 `oc` profile과 session을 재사용해 stdio 기반 MCP 서버를 실행합니다.
+- MCP host에서 Open Codelabs 연결 상태, codelab, guide, steps를 읽을 수 있게 합니다.
+- 관리자 세션이 있으면 일부 write tool도 함께 노출합니다.
+
+명령 전용 옵션:
+
+- 없음
+
+대신 아래 전역 옵션을 그대로 사용할 수 있습니다.
+
+- `oc --profile prod mcp serve`
+- `oc --base-url https://labs.example.com mcp serve`
+- `oc --session-file /tmp/oc-mcp-session.json mcp serve`
+
+현재 노출되는 주요 capabilities:
+
+- tools: `get_connection`, `list_codelabs`, `get_codelab`, `create_codelab`, `update_codelab`, `replace_codelab_steps`, `list_attendees`, `list_help_requests`, `resolve_help_request`
+- resources: `oc://connection`, `oc://session`, `oc://codelabs`, `oc://codelabs/{id}`, `oc://codelabs/{id}/guide`, `oc://codelabs/{id}/steps`, `oc://codelabs/{id}/attendees`, `oc://codelabs/{id}/help`
+
+운영 팁:
+
+- 먼저 `oc auth login`을 마친 뒤 MCP host를 실행하는 편이 안정적입니다.
+- admin write tool은 관리자 세션이 없으면 실패합니다.
+- 자세한 host 설정 예시는 [MCP 서버 가이드](mcp.md)를 참고하세요.
+
 ## 공개 노출
 
 ### `oc public up`
