@@ -19,6 +19,7 @@ oc auth login
 
 - 읽기 전용 public codelab만 다룰 거면 `oc auth login` 없이도 일부 도구와 리소스는 동작할 수 있습니다.
 - `create_codelab`, `update_codelab`, `copy_codelab`, `delete_codelab`, `replace_codelab_steps`, material/quiz/workspace 계열 도구, `list_attendees`, `list_help_requests`, `resolve_help_request`는 관리자 세션이 필요합니다.
+- `help-queue-triage`, `learner-ops-review` 같은 prompt는 관리자 세션이 있으면 더 풍부한 리소스를 함께 제공합니다.
 
 ## 서버 실행
 
@@ -37,6 +38,8 @@ oc mcp serve
 ## 노출되는 tools
 
 현재 MVP에서 제공하는 도구는 아래와 같습니다.
+
+참고로 JSON을 반환하는 tool은 MCP `outputSchema` 규격에 맞추기 위해 structured payload를 `{ "data": ... }` 형태의 객체로 반환합니다.
 
 | Tool | 의미 | 권한 |
 | --- | --- | --- |
@@ -70,6 +73,19 @@ oc mcp serve
 | `read_workspace_branch_file` | branch snapshot 안의 파일 내용을 반환합니다. | 관리자 |
 | `list_workspace_folder_files` | 특정 folder snapshot 안의 파일 목록을 반환합니다. | 관리자 |
 | `read_workspace_folder_file` | folder snapshot 안의 파일 내용을 반환합니다. | 관리자 |
+
+## 노출되는 prompts
+
+현재 MVP에서 제공하는 prompt 템플릿은 아래와 같습니다.
+
+| Prompt | 의미 | 권한 |
+| --- | --- | --- |
+| `facilitator-brief` | guide, steps, materials, quizzes를 바탕으로 퍼실리테이터 브리핑을 구성합니다. | 누구나, 관리자 세션이면 더 풍부한 링크 제공 |
+| `authoring-change-plan` | codelab 변경 요청을 현재 콘텐츠와 대조해 수정 계획으로 바꿉니다. | 누구나, 관리자 세션이면 bundle 기반으로 더 정확 |
+| `help-queue-triage` | help queue와 learner activity를 읽고 우선순위와 다음 조치를 정리합니다. | 관리자 세션 권장 |
+| `learner-ops-review` | attendees, submissions, quiz submissions, feedback를 묶어 진행 상황을 검토합니다. | 관리자 세션 권장 |
+
+prompt는 MCP host가 `prompts/list`, `prompts/get`으로 가져가서 재사용 가능한 작업 템플릿으로 쓸 수 있습니다. 즉 도구를 직접 나열하지 않아도, host가 해당 prompt를 불러와 필요한 resources와 운영 문맥을 한 번에 모델에 주입할 수 있습니다.
 
 ## 노출되는 resources
 
@@ -129,5 +145,6 @@ oc mcp serve
 
 - 먼저 `oc://connection`을 읽게 하면 AI가 현재 서버와 권한 상태를 빠르게 이해할 수 있습니다.
 - 전체 작성 맥락이 필요하면 `oc://codelabs/{id}/bundle`, 일부만 필요하면 `guide`, `steps`, `materials`, `quizzes` 리소스를 개별로 읽는 편이 좋습니다.
+- 반복되는 운영 패턴이 있으면 `facilitator-brief`, `authoring-change-plan`, `help-queue-triage`, `learner-ops-review` prompt부터 호출하게 하는 편이 좋습니다.
 - 관리자 write tool을 쓰려면 `oc auth login`으로 같은 profile의 세션을 먼저 갱신해두는 편이 안전합니다.
 - 세션을 분리하고 싶다면 `--session-file`로 MCP 전용 세션 파일을 따로 둘 수 있습니다.

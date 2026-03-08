@@ -19,6 +19,7 @@ oc auth login
 
 - If you only need public read-only codelabs, some tools and resources can still work without `oc auth login`.
 - `create_codelab`, `update_codelab`, `copy_codelab`, `delete_codelab`, `replace_codelab_steps`, the material/quiz/workspace tools, `list_attendees`, `list_help_requests`, and `resolve_help_request` require an admin session.
+- Prompts such as `help-queue-triage` and `learner-ops-review` become more useful when an admin session is available because they can attach richer resources.
 
 ## Start the server
 
@@ -35,6 +36,8 @@ The command has no dedicated flags of its own, but it accepts the normal global 
 - `oc --session-file /tmp/oc-admin-session.json mcp serve`
 
 ## Exposed tools
+
+For MCP `outputSchema` compliance, JSON-returning tools emit their structured result as an object shaped like `{ "data": ... }`.
 
 | Tool | Meaning | Access |
 | --- | --- | --- |
@@ -68,6 +71,19 @@ The command has no dedicated flags of its own, but it accepts the normal global 
 | `read_workspace_branch_file` | Returns file contents from a branch snapshot. | Admin |
 | `list_workspace_folder_files` | Returns file paths inside a folder snapshot. | Admin |
 | `read_workspace_folder_file` | Returns file contents from a folder snapshot. | Admin |
+
+## Exposed prompts
+
+The current MVP exposes these reusable prompt templates:
+
+| Prompt | Meaning | Access |
+| --- | --- | --- |
+| `facilitator-brief` | Builds a facilitator briefing from the guide, steps, materials, and quizzes. | Any session, with richer links for admin |
+| `authoring-change-plan` | Turns a codelab change request into an authoring plan grounded in the current content. | Any session, more precise with admin bundle access |
+| `help-queue-triage` | Reviews the help queue and learner activity to prioritize facilitator follow-up. | Admin recommended |
+| `learner-ops-review` | Reviews attendees, submissions, quiz submissions, and feedback together. | Admin recommended |
+
+These prompts are exposed through `prompts/list` and `prompts/get`, so MCP hosts can start from a reusable workflow template instead of manually reconstructing the same instructions on every run.
 
 ## Exposed resources
 
@@ -127,5 +143,6 @@ If you want to pin the server to a specific saved profile, place the global opti
 
 - Read `oc://connection` first so the model understands the current server target and permission scope.
 - Use `oc://codelabs/{id}/bundle` when you need the full authoring context, or read `guide`, `steps`, `materials`, and `quizzes` separately when you want tighter context control.
+- For recurring workflows, start from `facilitator-brief`, `authoring-change-plan`, `help-queue-triage`, or `learner-ops-review` before calling lower-level tools directly.
 - Refresh the same profile with `oc auth login` before using admin write tools.
 - If you want to isolate the MCP session from your normal terminal usage, point the host at a dedicated `--session-file`.

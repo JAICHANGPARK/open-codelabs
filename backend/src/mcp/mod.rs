@@ -4,19 +4,24 @@ use crate::domain::models::{
 };
 use anyhow::{Context, Result};
 use rmcp::{
-    handler::server::{router::tool::ToolRouter, wrapper::Parameters},
+    handler::server::{
+        router::{prompt::PromptRouter, tool::ToolRouter},
+        wrapper::Parameters,
+    },
     model::{
-        Annotated, ListResourcesResult, PaginatedRequestParams, RawResource,
+        Annotated, GetPromptRequestParams, GetPromptResult, ListPromptsResult, ListResourcesResult,
+        PaginatedRequestParams, PromptMessage, PromptMessageRole, RawResource,
         ReadResourceRequestParams, ReadResourceResult, Resource, ResourceContents,
         ServerCapabilities, ServerInfo,
     },
+    prompt, prompt_router,
     service::RequestContext,
     tool, tool_handler, tool_router,
     transport::stdio,
     ErrorData as McpError, Json, RoleServer, ServerHandler, ServiceExt,
 };
 use schemars::JsonSchema;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use std::path::PathBuf;
 
@@ -34,6 +39,7 @@ pub struct McpServerState {
 #[derive(Clone)]
 struct OpenCodelabsMcpServer {
     state: McpServerState,
+    prompt_router: PromptRouter<Self>,
     tool_router: ToolRouter<Self>,
 }
 
@@ -207,6 +213,44 @@ struct WorkspaceFolderFileParams {
     file: String,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
+struct McpToolPayload {
+    /// Structured result payload returned by the tool.
+    data: Value,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct FacilitatorBriefPromptInput {
+    /// Stable codelab identifier to brief.
+    codelab_id: String,
+    /// Optional focus area such as pacing, quizzes, troubleshooting, or demos.
+    focus: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct AuthoringChangePromptInput {
+    /// Stable codelab identifier to edit.
+    codelab_id: String,
+    /// Requested change or authoring intent.
+    request: String,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct HelpQueuePromptInput {
+    /// Stable codelab identifier to triage.
+    codelab_id: String,
+    /// Optional triage policy or operating instruction.
+    focus: Option<String>,
+}
+
+#[derive(Debug, Deserialize, JsonSchema)]
+struct LearnerOpsPromptInput {
+    /// Stable codelab identifier to review.
+    codelab_id: String,
+    /// Optional operator question to answer while reviewing learner progress.
+    focus: Option<String>,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum ResourceTarget<'a> {
     Connection,
@@ -234,6 +278,7 @@ impl OpenCodelabsMcpServer {
     fn new(state: McpServerState) -> Self {
         Self {
             state,
+            prompt_router: Self::prompt_router(),
             tool_router: Self::tool_router(),
         }
     }
@@ -630,6 +675,269 @@ impl OpenCodelabsMcpServer {
             .map_err(internal_error)?;
         Ok(json!(folders))
     }
+
+    fn prompt_focus_suffix(focus: Option<&str>) -> String {
+        match focus.map(str::trim).filter(|value| !value.is_empty()) {
+            Some(value) => format!(" Focus on: {value}."),
+            None => String::new(),
+        }
+    }
+
+    fn codelab_prompt_link(&self, id: &str, suffix: &str) -> PromptMessage {
+        let (uri, name, title, description, mime_type) = match suffix {
+            "bundle" => (
+                format!("oc://codelabs/{id}/bundle"),
+                format!("codelab-bundle-{id}"),
+                format!("Bundle: {id}"),
+                "Combined metadata, guide, steps, materials, and quizzes.",
+                Some("application/json"),
+            ),
+            "guide" => (
+                format!("oc://codelabs/{id}/guide"),
+                format!("codelab-guide-{id}"),
+                format!("Guide markdown: {id}"),
+                "Facilitator guide markdown.",
+                Some("text/markdown"),
+            ),
+            "steps" => (
+                format!("oc://codelabs/{id}/steps"),
+                format!("codelab-steps-{id}"),
+                format!("Steps: {id}"),
+                "Ordered codelab steps.",
+                Some("application/json"),
+            ),
+            "attendees" => (
+                format!("oc://codelabs/{id}/attendees"),
+                format!("codelab-attendees-{id}"),
+                format!("Attendees: {id}"),
+                "Learner roster for the codelab.",
+                Some("application/json"),
+            ),
+            "help" => (
+                format!("oc://codelabs/{id}/help"),
+                format!("codelab-help-{id}"),
+                format!("Help requests: {id}"),
+                "Active help requests for the codelab.",
+                Some("application/json"),
+            ),
+            "materials" => (
+                format!("oc://codelabs/{id}/materials"),
+                format!("codelab-materials-{id}"),
+                format!("Materials: {id}"),
+                "Attached codelab materials.",
+                Some("application/json"),
+            ),
+            "quizzes" => (
+                format!("oc://codelabs/{id}/quizzes"),
+                format!("codelab-quizzes-{id}"),
+                format!("Quizzes: {id}"),
+                "Quiz definitions for the codelab.",
+                Some("application/json"),
+            ),
+            "quiz-submissions" => (
+                format!("oc://codelabs/{id}/quiz-submissions"),
+                format!("codelab-quiz-submissions-{id}"),
+                format!("Quiz submissions: {id}"),
+                "Quiz submissions with learner metadata.",
+                Some("application/json"),
+            ),
+            "feedback" => (
+                format!("oc://codelabs/{id}/feedback"),
+                format!("codelab-feedback-{id}"),
+                format!("Feedback: {id}"),
+                "Learner feedback rows.",
+                Some("application/json"),
+            ),
+            "submissions" => (
+                format!("oc://codelabs/{id}/submissions"),
+                format!("codelab-submissions-{id}"),
+                format!("Submissions: {id}"),
+                "Learner submissions for the codelab.",
+                Some("application/json"),
+            ),
+            "chat" => (
+                format!("oc://codelabs/{id}/chat"),
+                format!("codelab-chat-{id}"),
+                format!("Chat history: {id}"),
+                "Stored chat history for the codelab.",
+                Some("application/json"),
+            ),
+            _ => (
+                format!("oc://codelabs/{id}"),
+                format!("codelab-{id}"),
+                format!("Codelab: {id}"),
+                "Codelab metadata and top-level settings.",
+                Some("application/json"),
+            ),
+        };
+
+        PromptMessage::new_resource_link(
+            PromptMessageRole::User,
+            resource(uri, name, Some(title), Some(description), mime_type),
+        )
+    }
+}
+
+#[prompt_router]
+impl OpenCodelabsMcpServer {
+    #[prompt(
+        name = "facilitator-brief",
+        description = "Prepare a facilitator briefing for one codelab using guide, steps, and optional admin-only operational context."
+    )]
+    async fn facilitator_brief_prompt(
+        &self,
+        params: Parameters<FacilitatorBriefPromptInput>,
+    ) -> GetPromptResult {
+        let input = params.0;
+        let mut messages = vec![
+            PromptMessage::new_text(
+                PromptMessageRole::User,
+                format!(
+                    "Prepare a facilitator briefing for codelab `{}`. Summarize the learning goals, recommended pacing, likely sticking points, and what the facilitator should watch for during the session.{}",
+                    input.codelab_id,
+                    Self::prompt_focus_suffix(input.focus.as_deref())
+                ),
+            ),
+            self.codelab_prompt_link(&input.codelab_id, "detail"),
+            self.codelab_prompt_link(&input.codelab_id, "guide"),
+            self.codelab_prompt_link(&input.codelab_id, "steps"),
+        ];
+
+        if self.is_admin_session() {
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "materials"));
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "quizzes"));
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "help"));
+        }
+
+        GetPromptResult {
+            description: Some(
+                "Guide the model to create a facilitator-oriented briefing from the codelab context."
+                    .to_string(),
+            ),
+            messages,
+        }
+    }
+
+    #[prompt(
+        name = "authoring-change-plan",
+        description = "Review a codelab and turn a change request into a concrete authoring plan, using write tools when admin access is available."
+    )]
+    async fn authoring_change_plan_prompt(
+        &self,
+        params: Parameters<AuthoringChangePromptInput>,
+    ) -> GetPromptResult {
+        let input = params.0;
+        let mut messages = vec![PromptMessage::new_text(
+            PromptMessageRole::User,
+            format!(
+                "Review codelab `{}` and turn this change request into a concrete update plan: {}. Read the current content first, call out which metadata, steps, materials, or quizzes should change, and only apply write tools after you can explain the intended edits clearly.",
+                input.codelab_id, input.request
+            ),
+        )];
+
+        if self.is_admin_session() {
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "bundle"));
+        } else {
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "detail"));
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "guide"));
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "steps"));
+            messages.push(PromptMessage::new_text(
+                PromptMessageRole::User,
+                "The current MCP session is not an admin session, so write tools may fail until `oc auth login` is refreshed.".to_string(),
+            ));
+        }
+
+        GetPromptResult {
+            description: Some(
+                "Guide the model through a safe codelab authoring workflow grounded in the current content."
+                    .to_string(),
+            ),
+            messages,
+        }
+    }
+
+    #[prompt(
+        name = "help-queue-triage",
+        description = "Triage facilitator help requests for one codelab using learner, chat, and content context."
+    )]
+    async fn help_queue_triage_prompt(
+        &self,
+        params: Parameters<HelpQueuePromptInput>,
+    ) -> GetPromptResult {
+        let input = params.0;
+        let mut messages = vec![PromptMessage::new_text(
+            PromptMessageRole::User,
+            format!(
+                "Triage the active help queue for codelab `{}`. Group similar issues, identify which requests are blocked or urgent, and recommend the next facilitator actions.{}",
+                input.codelab_id,
+                Self::prompt_focus_suffix(input.focus.as_deref())
+            ),
+        )];
+
+        if self.is_admin_session() {
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "help"));
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "attendees"));
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "chat"));
+        } else {
+            messages.push(PromptMessage::new_text(
+                PromptMessageRole::User,
+                "The current MCP session does not have admin access, so help-queue resources are unavailable until the operator refreshes the session with `oc auth login`.".to_string(),
+            ));
+        }
+
+        messages.push(self.codelab_prompt_link(&input.codelab_id, "guide"));
+        messages.push(self.codelab_prompt_link(&input.codelab_id, "steps"));
+
+        GetPromptResult {
+            description: Some(
+                "Use help requests, learner activity, and codelab context to produce a facilitator triage summary."
+                    .to_string(),
+            ),
+            messages,
+        }
+    }
+
+    #[prompt(
+        name = "learner-ops-review",
+        description = "Review learner progress for one codelab across attendees, submissions, quizzes, and feedback."
+    )]
+    async fn learner_ops_review_prompt(
+        &self,
+        params: Parameters<LearnerOpsPromptInput>,
+    ) -> GetPromptResult {
+        let input = params.0;
+        let mut messages = vec![PromptMessage::new_text(
+            PromptMessageRole::User,
+            format!(
+                "Review learner progress for codelab `{}`. Explain who is blocked, who looks complete, and which follow-ups the facilitator should take next.{}",
+                input.codelab_id,
+                Self::prompt_focus_suffix(input.focus.as_deref())
+            ),
+        )];
+
+        if self.is_admin_session() {
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "attendees"));
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "submissions"));
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "quiz-submissions"));
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "feedback"));
+            messages.push(self.codelab_prompt_link(&input.codelab_id, "quizzes"));
+        } else {
+            messages.push(PromptMessage::new_text(
+                PromptMessageRole::User,
+                "The current MCP session does not have admin access, so learner operations data is unavailable until the operator refreshes the session with `oc auth login`.".to_string(),
+            ));
+        }
+
+        messages.push(self.codelab_prompt_link(&input.codelab_id, "steps"));
+
+        GetPromptResult {
+            description: Some(
+                "Help the model review learner progress and facilitator follow-up actions using attendee and submission context."
+                    .to_string(),
+            ),
+            messages,
+        }
+    }
 }
 
 #[tool_router(router = tool_router)]
@@ -638,22 +946,22 @@ impl OpenCodelabsMcpServer {
         name = "get_connection",
         description = "Return the active Open Codelabs base URL, runtime probe, and session summary."
     )]
-    async fn get_connection(&self) -> Json<Value> {
-        Json(self.build_connection_payload().await)
+    async fn get_connection(&self) -> Json<McpToolPayload> {
+        tool_payload(self.build_connection_payload().await)
     }
 
     #[tool(
         name = "list_codelabs",
         description = "List codelabs visible to the current Open Codelabs session."
     )]
-    async fn list_codelabs(&self) -> Result<Json<Value>, McpError> {
+    async fn list_codelabs(&self) -> Result<Json<McpToolPayload>, McpError> {
         let codelabs = self
             .state
             .client
             .list_codelabs()
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!(codelabs)))
+        Ok(tool_payload(json!(codelabs)))
     }
 
     #[tool(
@@ -663,14 +971,14 @@ impl OpenCodelabsMcpServer {
     async fn get_codelab(
         &self,
         params: Parameters<CodelabIdParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         let (codelab, steps) = self
             .state
             .client
             .get_codelab(&params.0.id)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!({
+        Ok(tool_payload(json!({
             "codelab": codelab,
             "steps": steps,
         })))
@@ -683,9 +991,9 @@ impl OpenCodelabsMcpServer {
     async fn get_codelab_bundle(
         &self,
         params: Parameters<CodelabIdParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         let value = self.codelab_bundle_value(&params.0.id).await?;
-        Ok(Json(value))
+        Ok(tool_payload(value))
     }
 
     #[tool(
@@ -695,7 +1003,7 @@ impl OpenCodelabsMcpServer {
     async fn create_codelab(
         &self,
         params: Parameters<CreateCodelabInput>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Creating a codelab")?;
         let codelab = self
             .state
@@ -703,7 +1011,7 @@ impl OpenCodelabsMcpServer {
             .create_codelab(&into_create_codelab(params.0))
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!(codelab)))
+        Ok(tool_payload(json!(codelab)))
     }
 
     #[tool(
@@ -713,7 +1021,7 @@ impl OpenCodelabsMcpServer {
     async fn update_codelab(
         &self,
         params: Parameters<UpdateCodelabInput>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Updating a codelab")?;
         let input = params.0;
         let codelab = self
@@ -722,7 +1030,7 @@ impl OpenCodelabsMcpServer {
             .update_codelab(&input.id, &into_update_codelab(&input))
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!(codelab)))
+        Ok(tool_payload(json!(codelab)))
     }
 
     #[tool(
@@ -732,7 +1040,7 @@ impl OpenCodelabsMcpServer {
     async fn replace_codelab_steps(
         &self,
         params: Parameters<ReplaceStepsInput>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Replacing codelab steps")?;
         let codelab_id = params.0.codelab_id.clone();
         let payload = json!({
@@ -754,7 +1062,7 @@ impl OpenCodelabsMcpServer {
             .push_steps(&codelab_id, &payload)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!({
+        Ok(tool_payload(json!({
             "status": "ok",
             "codelab_id": codelab_id,
         })))
@@ -775,7 +1083,7 @@ impl OpenCodelabsMcpServer {
     async fn copy_codelab(
         &self,
         params: Parameters<CodelabIdParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Copying a codelab")?;
         let codelab = self
             .state
@@ -783,7 +1091,7 @@ impl OpenCodelabsMcpServer {
             .copy_codelab(&params.0.id)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!(codelab)))
+        Ok(tool_payload(json!(codelab)))
     }
 
     #[tool(
@@ -793,14 +1101,14 @@ impl OpenCodelabsMcpServer {
     async fn delete_codelab(
         &self,
         params: Parameters<CodelabIdParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Deleting a codelab")?;
         self.state
             .client
             .delete_codelab(&params.0.id)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!({
+        Ok(tool_payload(json!({
             "status": "deleted",
             "id": params.0.id,
         })))
@@ -813,9 +1121,9 @@ impl OpenCodelabsMcpServer {
     async fn list_materials(
         &self,
         params: Parameters<ScopedCodelabParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         let value = self.codelab_materials_value(&params.0.codelab_id).await?;
-        Ok(Json(value))
+        Ok(tool_payload(value))
     }
 
     #[tool(
@@ -825,7 +1133,7 @@ impl OpenCodelabsMcpServer {
     async fn upload_material_asset(
         &self,
         params: Parameters<UploadMaterialAssetInput>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Uploading a material asset")?;
         let uploaded = self
             .state
@@ -833,7 +1141,7 @@ impl OpenCodelabsMcpServer {
             .upload_material(std::path::Path::new(&params.0.file_path))
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!(uploaded)))
+        Ok(tool_payload(json!(uploaded)))
     }
 
     #[tool(
@@ -843,7 +1151,7 @@ impl OpenCodelabsMcpServer {
     async fn add_material(
         &self,
         params: Parameters<CreateMaterialInput>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Adding a material")?;
         let input = params.0;
         let codelab_id = input.codelab_id.clone();
@@ -859,7 +1167,7 @@ impl OpenCodelabsMcpServer {
             .add_material(&codelab_id, &payload)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!(material)))
+        Ok(tool_payload(json!(material)))
     }
 
     #[tool(
@@ -869,14 +1177,14 @@ impl OpenCodelabsMcpServer {
     async fn delete_material(
         &self,
         params: Parameters<MaterialIdParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Deleting a material")?;
         self.state
             .client
             .delete_material(&params.0.codelab_id, &params.0.material_id)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!({
+        Ok(tool_payload(json!({
             "status": "deleted",
             "codelab_id": params.0.codelab_id,
             "material_id": params.0.material_id,
@@ -890,9 +1198,9 @@ impl OpenCodelabsMcpServer {
     async fn list_quizzes(
         &self,
         params: Parameters<ScopedCodelabParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         let value = self.codelab_quizzes_value(&params.0.codelab_id).await?;
-        Ok(Json(value))
+        Ok(tool_payload(value))
     }
 
     #[tool(
@@ -902,7 +1210,7 @@ impl OpenCodelabsMcpServer {
     async fn update_quizzes(
         &self,
         params: Parameters<UpdateQuizzesInput>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Updating quizzes")?;
         let input = params.0;
         let codelab_id = input.codelab_id;
@@ -922,7 +1230,7 @@ impl OpenCodelabsMcpServer {
             .update_quizzes(&codelab_id, &quizzes)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!({
+        Ok(tool_payload(json!({
             "status": "ok",
             "codelab_id": codelab_id,
             "quizzes_count": quizzes.len(),
@@ -936,9 +1244,9 @@ impl OpenCodelabsMcpServer {
     async fn list_feedback(
         &self,
         params: Parameters<ScopedCodelabParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         let value = self.codelab_feedback_value(&params.0.codelab_id).await?;
-        Ok(Json(value))
+        Ok(tool_payload(value))
     }
 
     #[tool(
@@ -948,9 +1256,9 @@ impl OpenCodelabsMcpServer {
     async fn list_submissions(
         &self,
         params: Parameters<ScopedCodelabParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         let value = self.codelab_submissions_value(&params.0.codelab_id).await?;
-        Ok(Json(value))
+        Ok(tool_payload(value))
     }
 
     #[tool(
@@ -960,11 +1268,11 @@ impl OpenCodelabsMcpServer {
     async fn get_chat_history(
         &self,
         params: Parameters<ScopedCodelabParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         let value = self
             .codelab_chat_history_value(&params.0.codelab_id)
             .await?;
-        Ok(Json(value))
+        Ok(tool_payload(value))
     }
 
     #[tool(
@@ -974,11 +1282,11 @@ impl OpenCodelabsMcpServer {
     async fn list_quiz_submissions(
         &self,
         params: Parameters<ScopedCodelabParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         let value = self
             .codelab_quiz_submissions_value(&params.0.codelab_id)
             .await?;
-        Ok(Json(value))
+        Ok(tool_payload(value))
     }
 
     #[tool(
@@ -988,9 +1296,9 @@ impl OpenCodelabsMcpServer {
     async fn get_workspace_info(
         &self,
         params: Parameters<ScopedCodelabParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         let value = self.workspace_info_value(&params.0.codelab_id).await?;
-        Ok(Json(value))
+        Ok(tool_payload(value))
     }
 
     #[tool(
@@ -1000,9 +1308,9 @@ impl OpenCodelabsMcpServer {
     async fn list_workspace_branches(
         &self,
         params: Parameters<ScopedCodelabParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         let value = self.workspace_branches_value(&params.0.codelab_id).await?;
-        Ok(Json(value))
+        Ok(tool_payload(value))
     }
 
     #[tool(
@@ -1012,9 +1320,9 @@ impl OpenCodelabsMcpServer {
     async fn list_workspace_folders(
         &self,
         params: Parameters<ScopedCodelabParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         let value = self.workspace_folders_value(&params.0.codelab_id).await?;
-        Ok(Json(value))
+        Ok(tool_payload(value))
     }
 
     #[tool(
@@ -1024,7 +1332,7 @@ impl OpenCodelabsMcpServer {
     async fn list_workspace_branch_files(
         &self,
         params: Parameters<WorkspaceBranchParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Listing workspace branch files")?;
         let files = self
             .state
@@ -1032,7 +1340,7 @@ impl OpenCodelabsMcpServer {
             .list_workspace_files(&params.0.codelab_id, &params.0.branch)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!(files)))
+        Ok(tool_payload(json!(files)))
     }
 
     #[tool(
@@ -1042,7 +1350,7 @@ impl OpenCodelabsMcpServer {
     async fn read_workspace_branch_file(
         &self,
         params: Parameters<WorkspaceBranchFileParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Reading a workspace branch file")?;
         let input = params.0;
         let content = self
@@ -1051,7 +1359,7 @@ impl OpenCodelabsMcpServer {
             .read_workspace_file(&input.codelab_id, &input.branch, &input.file)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!({
+        Ok(tool_payload(json!({
             "codelab_id": input.codelab_id,
             "branch": input.branch,
             "file": input.file,
@@ -1066,7 +1374,7 @@ impl OpenCodelabsMcpServer {
     async fn list_workspace_folder_files(
         &self,
         params: Parameters<WorkspaceFolderParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Listing workspace folder files")?;
         let files = self
             .state
@@ -1074,7 +1382,7 @@ impl OpenCodelabsMcpServer {
             .list_workspace_folder_files(&params.0.codelab_id, &params.0.folder)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!(files)))
+        Ok(tool_payload(json!(files)))
     }
 
     #[tool(
@@ -1084,7 +1392,7 @@ impl OpenCodelabsMcpServer {
     async fn read_workspace_folder_file(
         &self,
         params: Parameters<WorkspaceFolderFileParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Reading a workspace folder file")?;
         let input = params.0;
         let content = self
@@ -1093,7 +1401,7 @@ impl OpenCodelabsMcpServer {
             .read_workspace_folder_file(&input.codelab_id, &input.folder, &input.file)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!({
+        Ok(tool_payload(json!({
             "codelab_id": input.codelab_id,
             "folder": input.folder,
             "file": input.file,
@@ -1108,7 +1416,7 @@ impl OpenCodelabsMcpServer {
     async fn list_attendees(
         &self,
         params: Parameters<ScopedCodelabParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Listing attendees")?;
         let attendees = self
             .state
@@ -1116,7 +1424,7 @@ impl OpenCodelabsMcpServer {
             .get_attendees(&params.0.codelab_id)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!(attendees)))
+        Ok(tool_payload(json!(attendees)))
     }
 
     #[tool(
@@ -1126,7 +1434,7 @@ impl OpenCodelabsMcpServer {
     async fn list_help_requests(
         &self,
         params: Parameters<ScopedCodelabParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Listing help requests")?;
         let help_requests = self
             .state
@@ -1134,7 +1442,7 @@ impl OpenCodelabsMcpServer {
             .get_help_requests(&params.0.codelab_id)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!(help_requests)))
+        Ok(tool_payload(json!(help_requests)))
     }
 
     #[tool(
@@ -1144,14 +1452,14 @@ impl OpenCodelabsMcpServer {
     async fn resolve_help_request(
         &self,
         params: Parameters<ResolveHelpRequestParams>,
-    ) -> Result<Json<Value>, McpError> {
+    ) -> Result<Json<McpToolPayload>, McpError> {
         self.require_admin_session("Resolving a help request")?;
         self.state
             .client
             .resolve_help_request(&params.0.codelab_id, &params.0.help_id)
             .await
             .map_err(internal_error)?;
-        Ok(Json(json!({
+        Ok(tool_payload(json!({
             "status": "resolved",
             "codelab_id": params.0.codelab_id,
             "help_id": params.0.help_id,
@@ -1164,12 +1472,13 @@ impl ServerHandler for OpenCodelabsMcpServer {
     fn get_info(&self) -> ServerInfo {
         ServerInfo {
             instructions: Some(
-                "Use the Open Codelabs MCP server to inspect connection state, read full codelab bundles, materials, quizzes, submissions, workspace metadata, and perform focused admin actions when the oc session is authenticated."
+                "Use the Open Codelabs MCP server to inspect connection state, read full codelab bundles, materials, quizzes, submissions, workspace metadata, reuse prompt templates for facilitator and authoring workflows, and perform focused admin actions when the oc session is authenticated."
                     .to_string(),
             ),
             capabilities: ServerCapabilities::builder()
                 .enable_tools()
                 .enable_resources()
+                .enable_prompts()
                 .build(),
             server_info: rmcp::model::Implementation {
                 name: "open-codelabs-mcp".to_string(),
@@ -1183,6 +1492,34 @@ impl ServerHandler for OpenCodelabsMcpServer {
             },
             ..Default::default()
         }
+    }
+
+    fn get_prompt(
+        &self,
+        request: GetPromptRequestParams,
+        context: RequestContext<RoleServer>,
+    ) -> impl std::future::Future<Output = Result<GetPromptResult, McpError>> + Send + '_ {
+        async move {
+            let prompt_context = rmcp::handler::server::prompt::PromptContext::new(
+                self,
+                request.name,
+                request.arguments,
+                context,
+            );
+            self.prompt_router.get_prompt(prompt_context).await
+        }
+    }
+
+    fn list_prompts(
+        &self,
+        _request: Option<PaginatedRequestParams>,
+        _context: RequestContext<RoleServer>,
+    ) -> impl std::future::Future<Output = Result<ListPromptsResult, McpError>> + Send + '_ {
+        std::future::ready(Ok(ListPromptsResult {
+            prompts: self.prompt_router.list_all(),
+            next_cursor: None,
+            meta: None,
+        }))
     }
 
     fn list_resources(
@@ -1410,6 +1747,10 @@ fn json_resource(uri: &str, value: Value) -> Result<ReadResourceResult, McpError
     })
 }
 
+fn tool_payload(value: Value) -> Json<McpToolPayload> {
+    Json(McpToolPayload { data: value })
+}
+
 fn markdown_resource(uri: &str, markdown: String) -> Result<ReadResourceResult, McpError> {
     text_resource(uri, "text/markdown", markdown)
 }
@@ -1431,7 +1772,26 @@ fn internal_error(error: impl std::fmt::Display) -> McpError {
 
 #[cfg(test)]
 mod tests {
-    use super::{parse_resource_target, ResourceTarget};
+    use super::{
+        parse_resource_target, FacilitatorBriefPromptInput, McpServerState, OpenCodelabsMcpServer,
+        ResourceTarget,
+    };
+    use crate::cli::client::ApiClient;
+    use rmcp::handler::server::wrapper::Parameters;
+    use rmcp::model::PromptMessageContent;
+    use std::path::PathBuf;
+
+    fn test_server(is_admin: bool) -> OpenCodelabsMcpServer {
+        OpenCodelabsMcpServer::new(McpServerState {
+            client: ApiClient::new("http://localhost:8080", None).expect("api client"),
+            profile_name: Some("test".to_string()),
+            base_url: "http://localhost:8080".to_string(),
+            session_file: PathBuf::from("/tmp/open-codelabs-test-session.json"),
+            session_role: is_admin.then(|| "admin".to_string()),
+            session_subject: Some("tester".to_string()),
+            runtime_preference: "backend".to_string(),
+        })
+    }
 
     #[test]
     fn parses_known_resource_uris() {
@@ -1520,5 +1880,51 @@ mod tests {
     fn rejects_unknown_resource_uris() {
         assert!(parse_resource_target("oc://unknown").is_err());
         assert!(parse_resource_target("oc://codelabs/lab-1/unknown").is_err());
+    }
+
+    #[test]
+    fn lists_expected_prompt_templates() {
+        let server = test_server(false);
+        let prompts = server.prompt_router.list_all();
+        let prompt_names = prompts
+            .iter()
+            .map(|prompt| prompt.name.as_str())
+            .collect::<Vec<_>>();
+
+        assert_eq!(
+            prompt_names,
+            vec![
+                "authoring-change-plan",
+                "facilitator-brief",
+                "help-queue-triage",
+                "learner-ops-review",
+            ]
+        );
+    }
+
+    #[tokio::test]
+    async fn facilitator_prompt_includes_admin_links_when_available() {
+        let server = test_server(true);
+        let prompt = server
+            .facilitator_brief_prompt(Parameters(FacilitatorBriefPromptInput {
+                codelab_id: "lab-1".to_string(),
+                focus: Some("quizzes".to_string()),
+            }))
+            .await;
+
+        let linked_uris = prompt
+            .messages
+            .iter()
+            .filter_map(|message| match &message.content {
+                PromptMessageContent::ResourceLink { link } => Some(link.uri.as_str()),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
+        assert!(linked_uris.contains(&"oc://codelabs/lab-1/guide"));
+        assert!(linked_uris.contains(&"oc://codelabs/lab-1/steps"));
+        assert!(linked_uris.contains(&"oc://codelabs/lab-1/materials"));
+        assert!(linked_uris.contains(&"oc://codelabs/lab-1/quizzes"));
+        assert!(linked_uris.contains(&"oc://codelabs/lab-1/help"));
     }
 }

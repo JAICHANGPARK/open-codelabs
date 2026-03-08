@@ -273,6 +273,7 @@ What it does:
 
 - Starts a stdio MCP server that reuses the current `oc` profile and session.
 - Lets an MCP host read Open Codelabs connection status, the reference payload, codelabs, materials, quizzes, feedback, submissions, and workspace metadata.
+- Also exposes reusable prompt templates for common facilitator and authoring workflows.
 - Exposes admin write tools such as codelab copy/delete, material and quiz updates, and help resolution when the session is authenticated as admin.
 
 Command-specific options:
@@ -289,11 +290,13 @@ Current high-level capabilities:
 
 - tools: `get_connection`, `get_codelab_reference`, `list_codelabs`, `get_codelab`, `get_codelab_bundle`, `create_codelab`, `update_codelab`, `copy_codelab`, `delete_codelab`, `replace_codelab_steps`, `list_materials`, `upload_material_asset`, `add_material`, `delete_material`, `list_quizzes`, `update_quizzes`, `list_feedback`, `list_submissions`, `list_quiz_submissions`, `get_chat_history`, `list_attendees`, `list_help_requests`, `resolve_help_request`, `get_workspace_info`, `list_workspace_branches`, `list_workspace_folders`, `list_workspace_branch_files`, `read_workspace_branch_file`, `list_workspace_folder_files`, `read_workspace_folder_file`
 - resources: `oc://connection`, `oc://session`, `oc://reference`, `oc://codelabs`, `oc://codelabs/{id}`, `oc://codelabs/{id}/bundle`, `oc://codelabs/{id}/guide`, `oc://codelabs/{id}/steps`, `oc://codelabs/{id}/materials`, `oc://codelabs/{id}/quizzes`, `oc://codelabs/{id}/quiz-submissions`, `oc://codelabs/{id}/feedback`, `oc://codelabs/{id}/submissions`, `oc://codelabs/{id}/chat`, `oc://codelabs/{id}/workspace`, `oc://codelabs/{id}/workspace/branches`, `oc://codelabs/{id}/workspace/folders`, `oc://codelabs/{id}/attendees`, `oc://codelabs/{id}/help`
+- prompts: `facilitator-brief`, `authoring-change-plan`, `help-queue-triage`, `learner-ops-review`
 
 Operational notes:
 
 - Run `oc auth login` before launching the MCP host if you need admin tools.
 - Admin write tools fail when the active session is not an admin session.
+- For repeatable workflows, start from one of the exposed prompts and then drill down into lower-level tools only as needed.
 - See the dedicated [MCP Server guide](mcp.md) for host configuration examples.
 
 ## Public exposure

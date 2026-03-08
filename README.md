@@ -170,7 +170,7 @@ oc codelab list
 oc mcp serve
 ```
 
-`oc mcp serve` reuses the active `oc` profile and session to expose Open Codelabs as a stdio MCP server. That lets Claude Desktop, Codex, Cursor, and other MCP hosts read codelabs, guides, and steps directly, and perform a small set of admin actions when the session is authenticated as admin.
+`oc mcp serve` reuses the active `oc` profile and session to expose Open Codelabs as a stdio MCP server. That lets Claude Desktop, Codex, Cursor, and other MCP hosts read codelabs, guides, and steps directly, start from reusable facilitator and authoring prompts, and perform a small set of admin actions when the session is authenticated as admin.
 
 Use `oc --help` for the raw command list, read the grouped [CLI reference](docs/user-guide/cli.md) for command details, and see the dedicated [MCP Server guide](docs/user-guide/mcp.md) for host configuration examples.
 
