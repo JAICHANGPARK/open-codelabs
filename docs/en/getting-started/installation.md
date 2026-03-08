@@ -42,7 +42,7 @@ oc init
 ```bash
 git clone https://github.com/JAICHANGPARK/open-codelabs.git
 cd open-codelabs
-cargo install --path backend --bin oc --bin local_bench --bin ops_bench --bin ws_bench
+cargo install --path backend --bin oc
 ```
 
 Verify the install:
@@ -55,7 +55,7 @@ oc --help
 
 ```bash
 cd backend
-cargo build --release --bin oc --bin local_bench --bin ops_bench --bin ws_bench
+cargo build --release --bin oc
 ./target/release/oc --help
 ```
 
@@ -72,7 +72,6 @@ oc run --open
 - Write `~/.open-codelabs/runtime/local-stack/compose.yml`.
 - Start the published frontend/backend images with SQLite by default.
 - Start a guided setup flow with arrow-key menus and Space-based multi-selects when you run it without flags in an interactive terminal.
-- Install or package the companion benchmark binaries so `oc bench local|ops|ws` works without requiring a source checkout.
 
 Common options:
 
@@ -140,7 +139,7 @@ cargo uninstall backend
 
 ### 3. Remove a manually copied binary
 
-- If you built it locally with `cargo build --release --bin oc --bin local_bench --bin ops_bench --bin ws_bench`, delete `backend/target/release/oc`, `backend/target/release/local_bench`, `backend/target/release/ops_bench`, and `backend/target/release/ws_bench` on macOS/Linux, or the matching `.exe` files on Windows.
+- If you built it locally with `cargo build --release --bin oc`, delete `backend/target/release/oc` on macOS/Linux or `backend\\target\\release\\oc.exe` on Windows.
 - If you installed a downloaded release binary, remove the `oc` or `oc.exe` binary you copied into your `PATH`.
 
 ### 4. Clean up config, session, and runtime files

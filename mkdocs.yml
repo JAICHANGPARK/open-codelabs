@@ -94,6 +94,7 @@ plugins:
           Contributing: Contributing
           Contribution Guide: Contribution Guide
           Development Workflow: Development Workflow
+          Benchmarking: Benchmarking
           Code Style: Code Style
           FAQ: FAQ
           License: License
@@ -166,6 +167,7 @@ nav:
   - 기여하기:
       - 기여 가이드: contributing/guide.md
       - 개발 워크플로우: contributing/workflow.md
+      - 벤치마크: contributing/benchmarks.md
       - 코드 스타일: contributing/code-style.md
   - FAQ: faq.md
   - 라이선스: license.md

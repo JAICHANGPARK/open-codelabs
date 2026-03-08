@@ -49,7 +49,7 @@ docker compose up --build
 CLI 중심으로 시작하려면 `oc`를 설치한 뒤 로컬 스택 실행 또는 기존 서버 연결을 질문형으로 진행할 수 있습니다.
 
 ```bash
-cargo install --path backend --bin oc --bin local_bench --bin ops_bench --bin ws_bench
+cargo install --path backend --bin oc
 oc init
 ```
 
@@ -72,13 +72,11 @@ podman-compose up --build
 질문형 온보딩으로 시작하려면:
 
 ```bash
-cargo install --path backend --bin oc --bin local_bench --bin ops_bench --bin ws_bench
+cargo install --path backend --bin oc
 oc init
 ```
 
 `oc init`은 화살표 이동, 스페이스 멀티 선택, 숨김 비밀번호 입력을 포함한 인터랙티브 터미널 흐름으로 로컬 스택 실행, 기존 서버 연결, profile 저장, 브라우저 인증까지 이어집니다.
-
-사용자 진입점은 여전히 `oc` 하나입니다. `local_bench`, `ops_bench`, `ws_bench`는 `oc bench local|ops|ws`가 소스 체크아웃 없이도 동작하도록 같이 설치되는 companion binary입니다.
 
 로컬 스택만 바로 띄우려면:
 

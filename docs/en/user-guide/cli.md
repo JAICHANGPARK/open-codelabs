@@ -261,7 +261,7 @@ What it does:
 
 - Alias for `oc auth status`.
 
-## Public exposure and benchmarks
+## Public exposure
 
 ### `oc public up`
 
@@ -316,28 +316,7 @@ Options:
 
 - None
 
-### `oc bench`
-
-```bash
-oc bench <local|ops|ws> [-- <bench options...>]
-```
-
-What it does:
-
-- Dispatches to the existing benchmark runners through the `oc` entrypoint.
-- It first looks for `local_bench`, `ops_bench`, and `ws_bench` next to the installed `oc` binary.
-- If those binaries are missing but you are inside a source checkout, it falls back to `cargo run --release --bin ...`.
-
-| Positional target | Meaning |
-| --- | --- |
-| `local` | Runs the attendee/help/submission-heavy API benchmark. |
-| `ops` | Runs the upload/backup/workspace operations benchmark. |
-| `ws` | Runs the WebSocket benchmark. |
-
-Pass-through rules:
-
-- Everything after `--` is forwarded to the selected benchmark binary unchanged.
-- Example: `oc bench local -- --help`, `oc bench ws -- --users 50,100,200 --duration-secs 60`
+`oc bench` is a maintainer-oriented advanced command, not part of the normal end-user flow. See the [Benchmarking Guide](../contributing/benchmarks.md) for the full workflow.
 
 ## Local runtime
 

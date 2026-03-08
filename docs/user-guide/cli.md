@@ -262,7 +262,7 @@ oc login [--admin-id <id>] [--admin-pw <pw>] [--interactive]
 
 - `oc auth status`의 별칭입니다.
 
-## 공개 노출과 벤치마크
+## 공개 노출
 
 ### `oc public up`
 
@@ -317,27 +317,7 @@ oc public down
 
 - 없음
 
-### `oc bench`
-
-```bash
-oc bench <local|ops|ws> [-- <bench options...>]
-```
-
-무엇을 하는가:
-
-- 기존 benchmark runner를 `oc` 아래에서 실행합니다.
-- 먼저 `oc`와 같은 디렉터리에 함께 설치된 `local_bench`, `ops_bench`, `ws_bench`를 찾고, 없으면 소스 체크아웃에서 `cargo run --release --bin ...`으로 fallback 합니다.
-
-| 위치 인자 | 의미 |
-| --- | --- |
-| `local` | attendee/help/submission 중심의 API benchmark를 실행합니다. |
-| `ops` | upload/backup/workspace 중심의 운영 benchmark를 실행합니다. |
-| `ws` | WebSocket 부하 benchmark를 실행합니다. |
-
-옵션 전달 규칙:
-
-- `--` 뒤의 인자는 해당 benchmark binary로 그대로 전달됩니다.
-- 예: `oc bench local -- --help`, `oc bench ops -- --profile paper --output bench-results/ops.json`
+`oc bench`는 일반 사용자 명령이 아니라 메인테이너용 고급 기능입니다. 자세한 사용법은 [벤치마크 가이드](../contributing/benchmarks.md)를 참고하세요.
 
 ## 로컬 런타임
 
