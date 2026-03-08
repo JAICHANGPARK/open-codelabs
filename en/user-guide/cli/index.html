@@ -1,0 +1,5071 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Google Codelab 스타일의 핸즈온 세션 플랫폼">
+      
+      
+        <meta name="author" content="JAICHANGPARK, 박제창">
+      
+      
+        <link rel="canonical" href="https://JAICHANGPARK.github.io/open-codelabs/en/user-guide/cli/">
+      
+      
+        <link rel="prev" href="../mcp/">
+      
+      
+        <link rel="next" href="../../self-hosting/docker/">
+      
+      
+        
+          <link rel="alternate" href="../../../user-guide/cli/" hreflang="ko">
+        
+          <link rel="alternate" href="./" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.4">
+    
+    
+      
+        <title>CLI 레퍼런스 - Hands-on System (Open Codelabs)</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cli-reference" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../" title="Hands-on System (Open Codelabs)" class="md-header__button md-logo" aria-label="Hands-on System (Open Codelabs)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Hands-on System (Open Codelabs)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CLI 레퍼런스
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="다크 모드로 전환"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="다크 모드로 전환" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="라이트 모드로 전환"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="라이트 모드로 전환" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="Select language">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="../../../user-guide/cli/" hreflang="ko" class="md-select__link">
+              한국어
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/JAICHANGPARK/open-codelabs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    JAICHANGPARK/open-codelabs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../" class="md-tabs__link">
+        
+  
+  
+    
+  
+  홈
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/quickstart/" class="md-tabs__link">
+          
+  
+  
+  시작하기
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../facilitator/" class="md-tabs__link">
+          
+  
+  
+  사용 가이드
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../self-hosting/docker/" class="md-tabs__link">
+          
+  
+  
+  Self-Hosting
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../specification/overview/" class="md-tabs__link">
+          
+  
+  
+  프로젝트 명세
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/system-architecture/" class="md-tabs__link">
+          
+  
+  
+  아키텍처
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../code-guide/backend-examples/" class="md-tabs__link">
+          
+  
+  
+  코드 가이드
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../contributing/guide/" class="md-tabs__link">
+          
+  
+  
+  기여하기
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  라이선스
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../" title="Hands-on System (Open Codelabs)" class="md-nav__button md-logo" aria-label="Hands-on System (Open Codelabs)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Hands-on System (Open Codelabs)
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/JAICHANGPARK/open-codelabs" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    JAICHANGPARK/open-codelabs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    홈
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    시작하기
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    시작하기
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    빠른 시작
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    설치 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/first-codelab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    첫 번째 Codelab 만들기
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    사용 가이드
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    사용 가이드
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../facilitator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    퍼실리테이터 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../attendee/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    참석자 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP 서버
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI 레퍼런스
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI 레퍼런스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#core-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core concepts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#value-precedence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Value precedence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Value precedence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#base-url-precedence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base URL precedence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-file-precedence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session file precedence
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables-and-storage-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables and storage paths
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interactive-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interactive behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#permission-scopes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permission scopes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-starting-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended starting point
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connection-and-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connection and authentication
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Connection and authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc init
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-add" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect add
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect list
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-logout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth logout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy aliases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Legacy aliases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-logout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc logout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc session
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCP integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-mcp-serve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc mcp serve
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-exposure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public exposure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Public exposure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public down
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local runtime
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Local runtime">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-ps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc ps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-restart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc restart
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc down
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#administrative-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Administrative commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Administrative commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-admin-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc admin settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-admin-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc admin updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#codelab-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codelab management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Codelab management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read-only-codelab-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read-only codelab commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-codelab-create" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc codelab create
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-codelab-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc codelab update
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-codelab-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other codelab commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backups-and-audit-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backups and audit logs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workspaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workspaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Workspaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creation-and-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creation and metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branch-snapshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branch snapshots
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#folder-snapshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Folder snapshots
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attendees-and-live-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attendees and live operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Attendees and live operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#attendee-session-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attendee session commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#help-queue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Help queue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feedback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feedback
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#materials-quizzes-and-submissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Materials, quizzes, and submissions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Materials, quizzes, and submissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#materials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Materials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quizzes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quizzes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#submissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Submissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chat-uploads-and-inline-comments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chat, uploads, and inline comments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#json-input-file-cheat-sheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON input file cheat sheet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operational-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operational tips
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-Hosting
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Self-Hosting
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker로 배포하기
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/gcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GCP (Google Cloud)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/aws/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS (Amazon Web Services)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/firebase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    파이어베이스 (Firebase)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/supabase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Supabase
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/local-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    로컬 개발 환경
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/public-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    공개 배포 (ngrok/bore/cloudflare)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    환경 변수 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    보안 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    프로젝트 명세
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    프로젝트 명세
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    개요
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    기능 명세
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/cli-proposal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI 제안 및 매트릭스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/database-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데이터베이스 스키마
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 레퍼런스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    아키텍처
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    아키텍처
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/system-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    시스템 아키텍처
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    백엔드 구조
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/frontend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    프론트엔드 구조
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/websocket/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실시간 통신 (WebSocket)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    코드 가이드
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    코드 가이드
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/backend-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    백엔드 코드 예제
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/frontend-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    프론트엔드 코드 예제
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/data-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데이터 모델
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/api-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 사용 예제
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    기여하기
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    기여하기
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    기여 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    개발 워크플로우
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    벤치마크
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/code-style/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    코드 스타일
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    라이선스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#core-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core concepts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#global-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global options
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#value-precedence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Value precedence
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Value precedence">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#base-url-precedence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base URL precedence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-file-precedence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session file precedence
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables-and-storage-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables and storage paths
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#interactive-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Interactive behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#permission-scopes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Permission scopes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-starting-point" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended starting point
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connection-and-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connection and authentication
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Connection and authentication">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc init
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-add" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect add
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect list
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-logout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth logout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#legacy-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Legacy aliases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Legacy aliases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-logout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc logout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc session
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP integration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCP integration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-mcp-serve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc mcp serve
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-exposure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public exposure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Public exposure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public down
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local runtime
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Local runtime">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-ps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc ps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-restart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc restart
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc down
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#administrative-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Administrative commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Administrative commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-admin-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc admin settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-admin-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc admin updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#codelab-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codelab management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Codelab management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#read-only-codelab-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Read-only codelab commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-codelab-create" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc codelab create
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-codelab-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc codelab update
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#other-codelab-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other codelab commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#backups-and-audit-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Backups and audit logs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workspaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workspaces
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Workspaces">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#creation-and-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creation and metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branch-snapshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branch snapshots
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#folder-snapshots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Folder snapshots
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#attendees-and-live-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attendees and live operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Attendees and live operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#attendee-session-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Attendee session commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#help-queue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Help queue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feedback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feedback
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#materials-quizzes-and-submissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Materials, quizzes, and submissions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Materials, quizzes, and submissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#materials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Materials
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quizzes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quizzes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#submissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Submissions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chat-uploads-and-inline-comments" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chat, uploads, and inline comments
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#json-input-file-cheat-sheet" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON input file cheat sheet
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#operational-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Operational tips
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="cli-reference">CLI Reference<a class="headerlink" href="#cli-reference" title="Permanent link">&para;</a></h1>
+<p>This page explains the current <code>oc</code> CLI in detail: what each command does, what every option means, which role can run it, and what kind of input files the JSON-based commands expect.</p>
+<p>If you only need the raw syntax, use <code>oc --help</code> or <code>oc &lt;group&gt; --help</code>. If you need to understand which flags to use and why, use this document as the primary reference.</p>
+<h2 id="core-concepts">Core concepts<a class="headerlink" href="#core-concepts" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Concept</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Profile</td>
+<td>A saved server target created with <code>oc connect add</code>. It stores a name, base URL, and runtime preference in <code>~/.open-codelabs/config.json</code>.</td>
+</tr>
+<tr>
+<td>Session</td>
+<td>The authentication state issued by <code>oc auth login</code> or <code>oc attendee join</code>. It stores cookies, CSRF state, subject, role, and expiry in a session file.</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td>The server type the CLI is talking to. <code>backend</code> means the full Rust API. <code>firebase</code> and <code>supabase</code> imply limited CLI capabilities.</td>
+</tr>
+<tr>
+<td>Local stack</td>
+<td>The local frontend/backend container stack started by <code>oc run</code> through Docker or Podman.</td>
+</tr>
+<tr>
+<td>JSON output</td>
+<td>Add <code>--json</code> to get machine-friendly JSON instead of human-oriented text output.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="global-options">Global options<a class="headerlink" href="#global-options" title="Permanent link">&para;</a></h2>
+<p>Every command supports the following global flags.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Meaning</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--base-url &lt;url&gt;</code></td>
+<td>Overrides the backend base URL for the current invocation only.</td>
+<td>Use it when you want to hit an ad-hoc server without saving a profile first.</td>
+</tr>
+<tr>
+<td><code>--session-file &lt;path&gt;</code></td>
+<td>Overrides the session file path for the current invocation.</td>
+<td>Useful when you want separate admin and attendee sessions.</td>
+</tr>
+<tr>
+<td><code>--config-file &lt;path&gt;</code></td>
+<td>Overrides the CLI config location. The default is <code>~/.open-codelabs/config.json</code>.</td>
+<td>Useful when you want isolated profile sets per project or environment.</td>
+</tr>
+<tr>
+<td><code>--profile &lt;name&gt;</code></td>
+<td>Forces the CLI to use one saved profile.</td>
+<td>Useful when the current profile is not the one you want for this command.</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>Prints JSON instead of text/table output.</td>
+<td>Use it in automation, CI, or scripts.</td>
+</tr>
+<tr>
+<td><code>-h</code>, <code>--help</code></td>
+<td>Prints help.</td>
+<td>Use it to inspect the scoped usage for one command or command group.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="value-precedence">Value precedence<a class="headerlink" href="#value-precedence" title="Permanent link">&para;</a></h2>
+<p>The CLI resolves base URLs and session files in a fixed order.</p>
+<h3 id="base-url-precedence">Base URL precedence<a class="headerlink" href="#base-url-precedence" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>--base-url</code></li>
+<li>The selected profile, including <code>--profile</code></li>
+<li>The stored session's <code>base_url</code></li>
+<li><code>OPEN_CODELABS_BASE_URL</code></li>
+<li><code>http://localhost:8080</code></li>
+</ol>
+<h3 id="session-file-precedence">Session file precedence<a class="headerlink" href="#session-file-precedence" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>--session-file</code></li>
+<li>The profile-specific session file</li>
+<li>The default session file <code>~/.open-codelabs/session.json</code></li>
+</ol>
+<h2 id="environment-variables-and-storage-paths">Environment variables and storage paths<a class="headerlink" href="#environment-variables-and-storage-paths" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OPEN_CODELABS_BASE_URL</code></td>
+<td>unset</td>
+<td>Default server URL when no profile is active.</td>
+</tr>
+<tr>
+<td><code>OPEN_CODELABS_PROFILE</code></td>
+<td>unset</td>
+<td>Default profile name to use.</td>
+</tr>
+<tr>
+<td><code>OPEN_CODELABS_CONFIG_FILE</code></td>
+<td><code>~/.open-codelabs/config.json</code></td>
+<td>Overrides the profile config location.</td>
+</tr>
+<tr>
+<td><code>OPEN_CODELABS_SESSION_FILE</code></td>
+<td><code>~/.open-codelabs/session.json</code></td>
+<td>Overrides the non-profile session location.</td>
+</tr>
+<tr>
+<td><code>OPEN_CODELABS_ADMIN_ID</code></td>
+<td>unset</td>
+<td>Used by legacy <code>oc login</code> and as a default in <code>oc run</code>.</td>
+</tr>
+<tr>
+<td><code>OPEN_CODELABS_ADMIN_PW</code></td>
+<td>unset</td>
+<td>Used by legacy <code>oc login</code>, <code>oc run</code>, and <code>oc admin settings</code> encryption.</td>
+</tr>
+<tr>
+<td><code>~/.open-codelabs/config.json</code></td>
+<td>CLI default</td>
+<td>Stores connection profiles.</td>
+</tr>
+<tr>
+<td><code>~/.open-codelabs/profiles/&lt;name&gt;/session.json</code></td>
+<td>when using profiles</td>
+<td>Stores the session for one saved profile.</td>
+</tr>
+<tr>
+<td><code>~/.open-codelabs/runtime/local-stack/</code></td>
+<td>when using <code>oc run</code></td>
+<td>Stores the generated compose file and local runtime state.</td>
+</tr>
+<tr>
+<td><code>~/.open-codelabs/runtime/public/</code></td>
+<td>when using <code>oc public up</code></td>
+<td>Stores the saved public tunnel state and log file location.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="interactive-behavior">Interactive behavior<a class="headerlink" href="#interactive-behavior" title="Permanent link">&para;</a></h2>
+<p>The CLI now supports <code>dialoguer</code>-based terminal interaction. Use the arrow keys to move between options, use Space to toggle items in multi-select screens, press Enter to continue, type directly into text inputs, and rely on hidden prompts for passwords.</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Interactive behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc init</code></td>
+<td>Always requires an interactive terminal. It guides you through the startup mode, the <code>oc run</code> wizard, profile saving, and browser auth handoff.</td>
+</tr>
+<tr>
+<td><code>oc run</code></td>
+<td>When run without flags in a TTY, it opens the local stack wizard. After choosing the engine, you toggle startup options and the settings you want to review. <code>--interactive</code> forces the wizard even if some flags are already set.</td>
+</tr>
+<tr>
+<td><code>oc connect add</code></td>
+<td>With <code>--interactive</code>, or when required values are missing in a TTY, it prompts for the URL, profile name, runtime, and activation behavior.</td>
+</tr>
+<tr>
+<td><code>oc connect use</code></td>
+<td>In a TTY, if you omit <code>--name</code>, the CLI shows the saved profiles and lets you pick one interactively.</td>
+</tr>
+<tr>
+<td><code>oc auth login</code></td>
+<td>In a TTY, running it without flags opens a choice between automatically opening the browser and only printing the login URL.</td>
+</tr>
+<tr>
+<td><code>oc login</code></td>
+<td>With <code>--interactive</code>, or when required values are missing in a TTY, it prompts for the admin ID and password. The password input is hidden.</td>
+</tr>
+<tr>
+<td>Most other commands</td>
+<td>Non-interactive. Required values must be provided as flags or input files.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="permission-scopes">Permission scopes<a class="headerlink" href="#permission-scopes" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>How the session is created</th>
+<th>Common commands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Local runtime</td>
+<td>No remote authentication required</td>
+<td><code>oc run</code>, <code>oc ps</code>, <code>oc logs</code>, <code>oc restart</code>, <code>oc down</code></td>
+</tr>
+<tr>
+<td>Public read</td>
+<td><code>oc connect</code> only</td>
+<td><code>oc codelab list</code>, <code>oc codelab reference</code>, <code>oc codelab get</code></td>
+</tr>
+<tr>
+<td>Admin</td>
+<td><code>oc auth login</code></td>
+<td><code>admin</code>, <code>backup</code>, <code>audit</code>, <code>workspace</code>, <code>codelab create/update/delete/copy/export/import/push-steps</code></td>
+</tr>
+<tr>
+<td>Attendee</td>
+<td><code>oc attendee join</code></td>
+<td><code>help request</code>, <code>feedback submit</code>, <code>quiz submit</code>, <code>submission file/link/delete</code>, <code>chat history</code></td>
+</tr>
+</tbody>
+</table>
+<p>Final permission checks are still enforced by the connected runtime and backend.</p>
+<h2 id="recommended-starting-point">Recommended starting point<a class="headerlink" href="#recommended-starting-point" title="Permanent link">&para;</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>oc<span class="w"> </span>init
+</span></code></pre></div>
+<p><code>oc init</code> is the fastest way to get going. It helps you choose between:</p>
+<ol>
+<li>Starting a local stack</li>
+<li>Connecting to an existing server</li>
+</ol>
+<p>From there it can continue into profile creation, <code>oc connect status</code>, and <code>oc auth login</code>.</p>
+<h2 id="connection-and-authentication">Connection and authentication<a class="headerlink" href="#connection-and-authentication" title="Permanent link">&para;</a></h2>
+<h3 id="oc-init"><code>oc init</code><a class="headerlink" href="#oc-init" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>oc<span class="w"> </span>init
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Lets you choose between local stack startup and existing-server connection.</li>
+<li>Uses the <code>oc run</code> wizard for local startup.</li>
+<li>Uses the <code>oc connect add</code> wizard for an existing server.</li>
+<li>Offers to save a profile and launch browser-based admin auth at the end.</li>
+</ul>
+<p>Options:</p>
+<ul>
+<li>None</li>
+</ul>
+<h3 id="oc-connect-add"><code>oc connect add</code><a class="headerlink" href="#oc-connect-add" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>oc<span class="w"> </span>connect<span class="w"> </span>add<span class="w"> </span>--name<span class="w"> </span>&lt;name&gt;<span class="w"> </span>--url<span class="w"> </span>&lt;url&gt;<span class="w"> </span><span class="o">[</span>--runtime<span class="w"> </span>&lt;auto<span class="p">|</span>backend<span class="p">|</span>firebase<span class="p">|</span>supabase&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--activate<span class="o">]</span><span class="w"> </span><span class="o">[</span>--interactive<span class="o">]</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Saves a connection profile.</li>
+<li><code>--activate</code> makes it the current profile immediately.</li>
+<li>If no current profile exists yet, the first saved profile also becomes current automatically.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--name &lt;name&gt;</code></td>
+<td>usually</td>
+<td>The profile name written into the config file. In interactive mode the CLI suggests one.</td>
+</tr>
+<tr>
+<td><code>--url &lt;url&gt;</code></td>
+<td>usually</td>
+<td>The backend base URL, for example <code>http://localhost:8080</code>.</td>
+</tr>
+<tr>
+<td><code>--runtime &lt;auto|backend|firebase|supabase&gt;</code></td>
+<td>no</td>
+<td>Hints which runtime to expect when probing the server.</td>
+</tr>
+<tr>
+<td><code>--activate</code></td>
+<td>no</td>
+<td>Makes the saved profile the current profile.</td>
+</tr>
+<tr>
+<td><code>--interactive</code></td>
+<td>no</td>
+<td>Prompts for the profile values instead of requiring all flags up front.</td>
+</tr>
+</tbody>
+</table>
+<p>Runtime value meanings:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto</code></td>
+<td>Probe the server first and fall back to a static runtime guess if needed.</td>
+</tr>
+<tr>
+<td><code>backend</code></td>
+<td>Expect the full Rust backend and admin API surface.</td>
+</tr>
+<tr>
+<td><code>firebase</code></td>
+<td>Expect frontend-managed auth and limited CLI capabilities.</td>
+</tr>
+<tr>
+<td><code>supabase</code></td>
+<td>Expect frontend-managed auth and limited CLI capabilities.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-connect-use"><code>oc connect use</code><a class="headerlink" href="#oc-connect-use" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>oc<span class="w"> </span>connect<span class="w"> </span>use<span class="w"> </span><span class="o">[</span>--name<span class="w"> </span>&lt;name&gt;<span class="o">]</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Switches the current profile to one of the saved profiles.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--name &lt;name&gt;</code></td>
+<td>no</td>
+<td>The saved profile name to activate. In an interactive terminal, omitting it opens a profile picker.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-connect-list"><code>oc connect list</code><a class="headerlink" href="#oc-connect-list" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>oc<span class="w"> </span>connect<span class="w"> </span>list
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Prints every saved profile and marks the current one.</li>
+</ul>
+<p>Options:</p>
+<ul>
+<li>None</li>
+</ul>
+<h3 id="oc-connect-status"><code>oc connect status</code><a class="headerlink" href="#oc-connect-status" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>oc<span class="w"> </span>connect<span class="w"> </span>status
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Shows the resolved base URL, runtime, capabilities, auth methods, and probe status for the current server target.</li>
+<li>Uses <code>/api/cli/runtime</code> when the runtime supports the backend probe endpoint.</li>
+</ul>
+<p>Options:</p>
+<ul>
+<li>None</li>
+</ul>
+<h3 id="oc-auth-login"><code>oc auth login</code><a class="headerlink" href="#oc-auth-login" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>oc<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span><span class="o">[</span>--no-open<span class="o">]</span><span class="w"> </span><span class="o">[</span>--interactive<span class="o">]</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Starts browser-based CLI authentication.</li>
+<li>Requires a runtime that exposes browser auth support.</li>
+<li>Saves the resulting session to the resolved session file.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--no-open</code></td>
+<td>no</td>
+<td>Do not automatically open the browser. Print the verification URL instead. Useful for SSH or headless terminals.</td>
+</tr>
+<tr>
+<td><code>--interactive</code></td>
+<td>no</td>
+<td>Forces the browser-launch picker even when you already know the defaults. In a TTY with no flags, the picker is shown automatically.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-auth-logout"><code>oc auth logout</code><a class="headerlink" href="#oc-auth-logout" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>oc<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Calls the backend logout endpoint and removes the local session file.</li>
+</ul>
+<p>Options:</p>
+<ul>
+<li>None</li>
+</ul>
+<h3 id="oc-auth-status"><code>oc auth status</code><a class="headerlink" href="#oc-auth-status" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>oc<span class="w"> </span>auth<span class="w"> </span>status
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Shows whether a session file exists, whether the backend still accepts it, and what the current subject, role, and expiry are.</li>
+</ul>
+<p>Options:</p>
+<ul>
+<li>None</li>
+</ul>
+<h3 id="legacy-aliases">Legacy aliases<a class="headerlink" href="#legacy-aliases" title="Permanent link">&para;</a></h3>
+<h4 id="oc-login"><code>oc login</code><a class="headerlink" href="#oc-login" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>oc<span class="w"> </span>login<span class="w"> </span><span class="o">[</span>--admin-id<span class="w"> </span>&lt;id&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--admin-pw<span class="w"> </span>&lt;pw&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--interactive<span class="o">]</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Uses the legacy password-based <code>/api/login</code> flow.</li>
+<li>New scripts should prefer <code>oc auth login</code>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--admin-id &lt;id&gt;</code></td>
+<td>no</td>
+<td>Admin ID. Can be omitted if <code>OPEN_CODELABS_ADMIN_ID</code> is set. In interactive mode it becomes the suggested default.</td>
+</tr>
+<tr>
+<td><code>--admin-pw &lt;pw&gt;</code></td>
+<td>no</td>
+<td>Admin password. Can be omitted if <code>OPEN_CODELABS_ADMIN_PW</code> is set. In interactive mode it is collected through a hidden prompt.</td>
+</tr>
+<tr>
+<td><code>--interactive</code></td>
+<td>no</td>
+<td>Forces a prompt-driven legacy login flow.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="oc-logout"><code>oc logout</code><a class="headerlink" href="#oc-logout" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Alias for <code>oc auth logout</code>.</li>
+</ul>
+<h4 id="oc-session"><code>oc session</code><a class="headerlink" href="#oc-session" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Alias for <code>oc auth status</code>.</li>
+</ul>
+<h2 id="mcp-integration">MCP integration<a class="headerlink" href="#mcp-integration" title="Permanent link">&para;</a></h2>
+<h3 id="oc-mcp-serve"><code>oc mcp serve</code><a class="headerlink" href="#oc-mcp-serve" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>oc<span class="w"> </span>mcp<span class="w"> </span>serve
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Starts a stdio MCP server that reuses the current <code>oc</code> profile and session.</li>
+<li>Lets an MCP host read Open Codelabs connection status, the reference payload, codelabs, materials, quizzes, feedback, submissions, and workspace metadata.</li>
+<li>Also exposes reusable prompt templates for common facilitator and authoring workflows.</li>
+<li>Exposes admin write tools such as codelab copy/delete, material and quiz updates, and help resolution when the session is authenticated as admin.</li>
+</ul>
+<p>Command-specific options:</p>
+<ul>
+<li>None</li>
+</ul>
+<p>Use the normal global options when you need to override the target:</p>
+<ul>
+<li><code>oc --profile prod mcp serve</code></li>
+<li><code>oc --base-url https://labs.example.com mcp serve</code></li>
+<li><code>oc --session-file /tmp/oc-mcp-session.json mcp serve</code></li>
+</ul>
+<p>Current high-level capabilities:</p>
+<ul>
+<li>tools: <code>get_connection</code>, <code>get_codelab_reference</code>, <code>list_codelabs</code>, <code>get_codelab</code>, <code>get_codelab_bundle</code>, <code>create_codelab</code>, <code>update_codelab</code>, <code>copy_codelab</code>, <code>delete_codelab</code>, <code>replace_codelab_steps</code>, <code>list_materials</code>, <code>upload_material_asset</code>, <code>add_material</code>, <code>delete_material</code>, <code>list_quizzes</code>, <code>update_quizzes</code>, <code>list_feedback</code>, <code>list_submissions</code>, <code>list_quiz_submissions</code>, <code>get_chat_history</code>, <code>list_attendees</code>, <code>list_help_requests</code>, <code>resolve_help_request</code>, <code>get_workspace_info</code>, <code>list_workspace_branches</code>, <code>list_workspace_folders</code>, <code>list_workspace_branch_files</code>, <code>read_workspace_branch_file</code>, <code>list_workspace_folder_files</code>, <code>read_workspace_folder_file</code></li>
+<li>resources: <code>oc://connection</code>, <code>oc://session</code>, <code>oc://reference</code>, <code>oc://codelabs</code>, <code>oc://codelabs/{id}</code>, <code>oc://codelabs/{id}/bundle</code>, <code>oc://codelabs/{id}/guide</code>, <code>oc://codelabs/{id}/steps</code>, <code>oc://codelabs/{id}/materials</code>, <code>oc://codelabs/{id}/quizzes</code>, <code>oc://codelabs/{id}/quiz-submissions</code>, <code>oc://codelabs/{id}/feedback</code>, <code>oc://codelabs/{id}/submissions</code>, <code>oc://codelabs/{id}/chat</code>, <code>oc://codelabs/{id}/workspace</code>, <code>oc://codelabs/{id}/workspace/branches</code>, <code>oc://codelabs/{id}/workspace/folders</code>, <code>oc://codelabs/{id}/attendees</code>, <code>oc://codelabs/{id}/help</code></li>
+<li>prompts: <code>facilitator-brief</code>, <code>authoring-change-plan</code>, <code>help-queue-triage</code>, <code>learner-ops-review</code></li>
+</ul>
+<p>Operational notes:</p>
+<ul>
+<li>Run <code>oc auth login</code> before launching the MCP host if you need admin tools.</li>
+<li>Admin write tools fail when the active session is not an admin session.</li>
+<li>For repeatable workflows, start from one of the exposed prompts and then drill down into lower-level tools only as needed.</li>
+<li>See the dedicated <a href="../mcp/">MCP Server guide</a> for host configuration examples.</li>
+</ul>
+<h2 id="public-exposure">Public exposure<a class="headerlink" href="#public-exposure" title="Permanent link">&para;</a></h2>
+<h3 id="oc-public-up"><code>oc public up</code><a class="headerlink" href="#oc-public-up" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>oc<span class="w"> </span>public<span class="w"> </span>up<span class="w"> </span><span class="o">[</span>--tunnel<span class="w"> </span>&lt;ngrok<span class="p">|</span>bore<span class="p">|</span>cloudflare&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--ngrok<span class="p">|</span>--bore<span class="p">|</span>--cloudflare<span class="o">]</span><span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--log-file<span class="w"> </span>&lt;path&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--no-open<span class="o">]</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Starts one tunnel process that exposes the local frontend to the public internet.</li>
+<li>Writes the tunnel PID and resolved URLs into <code>~/.open-codelabs/runtime/public/state.json</code>.</li>
+<li>Defaults to <code>ngrok</code>. If <code>--port</code> is omitted, the CLI tries to reuse the saved local-stack frontend port and falls back to <code>5173</code>.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--tunnel &lt;ngrok|bore|cloudflare&gt;</code></td>
+<td>no</td>
+<td>Explicitly selects the tunnel provider.</td>
+</tr>
+<tr>
+<td><code>--ngrok</code>, <code>--bore</code>, <code>--cloudflare</code></td>
+<td>no</td>
+<td>Shortcuts for <code>--tunnel</code>. The last one wins.</td>
+</tr>
+<tr>
+<td><code>--port &lt;port&gt;</code></td>
+<td>no</td>
+<td>Overrides which local port should be exposed.</td>
+</tr>
+<tr>
+<td><code>--log-file &lt;path&gt;</code></td>
+<td>no</td>
+<td>Overrides where tunnel stdout/stderr should be written.</td>
+</tr>
+<tr>
+<td><code>--no-open</code></td>
+<td>no</td>
+<td>Prints the attendee URL without opening a browser automatically.</td>
+</tr>
+</tbody>
+</table>
+<p>Important notes:</p>
+<ul>
+<li>The CLI manages one public tunnel at a time. If a saved tunnel is still running, stop it with <code>oc public down</code> first.</li>
+<li>The required provider binary (<code>ngrok</code>, <code>bore</code>, or <code>cloudflared</code>) must already be installed locally.</li>
+</ul>
+<h3 id="oc-public-status"><code>oc public status</code><a class="headerlink" href="#oc-public-status" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>oc<span class="w"> </span>public<span class="w"> </span>status
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Shows the saved tunnel type, PID, process-running state, last known public URL, and log file path.</li>
+</ul>
+<p>Options:</p>
+<ul>
+<li>None</li>
+</ul>
+<h3 id="oc-public-down"><code>oc public down</code><a class="headerlink" href="#oc-public-down" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>oc<span class="w"> </span>public<span class="w"> </span>down
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Stops the saved tunnel process if it is still running and removes the saved state. The log file is kept.</li>
+</ul>
+<p>Options:</p>
+<ul>
+<li>None</li>
+</ul>
+<p><code>oc bench</code> is a maintainer-oriented advanced command, not part of the normal end-user flow. See the <a href="../../contributing/benchmarks/">Benchmarking Guide</a> for the full workflow.</p>
+<h2 id="local-runtime">Local runtime<a class="headerlink" href="#local-runtime" title="Permanent link">&para;</a></h2>
+<h3 id="oc-run"><code>oc run</code><a class="headerlink" href="#oc-run" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>oc<span class="w"> </span>run<span class="w"> </span><span class="o">[</span>--engine<span class="w"> </span>&lt;auto<span class="p">|</span>docker<span class="p">|</span>podman&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--postgres<span class="o">]</span><span class="w"> </span><span class="o">[</span>--pull<span class="o">]</span><span class="w"> </span><span class="o">[</span>--open<span class="o">]</span><span class="w"> </span><span class="o">[</span>--interactive<span class="o">]</span><span class="w"> </span><span class="o">[</span>--admin-id<span class="w"> </span>&lt;id&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--admin-pw<span class="w"> </span>&lt;pw&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--data-dir<span class="w"> </span>&lt;path&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--frontend-port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--backend-port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--image-registry<span class="w"> </span>&lt;registry&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--image-namespace<span class="w"> </span>&lt;namespace&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--image-tag<span class="w"> </span>&lt;tag&gt;<span class="o">]</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Starts the published frontend/backend container stack locally.</li>
+<li>Detects Docker or Podman automatically.</li>
+<li>Writes the generated compose file and runtime state into <code>~/.open-codelabs/runtime/local-stack/</code>.</li>
+<li>Uses host bind mounts for database, uploads, workspaces, and PostgreSQL data.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--engine &lt;auto|docker|podman&gt;</code></td>
+<td>no</td>
+<td>Selects the container engine. <code>auto</code> tries to detect the best available engine.</td>
+</tr>
+<tr>
+<td><code>--postgres</code></td>
+<td>no</td>
+<td>Adds the bundled PostgreSQL service and points the backend to it instead of SQLite.</td>
+</tr>
+<tr>
+<td><code>--pull</code></td>
+<td>no</td>
+<td>Pulls the latest images before <code>up -d</code>.</td>
+</tr>
+<tr>
+<td><code>--open</code></td>
+<td>no</td>
+<td>Opens the admin login page in a browser after startup.</td>
+</tr>
+<tr>
+<td><code>--interactive</code></td>
+<td>no</td>
+<td>Forces the setup wizard even when some flags are already present.</td>
+</tr>
+<tr>
+<td><code>--admin-id &lt;id&gt;</code></td>
+<td>no</td>
+<td>Sets the default admin username for the generated local stack.</td>
+</tr>
+<tr>
+<td><code>--admin-pw &lt;pw&gt;</code></td>
+<td>no</td>
+<td>Sets the default admin password for the generated local stack.</td>
+</tr>
+<tr>
+<td><code>--data-dir &lt;path&gt;</code></td>
+<td>no</td>
+<td>Chooses the host directory used for persistent local data.</td>
+</tr>
+<tr>
+<td><code>--frontend-port &lt;port&gt;</code></td>
+<td>no</td>
+<td>Host port for the frontend. Default: <code>5173</code>.</td>
+</tr>
+<tr>
+<td><code>--backend-port &lt;port&gt;</code></td>
+<td>no</td>
+<td>Host port for the backend API. Default: <code>8080</code>.</td>
+</tr>
+<tr>
+<td><code>--image-registry &lt;registry&gt;</code></td>
+<td>no</td>
+<td>Overrides the image registry host, for example <code>ghcr.io</code>.</td>
+</tr>
+<tr>
+<td><code>--image-namespace &lt;namespace&gt;</code></td>
+<td>no</td>
+<td>Overrides the image namespace, for example <code>jaichangpark</code>.</td>
+</tr>
+<tr>
+<td><code>--image-tag &lt;tag&gt;</code></td>
+<td>no</td>
+<td>Overrides the image tag. Default: <code>latest</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Important notes:</p>
+<ul>
+<li>Running <code>oc run</code> without flags in a TTY starts the interactive wizard automatically.</li>
+<li>The CLI does not print the literal admin password after startup; it only prints a password hint.</li>
+</ul>
+<h3 id="oc-ps"><code>oc ps</code><a class="headerlink" href="#oc-ps" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>oc<span class="w"> </span>ps<span class="w"> </span><span class="o">[</span>--service<span class="w"> </span>&lt;name&gt;<span class="o">]</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Shows the current local stack container status.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--service &lt;name&gt;</code></td>
+<td>no</td>
+<td>Limits the output to one service such as <code>frontend</code>, <code>backend</code>, or <code>postgres</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-logs"><code>oc logs</code><a class="headerlink" href="#oc-logs" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>oc<span class="w"> </span>logs<span class="w"> </span><span class="o">[</span>--service<span class="w"> </span>&lt;name&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--tail<span class="w"> </span>&lt;n&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--no-follow<span class="o">]</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Reads local stack logs.</li>
+<li>Follows the log stream by default.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--service &lt;name&gt;</code></td>
+<td>no</td>
+<td>Limits the logs to one service.</td>
+</tr>
+<tr>
+<td><code>--tail &lt;n&gt;</code></td>
+<td>no</td>
+<td>Prints only the last <code>n</code> lines.</td>
+</tr>
+<tr>
+<td><code>--no-follow</code></td>
+<td>no</td>
+<td>Reads the current logs once and exits instead of following the stream.</td>
+</tr>
+</tbody>
+</table>
+<p>Important notes:</p>
+<ul>
+<li><code>--json</code> is only supported with <code>--no-follow</code>.</li>
+<li>In follow mode the process stays attached to the log stream until you stop it.</li>
+</ul>
+<h3 id="oc-restart"><code>oc restart</code><a class="headerlink" href="#oc-restart" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>oc<span class="w"> </span>restart<span class="w"> </span><span class="o">[</span>--service<span class="w"> </span>&lt;name&gt;<span class="o">]</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Restarts the full local stack or one service.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--service &lt;name&gt;</code></td>
+<td>no</td>
+<td>Restarts one service instead of the full stack.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-down"><code>oc down</code><a class="headerlink" href="#oc-down" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>oc<span class="w"> </span>down<span class="w"> </span><span class="o">[</span>--volumes<span class="o">]</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Stops the local stack.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--volumes</code></td>
+<td>no</td>
+<td>Also removes the local data directories created by <code>oc run</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Important notes:</p>
+<ul>
+<li><code>--volumes</code> is a real data cleanup operation because the local stack uses bind mounts.</li>
+<li><code>oc ps</code>, <code>oc logs</code>, <code>oc restart</code>, and <code>oc down</code> depend on the local runtime state created by a previous <code>oc run</code>.</li>
+</ul>
+<h2 id="administrative-commands">Administrative commands<a class="headerlink" href="#administrative-commands" title="Permanent link">&para;</a></h2>
+<h3 id="oc-admin-settings"><code>oc admin settings</code><a class="headerlink" href="#oc-admin-settings" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>oc<span class="w"> </span>admin<span class="w"> </span>settings<span class="w"> </span><span class="o">[</span>--gemini-api-key<span class="w"> </span>&lt;key&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--admin-password<span class="w"> </span>&lt;pw&gt;<span class="o">]</span>
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Updates the administrator's stored Gemini API key.</li>
+<li>The CLI encrypts the raw key with the admin password before sending it to the backend.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Required</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--gemini-api-key &lt;key&gt;</code></td>
+<td>usually</td>
+<td>The raw Gemini API key to store.</td>
+</tr>
+<tr>
+<td><code>--admin-password &lt;pw&gt;</code></td>
+<td>conditional</td>
+<td>The admin password used for encryption. If omitted, the CLI tries <code>OPEN_CODELABS_ADMIN_PW</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Important notes:</p>
+<ul>
+<li>Running <code>oc admin settings</code> without <code>--gemini-api-key</code> clears the stored key.</li>
+</ul>
+<h3 id="oc-admin-updates"><code>oc admin updates</code><a class="headerlink" href="#oc-admin-updates" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>oc<span class="w"> </span>admin<span class="w"> </span>updates
+</span></code></pre></div>
+<p>What it does:</p>
+<ul>
+<li>Checks the deployed frontend/backend versions and reports whether updates are available.</li>
+</ul>
+<p>Options:</p>
+<ul>
+<li>None</li>
+</ul>
+<h2 id="codelab-management">Codelab management<a class="headerlink" href="#codelab-management" title="Permanent link">&para;</a></h2>
+<h3 id="read-only-codelab-commands">Read-only codelab commands<a class="headerlink" href="#read-only-codelab-commands" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Options</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc codelab list</code></td>
+<td>Lists codelabs visible to the current session.</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>oc codelab reference</code></td>
+<td>Prints the built-in reference codelab content.</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>oc codelab get --id &lt;id&gt;</code></td>
+<td>Fetches one codelab together with its ordered steps.</td>
+<td><code>--id</code>: target codelab ID</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-codelab-create"><code>oc codelab create</code><a class="headerlink" href="#oc-codelab-create" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>oc<span class="w"> </span>codelab<span class="w"> </span>create<span class="w"> </span>--title<span class="w"> </span>&lt;title&gt;<span class="w"> </span>--description<span class="w"> </span>&lt;desc&gt;<span class="w"> </span>--author<span class="w"> </span>&lt;author&gt;<span class="w"> </span><span class="o">[</span>--private<span class="o">]</span><span class="w"> </span><span class="o">[</span>--guide-file<span class="w"> </span>&lt;path&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--quiz-enabled<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-quiz<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-feedback<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-submission<span class="o">]</span>
+</span></code></pre></div>
+<h3 id="oc-codelab-update"><code>oc codelab update</code><a class="headerlink" href="#oc-codelab-update" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>oc<span class="w"> </span>codelab<span class="w"> </span>update<span class="w"> </span>--id<span class="w"> </span>&lt;id&gt;<span class="w"> </span>--title<span class="w"> </span>&lt;title&gt;<span class="w"> </span>--description<span class="w"> </span>&lt;desc&gt;<span class="w"> </span>--author<span class="w"> </span>&lt;author&gt;<span class="w"> </span><span class="o">[</span>--private<span class="o">]</span><span class="w"> </span><span class="o">[</span>--guide-file<span class="w"> </span>&lt;path&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--quiz-enabled<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-quiz<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-feedback<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-submission<span class="o">]</span>
+</span></code></pre></div>
+<p>Shared option meanings:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th><code>create</code></th>
+<th><code>update</code></th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--id &lt;id&gt;</code></td>
+<td>no</td>
+<td>yes</td>
+<td>The codelab ID to update.</td>
+</tr>
+<tr>
+<td><code>--title &lt;title&gt;</code></td>
+<td>yes</td>
+<td>yes</td>
+<td>The codelab title.</td>
+</tr>
+<tr>
+<td><code>--description &lt;desc&gt;</code></td>
+<td>yes</td>
+<td>yes</td>
+<td>The codelab summary text.</td>
+</tr>
+<tr>
+<td><code>--author &lt;author&gt;</code></td>
+<td>yes</td>
+<td>yes</td>
+<td>The display author name.</td>
+</tr>
+<tr>
+<td><code>--private</code></td>
+<td>no</td>
+<td>no</td>
+<td>Flips the default visibility from public to private.</td>
+</tr>
+<tr>
+<td><code>--guide-file &lt;path&gt;</code></td>
+<td>no</td>
+<td>no</td>
+<td>Reads a Markdown file and stores its contents as the guide body.</td>
+</tr>
+<tr>
+<td><code>--quiz-enabled</code></td>
+<td>no</td>
+<td>no</td>
+<td>Enables quizzes for the codelab.</td>
+</tr>
+<tr>
+<td><code>--require-quiz</code></td>
+<td>no</td>
+<td>no</td>
+<td>Makes quiz completion part of the completion criteria.</td>
+</tr>
+<tr>
+<td><code>--require-feedback</code></td>
+<td>no</td>
+<td>no</td>
+<td>Makes feedback submission part of the completion criteria.</td>
+</tr>
+<tr>
+<td><code>--require-submission</code></td>
+<td>no</td>
+<td>no</td>
+<td>Makes a submission part of the completion criteria.</td>
+</tr>
+</tbody>
+</table>
+<p>Important notes:</p>
+<ul>
+<li><code>update</code> is not a patch-style command. It rebuilds the metadata payload from the flags you pass.</li>
+<li>If you omit <code>--private</code>, <code>--quiz-enabled</code>, or the <code>--require-*</code> flags on update, those values may fall back to their defaults.</li>
+</ul>
+<h3 id="other-codelab-commands">Other codelab commands<a class="headerlink" href="#other-codelab-commands" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc codelab delete --id &lt;id&gt;</code></td>
+<td>Deletes a codelab and related data.</td>
+<td><code>--id</code>: codelab to delete</td>
+</tr>
+<tr>
+<td><code>oc codelab copy --id &lt;id&gt;</code></td>
+<td>Copies a codelab together with its steps.</td>
+<td><code>--id</code>: source codelab ID</td>
+</tr>
+<tr>
+<td><code>oc codelab export --id &lt;id&gt; [--output &lt;path&gt;]</code></td>
+<td>Creates a codelab ZIP archive.</td>
+<td><code>--output</code> defaults to <code>codelab_&lt;id&gt;.zip</code></td>
+</tr>
+<tr>
+<td><code>oc codelab import --file &lt;zip&gt;</code></td>
+<td>Imports a codelab ZIP archive.</td>
+<td><code>--file</code>: ZIP produced by export</td>
+</tr>
+<tr>
+<td><code>oc codelab pull --id &lt;id&gt; [--output &lt;dir&gt;] [--format &lt;yaml|json&gt;]</code></td>
+<td>Downloads codelab metadata, guide, steps, quizzes, and materials into a local manifest bundle.</td>
+<td><code>--output</code> defaults to <code>codelab-&lt;id&gt;</code>, <code>--format</code> selects <code>codelab.yaml</code> or <code>codelab.json</code></td>
+</tr>
+<tr>
+<td><code>oc codelab push --manifest &lt;path&gt; [--id &lt;id&gt;]</code></td>
+<td>Syncs a manifest bundle back to the server, including metadata, guide, steps, quizzes, and materials.</td>
+<td><code>--manifest</code>: manifest file or directory that contains one, <code>--id</code>: overrides the codelab ID from the manifest</td>
+</tr>
+<tr>
+<td><code>oc codelab push-steps --id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>Replaces the entire step list from JSON.</td>
+<td><code>--file</code>: <code>UpdateStepsPayload</code> JSON</td>
+</tr>
+</tbody>
+</table>
+<h2 id="backups-and-audit-logs">Backups and audit logs<a class="headerlink" href="#backups-and-audit-logs" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc backup export [--output &lt;path&gt;]</code></td>
+<td>Creates a full platform backup ZIP.</td>
+<td><code>--output</code> defaults to <code>backup_full.zip</code></td>
+</tr>
+<tr>
+<td><code>oc backup inspect --file &lt;zip&gt;</code></td>
+<td>Inspects a backup ZIP without restoring it.</td>
+<td><code>--file</code>: backup ZIP to inspect</td>
+</tr>
+<tr>
+<td><code>oc backup restore --file &lt;zip&gt;</code></td>
+<td>Restores a backup ZIP into the active backend.</td>
+<td><code>--file</code>: backup ZIP to restore</td>
+</tr>
+<tr>
+<td><code>oc audit logs [--limit &lt;n&gt;] [--offset &lt;n&gt;] [--action &lt;name&gt;] [--codelab-id &lt;id&gt;]</code></td>
+<td>Lists audit logs with optional filters.</td>
+<td><code>--limit</code>: page size, <code>--offset</code>: pagination offset, <code>--action</code>: action name filter, <code>--codelab-id</code>: codelab-specific filter</td>
+</tr>
+</tbody>
+</table>
+<h2 id="workspaces">Workspaces<a class="headerlink" href="#workspaces" title="Permanent link">&para;</a></h2>
+<p>Workspace commands manage code-server-backed file structures for codelabs.</p>
+<h3 id="creation-and-metadata">Creation and metadata<a class="headerlink" href="#creation-and-metadata" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc workspace create --codelab-id &lt;id&gt; [--structure-type &lt;branch|folder&gt;] [--files-json &lt;path&gt;]</code></td>
+<td>Creates a workspace for a codelab.</td>
+<td><code>--structure-type</code>: snapshot strategy, <code>--files-json</code>: initial file list JSON</td>
+</tr>
+<tr>
+<td><code>oc workspace info --codelab-id &lt;id&gt;</code></td>
+<td>Fetches workspace metadata.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+<tr>
+<td><code>oc workspace download --codelab-id &lt;id&gt; [--output &lt;path&gt;]</code></td>
+<td>Downloads the workspace as <code>tar.gz</code>.</td>
+<td><code>--output</code> defaults to <code>workspace_&lt;id&gt;.tar.gz</code></td>
+</tr>
+<tr>
+<td><code>oc workspace delete --codelab-id &lt;id&gt;</code></td>
+<td>Deletes the workspace.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+</tbody>
+</table>
+<h3 id="branch-snapshots">Branch snapshots<a class="headerlink" href="#branch-snapshots" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc workspace branches --codelab-id &lt;id&gt;</code></td>
+<td>Lists saved branch snapshot names.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+<tr>
+<td><code>oc workspace branch-create --codelab-id &lt;id&gt; --step-number &lt;n&gt; [--branch-type &lt;start|end&gt;]</code></td>
+<td>Creates a branch snapshot for the start or end of a step.</td>
+<td><code>--step-number</code>: step number, <code>--branch-type</code>: <code>start</code> or <code>end</code>, default <code>start</code></td>
+</tr>
+<tr>
+<td><code>oc workspace branch-files --codelab-id &lt;id&gt; --branch &lt;name&gt;</code></td>
+<td>Lists file paths inside a branch snapshot.</td>
+<td><code>--branch</code>: branch name</td>
+</tr>
+<tr>
+<td><code>oc workspace branch-read --codelab-id &lt;id&gt; --branch &lt;name&gt; --file &lt;path&gt;</code></td>
+<td>Reads file contents from a branch snapshot.</td>
+<td><code>--file</code>: file path inside the snapshot</td>
+</tr>
+<tr>
+<td><code>oc workspace branch-update --codelab-id &lt;id&gt; --branch &lt;name&gt; --files-json &lt;path&gt; [--delete-json &lt;path&gt;] [--commit-message &lt;message&gt;]</code></td>
+<td>Writes and optionally deletes files inside a branch snapshot.</td>
+<td><code>--files-json</code>: write payload or file list, <code>--delete-json</code>: delete list, <code>--commit-message</code>: change description</td>
+</tr>
+</tbody>
+</table>
+<h3 id="folder-snapshots">Folder snapshots<a class="headerlink" href="#folder-snapshots" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc workspace folders --codelab-id &lt;id&gt;</code></td>
+<td>Lists saved folder snapshot names.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+<tr>
+<td><code>oc workspace folder-create --codelab-id &lt;id&gt; --step-number &lt;n&gt; --files-json &lt;path&gt; [--folder-type &lt;start|end&gt;]</code></td>
+<td>Creates a folder snapshot for one step boundary.</td>
+<td><code>--files-json</code>: files to include in the snapshot</td>
+</tr>
+<tr>
+<td><code>oc workspace folder-files --codelab-id &lt;id&gt; --folder &lt;name&gt;</code></td>
+<td>Lists file paths inside a folder snapshot.</td>
+<td><code>--folder</code>: folder snapshot name</td>
+</tr>
+<tr>
+<td><code>oc workspace folder-read --codelab-id &lt;id&gt; --folder &lt;name&gt; --file &lt;path&gt;</code></td>
+<td>Reads file contents from a folder snapshot.</td>
+<td><code>--file</code>: file path inside the snapshot</td>
+</tr>
+<tr>
+<td><code>oc workspace folder-update --codelab-id &lt;id&gt; --folder &lt;name&gt; --files-json &lt;path&gt; [--delete-json &lt;path&gt;]</code></td>
+<td>Writes and optionally deletes files inside a folder snapshot.</td>
+<td><code>--files-json</code>: write payload or file list, <code>--delete-json</code>: delete list</td>
+</tr>
+</tbody>
+</table>
+<p>Operational tip:</p>
+<ul>
+<li>Use <code>branch</code> when you want Git-like step checkpoints.</li>
+<li>Use <code>folder</code> when you want each step result stored as its own directory-like snapshot.</li>
+</ul>
+<h2 id="attendees-and-live-operations">Attendees and live operations<a class="headerlink" href="#attendees-and-live-operations" title="Permanent link">&para;</a></h2>
+<h3 id="attendee-session-commands">Attendee session commands<a class="headerlink" href="#attendee-session-commands" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc attendee join --codelab-id &lt;id&gt; --name &lt;name&gt; --code &lt;code&gt; [--email &lt;email&gt;]</code></td>
+<td>Registers or rejoins as an attendee and saves the attendee session.</td>
+<td><code>--code</code>: attendee join code, <code>--email</code>: optional attendee metadata</td>
+</tr>
+<tr>
+<td><code>oc attendee list --codelab-id &lt;id&gt;</code></td>
+<td>Lists attendees for a codelab.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+<tr>
+<td><code>oc attendee complete --codelab-id &lt;id&gt;</code></td>
+<td>Marks the current attendee session as completed.</td>
+<td><code>--codelab-id</code>: codelab to complete</td>
+</tr>
+<tr>
+<td><code>oc attendee certificate [--attendee-id &lt;id&gt;]</code></td>
+<td>Fetches certificate information.</td>
+<td>If <code>--attendee-id</code> is omitted, the CLI uses the current attendee session subject.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="help-queue">Help queue<a class="headerlink" href="#help-queue" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc help request --codelab-id &lt;id&gt; --step-number &lt;n&gt;</code></td>
+<td>Creates a help request for the current attendee.</td>
+<td><code>--step-number</code>: step where the attendee is blocked</td>
+</tr>
+<tr>
+<td><code>oc help list --codelab-id &lt;id&gt;</code></td>
+<td>Lists help requests for a codelab.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+<tr>
+<td><code>oc help resolve --codelab-id &lt;id&gt; --help-id &lt;id&gt;</code></td>
+<td>Marks one help request as resolved.</td>
+<td><code>--help-id</code>: request ID to resolve</td>
+</tr>
+</tbody>
+</table>
+<h3 id="feedback">Feedback<a class="headerlink" href="#feedback" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc feedback submit --codelab-id &lt;id&gt; --difficulty &lt;1-5&gt; --satisfaction &lt;1-5&gt; [--comment &lt;text&gt;]</code></td>
+<td>Submits attendee feedback.</td>
+<td><code>--difficulty</code> and <code>--satisfaction</code> are typically score strings such as <code>1</code> to <code>5</code></td>
+</tr>
+<tr>
+<td><code>oc feedback list --codelab-id &lt;id&gt;</code></td>
+<td>Lists feedback rows for a codelab.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+</tbody>
+</table>
+<h2 id="materials-quizzes-and-submissions">Materials, quizzes, and submissions<a class="headerlink" href="#materials-quizzes-and-submissions" title="Permanent link">&para;</a></h2>
+<h3 id="materials">Materials<a class="headerlink" href="#materials" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc materials list --codelab-id &lt;id&gt;</code></td>
+<td>Lists codelab materials.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+<tr>
+<td><code>oc materials upload --file &lt;path&gt;</code></td>
+<td>Uploads a material file and returns its asset URL/path.</td>
+<td><code>--file</code>: local file to upload</td>
+</tr>
+<tr>
+<td><code>oc materials add --codelab-id &lt;id&gt; --title &lt;title&gt; --type &lt;link|file&gt; [--url &lt;url&gt;] [--file-path &lt;path&gt;]</code></td>
+<td>Adds a material record to a codelab.</td>
+<td>Use <code>--url</code> for <code>link</code> and <code>--file-path</code> for <code>file</code> records.</td>
+</tr>
+<tr>
+<td><code>oc materials delete --codelab-id &lt;id&gt; --material-id &lt;id&gt;</code></td>
+<td>Deletes a material record.</td>
+<td><code>--material-id</code>: material to remove</td>
+</tr>
+</tbody>
+</table>
+<h3 id="quizzes">Quizzes<a class="headerlink" href="#quizzes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc quiz list --codelab-id &lt;id&gt;</code></td>
+<td>Lists the current quiz definitions.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+<tr>
+<td><code>oc quiz update --codelab-id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>Replaces the full quiz set from JSON.</td>
+<td><code>--file</code>: <code>CreateQuiz[]</code> JSON</td>
+</tr>
+<tr>
+<td><code>oc quiz submit --codelab-id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>Submits answers for the current attendee.</td>
+<td><code>--file</code>: <code>QuizSubmissionPayload</code> JSON</td>
+</tr>
+<tr>
+<td><code>oc quiz submissions --codelab-id &lt;id&gt;</code></td>
+<td>Lists quiz submissions for administrators.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+</tbody>
+</table>
+<h3 id="submissions">Submissions<a class="headerlink" href="#submissions" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc submission list --codelab-id &lt;id&gt;</code></td>
+<td>Lists submissions visible to the current actor.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+<tr>
+<td><code>oc submission file --codelab-id &lt;id&gt; [--attendee-id &lt;id&gt;] --file &lt;path&gt;</code></td>
+<td>Uploads a file submission.</td>
+<td>If <code>--attendee-id</code> is omitted, the CLI uses the current attendee session.</td>
+</tr>
+<tr>
+<td><code>oc submission link --codelab-id &lt;id&gt; [--attendee-id &lt;id&gt;] --url &lt;url&gt; [--title &lt;title&gt;]</code></td>
+<td>Creates a link submission.</td>
+<td><code>--title</code> is the display title for the submitted link.</td>
+</tr>
+<tr>
+<td><code>oc submission delete --codelab-id &lt;id&gt; [--attendee-id &lt;id&gt;] --submission-id &lt;id&gt;</code></td>
+<td>Deletes one submission.</td>
+<td>If <code>--attendee-id</code> is omitted, the CLI resolves it from the current attendee session.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="chat-uploads-and-inline-comments">Chat, uploads, and inline comments<a class="headerlink" href="#chat-uploads-and-inline-comments" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc chat history --codelab-id &lt;id&gt;</code></td>
+<td>Fetches chat history for a codelab.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+<tr>
+<td><code>oc upload image --file &lt;path&gt;</code></td>
+<td>Uploads an image asset and returns its URL.</td>
+<td><code>--file</code>: local image path</td>
+</tr>
+<tr>
+<td><code>oc inline list --codelab-id &lt;id&gt; [--target-type &lt;guide|step&gt;] [--target-step-id &lt;id&gt;]</code></td>
+<td>Lists inline comment threads.</td>
+<td><code>--target-step-id</code> is typically only meaningful when <code>--target-type step</code> is used.</td>
+</tr>
+<tr>
+<td><code>oc inline create --codelab-id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>Creates a new inline comment thread.</td>
+<td><code>--file</code>: <code>CreateInlineCommentPayload</code> JSON</td>
+</tr>
+<tr>
+<td><code>oc inline reply --codelab-id &lt;id&gt; --thread-id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>Adds a reply to an inline comment thread.</td>
+<td><code>--file</code>: <code>ReplyInlineCommentPayload</code> JSON</td>
+</tr>
+<tr>
+<td><code>oc inline delete --codelab-id &lt;id&gt; --thread-id &lt;id&gt; --comment-id &lt;id&gt;</code></td>
+<td>Deletes one inline comment message.</td>
+<td><code>--thread-id</code>: thread ID, <code>--comment-id</code>: comment ID</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ai-commands">AI commands<a class="headerlink" href="#ai-commands" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Meaning</th>
+<th>Option details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc ai conversations --codelab-id &lt;id&gt;</code></td>
+<td>Lists saved AI conversations for one codelab.</td>
+<td><code>--codelab-id</code>: target codelab</td>
+</tr>
+<tr>
+<td><code>oc ai stream --file &lt;json&gt;</code></td>
+<td>Sends an AI request payload and prints the final SSE response body.</td>
+<td><code>--file</code>: <code>AiRequest</code> JSON</td>
+</tr>
+<tr>
+<td><code>oc ai save --file &lt;json&gt;</code></td>
+<td>Persists one AI conversation exchange.</td>
+<td><code>--file</code>: <code>SaveAiConversationPayload</code> JSON</td>
+</tr>
+<tr>
+<td><code>oc ai threads</code></td>
+<td>Lists AI threads owned by the current admin.</td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>oc ai thread-create --title &lt;title&gt; [--codelab-id &lt;id&gt;]</code></td>
+<td>Creates a new AI thread.</td>
+<td><code>--codelab-id</code>: optional codelab association</td>
+</tr>
+<tr>
+<td><code>oc ai thread-delete --thread-id &lt;id&gt;</code></td>
+<td>Deletes one AI thread.</td>
+<td><code>--thread-id</code>: target thread ID</td>
+</tr>
+<tr>
+<td><code>oc ai messages --thread-id &lt;id&gt;</code></td>
+<td>Lists messages in one AI thread.</td>
+<td><code>--thread-id</code>: target thread ID</td>
+</tr>
+<tr>
+<td><code>oc ai message-add --thread-id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>Appends one message to an AI thread.</td>
+<td><code>--file</code>: <code>AddAiMessagePayload</code> JSON</td>
+</tr>
+</tbody>
+</table>
+<h2 id="json-input-file-cheat-sheet">JSON input file cheat sheet<a class="headerlink" href="#json-input-file-cheat-sheet" title="Permanent link">&para;</a></h2>
+<p>Flags such as <code>--file</code> and <code>--files-json</code> do not accept arbitrary JSON. Each one expects a specific payload shape.</p>
+<table>
+<thead>
+<tr>
+<th>Command option</th>
+<th>Expected content</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>codelab create/update --guide-file</code></td>
+<td>Markdown text file</td>
+<td>The file contents are stored as guide Markdown.</td>
+</tr>
+<tr>
+<td><code>codelab push --manifest</code></td>
+<td><code>CodelabManifest</code> YAML/JSON</td>
+<td>Manifest that stores metadata, a relative guide path, <code>steps[]</code>, <code>quizzes[]</code>, and <code>materials[]</code>. File materials use paths relative to the manifest.</td>
+</tr>
+<tr>
+<td><code>codelab push-steps --file</code></td>
+<td><code>UpdateStepsPayload</code> JSON</td>
+<td>Usually contains the full <code>steps</code> array and replaces the entire step list.</td>
+</tr>
+<tr>
+<td><code>workspace create --files-json</code></td>
+<td><code>WorkspaceFile[]</code> JSON</td>
+<td>Initial workspace file list.</td>
+</tr>
+<tr>
+<td><code>workspace branch-update --files-json</code></td>
+<td><code>UpdateWorkspaceFilesRequest</code> or <code>WorkspaceFile[]</code> JSON</td>
+<td>A plain array is treated as the write list.</td>
+</tr>
+<tr>
+<td><code>workspace branch-update --delete-json</code></td>
+<td><code>string[]</code> JSON</td>
+<td>List of file paths to delete.</td>
+</tr>
+<tr>
+<td><code>workspace folder-create --files-json</code></td>
+<td><code>WorkspaceFile[]</code> JSON</td>
+<td>Files to include in the folder snapshot.</td>
+</tr>
+<tr>
+<td><code>workspace folder-update --files-json</code></td>
+<td><code>UpdateWorkspaceFilesRequest</code> or <code>WorkspaceFile[]</code> JSON</td>
+<td>Write payload for the folder snapshot.</td>
+</tr>
+<tr>
+<td><code>workspace folder-update --delete-json</code></td>
+<td><code>string[]</code> JSON</td>
+<td>File paths to delete from the folder snapshot.</td>
+</tr>
+<tr>
+<td><code>quiz update --file</code></td>
+<td><code>CreateQuiz[]</code> JSON</td>
+<td>Replaces the full quiz definition set.</td>
+</tr>
+<tr>
+<td><code>quiz submit --file</code></td>
+<td><code>QuizSubmissionPayload</code> JSON</td>
+<td>The attendee answer payload.</td>
+</tr>
+<tr>
+<td><code>inline create --file</code></td>
+<td><code>CreateInlineCommentPayload</code> JSON</td>
+<td>Defines the initial thread target and body.</td>
+</tr>
+<tr>
+<td><code>inline reply --file</code></td>
+<td><code>ReplyInlineCommentPayload</code> JSON</td>
+<td>Defines one reply to an existing thread.</td>
+</tr>
+<tr>
+<td><code>ai stream --file</code></td>
+<td><code>AiRequest</code> JSON</td>
+<td>Full AI request payload including model, messages, and context.</td>
+</tr>
+<tr>
+<td><code>ai save --file</code></td>
+<td><code>SaveAiConversationPayload</code> JSON</td>
+<td>One persisted AI conversation exchange.</td>
+</tr>
+<tr>
+<td><code>ai message-add --file</code></td>
+<td><code>AddAiMessagePayload</code> JSON</td>
+<td>One message appended to a thread.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="operational-tips">Operational tips<a class="headerlink" href="#operational-tips" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Start with <code>oc init</code> unless you already know the exact server and auth flow you want.</li>
+<li>Prefer <code>--json</code> in automation and plain text in human-driven terminal sessions.</li>
+<li>If you work with both admin and attendee roles, keep separate session files or rely on profile-specific session locations.</li>
+<li><code>firebase</code> and <code>supabase</code> profiles may report limited capabilities in <code>connect status</code>. In those runtimes, public-read and attendee flows are usually safer than admin automation.</li>
+<li>The current syntax is always available through <code>oc &lt;command-group&gt; --help</code>.</li>
+</ul>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Last update">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 8, 2026 02:14:30 UTC">March 8, 2026</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="Created">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="March 8, 2026 02:14:30 UTC">March 8, 2026</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/JAICHANGPARK/open-codelabs" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
