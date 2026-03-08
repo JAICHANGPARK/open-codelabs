@@ -42,9 +42,9 @@
 - `oc://codelabs/{id}/bundle`
 - `oc://codelabs/{id}/materials`
 - `oc://codelabs/{id}/quizzes`
-- `oc://codelabs/{id}/quiz-submissions`
 - `oc://codelabs/{id}/feedback`
 - `oc://codelabs/{id}/submissions`
+- `oc://codelabs/{id}/quiz-submissions`
 - `oc://codelabs/{id}/chat`
 - `oc://codelabs/{id}/workspace`
 - `oc://codelabs/{id}/workspace/branches`
@@ -63,6 +63,7 @@
 
 ## 검증
 
+- `cd backend && cargo fmt`
 - `cd backend && cargo check --bin oc`
 - `cd backend && cargo test mcp --lib`
 - `cd backend && cargo run --bin oc -- --help`
