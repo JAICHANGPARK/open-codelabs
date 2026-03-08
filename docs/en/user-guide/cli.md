@@ -58,6 +58,7 @@ The CLI resolves base URLs and session files in a fixed order.
 | `~/.open-codelabs/config.json` | CLI default | Stores connection profiles. |
 | `~/.open-codelabs/profiles/<name>/session.json` | when using profiles | Stores the session for one saved profile. |
 | `~/.open-codelabs/runtime/local-stack/` | when using `oc run` | Stores the generated compose file and local runtime state. |
+| `~/.open-codelabs/runtime/public/` | when using `oc public up` | Stores the saved public tunnel state and log file location. |
 
 ## Interactive behavior
 
@@ -260,6 +261,84 @@ What it does:
 
 - Alias for `oc auth status`.
 
+## Public exposure and benchmarks
+
+### `oc public up`
+
+```bash
+oc public up [--tunnel <ngrok|bore|cloudflare>] [--ngrok|--bore|--cloudflare] [--port <port>] [--log-file <path>] [--no-open]
+```
+
+What it does:
+
+- Starts one tunnel process that exposes the local frontend to the public internet.
+- Writes the tunnel PID and resolved URLs into `~/.open-codelabs/runtime/public/state.json`.
+- Defaults to `ngrok`. If `--port` is omitted, the CLI tries to reuse the saved local-stack frontend port and falls back to `5173`.
+
+| Option | Required | Meaning |
+| --- | --- | --- |
+| `--tunnel <ngrok|bore|cloudflare>` | no | Explicitly selects the tunnel provider. |
+| `--ngrok`, `--bore`, `--cloudflare` | no | Shortcuts for `--tunnel`. The last one wins. |
+| `--port <port>` | no | Overrides which local port should be exposed. |
+| `--log-file <path>` | no | Overrides where tunnel stdout/stderr should be written. |
+| `--no-open` | no | Prints the attendee URL without opening a browser automatically. |
+
+Important notes:
+
+- The CLI manages one public tunnel at a time. If a saved tunnel is still running, stop it with `oc public down` first.
+- The required provider binary (`ngrok`, `bore`, or `cloudflared`) must already be installed locally.
+
+### `oc public status`
+
+```bash
+oc public status
+```
+
+What it does:
+
+- Shows the saved tunnel type, PID, process-running state, last known public URL, and log file path.
+
+Options:
+
+- None
+
+### `oc public down`
+
+```bash
+oc public down
+```
+
+What it does:
+
+- Stops the saved tunnel process if it is still running and removes the saved state. The log file is kept.
+
+Options:
+
+- None
+
+### `oc bench`
+
+```bash
+oc bench <local|ops|ws> [-- <bench options...>]
+```
+
+What it does:
+
+- Dispatches to the existing benchmark runners through the `oc` entrypoint.
+- It first looks for `local_bench`, `ops_bench`, and `ws_bench` next to the installed `oc` binary.
+- If those binaries are missing but you are inside a source checkout, it falls back to `cargo run --release --bin ...`.
+
+| Positional target | Meaning |
+| --- | --- |
+| `local` | Runs the attendee/help/submission-heavy API benchmark. |
+| `ops` | Runs the upload/backup/workspace operations benchmark. |
+| `ws` | Runs the WebSocket benchmark. |
+
+Pass-through rules:
+
+- Everything after `--` is forwarded to the selected benchmark binary unchanged.
+- Example: `oc bench local -- --help`, `oc bench ws -- --users 50,100,200 --duration-secs 60`
+
 ## Local runtime
 
 ### `oc run`
@@ -451,6 +530,8 @@ Important notes:
 | `oc codelab copy --id <id>` | Copies a codelab together with its steps. | `--id`: source codelab ID |
 | `oc codelab export --id <id> [--output <path>]` | Creates a codelab ZIP archive. | `--output` defaults to `codelab_<id>.zip` |
 | `oc codelab import --file <zip>` | Imports a codelab ZIP archive. | `--file`: ZIP produced by export |
+| `oc codelab pull --id <id> [--output <dir>] [--format <yaml|json>]` | Downloads codelab metadata, guide, steps, quizzes, and materials into a local manifest bundle. | `--output` defaults to `codelab-<id>`, `--format` selects `codelab.yaml` or `codelab.json` |
+| `oc codelab push --manifest <path> [--id <id>]` | Syncs a manifest bundle back to the server, including metadata, guide, steps, quizzes, and materials. | `--manifest`: manifest file or directory that contains one, `--id`: overrides the codelab ID from the manifest |
 | `oc codelab push-steps --id <id> --file <json>` | Replaces the entire step list from JSON. | `--file`: `UpdateStepsPayload` JSON |
 
 ## Backups and audit logs
@@ -586,6 +667,7 @@ Flags such as `--file` and `--files-json` do not accept arbitrary JSON. Each one
 | Command option | Expected content | Meaning |
 | --- | --- | --- |
 | `codelab create/update --guide-file` | Markdown text file | The file contents are stored as guide Markdown. |
+| `codelab push --manifest` | `CodelabManifest` YAML/JSON | Manifest that stores metadata, a relative guide path, `steps[]`, `quizzes[]`, and `materials[]`. File materials use paths relative to the manifest. |
 | `codelab push-steps --file` | `UpdateStepsPayload` JSON | Usually contains the full `steps` array and replaces the entire step list. |
 | `workspace create --files-json` | `WorkspaceFile[]` JSON | Initial workspace file list. |
 | `workspace branch-update --files-json` | `UpdateWorkspaceFilesRequest` or `WorkspaceFile[]` JSON | A plain array is treated as the write list. |

@@ -52,9 +52,6 @@ pub async fn update_quizzes(
     Json(payload): Json<Vec<CreateQuiz>>,
 ) -> Result<StatusCode, (StatusCode, String)> {
     let admin = session.require_admin()?;
-    if payload.is_empty() {
-        return Err(bad_request("quizzes cannot be empty"));
-    }
     // Delete existing quizzes
     sqlx::query(&state.q("DELETE FROM quizzes WHERE codelab_id = ?"))
         .bind(&codelab_id)

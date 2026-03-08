@@ -26,6 +26,9 @@ class Oc < Formula
 
   def install
     bin.install "oc"
+    bin.install "local_bench"
+    bin.install "ops_bench"
+    bin.install "ws_bench"
     prefix.install_metafiles
   end
 

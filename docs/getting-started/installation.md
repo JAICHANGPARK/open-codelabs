@@ -42,7 +42,7 @@ oc init
 ```bash
 git clone https://github.com/JAICHANGPARK/open-codelabs.git
 cd open-codelabs
-cargo install --path backend --bin oc
+cargo install --path backend --bin oc --bin local_bench --bin ops_bench --bin ws_bench
 ```
 
 설치 후 확인:
@@ -55,7 +55,7 @@ oc --help
 
 ```bash
 cd backend
-cargo build --release --bin oc
+cargo build --release --bin oc --bin local_bench --bin ops_bench --bin ws_bench
 ./target/release/oc --help
 ```
 
@@ -72,6 +72,7 @@ oc run --open
 - `~/.open-codelabs/runtime/local-stack/compose.yml` 생성
 - 퍼블리시된 frontend/backend 이미지를 SQLite 기본 설정으로 실행
 - 플래그 없이 실행하면 인터랙티브 터미널에서 화살표/스페이스 기반 guided setup을 시작
+- `local_bench`, `ops_bench`, `ws_bench` companion binary를 함께 설치하거나 패키징해서 `oc bench local|ops|ws`를 소스 체크아웃 없이 실행
 
 자주 쓰는 옵션:
 
@@ -134,12 +135,12 @@ oc down --volumes
 ### 2. Cargo로 설치한 CLI 삭제
 
 ```bash
-cargo uninstall oc
+cargo uninstall backend
 ```
 
 ### 3. 수동으로 복사한 바이너리 삭제
 
-- `cargo build --release --bin oc`로 직접 빌드했다면 macOS/Linux에서는 `backend/target/release/oc`, Windows에서는 `backend\target\release\oc.exe`를 삭제합니다.
+- `cargo build --release --bin oc --bin local_bench --bin ops_bench --bin ws_bench`로 직접 빌드했다면 macOS/Linux에서는 `backend/target/release/oc`, `backend/target/release/local_bench`, `backend/target/release/ops_bench`, `backend/target/release/ws_bench`를 삭제하고, Windows에서는 대응되는 `.exe` 파일들을 삭제합니다.
 - GitHub Release나 별도 다운로드 바이너리를 사용했다면 `PATH`에 복사한 `oc` 또는 `oc.exe` 파일을 삭제합니다.
 
 ### 4. 설정, 세션, 런타임 파일 정리

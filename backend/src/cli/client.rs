@@ -316,6 +316,22 @@ impl ApiClient {
             .await
     }
 
+    /// Downloads an uploaded asset by relative API/static path or absolute URL.
+    pub async fn download_asset(&self, path: &str) -> Result<Vec<u8>> {
+        let url = if path.starts_with("http://") || path.starts_with("https://") {
+            path.to_string()
+        } else {
+            self.url(path)
+        };
+        let response = self
+            .http
+            .get(url)
+            .send()
+            .await
+            .with_context(|| format!("Failed to download asset {path}"))?;
+        read_bytes(response, path).await
+    }
+
     /// Registers or rejoins an attendee and returns the issued attendee session.
     pub async fn register_attendee(
         &self,

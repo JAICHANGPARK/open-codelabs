@@ -58,6 +58,7 @@ CLI는 base URL과 session file을 아래 우선순위로 결정합니다.
 | `~/.open-codelabs/config.json` | CLI 기본값 | 저장된 connection profile 목록입니다. |
 | `~/.open-codelabs/profiles/<name>/session.json` | profile 사용 시 | profile별 세션 저장 위치입니다. |
 | `~/.open-codelabs/runtime/local-stack/` | `oc run` 실행 시 | local stack compose 파일과 상태 파일이 저장됩니다. |
+| `~/.open-codelabs/runtime/public/` | `oc public up` 실행 시 | public tunnel 상태 파일과 로그 파일이 저장됩니다. |
 
 ## 인터랙티브 동작
 
@@ -261,6 +262,83 @@ oc login [--admin-id <id>] [--admin-pw <pw>] [--interactive]
 
 - `oc auth status`의 별칭입니다.
 
+## 공개 노출과 벤치마크
+
+### `oc public up`
+
+```bash
+oc public up [--tunnel <ngrok|bore|cloudflare>] [--ngrok|--bore|--cloudflare] [--port <port>] [--log-file <path>] [--no-open]
+```
+
+무엇을 하는가:
+
+- 로컬에서 실행 중인 frontend 포트를 외부에 공개하는 tunnel 프로세스를 시작합니다.
+- 상태와 PID를 `~/.open-codelabs/runtime/public/state.json`에 저장합니다.
+- 기본값은 `ngrok`이며, 포트를 생략하면 최근 local stack 상태에서 frontend 포트를 추론하고 없으면 `5173`을 사용합니다.
+
+| 옵션 | 필수 | 의미 |
+| --- | --- | --- |
+| `--tunnel <ngrok|bore|cloudflare>` | 선택 | 사용할 공개 tunnel 종류를 명시합니다. |
+| `--ngrok`, `--bore`, `--cloudflare` | 선택 | `--tunnel`의 단축 플래그입니다. 마지막에 지정한 값이 우선합니다. |
+| `--port <port>` | 선택 | 공개할 로컬 포트입니다. |
+| `--log-file <path>` | 선택 | tunnel stdout/stderr를 저장할 로그 파일 경로입니다. |
+| `--no-open` | 선택 | attendee URL을 브라우저로 자동으로 열지 않습니다. |
+
+주의할 점:
+
+- 같은 시점에 tunnel 하나만 관리합니다. 이미 살아 있는 tunnel이 있으면 먼저 `oc public down`을 실행해야 합니다.
+- `ngrok`, `bore`, `cloudflared` 바이너리 설치 여부는 실행 전에 검사합니다.
+
+### `oc public status`
+
+```bash
+oc public status
+```
+
+무엇을 하는가:
+
+- 저장된 public tunnel 상태, PID, process 생존 여부, 마지막으로 확인한 public URL을 출력합니다.
+
+옵션:
+
+- 없음
+
+### `oc public down`
+
+```bash
+oc public down
+```
+
+무엇을 하는가:
+
+- 저장된 public tunnel PID를 종료하고 상태 파일만 정리합니다. 로그 파일은 보존합니다.
+
+옵션:
+
+- 없음
+
+### `oc bench`
+
+```bash
+oc bench <local|ops|ws> [-- <bench options...>]
+```
+
+무엇을 하는가:
+
+- 기존 benchmark runner를 `oc` 아래에서 실행합니다.
+- 먼저 `oc`와 같은 디렉터리에 함께 설치된 `local_bench`, `ops_bench`, `ws_bench`를 찾고, 없으면 소스 체크아웃에서 `cargo run --release --bin ...`으로 fallback 합니다.
+
+| 위치 인자 | 의미 |
+| --- | --- |
+| `local` | attendee/help/submission 중심의 API benchmark를 실행합니다. |
+| `ops` | upload/backup/workspace 중심의 운영 benchmark를 실행합니다. |
+| `ws` | WebSocket 부하 benchmark를 실행합니다. |
+
+옵션 전달 규칙:
+
+- `--` 뒤의 인자는 해당 benchmark binary로 그대로 전달됩니다.
+- 예: `oc bench local -- --help`, `oc bench ops -- --profile paper --output bench-results/ops.json`
+
 ## 로컬 런타임
 
 ### `oc run`
@@ -452,6 +530,8 @@ oc codelab update --id <id> --title <title> --description <desc> --author <autho
 | `oc codelab copy --id <id>` | 기존 코드랩과 step 구성을 복제합니다. | `--id`: 복제 원본 코드랩 ID |
 | `oc codelab export --id <id> [--output <path>]` | 코드랩 ZIP 백업을 만듭니다. | `--output` 생략 시 `codelab_<id>.zip` |
 | `oc codelab import --file <zip>` | export로 만든 ZIP에서 코드랩을 가져옵니다. | `--file`: 가져올 ZIP 경로 |
+| `oc codelab pull --id <id> [--output <dir>] [--format <yaml|json>]` | 코드랩 메타데이터, guide, steps, quizzes, materials를 로컬 manifest 번들로 내려받습니다. | `--output` 생략 시 `codelab-<id>` 디렉터리, `--format`은 `codelab.yaml` 또는 `codelab.json` 형식을 고릅니다. |
+| `oc codelab push --manifest <path> [--id <id>]` | manifest 번들의 메타데이터, guide, steps, quizzes, materials를 서버에 동기화합니다. | `--manifest`: manifest 파일 또는 manifest가 들어 있는 디렉터리, `--id`: manifest 안의 ID 대신 강제로 대상 코드랩 지정 |
 | `oc codelab push-steps --id <id> --file <json>` | 코드랩의 step 목록 전체를 JSON으로 교체합니다. | `--file`: `UpdateStepsPayload` JSON 경로 |
 
 ## 백업과 감사 로그
@@ -587,6 +667,7 @@ oc codelab update --id <id> --title <title> --description <desc> --author <autho
 | 명령 옵션 | 기대하는 내용 | 설명 |
 | --- | --- | --- |
 | `codelab create/update --guide-file` | Markdown 텍스트 파일 | 파일 내용을 그대로 guide markdown으로 읽습니다. |
+| `codelab push --manifest` | `CodelabManifest` YAML/JSON | 메타데이터, guide 상대 경로, `steps[]`, `quizzes[]`, `materials[]`를 담는 manifest입니다. file material은 manifest 기준 상대 경로를 사용합니다. |
 | `codelab push-steps --file` | `UpdateStepsPayload` JSON | 보통 `steps` 배열 전체를 담습니다. 기존 step 목록을 통째로 교체합니다. |
 | `workspace create --files-json` | `WorkspaceFile[]` JSON | 초기 워크스페이스 파일 목록입니다. |
 | `workspace branch-update --files-json` | `UpdateWorkspaceFilesRequest` 또는 `WorkspaceFile[]` JSON | 간단한 배열을 주면 write 목록으로 처리합니다. |

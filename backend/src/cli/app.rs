@@ -13,7 +13,7 @@ use crate::cli::session::{
 };
 use crate::domain::models::{
     AddAiMessagePayload, Codelab, CreateCodelab, CreateInlineCommentPayload, CreateMaterial,
-    CreateQuiz, CreateStep, QuizSubmissionPayload, ReplyInlineCommentPayload,
+    CreateQuiz, CreateStep, Material, Quiz, QuizSubmissionPayload, ReplyInlineCommentPayload,
     SaveAiConversationPayload, Step, UpdateStepsPayload,
 };
 use crate::infrastructure::db_models::AuditLog;
@@ -24,10 +24,10 @@ use dialoguer::{theme::ColorfulTheme, Input, MultiSelect, Password, Select};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
 use std::env;
-use std::fs;
+use std::fs::{self, OpenOptions};
 use std::io::{self, IsTerminal};
 use std::path::{Path, PathBuf};
-use std::process::Command as ProcessCommand;
+use std::process::{Command as ProcessCommand, Stdio};
 use std::time::Duration;
 
 #[derive(Debug, Clone)]
@@ -58,6 +58,8 @@ enum Command {
     Admin(AdminCommand),
     Auth(AuthCommand),
     Connect(ConnectCommand),
+    Public(PublicCommand),
+    Bench(BenchCommand),
     Run(RunCommand),
     Ps(PsCommand),
     Logs(LogsCommand),
@@ -116,6 +118,88 @@ enum ConnectCommand {
     },
     List,
     Status,
+}
+
+#[derive(Debug)]
+enum PublicCommand {
+    Up(PublicUpCommand),
+    Status,
+    Down,
+}
+
+#[derive(Debug)]
+struct BenchCommand {
+    target: BenchTarget,
+    args: Vec<String>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum BenchTarget {
+    Local,
+    Ops,
+    Ws,
+}
+
+impl BenchTarget {
+    fn parse(value: &str) -> Option<Self> {
+        match value {
+            "local" => Some(Self::Local),
+            "ops" => Some(Self::Ops),
+            "ws" => Some(Self::Ws),
+            _ => None,
+        }
+    }
+
+    fn as_str(&self) -> &'static str {
+        match self {
+            Self::Local => "local",
+            Self::Ops => "ops",
+            Self::Ws => "ws",
+        }
+    }
+
+    fn binary_name(&self) -> &'static str {
+        match self {
+            Self::Local => "local_bench",
+            Self::Ops => "ops_bench",
+            Self::Ws => "ws_bench",
+        }
+    }
+}
+
+#[derive(Debug)]
+struct PublicUpCommand {
+    tunnel: PublicTunnelKind,
+    port: Option<u16>,
+    log_file: Option<PathBuf>,
+    no_open: bool,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+enum PublicTunnelKind {
+    Ngrok,
+    Bore,
+    Cloudflare,
+}
+
+impl PublicTunnelKind {
+    fn parse(value: &str) -> Option<Self> {
+        match value {
+            "ngrok" => Some(Self::Ngrok),
+            "bore" => Some(Self::Bore),
+            "cloudflare" => Some(Self::Cloudflare),
+            _ => None,
+        }
+    }
+
+    fn as_str(&self) -> &'static str {
+        match self {
+            Self::Ngrok => "ngrok",
+            Self::Bore => "bore",
+            Self::Cloudflare => "cloudflare",
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -217,6 +301,15 @@ enum CodelabCommand {
     Import {
         file: PathBuf,
     },
+    Pull {
+        id: String,
+        output: Option<PathBuf>,
+        format: ManifestFormat,
+    },
+    Push {
+        manifest: PathBuf,
+        id: Option<String>,
+    },
     PushSteps {
         id: String,
         file: PathBuf,
@@ -234,6 +327,71 @@ struct CreateCodelabCommand {
     require_feedback: bool,
     require_submission: bool,
     guide_file: Option<PathBuf>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ManifestFormat {
+    Yaml,
+    Json,
+}
+
+impl ManifestFormat {
+    fn parse(value: &str) -> Option<Self> {
+        match value {
+            "yaml" | "yml" => Some(Self::Yaml),
+            "json" => Some(Self::Json),
+            _ => None,
+        }
+    }
+
+    fn default_manifest_name(&self) -> &'static str {
+        match self {
+            Self::Yaml => "codelab.yaml",
+            Self::Json => "codelab.json",
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct CodelabManifest {
+    version: u32,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    id: Option<String>,
+    title: String,
+    description: String,
+    author: String,
+    is_public: bool,
+    quiz_enabled: bool,
+    require_quiz: bool,
+    require_feedback: bool,
+    require_submission: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    guide_markdown: Option<String>,
+    #[serde(default)]
+    steps: Vec<CodelabManifestStep>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    quizzes: Vec<CreateQuiz>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    materials: Vec<CodelabManifestMaterial>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct CodelabManifestStep {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    id: Option<String>,
+    title: String,
+    file: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct CodelabManifestMaterial {
+    title: String,
+    #[serde(rename = "type")]
+    material_type: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    url: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    file: Option<String>,
 }
 
 #[derive(Debug)]
@@ -524,6 +682,35 @@ struct RunOutput {
     stop_command: String,
 }
 
+#[derive(Debug, Serialize)]
+struct PublicTunnelOutput {
+    tunnel: String,
+    port: u16,
+    pid: u32,
+    public_url: Option<String>,
+    admin_url: Option<String>,
+    attendee_url: Option<String>,
+    api_url: Option<String>,
+    log_file: PathBuf,
+    command: String,
+}
+
+#[derive(Debug, Serialize)]
+struct PublicTunnelStatusOutput {
+    active: bool,
+    tunnel: Option<String>,
+    port: Option<u16>,
+    pid: Option<u32>,
+    process_running: bool,
+    public_url: Option<String>,
+    admin_url: Option<String>,
+    attendee_url: Option<String>,
+    api_url: Option<String>,
+    log_file: Option<PathBuf>,
+    command: Option<String>,
+    note: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct LocalStackState {
     engine: RunEnginePreference,
@@ -535,6 +722,20 @@ struct LocalStackState {
     admin_url: String,
     admin_id: String,
     postgres: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+struct PublicTunnelState {
+    tunnel: PublicTunnelKind,
+    port: u16,
+    pid: u32,
+    public_url: Option<String>,
+    admin_url: Option<String>,
+    attendee_url: Option<String>,
+    api_url: Option<String>,
+    log_file: PathBuf,
+    command: String,
+    started_at: u64,
 }
 
 #[derive(Debug)]
@@ -646,6 +847,12 @@ async fn run(global: GlobalOptions, command: Command) -> Result<()> {
         }
         Command::Connect(command) => {
             run_connect_command(&global, command).await?;
+        }
+        Command::Public(command) => {
+            run_public_command(&global, command).await?;
+        }
+        Command::Bench(command) => {
+            run_bench_command(command)?;
         }
         Command::Run(command) => {
             run_run_command(&global, command)?;
@@ -1246,6 +1453,77 @@ async fn run_codelab_command(
                 println!("title: {}", codelab.title);
             }
         }
+        CodelabCommand::Pull { id, output, format } => {
+            let (codelab, steps) = client.get_codelab(&id).await?;
+            let quizzes = client.get_quizzes(&id).await?;
+            let materials = client.get_materials(&id).await?;
+            let output_dir = output.unwrap_or_else(|| PathBuf::from(format!("codelab-{id}")));
+            let manifest_path = write_codelab_manifest_bundle(
+                &output_dir,
+                format,
+                &codelab,
+                &steps,
+                &quizzes,
+                &materials,
+                client,
+            )
+            .await?;
+
+            if global.json {
+                print_json(&serde_json::json!({
+                    "status": "ok",
+                    "codelab_id": codelab.id,
+                    "output_dir": output_dir,
+                    "manifest": manifest_path,
+                    "steps": steps.len(),
+                    "quizzes": quizzes.len(),
+                    "materials": materials.len(),
+                }))?;
+            } else {
+                println!("Wrote codelab {} to {}", codelab.id, output_dir.display());
+                println!("manifest: {}", manifest_path.display());
+                println!("steps: {}", steps.len());
+                println!("quizzes: {}", quizzes.len());
+                println!("materials: {}", materials.len());
+            }
+        }
+        CodelabCommand::Push { manifest, id } => {
+            let manifest_path = resolve_manifest_path(&manifest)?;
+            let loaded = load_codelab_manifest(&manifest_path).await?;
+            let target_id = id.or_else(|| loaded.id.clone());
+            let create_payload =
+                create_codelab_payload_from_manifest(&loaded, &manifest_path).await?;
+            let steps_payload = create_steps_payload_from_manifest(&loaded, &manifest_path).await?;
+
+            let (codelab, operation) = match target_id.as_deref() {
+                Some(codelab_id) => (
+                    client.update_codelab(codelab_id, &create_payload).await?,
+                    "updated",
+                ),
+                None => (client.create_codelab(&create_payload).await?, "created"),
+            };
+            client.push_steps(&codelab.id, &steps_payload).await?;
+            sync_manifest_quizzes(client, &codelab.id, &loaded.quizzes).await?;
+            sync_manifest_materials(client, &codelab.id, &loaded.materials, &manifest_path).await?;
+
+            if global.json {
+                print_json(&serde_json::json!({
+                    "status": "ok",
+                    "operation": operation,
+                    "codelab_id": codelab.id,
+                    "manifest": manifest_path,
+                    "steps": steps_payload.steps.len(),
+                    "quizzes": loaded.quizzes.len(),
+                    "materials": loaded.materials.len(),
+                }))?;
+            } else {
+                println!("{} codelab {}", capitalize_first(operation), codelab.id);
+                println!("manifest: {}", manifest_path.display());
+                println!("steps: {}", steps_payload.steps.len());
+                println!("quizzes: {}", loaded.quizzes.len());
+                println!("materials: {}", loaded.materials.len());
+            }
+        }
         CodelabCommand::PushSteps { id, file } => {
             let payload = load_steps_payload(&file).await?;
             client.push_steps(&id, &payload).await?;
@@ -1284,6 +1562,482 @@ async fn build_codelab_payload(command: CreateCodelabCommand) -> Result<CreateCo
         require_submission: Some(command.require_submission),
         guide_markdown,
     })
+}
+
+async fn create_codelab_payload_from_manifest(
+    manifest: &CodelabManifest,
+    manifest_path: &Path,
+) -> Result<CreateCodelab> {
+    let guide_markdown = match manifest.guide_markdown.as_deref() {
+        Some(relative) => {
+            let path = resolve_manifest_relative_path(manifest_path, relative);
+            Some(
+                tokio::fs::read_to_string(&path)
+                    .await
+                    .with_context(|| format!("Failed to read {}", path.display()))?,
+            )
+        }
+        None => None,
+    };
+
+    Ok(CreateCodelab {
+        title: manifest.title.clone(),
+        description: manifest.description.clone(),
+        author: manifest.author.clone(),
+        is_public: Some(manifest.is_public),
+        quiz_enabled: Some(manifest.quiz_enabled),
+        require_quiz: Some(manifest.require_quiz),
+        require_feedback: Some(manifest.require_feedback),
+        require_submission: Some(manifest.require_submission),
+        guide_markdown,
+    })
+}
+
+async fn create_steps_payload_from_manifest(
+    manifest: &CodelabManifest,
+    manifest_path: &Path,
+) -> Result<UpdateStepsPayload> {
+    let mut steps = Vec::with_capacity(manifest.steps.len());
+    for step in &manifest.steps {
+        let path = resolve_manifest_relative_path(manifest_path, &step.file);
+        let content_markdown = tokio::fs::read_to_string(&path)
+            .await
+            .with_context(|| format!("Failed to read {}", path.display()))?;
+        steps.push(CreateStep {
+            id: step.id.clone(),
+            title: step.title.clone(),
+            content_markdown,
+        });
+    }
+
+    Ok(UpdateStepsPayload { steps })
+}
+
+async fn sync_manifest_quizzes(
+    client: &ApiClient,
+    codelab_id: &str,
+    quizzes: &[CreateQuiz],
+) -> Result<()> {
+    client.update_quizzes(codelab_id, quizzes).await
+}
+
+async fn sync_manifest_materials(
+    client: &ApiClient,
+    codelab_id: &str,
+    materials: &[CodelabManifestMaterial],
+    manifest_path: &Path,
+) -> Result<()> {
+    let existing = client.get_materials(codelab_id).await?;
+    for material in existing {
+        client.delete_material(codelab_id, &material.id).await?;
+    }
+
+    for material in materials {
+        let payload = match material.material_type.as_str() {
+            "link" => CreateMaterial {
+                title: material.title.clone(),
+                material_type: "link".to_string(),
+                link_url: Some(material.url.clone().ok_or_else(|| {
+                    anyhow!("Link material `{}` is missing `url`", material.title)
+                })?),
+                file_path: None,
+            },
+            "file" => {
+                let relative_path = material.file.clone().ok_or_else(|| {
+                    anyhow!("File material `{}` is missing `file`", material.title)
+                })?;
+                let source_path = resolve_manifest_relative_path(manifest_path, &relative_path);
+                let uploaded = client.upload_material(&source_path).await?;
+                CreateMaterial {
+                    title: material.title.clone(),
+                    material_type: "file".to_string(),
+                    link_url: None,
+                    file_path: Some(uploaded.url),
+                }
+            }
+            other => bail!(
+                "Material `{}` uses unsupported type `{other}`. Use `link` or `file`.",
+                material.title
+            ),
+        };
+        client.add_material(codelab_id, &payload).await?;
+    }
+
+    Ok(())
+}
+
+async fn load_codelab_manifest(path: &Path) -> Result<CodelabManifest> {
+    let raw = tokio::fs::read_to_string(path)
+        .await
+        .with_context(|| format!("Failed to read {}", path.display()))?;
+
+    let manifest = match path.extension().and_then(|value| value.to_str()) {
+        Some("json") => serde_json::from_str(&raw)
+            .with_context(|| format!("Failed to parse JSON from {}", path.display()))?,
+        Some("yaml") | Some("yml") => serde_yaml::from_str(&raw)
+            .with_context(|| format!("Failed to parse YAML from {}", path.display()))?,
+        _ => bail!(
+            "Unsupported manifest format for {}. Use .yaml, .yml, or .json.",
+            path.display()
+        ),
+    };
+
+    validate_codelab_manifest(&manifest, path)?;
+    Ok(manifest)
+}
+
+fn validate_codelab_manifest(manifest: &CodelabManifest, path: &Path) -> Result<()> {
+    if manifest.version != 1 {
+        bail!(
+            "Unsupported manifest version {} in {}. Expected version 1.",
+            manifest.version,
+            path.display()
+        );
+    }
+    if manifest.title.trim().is_empty() {
+        bail!("Manifest {} is missing a title.", path.display());
+    }
+    if manifest.description.trim().is_empty() {
+        bail!("Manifest {} is missing a description.", path.display());
+    }
+    if manifest.author.trim().is_empty() {
+        bail!("Manifest {} is missing an author.", path.display());
+    }
+    for step in &manifest.steps {
+        if step.title.trim().is_empty() {
+            bail!(
+                "Manifest {} contains a step with an empty title.",
+                path.display()
+            );
+        }
+        if step.file.trim().is_empty() {
+            bail!(
+                "Manifest {} contains a step with an empty file path.",
+                path.display()
+            );
+        }
+    }
+    for quiz in &manifest.quizzes {
+        if quiz.question.trim().is_empty() {
+            bail!(
+                "Manifest {} contains a quiz with an empty question.",
+                path.display()
+            );
+        }
+    }
+    for material in &manifest.materials {
+        if material.title.trim().is_empty() {
+            bail!(
+                "Manifest {} contains a material with an empty title.",
+                path.display()
+            );
+        }
+        match material.material_type.as_str() {
+            "link" => {
+                if material.url.as_deref().map_or(true, str::is_empty) {
+                    bail!(
+                        "Manifest {} contains a link material without `url`.",
+                        path.display()
+                    );
+                }
+            }
+            "file" => {
+                if material.file.as_deref().map_or(true, str::is_empty) {
+                    bail!(
+                        "Manifest {} contains a file material without `file`.",
+                        path.display()
+                    );
+                }
+            }
+            other => {
+                bail!(
+                    "Manifest {} contains unsupported material type `{other}`.",
+                    path.display()
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
+async fn write_codelab_manifest_bundle(
+    output_dir: &Path,
+    format: ManifestFormat,
+    codelab: &Codelab,
+    steps: &[Step],
+    quizzes: &[Quiz],
+    materials: &[Material],
+    client: &ApiClient,
+) -> Result<PathBuf> {
+    ensure_manifest_output_dir(output_dir)?;
+    tokio::fs::create_dir_all(output_dir)
+        .await
+        .with_context(|| format!("Failed to create {}", output_dir.display()))?;
+
+    let guide_path = if let Some(guide_markdown) = codelab.guide_markdown.as_deref() {
+        let guide_path = output_dir.join("guide.md");
+        tokio::fs::write(&guide_path, guide_markdown)
+            .await
+            .with_context(|| format!("Failed to write {}", guide_path.display()))?;
+        Some("guide.md".to_string())
+    } else {
+        None
+    };
+
+    let steps_dir = output_dir.join("steps");
+    if !steps.is_empty() {
+        tokio::fs::create_dir_all(&steps_dir)
+            .await
+            .with_context(|| format!("Failed to create {}", steps_dir.display()))?;
+    }
+
+    let mut manifest_steps = Vec::with_capacity(steps.len());
+    for step in steps {
+        let file_name = format!(
+            "{:02}_{}.md",
+            step.step_number,
+            sanitize_manifest_filename(&step.title)
+        );
+        let relative = Path::new("steps").join(&file_name);
+        let output_path = output_dir.join(&relative);
+        tokio::fs::write(&output_path, &step.content_markdown)
+            .await
+            .with_context(|| format!("Failed to write {}", output_path.display()))?;
+        manifest_steps.push(CodelabManifestStep {
+            id: Some(step.id.clone()),
+            title: step.title.clone(),
+            file: normalize_manifest_relative_path(&relative),
+        });
+    }
+    let manifest_quizzes = build_manifest_quizzes(quizzes)?;
+    let manifest_materials = write_manifest_material_assets(output_dir, materials, client).await?;
+
+    let manifest = CodelabManifest {
+        version: 1,
+        id: Some(codelab.id.clone()),
+        title: codelab.title.clone(),
+        description: codelab.description.clone(),
+        author: codelab.author.clone(),
+        is_public: codelab.is_public != 0,
+        quiz_enabled: codelab.quiz_enabled != 0,
+        require_quiz: codelab.require_quiz != 0,
+        require_feedback: codelab.require_feedback != 0,
+        require_submission: codelab.require_submission != 0,
+        guide_markdown: guide_path,
+        steps: manifest_steps,
+        quizzes: manifest_quizzes,
+        materials: manifest_materials,
+    };
+
+    let manifest_path = output_dir.join(format.default_manifest_name());
+    write_codelab_manifest(&manifest_path, &manifest).await?;
+    Ok(manifest_path)
+}
+
+async fn write_codelab_manifest(path: &Path, manifest: &CodelabManifest) -> Result<()> {
+    let raw = match path.extension().and_then(|value| value.to_str()) {
+        Some("json") => serde_json::to_string_pretty(manifest)
+            .context("Failed to serialize codelab manifest as JSON")?,
+        Some("yaml") | Some("yml") => serde_yaml::to_string(manifest)
+            .context("Failed to serialize codelab manifest as YAML")?,
+        _ => bail!(
+            "Unsupported manifest format for {}. Use .yaml, .yml, or .json.",
+            path.display()
+        ),
+    };
+
+    tokio::fs::write(path, raw)
+        .await
+        .with_context(|| format!("Failed to write {}", path.display()))?;
+    Ok(())
+}
+
+fn build_manifest_quizzes(quizzes: &[Quiz]) -> Result<Vec<CreateQuiz>> {
+    let mut manifest_quizzes = Vec::with_capacity(quizzes.len());
+    for quiz in quizzes {
+        let options = serde_json::from_str::<Vec<String>>(&quiz.options)
+            .with_context(|| format!("Failed to parse quiz options for {}", quiz.id))?;
+        let correct_answers = quiz
+            .correct_answers
+            .as_deref()
+            .map(|raw| serde_json::from_str::<Vec<i32>>(raw))
+            .transpose()
+            .with_context(|| format!("Failed to parse quiz correct answers for {}", quiz.id))?;
+        manifest_quizzes.push(CreateQuiz {
+            question: quiz.question.clone(),
+            quiz_type: quiz.quiz_type.clone(),
+            options,
+            correct_answer: quiz.correct_answer,
+            correct_answers,
+        });
+    }
+    Ok(manifest_quizzes)
+}
+
+async fn write_manifest_material_assets(
+    output_dir: &Path,
+    materials: &[Material],
+    client: &ApiClient,
+) -> Result<Vec<CodelabManifestMaterial>> {
+    let mut manifest_materials = Vec::with_capacity(materials.len());
+    if materials
+        .iter()
+        .any(|material| material.material_type == "file" && material.file_path.is_some())
+    {
+        let materials_dir = output_dir.join("materials");
+        tokio::fs::create_dir_all(&materials_dir)
+            .await
+            .with_context(|| format!("Failed to create {}", materials_dir.display()))?;
+    }
+
+    for (index, material) in materials.iter().enumerate() {
+        match material.material_type.as_str() {
+            "link" => {
+                manifest_materials.push(CodelabManifestMaterial {
+                    title: material.title.clone(),
+                    material_type: "link".to_string(),
+                    url: material.link_url.clone(),
+                    file: None,
+                });
+            }
+            "file" => {
+                let source_path = material.file_path.as_deref().ok_or_else(|| {
+                    anyhow!("Material `{}` is missing a file path", material.title)
+                })?;
+                let file_name = manifest_material_file_name(material, index);
+                let relative = Path::new("materials").join(file_name);
+                let output_path = output_dir.join(&relative);
+                let bytes = client.download_asset(source_path).await?;
+                tokio::fs::write(&output_path, bytes)
+                    .await
+                    .with_context(|| format!("Failed to write {}", output_path.display()))?;
+                manifest_materials.push(CodelabManifestMaterial {
+                    title: material.title.clone(),
+                    material_type: "file".to_string(),
+                    url: None,
+                    file: Some(normalize_manifest_relative_path(&relative)),
+                });
+            }
+            other => {
+                bail!(
+                    "Material `{}` uses unsupported type `{other}`.",
+                    material.title
+                );
+            }
+        }
+    }
+
+    Ok(manifest_materials)
+}
+
+fn manifest_material_file_name(material: &Material, index: usize) -> String {
+    let fallback = format!("{:02}_material", index + 1);
+    let source_name = material
+        .file_path
+        .as_deref()
+        .and_then(|path| Path::new(path).file_name())
+        .and_then(|name| name.to_str())
+        .filter(|name| !name.trim().is_empty());
+
+    let source_name = source_name.unwrap_or(&fallback);
+    let extension = Path::new(source_name)
+        .extension()
+        .and_then(|ext| ext.to_str())
+        .filter(|ext| !ext.trim().is_empty());
+    let stem = Path::new(source_name)
+        .file_stem()
+        .and_then(|stem| stem.to_str())
+        .filter(|stem| !stem.trim().is_empty())
+        .unwrap_or(source_name);
+
+    let sanitized = sanitize_manifest_filename(stem);
+    match extension {
+        Some(ext) => format!("{:02}_{}.{}", index + 1, sanitized, ext),
+        None => format!("{:02}_{}", index + 1, sanitized),
+    }
+}
+
+fn ensure_manifest_output_dir(output_dir: &Path) -> Result<()> {
+    if !output_dir.exists() {
+        return Ok(());
+    }
+
+    let mut entries = output_dir
+        .read_dir()
+        .with_context(|| format!("Failed to read {}", output_dir.display()))?;
+    if entries.next().is_some() {
+        bail!(
+            "Output directory {} already exists and is not empty.",
+            output_dir.display()
+        );
+    }
+    Ok(())
+}
+
+fn resolve_manifest_path(path: &Path) -> Result<PathBuf> {
+    if path.is_file() {
+        return Ok(path.to_path_buf());
+    }
+    if path.is_dir() {
+        for candidate in ["codelab.yaml", "codelab.yml", "codelab.json"] {
+            let candidate_path = path.join(candidate);
+            if candidate_path.is_file() {
+                return Ok(candidate_path);
+            }
+        }
+        bail!(
+            "No codelab manifest found in {}. Expected codelab.yaml, codelab.yml, or codelab.json.",
+            path.display()
+        );
+    }
+    if path.extension().is_some() {
+        bail!("Manifest file {} does not exist.", path.display());
+    }
+    bail!(
+        "Manifest path {} does not exist. Pass a manifest file or a directory containing codelab.yaml.",
+        path.display()
+    )
+}
+
+fn resolve_manifest_relative_path(manifest_path: &Path, relative: &str) -> PathBuf {
+    manifest_path
+        .parent()
+        .unwrap_or_else(|| Path::new("."))
+        .join(relative)
+}
+
+fn normalize_manifest_relative_path(path: &Path) -> String {
+    path.components()
+        .map(|component| component.as_os_str().to_string_lossy().to_string())
+        .collect::<Vec<_>>()
+        .join("/")
+}
+
+fn sanitize_manifest_filename(value: &str) -> String {
+    let mut out = String::new();
+    for ch in value.chars() {
+        if ch.is_ascii_alphanumeric() {
+            out.push(ch.to_ascii_lowercase());
+        } else if ch == '-' || ch == '_' || ch.is_whitespace() || ch == '/' || ch == '\\' {
+            if !out.is_empty() && !out.ends_with('_') {
+                out.push('_');
+            }
+        }
+    }
+    let trimmed = out.trim_end_matches('_');
+    if trimmed.is_empty() {
+        "step".to_string()
+    } else {
+        trimmed.to_string()
+    }
+}
+
+fn capitalize_first(value: &str) -> String {
+    let mut chars = value.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+        None => String::new(),
+    }
 }
 
 async fn run_backup_command(
@@ -2225,6 +2979,289 @@ async fn run_connect_command(global: &GlobalOptions, command: ConnectCommand) ->
     Ok(())
 }
 
+async fn run_public_command(global: &GlobalOptions, command: PublicCommand) -> Result<()> {
+    match command {
+        PublicCommand::Up(command) => {
+            let runtime_dir = public_runtime_dir(&global.config_file);
+            fs::create_dir_all(&runtime_dir)
+                .with_context(|| format!("Failed to create {}", runtime_dir.display()))?;
+            secure_runtime_directory(&runtime_dir)?;
+
+            if let Ok(existing) = load_public_tunnel_state(&global.config_file) {
+                if process_is_running(existing.pid) {
+                    bail!(
+                        "A public tunnel is already running via {} (pid {}). Run `{} public down` first.",
+                        existing.tunnel.as_str(),
+                        existing.pid,
+                        program_name()
+                    );
+                }
+                clear_public_tunnel_state(&global.config_file)?;
+            }
+
+            ensure_public_tunnel_available(command.tunnel)?;
+            let port = resolve_public_port(&global.config_file, command.port)?;
+            let log_file = command
+                .log_file
+                .as_deref()
+                .map(normalize_user_path)
+                .transpose()?
+                .unwrap_or_else(|| default_public_log_file(&runtime_dir, command.tunnel));
+
+            if let Some(parent) = log_file
+                .parent()
+                .filter(|parent| !parent.as_os_str().is_empty())
+            {
+                fs::create_dir_all(parent)
+                    .with_context(|| format!("Failed to create {}", parent.display()))?;
+            }
+
+            let log_handle = OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(&log_file)
+                .with_context(|| format!("Failed to create {}", log_file.display()))?;
+            let stderr_handle = log_handle
+                .try_clone()
+                .with_context(|| format!("Failed to clone {}", log_file.display()))?;
+
+            let mut tunnel_command = build_public_tunnel_command(command.tunnel, port);
+            let command_text = format_process_command(&tunnel_command);
+            let child = tunnel_command
+                .stdout(Stdio::from(log_handle))
+                .stderr(Stdio::from(stderr_handle))
+                .spawn()
+                .with_context(|| {
+                    format!(
+                        "Failed to start {} tunnel on port {}",
+                        command.tunnel.as_str(),
+                        port
+                    )
+                })?;
+            let pid = child.id();
+            drop(child);
+
+            let public_url = resolve_public_url(command.tunnel, port, &log_file).await;
+            let attendee_url = public_url.clone();
+            let admin_url = public_url.as_ref().map(|url| format!("{url}/login"));
+            let api_url = public_url.as_ref().map(|url| format!("{url}/api"));
+
+            let state = PublicTunnelState {
+                tunnel: command.tunnel,
+                port,
+                pid,
+                public_url: public_url.clone(),
+                admin_url: admin_url.clone(),
+                attendee_url: attendee_url.clone(),
+                api_url: api_url.clone(),
+                log_file: log_file.clone(),
+                command: command_text.clone(),
+                started_at: now_epoch_seconds() as u64,
+            };
+            save_public_tunnel_state(&runtime_dir, &state)?;
+
+            if !command.no_open {
+                if let Some(url) = attendee_url.as_deref() {
+                    if let Err(error) = open_browser(url) {
+                        eprintln!("Failed to open browser automatically: {error}");
+                        eprintln!("Open this URL manually: {url}");
+                    }
+                }
+            }
+
+            let output = PublicTunnelOutput {
+                tunnel: command.tunnel.as_str().to_string(),
+                port,
+                pid,
+                public_url,
+                admin_url,
+                attendee_url,
+                api_url,
+                log_file,
+                command: command_text,
+            };
+
+            if global.json {
+                print_json(&output)?;
+            } else {
+                print_public_tunnel_output(&output);
+            }
+        }
+        PublicCommand::Status => {
+            let status = match load_public_tunnel_state(&global.config_file) {
+                Ok(mut state) => {
+                    let running = process_is_running(state.pid);
+                    if running {
+                        if let Some(url) =
+                            resolve_public_url(state.tunnel, state.port, &state.log_file).await
+                        {
+                            state.public_url = Some(url.clone());
+                            state.attendee_url = Some(url.clone());
+                            state.admin_url = Some(format!("{url}/login"));
+                            state.api_url = Some(format!("{url}/api"));
+                            save_public_tunnel_state(
+                                &public_runtime_dir(&global.config_file),
+                                &state,
+                            )?;
+                        }
+                    }
+
+                    PublicTunnelStatusOutput {
+                        active: running,
+                        tunnel: Some(state.tunnel.as_str().to_string()),
+                        port: Some(state.port),
+                        pid: Some(state.pid),
+                        process_running: running,
+                        public_url: state.public_url,
+                        admin_url: state.admin_url,
+                        attendee_url: state.attendee_url,
+                        api_url: state.api_url,
+                        log_file: Some(state.log_file),
+                        command: Some(state.command),
+                        note: if running {
+                            None
+                        } else {
+                            Some(
+                                "Saved public tunnel state exists, but the process is no longer running."
+                                    .to_string(),
+                            )
+                        },
+                    }
+                }
+                Err(_) => PublicTunnelStatusOutput {
+                    active: false,
+                    tunnel: None,
+                    port: None,
+                    pid: None,
+                    process_running: false,
+                    public_url: None,
+                    admin_url: None,
+                    attendee_url: None,
+                    api_url: None,
+                    log_file: None,
+                    command: None,
+                    note: Some(format!(
+                        "No public tunnel state found. Run `{} public up` first.",
+                        program_name()
+                    )),
+                },
+            };
+
+            if global.json {
+                print_json(&status)?;
+            } else {
+                print_public_tunnel_status(&status);
+            }
+        }
+        PublicCommand::Down => match load_public_tunnel_state(&global.config_file) {
+            Ok(state) => {
+                let running = process_is_running(state.pid);
+                if running {
+                    stop_process(state.pid)?;
+                }
+                clear_public_tunnel_state(&global.config_file)?;
+
+                if global.json {
+                    print_json(&serde_json::json!({
+                        "status": "ok",
+                        "stopped": running,
+                        "tunnel": state.tunnel.as_str(),
+                        "pid": state.pid,
+                        "log_file": state.log_file,
+                    }))?;
+                } else if running {
+                    println!(
+                        "Stopped {} public tunnel (pid {}). Logs kept at {}",
+                        state.tunnel.as_str(),
+                        state.pid,
+                        state.log_file.display()
+                    );
+                } else {
+                    println!(
+                        "Removed stale public tunnel state for {}. Logs kept at {}",
+                        state.tunnel.as_str(),
+                        state.log_file.display()
+                    );
+                }
+            }
+            Err(_) => {
+                if global.json {
+                    print_json(&serde_json::json!({
+                        "status": "ok",
+                        "stopped": false,
+                    }))?;
+                } else {
+                    println!("No saved public tunnel state. Nothing to stop.");
+                }
+            }
+        },
+    }
+
+    Ok(())
+}
+
+fn run_bench_command(command: BenchCommand) -> Result<()> {
+    let bench_args = strip_bench_arg_separator(&command.args);
+
+    if let Some(binary_path) = find_sibling_bench_binary(command.target) {
+        let status = ProcessCommand::new(&binary_path)
+            .args(bench_args)
+            .status()
+            .with_context(|| {
+                format!(
+                    "Failed to launch {} benchmark runner at {}",
+                    command.target.as_str(),
+                    binary_path.display()
+                )
+            })?;
+        if !status.success() {
+            bail!(
+                "`{} bench {}` failed with exit status {}",
+                program_name(),
+                command.target.as_str(),
+                status
+            );
+        }
+        return Ok(());
+    }
+
+    if let Some(backend_dir) = find_backend_dir_from_cwd() {
+        let status = ProcessCommand::new("cargo")
+            .arg("run")
+            .arg("--release")
+            .arg("--bin")
+            .arg(command.target.binary_name())
+            .arg("--")
+            .args(bench_args)
+            .current_dir(&backend_dir)
+            .status()
+            .with_context(|| {
+                format!(
+                    "Failed to launch {} benchmark runner from {}",
+                    command.target.as_str(),
+                    backend_dir.display()
+                )
+            })?;
+        if !status.success() {
+            bail!(
+                "`{} bench {}` failed with exit status {}",
+                program_name(),
+                command.target.as_str(),
+                status
+            );
+        }
+        return Ok(());
+    }
+
+    bail!(
+        "Could not find the `{}` benchmark runner.\n- Install the companion benchmark binaries next to `{}`.\n- Or run this command from an Open Codelabs source checkout so `cargo run --release --bin {}` can be used as a fallback.",
+        command.target.binary_name(),
+        program_name(),
+        command.target.binary_name()
+    );
+}
+
 fn save_connection_profile(
     config_file: &Path,
     name: &str,
@@ -2246,6 +3283,42 @@ fn save_connection_profile(
     }
     save_config(config_file, &config)?;
     Ok((config, became_current))
+}
+
+fn strip_bench_arg_separator(args: &[String]) -> &[String] {
+    if matches!(args.first().map(String::as_str), Some("--")) {
+        &args[1..]
+    } else {
+        args
+    }
+}
+
+fn find_sibling_bench_binary(target: BenchTarget) -> Option<PathBuf> {
+    let executable = env::current_exe().ok()?;
+    let file_name = if cfg!(windows) {
+        format!("{}.exe", target.binary_name())
+    } else {
+        target.binary_name().to_string()
+    };
+    let path = executable.parent()?.join(file_name);
+    path.exists().then_some(path)
+}
+
+fn find_backend_dir_from_cwd() -> Option<PathBuf> {
+    let cwd = env::current_dir().ok()?;
+    for candidate in cwd.ancestors() {
+        let nested_backend = candidate.join("backend").join("Cargo.toml");
+        if nested_backend.exists() {
+            return Some(candidate.join("backend"));
+        }
+
+        if candidate.file_name().and_then(|name| name.to_str()) == Some("backend")
+            && candidate.join("Cargo.toml").exists()
+        {
+            return Some(candidate.to_path_buf());
+        }
+    }
+    None
 }
 
 fn run_run_command(global: &GlobalOptions, command: RunCommand) -> Result<()> {
@@ -2822,7 +3895,20 @@ fn local_stack_runtime_dir(config_file: &Path) -> PathBuf {
         .join("local-stack")
 }
 
+fn public_runtime_dir(config_file: &Path) -> PathBuf {
+    config_file
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."))
+        .join("runtime")
+        .join("public")
+}
+
 fn local_stack_state_path(runtime_dir: &Path) -> PathBuf {
+    runtime_dir.join("state.json")
+}
+
+fn public_tunnel_state_path(runtime_dir: &Path) -> PathBuf {
     runtime_dir.join("state.json")
 }
 
@@ -2830,6 +3916,10 @@ fn default_local_stack_data_dir() -> PathBuf {
     home_dir()
         .map(|dir| dir.join("open-codelabs"))
         .unwrap_or_else(|| PathBuf::from("open-codelabs"))
+}
+
+fn default_public_log_file(runtime_dir: &Path, tunnel: PublicTunnelKind) -> PathBuf {
+    runtime_dir.join(format!("{}.log", tunnel.as_str()))
 }
 
 fn normalize_user_path(path: &Path) -> Result<PathBuf> {
@@ -3073,6 +4163,15 @@ fn save_local_stack_state(runtime_dir: &Path, state: &LocalStackState) -> Result
     Ok(())
 }
 
+fn save_public_tunnel_state(runtime_dir: &Path, state: &PublicTunnelState) -> Result<()> {
+    let path = public_tunnel_state_path(runtime_dir);
+    let raw =
+        serde_json::to_string_pretty(state).context("Failed to serialize public tunnel state")?;
+    fs::write(&path, raw).with_context(|| format!("Failed to write {}", path.display()))?;
+    secure_runtime_file(&path)?;
+    Ok(())
+}
+
 fn load_local_stack_state(config_file: &Path) -> Result<LocalStackState> {
     let runtime_dir = local_stack_runtime_dir(config_file);
     let state_path = local_stack_state_path(&runtime_dir);
@@ -3104,12 +4203,129 @@ fn load_local_stack_state(config_file: &Path) -> Result<LocalStackState> {
     );
 }
 
+fn load_public_tunnel_state(config_file: &Path) -> Result<PublicTunnelState> {
+    let runtime_dir = public_runtime_dir(config_file);
+    let state_path = public_tunnel_state_path(&runtime_dir);
+    let raw = fs::read_to_string(&state_path)
+        .with_context(|| format!("Failed to read {}", state_path.display()))?;
+    serde_json::from_str(&raw).with_context(|| format!("Failed to parse {}", state_path.display()))
+}
+
+fn clear_public_tunnel_state(config_file: &Path) -> Result<()> {
+    let runtime_dir = public_runtime_dir(config_file);
+    let state_path = public_tunnel_state_path(&runtime_dir);
+    if state_path.exists() {
+        fs::remove_file(&state_path)
+            .with_context(|| format!("Failed to remove {}", state_path.display()))?;
+    }
+    Ok(())
+}
+
 fn load_local_stack_engine(
     config_file: &Path,
 ) -> Result<(ContainerEngineSelection, LocalStackState)> {
     let state = load_local_stack_state(config_file)?;
     let engine = resolve_container_engine(state.engine)?;
     Ok((engine, state))
+}
+
+fn resolve_public_port(config_file: &Path, explicit: Option<u16>) -> Result<u16> {
+    if let Some(port) = explicit {
+        return Ok(port);
+    }
+
+    if let Ok(state) = load_local_stack_state(config_file) {
+        if let Ok(url) = url::Url::parse(&state.frontend_url) {
+            if let Some(port) = url.port_or_known_default() {
+                return Ok(port);
+            }
+        }
+    }
+
+    Ok(5173)
+}
+
+fn ensure_public_tunnel_available(tunnel: PublicTunnelKind) -> Result<()> {
+    let (program, args, install_hint): (&str, &[&str], &[&str]) = match tunnel {
+        PublicTunnelKind::Ngrok => (
+            "ngrok",
+            &["version"],
+            &[
+                "Install ngrok from https://ngrok.com/download or via package manager.",
+                "After install, verify `ngrok version` succeeds.",
+            ],
+        ),
+        PublicTunnelKind::Bore => (
+            "bore",
+            &["--version"],
+            &[
+                "Install Bore CLI, for example `cargo install bore-cli`.",
+                "After install, verify `bore --version` succeeds.",
+            ],
+        ),
+        PublicTunnelKind::Cloudflare => (
+            "cloudflared",
+            &["--version"],
+            &[
+                "Install cloudflared: https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/",
+                "After install, verify `cloudflared --version` succeeds.",
+            ],
+        ),
+    };
+
+    let probe = probe_command(program, args);
+    if probe.success {
+        return Ok(());
+    }
+
+    let mut message = format!(
+        "{} is required for `{} public up --{}`.",
+        program,
+        program_name(),
+        tunnel.as_str()
+    );
+    if let Some(detail) = probe.detail {
+        message.push_str(&format!(" {detail}"));
+    }
+    for hint in install_hint {
+        message.push_str(&format!("\n- {hint}"));
+    }
+    bail!(message);
+}
+
+fn build_public_tunnel_command(tunnel: PublicTunnelKind, port: u16) -> ProcessCommand {
+    match tunnel {
+        PublicTunnelKind::Ngrok => {
+            let mut command = ProcessCommand::new("ngrok");
+            command.args(["http", &port.to_string(), "--log=stdout"]);
+            command
+        }
+        PublicTunnelKind::Bore => {
+            let mut command = ProcessCommand::new("bore");
+            command.args(["local", &port.to_string(), "--to", "bore.pub"]);
+            command
+        }
+        PublicTunnelKind::Cloudflare => {
+            let mut command = ProcessCommand::new("cloudflared");
+            command.args([
+                "tunnel",
+                "--url",
+                &format!("http://localhost:{port}"),
+                "--no-autoupdate",
+            ]);
+            command
+        }
+    }
+}
+
+fn format_process_command(command: &ProcessCommand) -> String {
+    let mut parts = vec![format_shell_arg(&command.get_program().to_string_lossy())];
+    parts.extend(
+        command
+            .get_args()
+            .map(|arg| format_shell_arg(&arg.to_string_lossy())),
+    );
+    parts.join(" ")
 }
 
 fn compose_base_args(compose_path: &Path) -> Vec<String> {
@@ -3186,6 +4402,108 @@ fn format_compose_command(
     engine.compose.format_command(&args)
 }
 
+async fn resolve_public_url(
+    tunnel: PublicTunnelKind,
+    _port: u16,
+    log_file: &Path,
+) -> Option<String> {
+    for _ in 0..20 {
+        if let Some(url) = resolve_public_url_once(tunnel, log_file).await {
+            return Some(url);
+        }
+        tokio::time::sleep(Duration::from_millis(750)).await;
+    }
+
+    resolve_public_url_once(tunnel, log_file).await
+}
+
+async fn resolve_public_url_once(tunnel: PublicTunnelKind, log_file: &Path) -> Option<String> {
+    if matches!(tunnel, PublicTunnelKind::Ngrok) {
+        if let Some(url) = fetch_ngrok_public_url().await {
+            return Some(url);
+        }
+    }
+
+    let contents = fs::read_to_string(log_file).ok()?;
+    extract_public_url_from_logs(tunnel, &contents)
+}
+
+async fn fetch_ngrok_public_url() -> Option<String> {
+    #[derive(Deserialize)]
+    struct NgrokApiResponse {
+        tunnels: Vec<NgrokTunnel>,
+    }
+
+    #[derive(Deserialize)]
+    struct NgrokTunnel {
+        public_url: String,
+    }
+
+    let response = reqwest::get("http://127.0.0.1:4040/api/tunnels")
+        .await
+        .ok()?;
+    let payload: NgrokApiResponse = response.json().await.ok()?;
+    payload
+        .tunnels
+        .into_iter()
+        .map(|tunnel| tunnel.public_url)
+        .find(|url| url.starts_with("https://"))
+}
+
+fn extract_public_url_from_logs(tunnel: PublicTunnelKind, contents: &str) -> Option<String> {
+    let urls = extract_http_like_tokens(contents);
+    match tunnel {
+        PublicTunnelKind::Ngrok => urls
+            .into_iter()
+            .find(|url| url.starts_with("https://") && url.contains("ngrok")),
+        PublicTunnelKind::Cloudflare => urls
+            .into_iter()
+            .find(|url| url.starts_with("https://") && url.contains("trycloudflare.com"))
+            .or_else(|| {
+                extract_http_like_tokens(contents)
+                    .into_iter()
+                    .find(|url| url.starts_with("https://"))
+            }),
+        PublicTunnelKind::Bore => {
+            extract_bore_endpoint(contents).map(|endpoint| format!("http://{endpoint}"))
+        }
+    }
+}
+
+fn extract_http_like_tokens(contents: &str) -> Vec<String> {
+    contents
+        .split_whitespace()
+        .filter_map(|token| sanitize_public_token(token))
+        .filter(|token| token.starts_with("http://") || token.starts_with("https://"))
+        .collect()
+}
+
+fn extract_bore_endpoint(contents: &str) -> Option<String> {
+    contents
+        .split_whitespace()
+        .filter_map(|token| sanitize_public_token(token))
+        .find(|token| {
+            token.contains(':')
+                && !token.starts_with("http://")
+                && !token.starts_with("https://")
+                && (token.contains("bore.pub") || token.contains("bore"))
+        })
+}
+
+fn sanitize_public_token(token: &str) -> Option<String> {
+    let trimmed = token.trim_matches(|ch: char| {
+        matches!(
+            ch,
+            '"' | '\'' | '(' | ')' | '[' | ']' | '{' | '}' | ',' | ';' | '.'
+        )
+    });
+    if trimmed.is_empty() {
+        None
+    } else {
+        Some(trimmed.to_string())
+    }
+}
+
 fn print_run_output(output: &RunOutput) {
     println!("Started Open Codelabs with {}", output.engine);
     println!("facilitator: {}", output.admin_url);
@@ -3214,6 +4532,66 @@ fn print_run_output(output: &RunOutput) {
     println!("next: {} auth login", program_name());
 }
 
+fn print_public_tunnel_output(output: &PublicTunnelOutput) {
+    println!("Started {} public tunnel", output.tunnel);
+    println!("port: {}", output.port);
+    println!("pid: {}", output.pid);
+    if let Some(url) = output.public_url.as_deref() {
+        println!("public_url: {url}");
+    } else {
+        println!("public_url: pending");
+    }
+    if let Some(url) = output.attendee_url.as_deref() {
+        println!("attendee_url: {url}");
+    }
+    if let Some(url) = output.admin_url.as_deref() {
+        println!("admin_url: {url}");
+    }
+    if let Some(url) = output.api_url.as_deref() {
+        println!("api_url: {url}");
+    }
+    println!("log_file: {}", output.log_file.display());
+    println!("command: {}", output.command);
+}
+
+fn print_public_tunnel_status(status: &PublicTunnelStatusOutput) {
+    println!("active: {}", status.active);
+    println!(
+        "process_running: {}",
+        if status.process_running { "yes" } else { "no" }
+    );
+    if let Some(tunnel) = status.tunnel.as_deref() {
+        println!("tunnel: {tunnel}");
+    }
+    if let Some(port) = status.port {
+        println!("port: {port}");
+    }
+    if let Some(pid) = status.pid {
+        println!("pid: {pid}");
+    }
+    if let Some(url) = status.public_url.as_deref() {
+        println!("public_url: {url}");
+    }
+    if let Some(url) = status.attendee_url.as_deref() {
+        println!("attendee_url: {url}");
+    }
+    if let Some(url) = status.admin_url.as_deref() {
+        println!("admin_url: {url}");
+    }
+    if let Some(url) = status.api_url.as_deref() {
+        println!("api_url: {url}");
+    }
+    if let Some(path) = status.log_file.as_deref() {
+        println!("log_file: {}", path.display());
+    }
+    if let Some(command) = status.command.as_deref() {
+        println!("command: {command}");
+    }
+    if let Some(note) = status.note.as_deref() {
+        println!("note: {note}");
+    }
+}
+
 #[cfg(unix)]
 fn secure_runtime_directory(path: &Path) -> Result<()> {
     use std::os::unix::fs::PermissionsExt;
@@ -3240,6 +4618,66 @@ fn secure_runtime_file(path: &Path) -> Result<()> {
 #[cfg(not(unix))]
 fn secure_runtime_file(_path: &Path) -> Result<()> {
     Ok(())
+}
+
+#[cfg(unix)]
+fn process_is_running(pid: u32) -> bool {
+    ProcessCommand::new("kill")
+        .args(["-0", &pid.to_string()])
+        .status()
+        .map(|status| status.success())
+        .unwrap_or(false)
+}
+
+#[cfg(windows)]
+fn process_is_running(pid: u32) -> bool {
+    ProcessCommand::new("tasklist")
+        .args(["/FI", &format!("PID eq {pid}")])
+        .output()
+        .ok()
+        .map(|output| {
+            if !output.status.success() {
+                return false;
+            }
+            let text = String::from_utf8_lossy(&output.stdout);
+            text.lines()
+                .any(|line| line.contains(&pid.to_string()) && line.contains(".exe"))
+        })
+        .unwrap_or(false)
+}
+
+#[cfg(not(any(unix, windows)))]
+fn process_is_running(_pid: u32) -> bool {
+    true
+}
+
+#[cfg(unix)]
+fn stop_process(pid: u32) -> Result<()> {
+    let status = ProcessCommand::new("kill")
+        .args(["-TERM", &pid.to_string()])
+        .status()
+        .with_context(|| format!("Failed to stop process {pid}"))?;
+    if !status.success() {
+        bail!("Failed to stop process {pid} (exit status {status})");
+    }
+    Ok(())
+}
+
+#[cfg(windows)]
+fn stop_process(pid: u32) -> Result<()> {
+    let status = ProcessCommand::new("taskkill")
+        .args(["/PID", &pid.to_string(), "/T", "/F"])
+        .status()
+        .with_context(|| format!("Failed to stop process {pid}"))?;
+    if !status.success() {
+        bail!("Failed to stop process {pid} (exit status {status})");
+    }
+    Ok(())
+}
+
+#[cfg(not(any(unix, windows)))]
+fn stop_process(_pid: u32) -> Result<()> {
+    bail!("Stopping tunnel processes is not supported on this platform");
 }
 
 fn load_api_client(global: &GlobalOptions) -> Result<ApiClient> {
@@ -4182,6 +5620,8 @@ fn parse_cli() -> Result<(GlobalOptions, Command)> {
         "admin" => Command::Admin(parse_admin(&mut args)?),
         "auth" => Command::Auth(parse_auth(&mut args)?),
         "connect" => Command::Connect(parse_connect(&mut args)?),
+        "public" => Command::Public(parse_public(&mut args)?),
+        "bench" => Command::Bench(parse_bench(&mut args)?),
         "run" => Command::Run(parse_run(&mut args)?),
         "ps" => Command::Ps(parse_ps(&mut args)?),
         "logs" => Command::Logs(parse_logs(&mut args)?),
@@ -4408,6 +5848,69 @@ fn parse_connect(args: &mut Args) -> Result<ConnectCommand> {
     }
 }
 
+fn parse_public(args: &mut Args) -> Result<PublicCommand> {
+    let Some(subcommand) = args.next() else {
+        return Err(help_error("public"));
+    };
+
+    match subcommand.as_str() {
+        "up" => {
+            let mut tunnel = PublicTunnelKind::Ngrok;
+            let mut port = None;
+            let mut log_file = None;
+            let mut no_open = false;
+
+            while let Some(arg) = args.next() {
+                match arg.as_str() {
+                    "--tunnel" => {
+                        let value = args.next_required("--tunnel")?;
+                        tunnel = PublicTunnelKind::parse(&value)
+                            .ok_or_else(|| anyhow!("Invalid value for --tunnel: {value}"))?;
+                    }
+                    "--ngrok" => tunnel = PublicTunnelKind::Ngrok,
+                    "--bore" => tunnel = PublicTunnelKind::Bore,
+                    "--cloudflare" => tunnel = PublicTunnelKind::Cloudflare,
+                    "--port" => {
+                        let value = args.next_required("--port")?;
+                        port = Some(
+                            value
+                                .parse::<u16>()
+                                .with_context(|| format!("Invalid value for --port: {value}"))?,
+                        );
+                    }
+                    "--log-file" => {
+                        log_file = Some(PathBuf::from(args.next_required("--log-file")?))
+                    }
+                    "--no-open" => no_open = true,
+                    "-h" | "--help" => return Err(help_error("public up")),
+                    other => bail!("Unknown public up option: {other}"),
+                }
+            }
+
+            Ok(PublicCommand::Up(PublicUpCommand {
+                tunnel,
+                port,
+                log_file,
+                no_open,
+            }))
+        }
+        "status" => Ok(PublicCommand::Status),
+        "down" => Ok(PublicCommand::Down),
+        _ => Err(help_error("public")),
+    }
+}
+
+fn parse_bench(args: &mut Args) -> Result<BenchCommand> {
+    let Some(subcommand) = args.next() else {
+        return Err(help_error("bench"));
+    };
+    let target = BenchTarget::parse(&subcommand).ok_or_else(|| help_error("bench"))?;
+    Ok(BenchCommand {
+        target,
+        args: args.remaining(),
+    })
+}
+
 fn parse_run(args: &mut Args) -> Result<RunCommand> {
     let mut command = default_run_command();
     let mut interactive = false;
@@ -4606,6 +6109,8 @@ fn parse_codelab(args: &mut Args) -> Result<CodelabCommand> {
                 "codelab import",
             )?),
         }),
+        "pull" => parse_codelab_pull(args),
+        "push" => parse_codelab_push(args),
         "push-steps" => parse_push_steps(args),
         _ => Err(help_error("codelab")),
     }
@@ -4731,6 +6236,51 @@ fn parse_push_steps(args: &mut Args) -> Result<CodelabCommand> {
     Ok(CodelabCommand::PushSteps {
         id: id.ok_or_else(|| anyhow!("Missing --id"))?,
         file: file.ok_or_else(|| anyhow!("Missing --file"))?,
+    })
+}
+
+fn parse_codelab_pull(args: &mut Args) -> Result<CodelabCommand> {
+    let mut id = None;
+    let mut output = None;
+    let mut format = ManifestFormat::Yaml;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--id" => id = Some(args.next_required("--id")?),
+            "--output" => output = Some(PathBuf::from(args.next_required("--output")?)),
+            "--format" => {
+                let value = args.next_required("--format")?;
+                format = ManifestFormat::parse(&value)
+                    .ok_or_else(|| anyhow!("Invalid manifest format: {value}"))?;
+            }
+            "-h" | "--help" => return Err(help_error("codelab pull")),
+            other => bail!("Unknown codelab pull option: {other}"),
+        }
+    }
+
+    Ok(CodelabCommand::Pull {
+        id: id.ok_or_else(|| anyhow!("Missing --id"))?,
+        output,
+        format,
+    })
+}
+
+fn parse_codelab_push(args: &mut Args) -> Result<CodelabCommand> {
+    let mut manifest = None;
+    let mut id = None;
+
+    while let Some(arg) = args.next() {
+        match arg.as_str() {
+            "--manifest" => manifest = Some(PathBuf::from(args.next_required("--manifest")?)),
+            "--id" => id = Some(args.next_required("--id")?),
+            "-h" | "--help" => return Err(help_error("codelab push")),
+            other => bail!("Unknown codelab push option: {other}"),
+        }
+    }
+
+    Ok(CodelabCommand::Push {
+        manifest: manifest.ok_or_else(|| anyhow!("Missing --manifest"))?,
+        id,
     })
 }
 
@@ -5639,6 +7189,10 @@ fn command_help_lines() -> &'static [&'static str] {
         "connect use [--name <name>]",
         "connect list",
         "connect status",
+        "public up [--tunnel <ngrok|bore|cloudflare>] [--ngrok|--bore|--cloudflare] [--port <port>] [--log-file <path>] [--no-open]",
+        "public status",
+        "public down",
+        "bench <local|ops|ws> [-- <bench options...>]",
         "run [--engine <auto|docker|podman>] [--postgres] [--pull] [--open] [--interactive] [--admin-id <id>] [--admin-pw <pw>] [--data-dir <path>] [--frontend-port <port>] [--backend-port <port>] [--image-registry <registry>] [--image-namespace <namespace>] [--image-tag <tag>]",
         "ps [--service <name>]",
         "logs [--service <name>] [--tail <n>] [--no-follow]",
@@ -5656,6 +7210,8 @@ fn command_help_lines() -> &'static [&'static str] {
         "codelab copy --id <id>",
         "codelab export --id <id> [--output <path>]",
         "codelab import --file <zip>",
+        "codelab pull --id <id> [--output <dir>] [--format <yaml|json>]",
+        "codelab push --manifest <path> [--id <id>]",
         "codelab push-steps --id <id> --file <json>",
         "backup export [--output <path>]",
         "backup inspect --file <zip>",
@@ -5815,6 +7371,12 @@ impl Args {
     fn next_required(&mut self, flag: &str) -> Result<String> {
         self.next()
             .ok_or_else(|| anyhow!("Missing value for {flag}"))
+    }
+
+    fn remaining(&mut self) -> Vec<String> {
+        let rest = self.items[self.index..].to_vec();
+        self.index = self.items.len();
+        rest
     }
 
     fn ensure_exhausted(&self) -> Result<()> {
@@ -5991,5 +7553,28 @@ mod tests {
             ),
             "'/Users/Jane Doe/.open-codelabs/runtime/local-stack/compose.yml'"
         );
+    }
+
+    #[test]
+    fn sanitize_manifest_filename_collapses_separators() {
+        assert_eq!(sanitize_manifest_filename("Hello World"), "hello_world");
+        assert_eq!(sanitize_manifest_filename("Rust/Axum 101"), "rust_axum_101");
+        assert_eq!(sanitize_manifest_filename("!!!"), "step");
+    }
+
+    #[test]
+    fn resolve_manifest_path_accepts_directory_with_default_manifest() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let manifest = dir.path().join("codelab.yaml");
+        fs::write(&manifest, "version: 1\n").expect("write manifest");
+
+        let resolved = resolve_manifest_path(dir.path()).expect("resolve manifest");
+        assert_eq!(resolved, manifest);
+    }
+
+    #[test]
+    fn normalize_manifest_relative_path_uses_forward_slashes() {
+        let path = Path::new("steps").join("01_setup.md");
+        assert_eq!(normalize_manifest_relative_path(&path), "steps/01_setup.md");
     }
 }

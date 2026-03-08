@@ -48,7 +48,7 @@ docker compose up --build
 If you prefer a CLI-first workflow, install `oc` and let it start the published frontend/backend images for you:
 
 ```bash
-cargo install --path backend --bin oc
+cargo install --path backend --bin oc --bin local_bench --bin ops_bench --bin ws_bench
 oc run --open
 ```
 
@@ -80,23 +80,25 @@ oc init
 ```bash
 git clone https://github.com/JAICHANGPARK/open-codelabs.git
 cd open-codelabs
-cargo install --path backend --bin oc
+cargo install --path backend --bin oc --bin local_bench --bin ops_bench --bin ws_bench
 ```
+
+`oc` is still the only user-facing entrypoint. The companion benchmark binaries are installed alongside it so `oc bench local|ops|ws` can dispatch without requiring a source checkout.
 
 ### Build a local release binary
 
 ```bash
 cd backend
-cargo build --release --bin oc
+cargo build --release --bin oc --bin local_bench --bin ops_bench --bin ws_bench
 ./target/release/oc --help
 ```
 
 ### Remove the CLI
 
-If you installed `oc` with Cargo:
+If you installed the CLI with Cargo:
 
 ```bash
-cargo uninstall oc
+cargo uninstall backend
 ```
 
 If you built or downloaded a standalone binary, remove the copied `oc` binary from your `PATH`.

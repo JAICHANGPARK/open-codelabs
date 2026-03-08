@@ -20,19 +20,15 @@ jobs:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             archive_ext: tar.gz
-            binary_name: oc
           - os: macos-15-intel
             target: x86_64-apple-darwin
             archive_ext: tar.gz
-            binary_name: oc
           - os: macos-15
             target: aarch64-apple-darwin
             archive_ext: tar.gz
-            binary_name: oc
           - os: windows-latest
             target: x86_64-pc-windows-msvc
             archive_ext: zip
-            binary_name: oc.exe
 
     steps:
       - uses: actions/checkout@v4
@@ -44,7 +40,7 @@ jobs:
 
       - name: Build release binary
         working-directory: backend
-        run: cargo build --locked --release --bin oc
+        run: cargo build --locked --release --bin oc --bin local_bench --bin ops_bench --bin ws_bench
 
       - name: Compute version metadata
         id: meta
@@ -65,7 +61,10 @@ jobs:
         run: |
           PACKAGE_DIR="${{ steps.meta.outputs.package_dir }}"
           mkdir -p "dist/${PACKAGE_DIR}"
-          cp "backend/target/release/${{ matrix.binary_name }}" "dist/${PACKAGE_DIR}/oc"
+          cp "backend/target/release/oc" "dist/${PACKAGE_DIR}/oc"
+          cp "backend/target/release/local_bench" "dist/${PACKAGE_DIR}/local_bench"
+          cp "backend/target/release/ops_bench" "dist/${PACKAGE_DIR}/ops_bench"
+          cp "backend/target/release/ws_bench" "dist/${PACKAGE_DIR}/ws_bench"
           cp README.md LICENSE "dist/${PACKAGE_DIR}/"
           tar -C dist -czf "dist/${PACKAGE_DIR}.tar.gz" "${PACKAGE_DIR}"
 
@@ -75,7 +74,10 @@ jobs:
         run: |
           $packageDir = "${{ steps.meta.outputs.package_dir }}"
           New-Item -ItemType Directory -Force -Path "dist/$packageDir" | Out-Null
-          Copy-Item "backend/target/release/${{ matrix.binary_name }}" "dist/$packageDir/oc.exe"
+          Copy-Item "backend/target/release/oc.exe" "dist/$packageDir/oc.exe"
+          Copy-Item "backend/target/release/local_bench.exe" "dist/$packageDir/local_bench.exe"
+          Copy-Item "backend/target/release/ops_bench.exe" "dist/$packageDir/ops_bench.exe"
+          Copy-Item "backend/target/release/ws_bench.exe" "dist/$packageDir/ws_bench.exe"
           Copy-Item "README.md" "dist/$packageDir/README.md"
           Copy-Item "LICENSE" "dist/$packageDir/LICENSE"
           Compress-Archive -Path "dist/$packageDir/*" -DestinationPath "dist/$packageDir.zip" -Force
