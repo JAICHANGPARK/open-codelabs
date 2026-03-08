@@ -45,6 +45,15 @@ cd open-codelabs
 docker compose up --build
 ```
 
+CLI 中心で使いたい場合は、`oc` をインストールして公開済みの frontend/backend イメージをそのまま起動できます：
+
+```bash
+cargo install --path backend --bin oc
+oc run --open
+```
+
+`oc` のインストール、削除、クリーンアップ手順は [Installation Guide](docs/getting-started/installation.md) と [CLI リファレンス](docs/user-guide/cli.md) にまとまっています。
+
 ### 🦭 Podman ユーザーガイド
 Podman を使用している場合は、`podman-compose` を使用できます：
 ```bash
@@ -59,6 +68,54 @@ podman-compose up --build
 cp .env.sample .env
 docker compose -f docker-compose.images.yml up
 ```
+
+---
+
+## 💻 CLI (`oc`)
+
+`oc` CLI はローカル Open Codelabs スタックの起動と、既存サーバーの運用管理の両方を扱えます。
+
+最初のセットアップをガイド付きで始めたい場合は、次を実行します：
+
+```bash
+oc init
+```
+
+`oc init` は矢印キーで選ぶメニュー、Space で切り替える複数選択、profile 保存、必要な場面での非表示パスワード入力、ブラウザベースの管理者認証ハンドオフをまとめて案内します。
+
+### ソースからインストール
+
+```bash
+git clone https://github.com/JAICHANGPARK/open-codelabs.git
+cd open-codelabs
+cargo install --path backend --bin oc
+```
+
+### 公開済みイメージでローカルスタックを起動
+
+```bash
+oc run --open
+```
+
+`oc run` は `docker` または `podman` を自動検出し、エンジンが未インストールまたは未起動なら案内を表示します。対話端末でフラグなしに実行すると、矢印キーと Space を使うセットアップ wizard が始まります。
+
+接続済みサーバーに切り替える場合は、次の流れが基本です：
+
+```bash
+oc connect add --name local --url http://localhost:8080 --runtime backend --activate
+oc auth login
+oc codelab list
+```
+
+### Open Codelabs を MCP サーバーとして公開
+
+```bash
+oc mcp serve
+```
+
+`oc mcp serve` は現在の `oc` profile と session を再利用して stdio MCP サーバーを起動します。Claude Desktop、Codex、Cursor などの MCP host から codelab、guide、steps を直接読めるだけでなく、ファシリテーター/作成者向け prompt テンプレートも再利用でき、管理者セッションなら一部の運用ツールも使えます。
+
+生のコマンド一覧は `oc --help`、詳細な説明は [CLI リファレンス](docs/user-guide/cli.md)、host 設定例は [MCP Server ガイド](docs/user-guide/mcp.md) を参照してください。
 
 ---
 

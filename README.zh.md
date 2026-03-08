@@ -44,6 +44,15 @@ cd open-codelabs
 docker compose up --build
 ```
 
+如果你更偏向 CLI 工作流，也可以安装 `oc`，直接启动已发布的 frontend/backend 镜像：
+
+```bash
+cargo install --path backend --bin oc
+oc run --open
+```
+
+`oc` 的安装、卸载与清理说明可参考 [Installation Guide](docs/getting-started/installation.md) 和 [CLI 参考](docs/user-guide/cli.md)。
+
 ### 🦭 Podman 用户指南
 如果使用 Podman，可使用 `podman-compose`：
 ```bash
@@ -58,6 +67,54 @@ podman-compose up --build
 cp .env.sample .env
 docker compose -f docker-compose.images.yml up
 ```
+
+---
+
+## 💻 CLI (`oc`)
+
+`oc` CLI 既可以启动本地 Open Codelabs 栈，也可以管理已经运行中的服务器。
+
+如果想以引导式方式完成首次配置，建议从这里开始：
+
+```bash
+oc init
+```
+
+`oc init` 会打开交互式终端流程，包含方向键菜单、使用 Space 切换的多选界面、profile 保存、需要时的隐藏密码输入，以及基于浏览器的管理员认证接力流程。
+
+### 从源码安装
+
+```bash
+git clone https://github.com/JAICHANGPARK/open-codelabs.git
+cd open-codelabs
+cargo install --path backend --bin oc
+```
+
+### 使用已发布镜像启动本地栈
+
+```bash
+oc run --open
+```
+
+`oc run` 会自动检测 `docker` 或 `podman`，如果容器引擎未安装或未启动，会直接给出提示。在交互式终端里不带参数执行时，会启动使用方向键和 Space 的设置向导。
+
+如果要连接到已经存在的服务器，常见流程是：
+
+```bash
+oc connect add --name local --url http://localhost:8080 --runtime backend --activate
+oc auth login
+oc codelab list
+```
+
+### 将 Open Codelabs 暴露为 MCP 服务器
+
+```bash
+oc mcp serve
+```
+
+`oc mcp serve` 会复用当前 `oc` profile 与 session，启动一个 stdio MCP 服务器。这样 Claude Desktop、Codex、Cursor 等 MCP host 就可以直接读取 codelab、guide、steps，也可以复用面向组织者和内容作者的 prompt 模板；如果当前是管理员会话，还能调用一部分运维工具。
+
+原始命令列表请看 `oc --help`，详细说明请看 [CLI 参考](docs/user-guide/cli.md)，host 配置示例请看 [MCP Server 指南](docs/user-guide/mcp.md)。
 
 ---
 
