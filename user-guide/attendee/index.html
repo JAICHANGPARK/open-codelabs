@@ -1,0 +1,3812 @@
+
+<!doctype html>
+<html lang="ko" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Google Codelab 스타일의 핸즈온 세션 플랫폼">
+      
+      
+        <meta name="author" content="JAICHANGPARK, 박제창">
+      
+      
+        <link rel="canonical" href="https://JAICHANGPARK.github.io/open-codelabs/user-guide/attendee/">
+      
+      
+        <link rel="prev" href="../facilitator/">
+      
+      
+        <link rel="next" href="../mcp/">
+      
+      
+        
+          <link rel="alternate" href="./" hreflang="ko">
+        
+          <link rel="alternate" href="../../en/user-guide/attendee/" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>참석자 가이드 - Hands-on System (Open Codelabs)</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#_1" class="md-skip">
+          콘텐츠로 이동
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="상단/헤더">
+    <a href="../.." title="Hands-on System (Open Codelabs)" class="md-header__button md-logo" aria-label="Hands-on System (Open Codelabs)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Hands-on System (Open Codelabs)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              참석자 가이드
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="다크 모드로 전환"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="다크 모드로 전환" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="라이트 모드로 전환"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="라이트 모드로 전환" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="언어설정">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="ko" class="md-select__link">
+              한국어
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../en/user-guide/attendee/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="검색" placeholder="검색" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="검색">
+        
+        <button type="reset" class="md-search__icon md-icon" title="지우기" aria-label="지우기" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            검색 초기화
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/JAICHANGPARK/open-codelabs" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    JAICHANGPARK/open-codelabs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="탭" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  홈
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/quickstart/" class="md-tabs__link">
+          
+  
+  
+  시작하기
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../facilitator/" class="md-tabs__link">
+          
+  
+  
+  사용 가이드
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../self-hosting/docker/" class="md-tabs__link">
+          
+  
+  
+  Self-Hosting
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../specification/overview/" class="md-tabs__link">
+          
+  
+  
+  프로젝트 명세
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/system-architecture/" class="md-tabs__link">
+          
+  
+  
+  아키텍처
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../code-guide/backend-examples/" class="md-tabs__link">
+          
+  
+  
+  코드 가이드
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../contributing/guide/" class="md-tabs__link">
+          
+  
+  
+  기여하기
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  라이선스
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="네비게이션" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Hands-on System (Open Codelabs)" class="md-nav__button md-logo" aria-label="Hands-on System (Open Codelabs)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Hands-on System (Open Codelabs)
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/JAICHANGPARK/open-codelabs" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    JAICHANGPARK/open-codelabs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    홈
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    시작하기
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    시작하기
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    빠른 시작
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    설치 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/first-codelab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    첫 번째 Codelab 만들기
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    사용 가이드
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    사용 가이드
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../facilitator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    퍼실리테이터 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    참석자 가이드
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    참석자 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 시작 전에
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 시작 전에">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        권장 환경
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 접속하고 참가 등록하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 접속하고 참가 등록하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#2-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2-1. 접속 링크 받기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2-2. 코드랩 목록에서 세션 선택하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2-3. 참가 등록하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-4-google" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2-4. Google 로그인
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2-5. 다시 들어오기
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 학습 화면 빠르게 익히기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 학습 화면 빠르게 익히기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        꼭 알아두면 좋은 버튼
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 단계별로 학습 진행하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 단계별로 학습 진행하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#4-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4-1. 스텝 이동
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4-2. 진행 위치 저장
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4-3. 코드와 명령어 실행
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-4-tts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4-4. 읽어주기(TTS)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 추가 학습 도구 사용하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 추가 학습 도구 사용하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#5-1-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5-1. Guide 보기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-2-materials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5-2. 자료(Materials) 다운로드
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-3-playground" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5-3. Playground 사용하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-4-ask-gemini" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5-4. Ask Gemini 사용하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 질문하고 소통하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 질문하고 소통하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#6-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6-1. 도움 요청 보내기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6-2. 채팅 패널 사용하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6-3. 채팅에 이미지 올리기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6-4. 본문에 인라인 댓글 남기기
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 화면 공유 사용하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. 화면 공유 사용하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#7-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7-1. 퍼실리테이터 화면 보기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7-2. 내 화면 공유하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 과제 제출, 퀴즈, 피드백
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. 과제 제출, 퀴즈, 피드백">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#8-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8-1. 제출물 업로드
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8-2. 퀴즈 응시
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8-3. 피드백 제출
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 완료와 수료증
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 완료와 수료증">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#9-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9-1. 수료 버튼 누르기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9-2. 수료증 발급 받기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9-3. 라이브 상태 보기
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 자주 겪는 문제와 해결 방법
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. 자주 겪는 문제와 해결 방법">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        페이지가 열리지 않아요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        코드랩이 목록에 안 보여요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        참가 등록이 안 돼요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        진행 위치가 저장되지 않아요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        채팅 또는 DM이 안 돼요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        화면 공유가 안 보여요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        파일 업로드가 실패해요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gemini" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gemini 답변이 안 와요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        수료증이 안 열려요
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 참석자를 위한 빠른 체크리스트
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. 참석자를 위한 빠른 체크리스트">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        시작 전
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        진행 중
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        종료 전
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 추가 문서
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP 서버
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI 레퍼런스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-Hosting
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Self-Hosting
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker로 배포하기
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/gcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GCP (Google Cloud)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/aws/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS (Amazon Web Services)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/firebase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    파이어베이스 (Firebase)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/supabase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Supabase
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/local-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    로컬 개발 환경
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/public-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    공개 배포 (ngrok/bore/cloudflare)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    환경 변수 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    보안 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    프로젝트 명세
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    프로젝트 명세
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    개요
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    기능 명세
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/cli-proposal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI 제안 및 매트릭스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/database-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데이터베이스 스키마
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 레퍼런스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    아키텍처
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    아키텍처
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/system-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    시스템 아키텍처
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    백엔드 구조
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/frontend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    프론트엔드 구조
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/websocket/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실시간 통신 (WebSocket)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    코드 가이드
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    코드 가이드
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/backend-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    백엔드 코드 예제
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/frontend-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    프론트엔드 코드 예제
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/data-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데이터 모델
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/api-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 사용 예제
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    기여하기
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    기여하기
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    기여 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    개발 워크플로우
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    벤치마크
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/code-style/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    코드 스타일
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    라이선스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. 시작 전에
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. 시작 전에">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        권장 환경
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. 접속하고 참가 등록하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. 접속하고 참가 등록하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#2-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2-1. 접속 링크 받기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2-2. 코드랩 목록에서 세션 선택하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2-3. 참가 등록하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-4-google" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2-4. Google 로그인
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2-5. 다시 들어오기
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. 학습 화면 빠르게 익히기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. 학습 화면 빠르게 익히기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        꼭 알아두면 좋은 버튼
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. 단계별로 학습 진행하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. 단계별로 학습 진행하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#4-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4-1. 스텝 이동
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4-2. 진행 위치 저장
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4-3. 코드와 명령어 실행
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-4-tts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4-4. 읽어주기(TTS)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. 추가 학습 도구 사용하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. 추가 학습 도구 사용하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#5-1-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5-1. Guide 보기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-2-materials" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5-2. 자료(Materials) 다운로드
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-3-playground" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5-3. Playground 사용하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-4-ask-gemini" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5-4. Ask Gemini 사용하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. 질문하고 소통하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. 질문하고 소통하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#6-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6-1. 도움 요청 보내기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6-2. 채팅 패널 사용하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6-3. 채팅에 이미지 올리기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6-4. 본문에 인라인 댓글 남기기
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. 화면 공유 사용하기
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. 화면 공유 사용하기">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#7-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7-1. 퍼실리테이터 화면 보기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7-2. 내 화면 공유하기
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. 과제 제출, 퀴즈, 피드백
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. 과제 제출, 퀴즈, 피드백">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#8-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8-1. 제출물 업로드
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8-2. 퀴즈 응시
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8-3. 피드백 제출
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. 완료와 수료증
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. 완료와 수료증">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#9-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9-1. 수료 버튼 누르기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9-2. 수료증 발급 받기
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9-3. 라이브 상태 보기
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. 자주 겪는 문제와 해결 방법
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. 자주 겪는 문제와 해결 방법">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        페이지가 열리지 않아요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        코드랩이 목록에 안 보여요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        참가 등록이 안 돼요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        진행 위치가 저장되지 않아요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        채팅 또는 DM이 안 돼요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        화면 공유가 안 보여요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        파일 업로드가 실패해요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gemini" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gemini 답변이 안 와요
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        수료증이 안 열려요
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. 참석자를 위한 빠른 체크리스트
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="11. 참석자를 위한 빠른 체크리스트">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        시작 전
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        진행 중
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        종료 전
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. 추가 문서
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="_1">참석자 사용 가이드<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h1>
+<p>이 문서는 Open Codelabs에 <strong>참석자(Attendee)</strong>로 참여하는 분들을 위한 실사용 가이드입니다. 현재 구현 기준으로, 참가 등록부터 학습 진행, 질문, 제출, 수료증 발급까지 한 번에 이해할 수 있도록 정리했습니다.</p>
+<div class="admonition info">
+<p class="admonition-title">먼저 알아두세요</p>
+<p>워크샵마다 보이는 기능이 조금씩 다를 수 있습니다.
+예를 들어 <strong>가이드</strong>, <strong>자료</strong>, <strong>채팅</strong>, <strong>화면 공유</strong>, <strong>제출물</strong>, <strong>퀴즈</strong>, <strong>Gemini</strong>, <strong>수료증</strong>은 세션 설정에 따라 보이거나 숨겨질 수 있습니다.</p>
+</div>
+<hr />
+<h2 id="1">1. 시작 전에<a class="headerlink" href="#1" title="Permanent link">&para;</a></h2>
+<h3 id="_2">권장 환경<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>브라우저</strong>: Chrome 또는 Edge 권장</li>
+<li><strong>네트워크</strong>: 안정적인 인터넷 연결</li>
+<li><strong>저장 허용</strong>: 브라우저의 쿠키 / 로컬 스토리지 허용</li>
+<li><strong>실습 환경</strong>: 세션에서 안내한 IDE, 터미널, 계정, 샘플 코드 준비</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">모바일도 열 수는 있지만</p>
+<p>읽기 위주 학습은 모바일에서도 가능하지만, 실습 입력, 파일 제출, 채팅, 화면 공유까지 고려하면 <strong>노트북 또는 데스크톱 사용이 훨씬 편합니다</strong>.</p>
+</div>
+<hr />
+<h2 id="2">2. 접속하고 참가 등록하기<a class="headerlink" href="#2" title="Permanent link">&para;</a></h2>
+<h3 id="2-1">2-1. 접속 링크 받기<a class="headerlink" href="#2-1" title="Permanent link">&para;</a></h3>
+<p>퍼실리테이터에게서 아래 중 하나를 받게 됩니다.</p>
+<ul>
+<li><strong>QR 코드</strong></li>
+<li><strong>직접 접속 URL</strong></li>
+</ul>
+<p>예시:</p>
+<ul>
+<li><code>http://localhost:5173</code></li>
+<li><code>https://your-workshop-url.example.com</code></li>
+</ul>
+<h3 id="2-2">2-2. 코드랩 목록에서 세션 선택하기<a class="headerlink" href="#2-2" title="Permanent link">&para;</a></h3>
+<p>접속하면 참가자용 코드랩 목록이 열립니다.</p>
+<ul>
+<li>공개된 코드랩만 목록에 표시됩니다.</li>
+<li>검색창에서 제목이나 설명으로 빠르게 찾을 수 있습니다.</li>
+<li>이미 참여했던 서버리스 세션에서는 다시 이어서 들어갈 수 있는 목록이 따로 보일 수 있습니다.</li>
+</ul>
+<h3 id="2-3">2-3. 참가 등록하기<a class="headerlink" href="#2-3" title="Permanent link">&para;</a></h3>
+<p>코드랩을 선택하면 등록 화면이 열립니다. 일반적으로 다음 항목을 입력합니다.</p>
+<ul>
+<li><strong>닉네임</strong>: 필수</li>
+<li><strong>이메일</strong>: 선택</li>
+<li><strong>고유 코드</strong>: 필수</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">고유 코드는 다시 들어올 때 중요합니다</p>
+<p>같은 닉네임으로 다시 접속하려면 <strong>이전에 쓴 고유 코드와 동일해야</strong> 같은 참가자로 이어집니다.
+닉네임만 같고 코드가 다르면 중복 닉네임으로 처리되어 입장하지 못할 수 있습니다.</p>
+</div>
+<h3 id="2-4-google">2-4. Google 로그인<a class="headerlink" href="#2-4-google" title="Permanent link">&para;</a></h3>
+<p>일부 서버리스 배포 환경에서는 <strong>Google 로그인 버튼</strong>이 보일 수 있습니다.</p>
+<ul>
+<li>버튼이 보이면 Google 계정으로 바로 참가 등록할 수 있습니다.</li>
+<li>버튼이 없다면 일반 닉네임 + 코드 방식으로 참가하면 됩니다.</li>
+</ul>
+<h3 id="2-5">2-5. 다시 들어오기<a class="headerlink" href="#2-5" title="Permanent link">&para;</a></h3>
+<p>같은 브라우저에서는 참가 정보와 진행 위치가 저장되어, 재접속 시 자동으로 이어서 들어갈 수 있습니다.</p>
+<p>다시 접속이 안 된다면 아래를 확인하세요.</p>
+<ul>
+<li>다른 브라우저를 사용하고 있지 않은지</li>
+<li>시크릿/프라이빗 모드인지</li>
+<li>쿠키/로컬 스토리지를 지우지 않았는지</li>
+<li>닉네임과 고유 코드를 정확히 기억하는지</li>
+</ul>
+<hr />
+<h2 id="3">3. 학습 화면 빠르게 익히기<a class="headerlink" href="#3" title="Permanent link">&para;</a></h2>
+<p>참가자 화면은 크게 네 영역으로 보면 편합니다.</p>
+<table>
+<thead>
+<tr>
+<th>위치</th>
+<th>역할</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>왼쪽 사이드바</td>
+<td>스텝 목록, 자료, 제출물 확인</td>
+</tr>
+<tr>
+<td>상단 바</td>
+<td>가이드, 플레이그라운드, 채팅, 프로필, 화면 공유</td>
+</tr>
+<tr>
+<td>가운데 본문</td>
+<td>현재 스텝 설명, 코드, 이미지, 인라인 댓글, 읽어주기(TTS)</td>
+</tr>
+<tr>
+<td>오른쪽 채팅 패널</td>
+<td>참가자 목록, 공개 채팅, 1:1 DM</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_3">꼭 알아두면 좋은 버튼<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Guide</strong>: 세션 전체 가이드 보기</li>
+<li><strong>Code</strong>: 플레이그라운드 패널 열기</li>
+<li><strong>Chat</strong>: 공개 채팅 / DM 열기</li>
+<li><strong>Profile</strong>: 내 이름 확인</li>
+<li><strong>Screen Share</strong>: 퍼실리테이터 화면 보기 또는 내 화면 공유</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">첫 방문 시 가이드가 자동으로 열릴 수 있습니다</p>
+<p>퍼실리테이터가 가이드를 준비해 둔 세션이라면, 처음 들어왔을 때 <strong>Guide 패널이 먼저 열릴 수 있습니다</strong>.
+세션 목표, 준비물, 사전 설명을 먼저 읽고 시작하세요.</p>
+</div>
+<hr />
+<h2 id="4">4. 단계별로 학습 진행하기<a class="headerlink" href="#4" title="Permanent link">&para;</a></h2>
+<h3 id="4-1">4-1. 스텝 이동<a class="headerlink" href="#4-1" title="Permanent link">&para;</a></h3>
+<p>학습은 스텝 단위로 진행됩니다.</p>
+<ul>
+<li>왼쪽 스텝 목록에서 원하는 단계로 바로 이동</li>
+<li>하단의 <strong>이전 / 다음</strong> 버튼으로 순서대로 진행</li>
+<li>이미 본 단계는 언제든 다시 돌아가서 복습 가능</li>
+</ul>
+<h3 id="4-2">4-2. 진행 위치 저장<a class="headerlink" href="#4-2" title="Permanent link">&para;</a></h3>
+<p>현재 진행 중인 단계는 브라우저에 자동 저장됩니다.</p>
+<ul>
+<li>같은 브라우저로 다시 접속하면 이어서 진행 가능</li>
+<li>다른 브라우저나 다른 기기에서는 같은 위치가 자동 복원되지 않을 수 있음</li>
+</ul>
+<h3 id="4-3">4-3. 코드와 명령어 실행<a class="headerlink" href="#4-3" title="Permanent link">&para;</a></h3>
+<p>본문에는 Markdown 기반 설명과 코드 블록이 표시됩니다.</p>
+<ul>
+<li>코드는 복사해서 IDE, 터미널, 브라우저 콘솔 등에 붙여 넣어 실행</li>
+<li>이미지, 링크, 외부 문서가 함께 제공될 수 있음</li>
+<li>YouTube 링크가 포함된 경우 본문에서 바로 재생될 수 있음</li>
+</ul>
+<h3 id="4-4-tts">4-4. 읽어주기(TTS)<a class="headerlink" href="#4-4-tts" title="Permanent link">&para;</a></h3>
+<p>읽기 버튼이 보이면 현재 단계의 제목과 내용을 음성으로 읽을 수 있습니다.</p>
+<ul>
+<li>길게 읽어야 하는 설명을 귀로 듣고 싶을 때 유용</li>
+<li>다시 누르면 중지</li>
+</ul>
+<hr />
+<h2 id="5">5. 추가 학습 도구 사용하기<a class="headerlink" href="#5" title="Permanent link">&para;</a></h2>
+<h3 id="5-1-guide">5-1. Guide 보기<a class="headerlink" href="#5-1-guide" title="Permanent link">&para;</a></h3>
+<p>Guide는 보통 세션 전체를 위한 상단 설명입니다.</p>
+<ul>
+<li>준비물</li>
+<li>실습 전 설정</li>
+<li>전체 진행 흐름</li>
+<li>각 단계에 들어가기 전 공통 안내</li>
+</ul>
+<p>처음 방문 시 자동으로 열릴 수 있고, 이후에는 상단의 <code>Guide</code> 버튼으로 다시 열 수 있습니다.</p>
+<h3 id="5-2-materials">5-2. 자료(Materials) 다운로드<a class="headerlink" href="#5-2-materials" title="Permanent link">&para;</a></h3>
+<p>퍼실리테이터가 자료를 추가해 두었다면 왼쪽 사이드바에 표시됩니다.</p>
+<ul>
+<li>링크 자료: 클릭해서 새 탭에서 열기</li>
+<li>파일 자료: 다운로드해서 열기</li>
+</ul>
+<p>예를 들어 이런 자료가 포함될 수 있습니다.</p>
+<ul>
+<li>PDF 핸드아웃</li>
+<li>실습용 샘플 파일</li>
+<li>참고 링크</li>
+<li>API 문서</li>
+</ul>
+<h3 id="5-3-playground">5-3. Playground 사용하기<a class="headerlink" href="#5-3-playground" title="Permanent link">&para;</a></h3>
+<p>일부 코드랩은 본문에서 바로 실행해 볼 수 있는 Playground를 제공합니다.</p>
+<p>현재 세션 내용에 따라 다음과 같은 외부 실행 환경이 연결될 수 있습니다.</p>
+<ul>
+<li>DartPad</li>
+<li>Go Playground</li>
+<li>Pyodide</li>
+<li>JupyterLite</li>
+</ul>
+<p>활용 방법:</p>
+<ol>
+<li>상단의 <code>Code</code> 버튼 클릭</li>
+<li>언어 탭 선택</li>
+<li>예제 코드 복사</li>
+<li>새 탭으로 열거나, 가능한 경우 패널 안에서 바로 실행</li>
+</ol>
+<h3 id="5-4-ask-gemini">5-4. Ask Gemini 사용하기<a class="headerlink" href="#5-4-ask-gemini" title="Permanent link">&para;</a></h3>
+<p>세션 중 궁금한 부분이 있으면 본문에서 텍스트를 드래그해 <strong>Ask Gemini</strong>를 열 수 있습니다.</p>
+<p>사용 흐름:</p>
+<ol>
+<li>본문에서 궁금한 문장을 드래그</li>
+<li>떠오르는 메뉴에서 <strong>Ask Gemini</strong> 클릭</li>
+<li>Gemini API 키를 입력하거나 저장</li>
+<li>질문 입력 후 답변 받기</li>
+</ol>
+<div class="admonition note">
+<p class="admonition-title">Gemini는 개인 키를 사용합니다</p>
+<p>참가자용 Gemini는 일반적으로 <strong>브라우저에 저장한 개인 API 키</strong>를 사용합니다.
+세션 운영 방식에 따라 AI 기능이 보이지 않거나 사용하지 않을 수도 있습니다.</p>
+</div>
+<hr />
+<h2 id="6">6. 질문하고 소통하기<a class="headerlink" href="#6" title="Permanent link">&para;</a></h2>
+<h3 id="6-1">6-1. 도움 요청 보내기<a class="headerlink" href="#6-1" title="Permanent link">&para;</a></h3>
+<p>현재 단계에서 막혔다면 <strong>Help 요청</strong>을 보낼 수 있습니다.</p>
+<ul>
+<li>요청 시 현재 스텝 번호가 함께 전달됩니다.</li>
+<li>퍼실리테이터가 어느 단계에서 막혔는지 바로 확인할 수 있습니다.</li>
+<li>막혔을 때는 채팅 전에 Help 요청부터 보내는 것이 더 빠를 수 있습니다.</li>
+</ul>
+<h3 id="6-2">6-2. 채팅 패널 사용하기<a class="headerlink" href="#6-2" title="Permanent link">&para;</a></h3>
+<p>채팅 패널에는 3가지 탭이 있습니다.</p>
+<ul>
+<li><strong>Participants</strong>: 참가자 목록 보기</li>
+<li><strong>Public Chat</strong>: 모두가 보는 공개 채팅</li>
+<li><strong>Direct Messages</strong>: 퍼실리테이터 또는 다른 참가자와 1:1 대화</li>
+</ul>
+<p>공개 채팅에 적합한 내용:</p>
+<ul>
+<li>공통 질문</li>
+<li>공지 확인</li>
+<li>다른 사람도 궁금해할 만한 내용</li>
+</ul>
+<p>DM에 적합한 내용:</p>
+<ul>
+<li>개인 진행 상황</li>
+<li>제출물 확인 요청</li>
+<li>공개로 쓰기 어려운 질문</li>
+</ul>
+<h3 id="6-3">6-3. 채팅에 이미지 올리기<a class="headerlink" href="#6-3" title="Permanent link">&para;</a></h3>
+<p>채팅 입력창 옆 업로드 버튼으로 이미지를 보낼 수 있습니다.</p>
+<ul>
+<li>스크린샷 공유</li>
+<li>오류 화면 전달</li>
+<li>결과물 이미지 전달</li>
+</ul>
+<p>이미지가 업로드되면 채팅 안에서 바로 미리 볼 수 있습니다.</p>
+<h3 id="6-4">6-4. 본문에 인라인 댓글 남기기<a class="headerlink" href="#6-4" title="Permanent link">&para;</a></h3>
+<p>질문을 더 정확하게 남기고 싶다면 본문 텍스트를 선택해 <strong>코멘트 남기기</strong>를 사용할 수 있습니다.</p>
+<p>이 방식이 특히 좋은 경우:</p>
+<ul>
+<li>특정 문장 하나가 이해되지 않을 때</li>
+<li>코드 한 줄에 대해 질문할 때</li>
+<li>가이드와 실제 동작이 다를 때</li>
+</ul>
+<hr />
+<h2 id="7">7. 화면 공유 사용하기<a class="headerlink" href="#7" title="Permanent link">&para;</a></h2>
+<h3 id="7-1">7-1. 퍼실리테이터 화면 보기<a class="headerlink" href="#7-1" title="Permanent link">&para;</a></h3>
+<p>퍼실리테이터가 화면을 공유하면 참가자 화면에 작은 모니터 창이 나타날 수 있습니다.</p>
+<ul>
+<li>최소화 / 확대 가능</li>
+<li>진행자가 현재 어디를 설명하는지 바로 따라가기 좋음</li>
+<li>라이브 데모를 놓쳤을 때 다시 시선을 맞추기 좋음</li>
+</ul>
+<h3 id="7-2">7-2. 내 화면 공유하기<a class="headerlink" href="#7-2" title="Permanent link">&para;</a></h3>
+<p>필요하면 내 화면을 퍼실리테이터에게 공유할 수도 있습니다.</p>
+<p>활용 예:</p>
+<ul>
+<li>오류 상황 직접 보여주기</li>
+<li>내가 어디까지 했는지 빠르게 확인받기</li>
+<li>코드, 터미널, 브라우저 상태를 같이 보여주기</li>
+</ul>
+<p>브라우저에서 화면 공유 권한을 묻는 경우 허용해야 합니다.</p>
+<div class="admonition warning">
+<p class="admonition-title">화면 공유 전 확인</p>
+<p>화면 전체를 공유하면 민감한 정보가 함께 보일 수 있습니다.
+가능하면 필요한 창만 공유하고, 비밀번호 / 개인 메신저 / 개인 파일이 보이지 않는지 먼저 확인하세요.</p>
+</div>
+<hr />
+<h2 id="8">8. 과제 제출, 퀴즈, 피드백<a class="headerlink" href="#8" title="Permanent link">&para;</a></h2>
+<h3 id="8-1">8-1. 제출물 업로드<a class="headerlink" href="#8-1" title="Permanent link">&para;</a></h3>
+<p>세션에서 제출물을 받는 경우 왼쪽 사이드바나 완료 화면에 제출 패널이 보입니다.</p>
+<p>지원 방식:</p>
+<ul>
+<li>파일 업로드</li>
+<li>링크 제출</li>
+</ul>
+<p>현재 구현 기준 제한:</p>
+<ul>
+<li>파일당 최대 5MB</li>
+<li>총 제출 용량 10MB</li>
+<li>이미지 제출물은 서버에서 WebP로 변환될 수 있음</li>
+<li><code>HEIC</code> / <code>HEIF</code>는 지원되지 않음</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">링크 제출이 안 보일 수도 있습니다</p>
+<p>배포 모드에 따라 링크 제출이 비활성화되거나 동작하지 않을 수 있습니다.
+이 경우 파일 업로드 방식으로 제출하거나 퍼실리테이터 안내를 따르세요.</p>
+</div>
+<h3 id="8-2">8-2. 퀴즈 응시<a class="headerlink" href="#8-2" title="Permanent link">&para;</a></h3>
+<p>퀴즈가 설정된 세션이라면 마지막 단계 근처 또는 완료 화면에서 문제를 풀게 됩니다.</p>
+<ul>
+<li>객관식</li>
+<li>복수 선택형</li>
+<li>서술형</li>
+</ul>
+<p>세션 설정에 따라:</p>
+<ul>
+<li>퀴즈가 단순 확인용일 수 있음</li>
+<li>또는 <strong>수료증 발급 전 필수 조건</strong>일 수 있음</li>
+</ul>
+<h3 id="8-3">8-3. 피드백 제출<a class="headerlink" href="#8-3" title="Permanent link">&para;</a></h3>
+<p>마지막에는 보통 학습 만족도와 난이도에 대한 피드백 폼이 나옵니다.</p>
+<p>입력 가능한 항목:</p>
+<ul>
+<li>만족도</li>
+<li>난이도</li>
+<li>자유 의견</li>
+</ul>
+<p>세션에 따라 피드백 제출이 수료 조건일 수 있으므로, 끝까지 제출하는 것을 권장합니다.</p>
+<hr />
+<h2 id="9">9. 완료와 수료증<a class="headerlink" href="#9" title="Permanent link">&para;</a></h2>
+<h3 id="9-1">9-1. 수료 버튼 누르기<a class="headerlink" href="#9-1" title="Permanent link">&para;</a></h3>
+<p>모든 단계를 마치면 완료 화면이 열립니다. 세션 설정에 따라 아래 조건을 확인한 뒤 수료증을 열 수 있습니다.</p>
+<ul>
+<li>퀴즈 통과</li>
+<li>피드백 제출</li>
+<li>제출물 업로드</li>
+</ul>
+<h3 id="9-2">9-2. 수료증 발급 받기<a class="headerlink" href="#9-2" title="Permanent link">&para;</a></h3>
+<p>조건을 충족했다면 <strong>수료증 열기</strong> 버튼으로 새 탭에서 수료증을 볼 수 있습니다.</p>
+<p>수료증에는 일반적으로 다음 정보가 포함됩니다.</p>
+<ul>
+<li>참석자 이름</li>
+<li>코드랩 제목</li>
+<li>완료 일시</li>
+<li>검증용 URL / QR 코드</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">팝업 차단 해제</p>
+<p>수료증은 새 탭으로 열리므로, 브라우저가 팝업을 막고 있다면 허용해야 할 수 있습니다.</p>
+</div>
+<h3 id="9-3">9-3. 라이브 상태 보기<a class="headerlink" href="#9-3" title="Permanent link">&para;</a></h3>
+<p>완료 화면에서 라이브 상태 페이지로 이동할 수 있는 버튼이 제공될 수 있습니다. 세션의 현재 상황이나 다른 참가자 진행 상태를 참고하는 용도로 사용됩니다.</p>
+<hr />
+<h2 id="10">10. 자주 겪는 문제와 해결 방법<a class="headerlink" href="#10" title="Permanent link">&para;</a></h2>
+<h3 id="_4">페이지가 열리지 않아요<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<ul>
+<li>링크를 다시 확인하세요.</li>
+<li>네트워크 연결을 확인하세요.</li>
+<li>브라우저를 새로고침하세요.</li>
+<li>회사/학교 네트워크에서 막히는 경우 다른 네트워크로 시도해보세요.</li>
+</ul>
+<h3 id="_5">코드랩이 목록에 안 보여요<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<ul>
+<li>공개 코드랩이 아닐 수 있습니다.</li>
+<li>URL이 잘못되었을 수 있습니다.</li>
+<li>퍼실리테이터가 아직 세션을 열지 않았을 수 있습니다.</li>
+</ul>
+<h3 id="_6">참가 등록이 안 돼요<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h3>
+<ul>
+<li>닉네임이 이미 사용 중인지 확인하세요.</li>
+<li>예전에 같은 이름으로 참가했다면 <strong>같은 고유 코드</strong>를 사용하세요.</li>
+<li>코드랩이 비공개 상태인지 확인하세요.</li>
+</ul>
+<h3 id="_7">진행 위치가 저장되지 않아요<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h3>
+<ul>
+<li>다른 브라우저나 다른 기기를 쓰고 있지 않은지 확인하세요.</li>
+<li>시크릿 모드가 아닌지 확인하세요.</li>
+<li>브라우저 저장소 차단 설정이 없는지 확인하세요.</li>
+</ul>
+<h3 id="dm">채팅 또는 DM이 안 돼요<a class="headerlink" href="#dm" title="Permanent link">&para;</a></h3>
+<ul>
+<li>네트워크가 불안정하면 연결이 늦을 수 있습니다.</li>
+<li>새로고침 후 다시 시도해보세요.</li>
+<li>진행자가 세션을 재시작한 경우 잠시 후 다시 연결될 수 있습니다.</li>
+</ul>
+<h3 id="_8">화면 공유가 안 보여요<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
+<ul>
+<li>브라우저가 화면 공유를 지원하는지 확인하세요.</li>
+<li>브라우저 권한 요청을 허용했는지 확인하세요.</li>
+<li>보안 정책이 강한 사내 브라우저에서는 제한될 수 있습니다.</li>
+</ul>
+<h3 id="_9">파일 업로드가 실패해요<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<ul>
+<li>파일 크기가 5MB를 넘지 않는지 확인하세요.</li>
+<li>전체 제출 용량이 10MB를 넘지 않는지 확인하세요.</li>
+<li>아이폰 사진이라면 <code>HEIC</code> 대신 <code>JPG</code>나 <code>PNG</code>로 변환해 업로드하세요.</li>
+</ul>
+<h3 id="gemini">Gemini 답변이 안 와요<a class="headerlink" href="#gemini" title="Permanent link">&para;</a></h3>
+<ul>
+<li>API 키를 입력했는지 확인하세요.</li>
+<li>잘못된 키가 저장되어 있으면 지우고 다시 입력하세요.</li>
+<li>네트워크 문제로 응답이 늦을 수 있으니 잠시 기다려 보세요.</li>
+</ul>
+<h3 id="_10">수료증이 안 열려요<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h3>
+<ul>
+<li>퀴즈, 피드백, 제출물 조건을 모두 충족했는지 확인하세요.</li>
+<li>팝업 차단을 해제하세요.</li>
+<li>일부 배포 환경에서는 수료증 기능이 제공되지 않을 수 있습니다.</li>
+</ul>
+<hr />
+<h2 id="11">11. 참석자를 위한 빠른 체크리스트<a class="headerlink" href="#11" title="Permanent link">&para;</a></h2>
+<h3 id="_11">시작 전<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] 브라우저와 네트워크 상태 확인</li>
+<li>[ ] 실습 도구 설치 확인</li>
+<li>[ ] 퍼실리테이터가 준 링크 열기</li>
+<li>[ ] 닉네임과 고유 코드 기억하기</li>
+</ul>
+<h3 id="_12">진행 중<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] 가이드 먼저 읽기</li>
+<li>[ ] 단계별로 천천히 따라가기</li>
+<li>[ ] 막히면 Help 요청 또는 채팅 사용하기</li>
+<li>[ ] 필요한 자료 다운로드하기</li>
+<li>[ ] 필요한 경우 인라인 댓글이나 화면 공유 활용하기</li>
+</ul>
+<h3 id="_13">종료 전<a class="headerlink" href="#_13" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] 제출물이 필요한 세션인지 확인</li>
+<li>[ ] 퀴즈와 피드백 완료</li>
+<li>[ ] 수료증 열어보기</li>
+</ul>
+<hr />
+<h2 id="12">12. 추가 문서<a class="headerlink" href="#12" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../faq/">FAQ</a></li>
+<li><a href="../facilitator/">퍼실리테이터 가이드</a></li>
+<li><a href="../cli/">CLI 가이드</a></li>
+<li><a href="https://github.com/JAICHANGPARK/open-codelabs">GitHub Repository</a></li>
+</ul>
+<hr />
+<div class="admonition success">
+<p class="admonition-title">잘 활용하는 팁</p>
+<p>모르는 부분이 생기면 혼자 오래 막혀 있기보다,
+<strong>Help 요청 → 공개 채팅 → DM → 화면 공유</strong> 순서로 빠르게 도움을 받는 것이 가장 효율적입니다.</p>
+</div>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="마지막 업데이트">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="2026년 3월 24일 10:46:24 UTC">2026년 3월 24일</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="작성일">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="2026년 3월 24일 10:46:24 UTC">2026년 3월 24일</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  맨위로
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/JAICHANGPARK/open-codelabs" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\ud074\ub9bd\ubcf4\ub4dc\uc5d0 \ubcf5\uc0ac\ub428", "clipboard.copy": "\ud074\ub9bd\ubcf4\ub4dc\ub85c \ubcf5\uc0ac", "search.result.more.one": "\uc774 \ubb38\uc11c\uc5d0\uc11c 1\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.more.other": "\uc774 \ubb38\uc11c\uc5d0\uc11c #\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.none": "\uac80\uc0c9\uc5b4\uc640 \uc77c\uce58\ud558\ub294 \ubb38\uc11c\uac00 \uc5c6\uc2b5\ub2c8\ub2e4", "search.result.one": "1\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.other": "#\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.placeholder": "\uac80\uc0c9\uc5b4\ub97c \uc785\ub825\ud558\uc138\uc694", "search.result.term.missing": "\ud3ec\ud568\ub418\uc9c0 \uc54a\uc740 \uac80\uc0c9\uc5b4", "select.version": "\ubc84\uc804 \uc120\ud0dd"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
