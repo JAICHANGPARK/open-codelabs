@@ -37,7 +37,10 @@
         type CreateInlineCommentPayload,
     } from "$lib/api";
     import { loadProgress, saveProgress } from "$lib/Progress";
-    import { attendeeMarked as marked } from "$lib/markdown";
+    import {
+        attendeeMarked as marked,
+        transformEmbeddableLinks,
+    } from "$lib/markdown";
     import { extractPlaygrounds, type PlaygroundBlock } from "$lib/playground";
     import DOMPurify from "dompurify";
     import {
@@ -174,50 +177,6 @@
         chatImageLightboxUrl = null;
     }
 
-    function extractYoutubeId(rawUrl: string): string | null {
-        try {
-            const url = new URL(rawUrl);
-            const host = url.hostname.replace(/^www\./, "");
-            if (host === "youtu.be") {
-                return url.pathname.replace("/", "").split("/")[0] || null;
-            }
-            if (host === "youtube.com") {
-                if (url.pathname === "/watch") {
-                    return url.searchParams.get("v");
-                }
-                if (url.pathname.startsWith("/embed/")) {
-                    return url.pathname.split("/")[2] || null;
-                }
-                if (url.pathname.startsWith("/shorts/")) {
-                    return url.pathname.split("/")[2] || null;
-                }
-            }
-        } catch (e) {
-            // ignore invalid urls
-        }
-        return null;
-    }
-
-    function injectYoutubeEmbeds(html: string): string {
-        const anchorRegex = /<a[^>]*href="([^"]+)"[^>]*>.*?<\/a>/gi;
-        return html.replace(anchorRegex, (full, href) => {
-            const id = extractYoutubeId(href);
-            if (!id) return full;
-            const embedUrl = `https://www.youtube-nocookie.com/embed/${id}`;
-            return `
-<div class="video-embed video-embed--full" style="width:100%;max-width:100%;display:block;margin:1.25rem 0;">
-  <iframe
-    src="${embedUrl}"
-    title="YouTube video"
-    loading="lazy"
-    style="width:100%;height:auto;aspect-ratio:16/9;display:block;border:0;border-radius:16px;background:#000;"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-    referrerpolicy="strict-origin-when-cross-origin"
-    allowfullscreen
-  ></iframe>
-</div>`;
-        });
-    }
     let messages = $state<
         {
             sender: string;
@@ -1660,9 +1619,9 @@
         const html = marked.parse(currentStep.content_markdown) as string;
         if (browser) {
             const sanitized = DOMPurify.sanitize(html);
-            return injectYoutubeEmbeds(sanitized);
+            return transformEmbeddableLinks(sanitized);
         }
-        return html;
+        return transformEmbeddableLinks(html);
     });
     let playgrounds = $derived.by(() => {
         if (!currentStep) return [];
@@ -1949,53 +1908,54 @@
             </div>
 
             <style>
-                :global(.video-embed) {
+                :global(.link-embed) {
                     width: 100%;
                     max-width: 100%;
                     margin: 1.25rem 0;
                 }
 
-                :global(.video-embed iframe) {
+                :global(.link-embed iframe) {
                     width: 100%;
-                    aspect-ratio: 16 / 9;
-                    height: auto;
                     border: 0;
                     border-radius: 16px;
+                }
+
+                :global(.link-embed--wide iframe) {
+                    aspect-ratio: 16 / 9;
+                    height: auto;
                     background: #000;
                 }
 
-                :global(.markdown-body .video-embed) {
+                :global(.markdown-body .link-embed) {
                     width: 100% !important;
                     max-width: none !important;
                 }
 
-                :global(.markdown-body .video-embed iframe) {
+                :global(.markdown-body .link-embed iframe) {
                     width: 100% !important;
                     max-width: none !important;
                 }
 
-                :global(.prose .video-embed) {
+                :global(.prose .link-embed) {
                     width: 100% !important;
                     max-width: none !important;
                 }
 
-                :global(.prose .video-embed iframe) {
+                :global(.prose .link-embed iframe) {
                     width: 100% !important;
                     max-width: none !important;
                 }
 
-                :global(.markdown-body iframe),
-                :global(.prose iframe) {
-                    width: 100% !important;
-                    max-width: none !important;
+                :global(.markdown-body .link-embed--wide iframe),
+                :global(.prose .link-embed--wide iframe) {
                     aspect-ratio: 16 / 9;
                     height: auto !important;
                 }
 
-                :global(.video-embed--full),
-                :global(.video-embed--full iframe) {
-                    width: 100% !important;
-                    max-width: none !important;
+                :global(.markdown-body .link-embed--document iframe),
+                :global(.prose .link-embed--document iframe) {
+                    aspect-ratio: auto;
+                    height: clamp(420px, 72vh, 960px) !important;
                 }
             </style>
         </div>
@@ -2210,7 +2170,7 @@
                                 bind:this={guideMarkdownRef}
                             >
                                 {#await marked.parse(codelab.guide_markdown) then parsed}
-                                    {@html injectYoutubeEmbeds(
+                                    {@html transformEmbeddableLinks(
                                         DOMPurify.sanitize(parsed as string),
                                     )}
                                 {/await}

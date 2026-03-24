@@ -29,7 +29,10 @@
         X,
     } from "lucide-svelte";
     import { t } from "svelte-i18n";
-    import { adminMarked as marked } from "$lib/markdown";
+    import {
+        adminMarked as marked,
+        transformEmbeddableLinks,
+    } from "$lib/markdown";
     import DOMPurify from "dompurify";
     import { browser } from "$app/environment";
     import html2pdf from "html2pdf.js";
@@ -150,60 +153,15 @@
         );
     });
 
-    function extractYoutubeId(rawUrl: string): string | null {
-        try {
-            const url = new URL(rawUrl);
-            const host = url.hostname.replace(/^www\./, "");
-            if (host === "youtu.be") {
-                return url.pathname.replace("/", "").split("/")[0] || null;
-            }
-            if (host === "youtube.com") {
-                if (url.pathname === "/watch") {
-                    return url.searchParams.get("v");
-                }
-                if (url.pathname.startsWith("/embed/")) {
-                    return url.pathname.split("/")[2] || null;
-                }
-                if (url.pathname.startsWith("/shorts/")) {
-                    return url.pathname.split("/")[2] || null;
-                }
-            }
-        } catch (e) {
-            // ignore invalid urls
-        }
-        return null;
-    }
-
-    function injectYoutubeEmbeds(html: string): string {
-        const anchorRegex = /<a[^>]*href="([^"]+)"[^>]*>.*?<\/a>/gi;
-        return html.replace(anchorRegex, (full, href) => {
-            const id = extractYoutubeId(href);
-            if (!id) return full;
-            const embedUrl = `https://www.youtube-nocookie.com/embed/${id}`;
-            return `
-<div class="video-embed" style="width:100%;max-width:100%;display:block;margin:1.25rem 0;">
-  <iframe
-    src="${embedUrl}"
-    title="YouTube video"
-    loading="lazy"
-    style="width:100%;height:auto;aspect-ratio:16/9;display:block;border:0;border-radius:16px;background:#000;"
-    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-    referrerpolicy="strict-origin-when-cross-origin"
-    allowfullscreen
-  ></iframe>
-</div>`;
-        });
-    }
-
     let renderedContent = $derived.by(() => {
         if (!guide_markdown) return "";
         try {
             const html = marked.parse(guide_markdown) as string;
             if (browser) {
                 const sanitized = DOMPurify.sanitize(html);
-                return injectYoutubeEmbeds(sanitized);
+                return transformEmbeddableLinks(sanitized);
             }
-            return html;
+            return transformEmbeddableLinks(html);
         } catch (e) {
             console.error("Markdown parse error", e);
             return $t("editor.parse_error");
@@ -216,9 +174,9 @@
             const html = marked.parse(markdown) as string;
             if (browser) {
                 const sanitized = DOMPurify.sanitize(html);
-                return injectYoutubeEmbeds(sanitized);
+                return transformEmbeddableLinks(sanitized);
             }
-            return html;
+            return transformEmbeddableLinks(html);
         } catch (e) {
             console.error("Markdown parse error", e);
             return $t("editor.parse_error");

@@ -47,6 +47,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 		'https://go.dev',
 		'https://pyodide.org',
 		'https://jupyterlite.github.io',
+		'https://docs.google.com',
 		'https://www.youtube.com',
 		'https://www.youtube-nocookie.com'
 	];
