@@ -1,0 +1,5072 @@
+
+<!doctype html>
+<html lang="ko" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Google Codelab 스타일의 핸즈온 세션 플랫폼">
+      
+      
+        <meta name="author" content="JAICHANGPARK, 박제창">
+      
+      
+        <link rel="canonical" href="https://JAICHANGPARK.github.io/open-codelabs/user-guide/cli/">
+      
+      
+        <link rel="prev" href="../mcp/">
+      
+      
+        <link rel="next" href="../../self-hosting/docker/">
+      
+      
+        
+          <link rel="alternate" href="./" hreflang="ko">
+        
+          <link rel="alternate" href="../../en/user-guide/cli/" hreflang="en">
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>CLI 레퍼런스 - Hands-on System (Open Codelabs)</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#cli" class="md-skip">
+          콘텐츠로 이동
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="상단/헤더">
+    <a href="../.." title="Hands-on System (Open Codelabs)" class="md-header__button md-logo" aria-label="Hands-on System (Open Codelabs)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Hands-on System (Open Codelabs)
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              CLI 레퍼런스
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="다크 모드로 전환"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="다크 모드로 전환" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="라이트 모드로 전환"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="라이트 모드로 전환" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+      <div class="md-header__option">
+  <div class="md-select">
+    
+    <button class="md-header__button md-icon" aria-label="언어설정">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m12.87 15.07-2.54-2.51.03-.03A17.5 17.5 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2zm-2.62 7 1.62-4.33L19.12 17z"/></svg>
+    </button>
+    <div class="md-select__inner">
+      <ul class="md-select__list">
+        
+          <li class="md-select__item">
+            <a href="./" hreflang="ko" class="md-select__link">
+              한국어
+            </a>
+          </li>
+        
+          <li class="md-select__item">
+            <a href="../../en/user-guide/cli/" hreflang="en" class="md-select__link">
+              English
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</div>
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="검색" placeholder="검색" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="검색">
+        
+        <button type="reset" class="md-search__icon md-icon" title="지우기" aria-label="지우기" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            검색 초기화
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/JAICHANGPARK/open-codelabs" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    JAICHANGPARK/open-codelabs
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="탭" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  홈
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../getting-started/quickstart/" class="md-tabs__link">
+          
+  
+  
+  시작하기
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../facilitator/" class="md-tabs__link">
+          
+  
+  
+  사용 가이드
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../self-hosting/docker/" class="md-tabs__link">
+          
+  
+  
+  Self-Hosting
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../specification/overview/" class="md-tabs__link">
+          
+  
+  
+  프로젝트 명세
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../architecture/system-architecture/" class="md-tabs__link">
+          
+  
+  
+  아키텍처
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../code-guide/backend-examples/" class="md-tabs__link">
+          
+  
+  
+  코드 가이드
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../contributing/guide/" class="md-tabs__link">
+          
+  
+  
+  기여하기
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../license/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  라이선스
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="네비게이션" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Hands-on System (Open Codelabs)" class="md-nav__button md-logo" aria-label="Hands-on System (Open Codelabs)" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Hands-on System (Open Codelabs)
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/JAICHANGPARK/open-codelabs" title="저장소로 이동" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    JAICHANGPARK/open-codelabs
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    홈
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    시작하기
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    시작하기
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/quickstart/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    빠른 시작
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    설치 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/first-codelab/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    첫 번째 Codelab 만들기
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    사용 가이드
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    사용 가이드
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../facilitator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    퍼실리테이터 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../attendee/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    참석자 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MCP 서버
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI 레퍼런스
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI 레퍼런스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        핵심 개념
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        공통 전역 옵션
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        값 해석 우선순위
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="값 해석 우선순위">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#base-url" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base URL 우선순위
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session file 우선순위
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        환경 변수와 저장 경로
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        인터랙티브 동작
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        권한 범위
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        권장 시작 흐름
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        연결과 인증
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="연결과 인증">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc init
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-add" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect add
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect list
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-logout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth logout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        레거시 별칭
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="레거시 별칭">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-logout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc logout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc session
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP 연동
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCP 연동">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-mcp-serve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc mcp serve
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        공개 노출
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="공개 노출">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public down
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        로컬 런타임
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="로컬 런타임">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-ps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc ps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-restart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc restart
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc down
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        관리자 명령
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="관리자 명령">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-admin-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc admin settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-admin-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc admin updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        코드랩 관리
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="코드랩 관리">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        목록 조회 계열
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-codelab-create" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc codelab create
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-codelab-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc codelab update
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        기타 코드랩 명령
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        백업과 감사 로그
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        워크스페이스
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="워크스페이스">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        생성과 조회
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        브랜치 snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snapshot_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        폴더 snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        참석자와 라이브 운영
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="참석자와 라이브 운영">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        참석자 세션
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        도움 요청
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        피드백
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        자료, 퀴즈, 제출물
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="자료, 퀴즈, 제출물">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        자료
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        퀴즈
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        제출물
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        채팅, 업로드, 인라인 댓글
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI 명령
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON 입력 파일 치트시트
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        운영 팁
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Self-Hosting
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Self-Hosting
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/docker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Docker로 배포하기
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/gcp/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GCP (Google Cloud)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/aws/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AWS (Amazon Web Services)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/firebase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    파이어베이스 (Firebase)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/supabase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Supabase
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/local-development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    로컬 개발 환경
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/public-deployment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    공개 배포 (ngrok/bore/cloudflare)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    환경 변수 설정
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../self-hosting/security/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    보안 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    프로젝트 명세
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    프로젝트 명세
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    개요
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/features/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    기능 명세
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/cli-proposal/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI 제안 및 매트릭스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/database-schema/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데이터베이스 스키마
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 레퍼런스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    아키텍처
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    아키텍처
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/system-architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    시스템 아키텍처
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/backend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    백엔드 구조
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/frontend/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    프론트엔드 구조
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/websocket/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    실시간 통신 (WebSocket)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    코드 가이드
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    코드 가이드
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/backend-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    백엔드 코드 예제
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/frontend-examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    프론트엔드 코드 예제
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/data-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    데이터 모델
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../code-guide/api-usage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API 사용 예제
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    기여하기
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    기여하기
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    기여 가이드
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    개발 워크플로우
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    벤치마크
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../contributing/code-style/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    코드 스타일
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../license/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    라이선스
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="목차">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      목차
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        핵심 개념
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        공통 전역 옵션
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        값 해석 우선순위
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="값 해석 우선순위">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#base-url" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base URL 우선순위
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#session-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Session file 우선순위
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        환경 변수와 저장 경로
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        인터랙티브 동작
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        권한 범위
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        권장 시작 흐름
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        연결과 인증
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="연결과 인증">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-init" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc init
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-add" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect add
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-list" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect list
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-connect-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc connect status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-logout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth logout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-auth-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc auth status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        레거시 별칭
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="레거시 별칭">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc login
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-logout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc logout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-session" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc session
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP 연동
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCP 연동">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-mcp-serve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc mcp serve
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        공개 노출
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="공개 노출">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-up" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public up
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-public-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc public down
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        로컬 런타임
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="로컬 런타임">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-ps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc ps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-logs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc logs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-restart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc restart
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc down
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        관리자 명령
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="관리자 명령">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oc-admin-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc admin settings
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-admin-updates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc admin updates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        코드랩 관리
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="코드랩 관리">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        목록 조회 계열
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-codelab-create" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc codelab create
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#oc-codelab-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        oc codelab update
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        기타 코드랩 명령
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        백업과 감사 로그
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_17" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        워크스페이스
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="워크스페이스">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_18" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        생성과 조회
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snapshot" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        브랜치 snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#snapshot_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        폴더 snapshot
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_19" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        참석자와 라이브 운영
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="참석자와 라이브 운영">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_20" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        참석자 세션
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_21" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        도움 요청
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        피드백
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        자료, 퀴즈, 제출물
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="자료, 퀴즈, 제출물">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        자료
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_25" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        퀴즈
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_26" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        제출물
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_27" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        채팅, 업로드, 인라인 댓글
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AI 명령
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#json" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        JSON 입력 파일 치트시트
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_28" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        운영 팁
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="cli">CLI 레퍼런스<a class="headerlink" href="#cli" title="Permanent link">&para;</a></h1>
+<p>이 문서는 현재 <code>oc --help</code>와 CLI 구현 코드를 기준으로 <code>oc</code>의 명령어, 옵션, 권한 범위, 입력 파일 의미를 상세히 설명합니다.</p>
+<p>빠르게 목록만 보고 싶다면 <code>oc --help</code> 또는 <code>oc &lt;명령군&gt; --help</code>를 사용하고, 실제로 어떤 옵션을 언제 써야 하는지 이해하려면 이 문서를 기준 레퍼런스로 보면 됩니다.</p>
+<h2 id="_1">핵심 개념<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>개념</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Profile</td>
+<td><code>oc connect add</code>로 저장하는 서버 연결 정보입니다. 이름, base URL, runtime preference를 <code>~/.open-codelabs/config.json</code>에 저장합니다.</td>
+</tr>
+<tr>
+<td>Session</td>
+<td><code>oc auth login</code> 또는 <code>oc attendee join</code>으로 받은 인증 상태입니다. 쿠키, CSRF, subject, role, expiry가 세션 파일에 저장됩니다.</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td>서버 타입 추정값입니다. <code>backend</code>는 Rust API를 뜻하고, <code>firebase</code>/<code>supabase</code>는 제한된 CLI 지원을 전제로 합니다.</td>
+</tr>
+<tr>
+<td>Local stack</td>
+<td><code>oc run</code>으로 띄우는 로컬 frontend/backend 컨테이너 스택입니다. <code>docker</code> 또는 <code>podman</code>을 사용합니다.</td>
+</tr>
+<tr>
+<td>JSON output</td>
+<td><code>--json</code>을 붙이면 사람이 읽기 쉬운 표/문장 대신 자동화용 JSON을 출력합니다. CI나 스크립트에 적합합니다.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_2">공통 전역 옵션<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h2>
+<p>모든 명령은 아래 전역 옵션을 공통으로 지원합니다.</p>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>의미</th>
+<th>언제 쓰는가</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--base-url &lt;url&gt;</code></td>
+<td>이번 실행에서만 백엔드 기본 URL을 강제로 덮어씁니다.</td>
+<td>profile을 저장하지 않고 임시 서버에 붙을 때 사용합니다.</td>
+</tr>
+<tr>
+<td><code>--session-file &lt;path&gt;</code></td>
+<td>이번 실행에서 사용할 세션 파일 경로를 바꿉니다.</td>
+<td>여러 역할의 세션을 분리하거나 테스트 세션을 별도로 둘 때 사용합니다.</td>
+</tr>
+<tr>
+<td><code>--config-file &lt;path&gt;</code></td>
+<td>profile 저장 파일 경로를 바꿉니다. 기본값은 <code>~/.open-codelabs/config.json</code>입니다.</td>
+<td>팀별 또는 프로젝트별로 연결 프로필을 분리할 때 사용합니다.</td>
+</tr>
+<tr>
+<td><code>--profile &lt;name&gt;</code></td>
+<td>저장된 연결 프로필 중 하나를 강제로 선택합니다.</td>
+<td>현재 기본 profile이 아닌 다른 환경을 잠깐 사용할 때 유용합니다.</td>
+</tr>
+<tr>
+<td><code>--json</code></td>
+<td>텍스트 대신 JSON을 출력합니다.</td>
+<td>스크립트, CI, 파이프라인에서 결과를 후처리할 때 사용합니다.</td>
+</tr>
+<tr>
+<td><code>-h</code>, <code>--help</code></td>
+<td>도움말을 출력합니다.</td>
+<td>특정 명령군의 usage만 보고 싶을 때 사용합니다.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">값 해석 우선순위<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<p>CLI는 base URL과 session file을 아래 우선순위로 결정합니다.</p>
+<h3 id="base-url">Base URL 우선순위<a class="headerlink" href="#base-url" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>--base-url</code></li>
+<li><code>--profile</code> 또는 현재 활성 profile의 <code>base_url</code></li>
+<li>저장된 session의 <code>base_url</code></li>
+<li><code>OPEN_CODELABS_BASE_URL</code></li>
+<li><code>http://localhost:8080</code></li>
+</ol>
+<h3 id="session-file">Session file 우선순위<a class="headerlink" href="#session-file" title="Permanent link">&para;</a></h3>
+<ol>
+<li><code>--session-file</code></li>
+<li>선택된 profile 전용 세션 파일</li>
+<li>기본 세션 파일 <code>~/.open-codelabs/session.json</code></li>
+</ol>
+<h2 id="_4">환경 변수와 저장 경로<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>항목</th>
+<th>기본값</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OPEN_CODELABS_BASE_URL</code></td>
+<td>없음</td>
+<td>profile이 없을 때 사용할 기본 서버 URL입니다.</td>
+</tr>
+<tr>
+<td><code>OPEN_CODELABS_PROFILE</code></td>
+<td>없음</td>
+<td>기본으로 사용할 profile 이름입니다.</td>
+</tr>
+<tr>
+<td><code>OPEN_CODELABS_CONFIG_FILE</code></td>
+<td><code>~/.open-codelabs/config.json</code></td>
+<td>profile 저장 파일 위치를 바꿉니다.</td>
+</tr>
+<tr>
+<td><code>OPEN_CODELABS_SESSION_FILE</code></td>
+<td><code>~/.open-codelabs/session.json</code></td>
+<td>profile을 쓰지 않을 때 기본 세션 파일 위치를 바꿉니다.</td>
+</tr>
+<tr>
+<td><code>OPEN_CODELABS_ADMIN_ID</code></td>
+<td>없음</td>
+<td>레거시 <code>oc login</code>과 <code>oc run</code> 기본 관리자 ID에 사용됩니다.</td>
+</tr>
+<tr>
+<td><code>OPEN_CODELABS_ADMIN_PW</code></td>
+<td>없음</td>
+<td>레거시 <code>oc login</code>, <code>oc run</code>, <code>oc admin settings</code> 암호화에 사용됩니다.</td>
+</tr>
+<tr>
+<td><code>~/.open-codelabs/config.json</code></td>
+<td>CLI 기본값</td>
+<td>저장된 connection profile 목록입니다.</td>
+</tr>
+<tr>
+<td><code>~/.open-codelabs/profiles/&lt;name&gt;/session.json</code></td>
+<td>profile 사용 시</td>
+<td>profile별 세션 저장 위치입니다.</td>
+</tr>
+<tr>
+<td><code>~/.open-codelabs/runtime/local-stack/</code></td>
+<td><code>oc run</code> 실행 시</td>
+<td>local stack compose 파일과 상태 파일이 저장됩니다.</td>
+</tr>
+<tr>
+<td><code>~/.open-codelabs/runtime/public/</code></td>
+<td><code>oc public up</code> 실행 시</td>
+<td>public tunnel 상태 파일과 로그 파일이 저장됩니다.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_5">인터랙티브 동작<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h2>
+<p>현재 <code>oc</code>는 <code>dialoguer</code> 기반의 터미널 인터랙션을 지원합니다. 선택형 단계에서는 화살표로 이동하고, 멀티 선택 화면에서는 스페이스로 토글한 뒤 엔터로 다음 단계로 넘어갑니다. 텍스트 값은 입력 필드에서 직접 수정하고, 비밀번호는 숨김 입력으로 처리됩니다.</p>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>인터랙티브 동작</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc init</code></td>
+<td>항상 인터랙티브 터미널이 필요합니다. 시작 모드 선택, <code>oc run</code> wizard, profile 저장, <code>oc auth login</code> 연결까지 한 흐름으로 안내합니다.</td>
+</tr>
+<tr>
+<td><code>oc run</code></td>
+<td>옵션 없이 TTY에서 실행하면 local stack wizard로 진입합니다. 엔진 선택 후 startup 옵션과 검토할 설정을 스페이스로 토글합니다. <code>--interactive</code>를 붙이면 일부 플래그를 미리 준 상태에서도 wizard를 강제합니다.</td>
+</tr>
+<tr>
+<td><code>oc connect add</code></td>
+<td><code>--interactive</code>를 붙이거나, TTY에서 <code>--name</code>/<code>--url</code> 없이 실행하면 URL, profile 이름, runtime, activation을 순서대로 질문합니다.</td>
+</tr>
+<tr>
+<td><code>oc connect use</code></td>
+<td>TTY에서 <code>--name</code> 없이 실행하면 저장된 profile 목록이 뜨고, 화살표로 골라 바로 current profile로 전환할 수 있습니다.</td>
+</tr>
+<tr>
+<td><code>oc auth login</code></td>
+<td>TTY에서 옵션 없이 실행하면 브라우저를 자동으로 열지, 로그인 URL만 출력할지 선택하게 합니다.</td>
+</tr>
+<tr>
+<td><code>oc login</code></td>
+<td><code>--interactive</code>를 붙이거나 필수 값이 빠진 상태에서 TTY로 실행하면 관리자 ID와 비밀번호를 질문형으로 받습니다. 비밀번호는 숨김 입력입니다.</td>
+</tr>
+<tr>
+<td>나머지 명령</td>
+<td>일반적으로 비대화형입니다. 필요한 값은 플래그나 입력 파일로 모두 전달해야 합니다.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_6">권한 범위<a class="headerlink" href="#_6" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>범위</th>
+<th>세션 획득 방법</th>
+<th>대표 명령</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>로컬 런타임</td>
+<td>인증 불필요</td>
+<td><code>oc run</code>, <code>oc ps</code>, <code>oc logs</code>, <code>oc restart</code>, <code>oc down</code></td>
+</tr>
+<tr>
+<td>공개 읽기</td>
+<td><code>oc connect</code>만 필요</td>
+<td><code>oc codelab list</code>, <code>oc codelab reference</code>, <code>oc codelab get</code></td>
+</tr>
+<tr>
+<td>관리자</td>
+<td><code>oc auth login</code></td>
+<td><code>admin</code>, <code>backup</code>, <code>audit</code>, <code>workspace</code>, <code>codelab create/update/delete/copy/export/import/push-steps</code></td>
+</tr>
+<tr>
+<td>참석자</td>
+<td><code>oc attendee join</code></td>
+<td><code>help request</code>, <code>feedback submit</code>, <code>quiz submit</code>, <code>submission file/link/delete</code>, <code>chat history</code></td>
+</tr>
+</tbody>
+</table>
+<p>실제 허용 여부는 최종적으로 서버의 runtime capability와 backend 권한 체크가 결정합니다.</p>
+<h2 id="_7">권장 시작 흐름<a class="headerlink" href="#_7" title="Permanent link">&para;</a></h2>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>oc<span class="w"> </span>init
+</span></code></pre></div>
+<p><code>oc init</code>이 가장 빠른 진입점입니다. 내부적으로 아래 두 흐름 중 하나를 구성합니다.</p>
+<ol>
+<li>로컬 스택 실행</li>
+<li>기존 서버 연결</li>
+</ol>
+<p>이후 필요하면 profile 저장, <code>oc connect status</code>, <code>oc auth login</code>까지 이어집니다.</p>
+<h2 id="_8">연결과 인증<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h2>
+<h3 id="oc-init"><code>oc init</code><a class="headerlink" href="#oc-init" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>oc<span class="w"> </span>init
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>로컬 스택 실행과 기존 서버 연결 중 하나를 선택하게 합니다.</li>
+<li>local stack을 고르면 <code>oc run</code> wizard를 호출합니다.</li>
+<li>existing server를 고르면 <code>oc connect add</code> wizard를 호출합니다.</li>
+<li>마지막에 profile 저장 여부와 browser-based admin login 진행 여부를 묻습니다.</li>
+</ul>
+<p>옵션:</p>
+<ul>
+<li>없음</li>
+</ul>
+<h3 id="oc-connect-add"><code>oc connect add</code><a class="headerlink" href="#oc-connect-add" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>oc<span class="w"> </span>connect<span class="w"> </span>add<span class="w"> </span>--name<span class="w"> </span>&lt;name&gt;<span class="w"> </span>--url<span class="w"> </span>&lt;url&gt;<span class="w"> </span><span class="o">[</span>--runtime<span class="w"> </span>&lt;auto<span class="p">|</span>backend<span class="p">|</span>firebase<span class="p">|</span>supabase&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--activate<span class="o">]</span><span class="w"> </span><span class="o">[</span>--interactive<span class="o">]</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>서버 연결 프로필을 저장합니다.</li>
+<li><code>--activate</code>를 주면 저장과 동시에 현재 기본 profile로 설정합니다.</li>
+<li>profile이 하나도 없을 때는 <code>--activate</code> 없이도 첫 profile이 current profile이 됩니다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>필수</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--name &lt;name&gt;</code></td>
+<td>보통 필요</td>
+<td>profile 이름입니다. config 파일의 key로 사용됩니다. 인터랙티브 모드에서는 자동 제안값이 나옵니다.</td>
+</tr>
+<tr>
+<td><code>--url &lt;url&gt;</code></td>
+<td>보통 필요</td>
+<td>backend base URL입니다. 예: <code>http://localhost:8080</code></td>
+</tr>
+<tr>
+<td><code>--runtime &lt;auto|backend|firebase|supabase&gt;</code></td>
+<td>선택</td>
+<td>이 profile이 어떤 런타임인지 힌트를 줍니다. <code>auto</code>는 연결 후 probe를 시도합니다.</td>
+</tr>
+<tr>
+<td><code>--activate</code></td>
+<td>선택</td>
+<td>저장한 profile을 즉시 current profile로 만듭니다.</td>
+</tr>
+<tr>
+<td><code>--interactive</code></td>
+<td>선택</td>
+<td>profile 값을 질문형으로 입력받습니다.</td>
+</tr>
+</tbody>
+</table>
+<p>runtime 값 의미:</p>
+<table>
+<thead>
+<tr>
+<th>값</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto</code></td>
+<td>먼저 backend probe를 시도하고 실패하면 정적 추정값으로 표시합니다.</td>
+</tr>
+<tr>
+<td><code>backend</code></td>
+<td>Rust backend 기반 전체 관리자 API를 기대합니다.</td>
+</tr>
+<tr>
+<td><code>firebase</code></td>
+<td>frontend-managed 인증과 제한된 CLI 기능을 전제로 합니다.</td>
+</tr>
+<tr>
+<td><code>supabase</code></td>
+<td>frontend-managed 인증과 제한된 CLI 기능을 전제로 합니다.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-connect-use"><code>oc connect use</code><a class="headerlink" href="#oc-connect-use" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>oc<span class="w"> </span>connect<span class="w"> </span>use<span class="w"> </span><span class="o">[</span>--name<span class="w"> </span>&lt;name&gt;<span class="o">]</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>저장된 profile 중 하나를 current profile로 바꿉니다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>필수</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--name &lt;name&gt;</code></td>
+<td>선택</td>
+<td>활성화할 profile 이름입니다. 인터랙티브 터미널에서 생략하면 저장된 profile 목록에서 선택합니다.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-connect-list"><code>oc connect list</code><a class="headerlink" href="#oc-connect-list" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>oc<span class="w"> </span>connect<span class="w"> </span>list
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>저장된 모든 profile과 현재 current profile 여부를 출력합니다.</li>
+</ul>
+<p>옵션:</p>
+<ul>
+<li>없음</li>
+</ul>
+<h3 id="oc-connect-status"><code>oc connect status</code><a class="headerlink" href="#oc-connect-status" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>oc<span class="w"> </span>connect<span class="w"> </span>status
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>현재 선택된 서버에 대해 base URL, runtime, capability, auth method, probe 성공 여부를 보여줍니다.</li>
+<li><code>backend</code> 런타임이면 <code>/api/cli/runtime</code> probe를 시도합니다.</li>
+<li><code>firebase</code>/<code>supabase</code>처럼 backend probe가 없는 런타임은 정적 capability만 보여줍니다.</li>
+</ul>
+<p>옵션:</p>
+<ul>
+<li>없음</li>
+</ul>
+<h3 id="oc-auth-login"><code>oc auth login</code><a class="headerlink" href="#oc-auth-login" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>oc<span class="w"> </span>auth<span class="w"> </span>login<span class="w"> </span><span class="o">[</span>--no-open<span class="o">]</span><span class="w"> </span><span class="o">[</span>--interactive<span class="o">]</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>browser-based CLI 인증을 시작합니다.</li>
+<li>연결된 runtime이 browser auth를 지원해야 합니다.</li>
+<li>브라우저에서 로그인 승인 후 세션을 세션 파일에 저장합니다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>필수</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--no-open</code></td>
+<td>선택</td>
+<td>브라우저를 자동으로 열지 않고, 인증 URL만 출력합니다. 원격 SSH나 헤드리스 터미널에서 유용합니다.</td>
+</tr>
+<tr>
+<td><code>--interactive</code></td>
+<td>선택</td>
+<td>브라우저 자동 열기와 URL만 출력 중 하나를 선택하는 화면을 강제로 엽니다. TTY에서 옵션 없이 실행해도 같은 선택 화면이 기본으로 표시됩니다.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-auth-logout"><code>oc auth logout</code><a class="headerlink" href="#oc-auth-logout" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>oc<span class="w"> </span>auth<span class="w"> </span><span class="nb">logout</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>서버 logout 요청을 보낸 뒤 로컬 세션 파일을 삭제합니다.</li>
+</ul>
+<p>옵션:</p>
+<ul>
+<li>없음</li>
+</ul>
+<h3 id="oc-auth-status"><code>oc auth status</code><a class="headerlink" href="#oc-auth-status" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>oc<span class="w"> </span>auth<span class="w"> </span>status
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>현재 세션 파일이 있는지, 실제 서버 세션이 유효한지, role/subject/expiry가 무엇인지 보여줍니다.</li>
+</ul>
+<p>옵션:</p>
+<ul>
+<li>없음</li>
+</ul>
+<h3 id="_9">레거시 별칭<a class="headerlink" href="#_9" title="Permanent link">&para;</a></h3>
+<h4 id="oc-login"><code>oc login</code><a class="headerlink" href="#oc-login" title="Permanent link">&para;</a></h4>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>oc<span class="w"> </span>login<span class="w"> </span><span class="o">[</span>--admin-id<span class="w"> </span>&lt;id&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--admin-pw<span class="w"> </span>&lt;pw&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--interactive<span class="o">]</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>기존 <code>/api/login</code> 비밀번호 기반 관리자 로그인을 수행합니다.</li>
+<li>새 스크립트에서는 <code>oc auth login</code>을 권장합니다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>필수</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--admin-id &lt;id&gt;</code></td>
+<td>선택</td>
+<td>관리자 ID입니다. <code>OPEN_CODELABS_ADMIN_ID</code>가 있으면 생략 가능합니다. 인터랙티브 입력에서는 기본값으로 제안됩니다.</td>
+</tr>
+<tr>
+<td><code>--admin-pw &lt;pw&gt;</code></td>
+<td>선택</td>
+<td>관리자 비밀번호입니다. <code>OPEN_CODELABS_ADMIN_PW</code>가 있으면 생략 가능합니다. 인터랙티브 입력에서는 숨김 상태로 받습니다.</td>
+</tr>
+<tr>
+<td><code>--interactive</code></td>
+<td>선택</td>
+<td>관리자 ID와 비밀번호를 질문형으로 입력받습니다.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="oc-logout"><code>oc logout</code><a class="headerlink" href="#oc-logout" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>oc auth logout</code>의 별칭입니다.</li>
+</ul>
+<h4 id="oc-session"><code>oc session</code><a class="headerlink" href="#oc-session" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>oc auth status</code>의 별칭입니다.</li>
+</ul>
+<h2 id="mcp">MCP 연동<a class="headerlink" href="#mcp" title="Permanent link">&para;</a></h2>
+<h3 id="oc-mcp-serve"><code>oc mcp serve</code><a class="headerlink" href="#oc-mcp-serve" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-10-1"><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>oc<span class="w"> </span>mcp<span class="w"> </span>serve
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>현재 <code>oc</code> profile과 session을 재사용해 stdio 기반 MCP 서버를 실행합니다.</li>
+<li>MCP host에서 Open Codelabs 연결 상태, reference payload, codelab, materials, quizzes, feedback, submissions, workspace metadata를 읽을 수 있게 합니다.</li>
+<li>MCP host에서 재사용 가능한 운영 템플릿 prompt도 함께 제공합니다.</li>
+<li>관리자 세션이 있으면 codelab copy/delete, materials/quizzes 갱신, help resolve 같은 write tool도 함께 노출합니다.</li>
+</ul>
+<p>명령 전용 옵션:</p>
+<ul>
+<li>없음</li>
+</ul>
+<p>대신 아래 전역 옵션을 그대로 사용할 수 있습니다.</p>
+<ul>
+<li><code>oc --profile prod mcp serve</code></li>
+<li><code>oc --base-url https://labs.example.com mcp serve</code></li>
+<li><code>oc --session-file /tmp/oc-mcp-session.json mcp serve</code></li>
+</ul>
+<p>현재 노출되는 주요 capabilities:</p>
+<ul>
+<li>tools: <code>get_connection</code>, <code>get_codelab_reference</code>, <code>list_codelabs</code>, <code>get_codelab</code>, <code>get_codelab_bundle</code>, <code>create_codelab</code>, <code>update_codelab</code>, <code>copy_codelab</code>, <code>delete_codelab</code>, <code>replace_codelab_steps</code>, <code>list_materials</code>, <code>upload_material_asset</code>, <code>add_material</code>, <code>delete_material</code>, <code>list_quizzes</code>, <code>update_quizzes</code>, <code>list_feedback</code>, <code>list_submissions</code>, <code>list_quiz_submissions</code>, <code>get_chat_history</code>, <code>list_attendees</code>, <code>list_help_requests</code>, <code>resolve_help_request</code>, <code>get_workspace_info</code>, <code>list_workspace_branches</code>, <code>list_workspace_folders</code>, <code>list_workspace_branch_files</code>, <code>read_workspace_branch_file</code>, <code>list_workspace_folder_files</code>, <code>read_workspace_folder_file</code></li>
+<li>resources: <code>oc://connection</code>, <code>oc://session</code>, <code>oc://reference</code>, <code>oc://codelabs</code>, <code>oc://codelabs/{id}</code>, <code>oc://codelabs/{id}/bundle</code>, <code>oc://codelabs/{id}/guide</code>, <code>oc://codelabs/{id}/steps</code>, <code>oc://codelabs/{id}/materials</code>, <code>oc://codelabs/{id}/quizzes</code>, <code>oc://codelabs/{id}/quiz-submissions</code>, <code>oc://codelabs/{id}/feedback</code>, <code>oc://codelabs/{id}/submissions</code>, <code>oc://codelabs/{id}/chat</code>, <code>oc://codelabs/{id}/workspace</code>, <code>oc://codelabs/{id}/workspace/branches</code>, <code>oc://codelabs/{id}/workspace/folders</code>, <code>oc://codelabs/{id}/attendees</code>, <code>oc://codelabs/{id}/help</code></li>
+<li>prompts: <code>facilitator-brief</code>, <code>authoring-change-plan</code>, <code>help-queue-triage</code>, <code>learner-ops-review</code></li>
+</ul>
+<p>운영 팁:</p>
+<ul>
+<li>먼저 <code>oc auth login</code>을 마친 뒤 MCP host를 실행하는 편이 안정적입니다.</li>
+<li>admin write tool은 관리자 세션이 없으면 실패합니다.</li>
+<li>반복되는 운영 패턴은 prompt부터 시작한 뒤 필요한 tool만 추가 호출하는 편이 효율적입니다.</li>
+<li>자세한 host 설정 예시는 <a href="../mcp/">MCP 서버 가이드</a>를 참고하세요.</li>
+</ul>
+<h2 id="_10">공개 노출<a class="headerlink" href="#_10" title="Permanent link">&para;</a></h2>
+<h3 id="oc-public-up"><code>oc public up</code><a class="headerlink" href="#oc-public-up" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-11-1"><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>oc<span class="w"> </span>public<span class="w"> </span>up<span class="w"> </span><span class="o">[</span>--tunnel<span class="w"> </span>&lt;ngrok<span class="p">|</span>bore<span class="p">|</span>cloudflare&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--ngrok<span class="p">|</span>--bore<span class="p">|</span>--cloudflare<span class="o">]</span><span class="w"> </span><span class="o">[</span>--port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--log-file<span class="w"> </span>&lt;path&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--no-open<span class="o">]</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>로컬에서 실행 중인 frontend 포트를 외부에 공개하는 tunnel 프로세스를 시작합니다.</li>
+<li>상태와 PID를 <code>~/.open-codelabs/runtime/public/state.json</code>에 저장합니다.</li>
+<li>기본값은 <code>ngrok</code>이며, 포트를 생략하면 최근 local stack 상태에서 frontend 포트를 추론하고 없으면 <code>5173</code>을 사용합니다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>필수</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--tunnel &lt;ngrok|bore|cloudflare&gt;</code></td>
+<td>선택</td>
+<td>사용할 공개 tunnel 종류를 명시합니다.</td>
+</tr>
+<tr>
+<td><code>--ngrok</code>, <code>--bore</code>, <code>--cloudflare</code></td>
+<td>선택</td>
+<td><code>--tunnel</code>의 단축 플래그입니다. 마지막에 지정한 값이 우선합니다.</td>
+</tr>
+<tr>
+<td><code>--port &lt;port&gt;</code></td>
+<td>선택</td>
+<td>공개할 로컬 포트입니다.</td>
+</tr>
+<tr>
+<td><code>--log-file &lt;path&gt;</code></td>
+<td>선택</td>
+<td>tunnel stdout/stderr를 저장할 로그 파일 경로입니다.</td>
+</tr>
+<tr>
+<td><code>--no-open</code></td>
+<td>선택</td>
+<td>attendee URL을 브라우저로 자동으로 열지 않습니다.</td>
+</tr>
+</tbody>
+</table>
+<p>주의할 점:</p>
+<ul>
+<li>같은 시점에 tunnel 하나만 관리합니다. 이미 살아 있는 tunnel이 있으면 먼저 <code>oc public down</code>을 실행해야 합니다.</li>
+<li><code>ngrok</code>, <code>bore</code>, <code>cloudflared</code> 바이너리 설치 여부는 실행 전에 검사합니다.</li>
+</ul>
+<h3 id="oc-public-status"><code>oc public status</code><a class="headerlink" href="#oc-public-status" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-12-1"><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>oc<span class="w"> </span>public<span class="w"> </span>status
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>저장된 public tunnel 상태, PID, process 생존 여부, 마지막으로 확인한 public URL을 출력합니다.</li>
+</ul>
+<p>옵션:</p>
+<ul>
+<li>없음</li>
+</ul>
+<h3 id="oc-public-down"><code>oc public down</code><a class="headerlink" href="#oc-public-down" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-13-1"><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>oc<span class="w"> </span>public<span class="w"> </span>down
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>저장된 public tunnel PID를 종료하고 상태 파일만 정리합니다. 로그 파일은 보존합니다.</li>
+</ul>
+<p>옵션:</p>
+<ul>
+<li>없음</li>
+</ul>
+<p><code>oc bench</code>는 일반 사용자 명령이 아니라 메인테이너용 고급 기능입니다. 자세한 사용법은 <a href="../../contributing/benchmarks/">벤치마크 가이드</a>를 참고하세요.</p>
+<h2 id="_11">로컬 런타임<a class="headerlink" href="#_11" title="Permanent link">&para;</a></h2>
+<h3 id="oc-run"><code>oc run</code><a class="headerlink" href="#oc-run" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-14-1"><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>oc<span class="w"> </span>run<span class="w"> </span><span class="o">[</span>--engine<span class="w"> </span>&lt;auto<span class="p">|</span>docker<span class="p">|</span>podman&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--postgres<span class="o">]</span><span class="w"> </span><span class="o">[</span>--pull<span class="o">]</span><span class="w"> </span><span class="o">[</span>--open<span class="o">]</span><span class="w"> </span><span class="o">[</span>--interactive<span class="o">]</span><span class="w"> </span><span class="o">[</span>--admin-id<span class="w"> </span>&lt;id&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--admin-pw<span class="w"> </span>&lt;pw&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--data-dir<span class="w"> </span>&lt;path&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--frontend-port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--backend-port<span class="w"> </span>&lt;port&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--image-registry<span class="w"> </span>&lt;registry&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--image-namespace<span class="w"> </span>&lt;namespace&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--image-tag<span class="w"> </span>&lt;tag&gt;<span class="o">]</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>published frontend/backend 이미지를 이용해 로컬 워크숍 스택을 띄웁니다.</li>
+<li><code>docker</code> 또는 <code>podman</code>을 자동 감지합니다.</li>
+<li>compose 파일과 상태 파일을 <code>~/.open-codelabs/runtime/local-stack/</code>에 저장합니다.</li>
+<li>기본 데이터 디렉터리는 <code>~/open-codelabs</code> 계열 경로를 사용합니다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>필수</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--engine &lt;auto|docker|podman&gt;</code></td>
+<td>선택</td>
+<td>사용할 컨테이너 엔진을 고릅니다. <code>auto</code>는 감지 순서에 따라 결정합니다.</td>
+</tr>
+<tr>
+<td><code>--postgres</code></td>
+<td>선택</td>
+<td>SQLite 대신 번들 PostgreSQL 컨테이너를 함께 띄우고 backend 연결도 PostgreSQL로 맞춥니다.</td>
+</tr>
+<tr>
+<td><code>--pull</code></td>
+<td>선택</td>
+<td><code>up</code> 전에 이미지를 먼저 pull 합니다. 최신 published 이미지를 받고 싶을 때 사용합니다.</td>
+</tr>
+<tr>
+<td><code>--open</code></td>
+<td>선택</td>
+<td>시작 후 관리자 로그인 URL을 브라우저로 엽니다.</td>
+</tr>
+<tr>
+<td><code>--interactive</code></td>
+<td>선택</td>
+<td>옵션 일부를 이미 넘겼더라도 wizard를 강제로 시작합니다.</td>
+</tr>
+<tr>
+<td><code>--admin-id &lt;id&gt;</code></td>
+<td>선택</td>
+<td>local stack의 기본 관리자 ID입니다.</td>
+</tr>
+<tr>
+<td><code>--admin-pw &lt;pw&gt;</code></td>
+<td>선택</td>
+<td>local stack의 기본 관리자 비밀번호입니다.</td>
+</tr>
+<tr>
+<td><code>--data-dir &lt;path&gt;</code></td>
+<td>선택</td>
+<td>DB, uploads, workspaces, postgres 데이터를 저장할 호스트 경로입니다.</td>
+</tr>
+<tr>
+<td><code>--frontend-port &lt;port&gt;</code></td>
+<td>선택</td>
+<td>frontend가 노출될 호스트 포트입니다. 기본값은 <code>5173</code>입니다.</td>
+</tr>
+<tr>
+<td><code>--backend-port &lt;port&gt;</code></td>
+<td>선택</td>
+<td>backend가 노출될 호스트 포트입니다. 기본값은 <code>8080</code>입니다.</td>
+</tr>
+<tr>
+<td><code>--image-registry &lt;registry&gt;</code></td>
+<td>선택</td>
+<td>이미지 레지스트리 호스트를 바꿉니다. 예: <code>ghcr.io</code></td>
+</tr>
+<tr>
+<td><code>--image-namespace &lt;namespace&gt;</code></td>
+<td>선택</td>
+<td>이미지 네임스페이스를 바꿉니다. 예: <code>jaichangpark</code></td>
+</tr>
+<tr>
+<td><code>--image-tag &lt;tag&gt;</code></td>
+<td>선택</td>
+<td>사용할 이미지 태그입니다. 기본값은 <code>latest</code>입니다.</td>
+</tr>
+</tbody>
+</table>
+<p>주의할 점:</p>
+<ul>
+<li>옵션 없이 TTY에서 실행하면 질문형 wizard로 들어갑니다.</li>
+<li>관리자 비밀번호를 직접 입력했더라도 출력에는 실제 비밀번호가 아니라 힌트만 표시됩니다.</li>
+</ul>
+<h3 id="oc-ps"><code>oc ps</code><a class="headerlink" href="#oc-ps" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-15-1"><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>oc<span class="w"> </span>ps<span class="w"> </span><span class="o">[</span>--service<span class="w"> </span>&lt;name&gt;<span class="o">]</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>local stack의 컨테이너 상태를 보여줍니다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>필수</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--service &lt;name&gt;</code></td>
+<td>선택</td>
+<td>특정 서비스만 보려면 사용합니다. 보통 <code>frontend</code>, <code>backend</code>, <code>postgres</code> 중 하나입니다.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-logs"><code>oc logs</code><a class="headerlink" href="#oc-logs" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-16-1"><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>oc<span class="w"> </span>logs<span class="w"> </span><span class="o">[</span>--service<span class="w"> </span>&lt;name&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--tail<span class="w"> </span>&lt;n&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--no-follow<span class="o">]</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>local stack 로그를 보여줍니다.</li>
+<li>기본값은 follow 모드입니다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>필수</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--service &lt;name&gt;</code></td>
+<td>선택</td>
+<td>특정 서비스 로그만 봅니다.</td>
+</tr>
+<tr>
+<td><code>--tail &lt;n&gt;</code></td>
+<td>선택</td>
+<td>마지막 <code>n</code>줄만 출력합니다.</td>
+</tr>
+<tr>
+<td><code>--no-follow</code></td>
+<td>선택</td>
+<td>스트리밍 대신 현재 시점 로그만 출력합니다.</td>
+</tr>
+</tbody>
+</table>
+<p>주의할 점:</p>
+<ul>
+<li><code>--json</code>은 <code>--no-follow</code>일 때만 쓸 수 있습니다.</li>
+<li>follow 모드에서는 로그 스트림을 붙잡고 종료할 때까지 계속 출력합니다.</li>
+</ul>
+<h3 id="oc-restart"><code>oc restart</code><a class="headerlink" href="#oc-restart" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-17-1"><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>oc<span class="w"> </span>restart<span class="w"> </span><span class="o">[</span>--service<span class="w"> </span>&lt;name&gt;<span class="o">]</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>local stack 전체 또는 특정 서비스를 재시작합니다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>필수</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--service &lt;name&gt;</code></td>
+<td>선택</td>
+<td>특정 서비스만 재시작합니다. 생략하면 전체 stack 재시작입니다.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-down"><code>oc down</code><a class="headerlink" href="#oc-down" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-18-1"><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>oc<span class="w"> </span>down<span class="w"> </span><span class="o">[</span>--volumes<span class="o">]</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>local stack을 종료합니다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>필수</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--volumes</code></td>
+<td>선택</td>
+<td>컨테이너 종료와 함께 <code>oc run</code>이 만든 로컬 데이터 디렉터리도 삭제합니다.</td>
+</tr>
+</tbody>
+</table>
+<p>주의할 점:</p>
+<ul>
+<li><code>--volumes</code>를 쓰면 bind mount 데이터까지 지워지므로 실질적인 데이터 초기화에 해당합니다.</li>
+<li><code>oc ps</code>, <code>oc logs</code>, <code>oc restart</code>, <code>oc down</code>은 이전에 <code>oc run</code>이 저장한 local stack state를 사용합니다.</li>
+</ul>
+<h2 id="_12">관리자 명령<a class="headerlink" href="#_12" title="Permanent link">&para;</a></h2>
+<h3 id="oc-admin-settings"><code>oc admin settings</code><a class="headerlink" href="#oc-admin-settings" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-19-1"><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>oc<span class="w"> </span>admin<span class="w"> </span>settings<span class="w"> </span><span class="o">[</span>--gemini-api-key<span class="w"> </span>&lt;key&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--admin-password<span class="w"> </span>&lt;pw&gt;<span class="o">]</span>
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>관리자 설정에 저장된 Gemini API 키를 갱신합니다.</li>
+<li>전달된 API 키는 CLI에서 관리자 비밀번호로 암호화한 뒤 서버에 저장합니다.</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th>필수</th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--gemini-api-key &lt;key&gt;</code></td>
+<td>보통 예</td>
+<td>저장할 Gemini API 키 원문입니다.</td>
+</tr>
+<tr>
+<td><code>--admin-password &lt;pw&gt;</code></td>
+<td>조건부</td>
+<td><code>--gemini-api-key</code>를 암호화할 관리자 비밀번호입니다. 없으면 <code>OPEN_CODELABS_ADMIN_PW</code>를 찾습니다.</td>
+</tr>
+</tbody>
+</table>
+<p>주의할 점:</p>
+<ul>
+<li><code>oc admin settings</code>를 <code>--gemini-api-key</code> 없이 실행하면 현재 저장된 Gemini 키를 지우는 동작이 됩니다.</li>
+</ul>
+<h3 id="oc-admin-updates"><code>oc admin updates</code><a class="headerlink" href="#oc-admin-updates" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-20-1"><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>oc<span class="w"> </span>admin<span class="w"> </span>updates
+</span></code></pre></div>
+<p>무엇을 하는가:</p>
+<ul>
+<li>frontend/backend 배포 버전과 최신 버전을 비교해 업데이트 가능 여부를 보여줍니다.</li>
+</ul>
+<p>옵션:</p>
+<ul>
+<li>없음</li>
+</ul>
+<h2 id="_13">코드랩 관리<a class="headerlink" href="#_13" title="Permanent link">&para;</a></h2>
+<h3 id="_14">목록 조회 계열<a class="headerlink" href="#_14" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc codelab list</code></td>
+<td>현재 세션에서 볼 수 있는 코드랩 목록을 조회합니다.</td>
+<td>없음</td>
+</tr>
+<tr>
+<td><code>oc codelab reference</code></td>
+<td>내장 reference codelab 원문을 출력합니다.</td>
+<td>없음</td>
+</tr>
+<tr>
+<td><code>oc codelab get --id &lt;id&gt;</code></td>
+<td>코드랩 메타데이터와 step 목록을 함께 조회합니다.</td>
+<td><code>--id</code>: 조회할 코드랩 ID</td>
+</tr>
+</tbody>
+</table>
+<h3 id="oc-codelab-create"><code>oc codelab create</code><a class="headerlink" href="#oc-codelab-create" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-21-1"><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>oc<span class="w"> </span>codelab<span class="w"> </span>create<span class="w"> </span>--title<span class="w"> </span>&lt;title&gt;<span class="w"> </span>--description<span class="w"> </span>&lt;desc&gt;<span class="w"> </span>--author<span class="w"> </span>&lt;author&gt;<span class="w"> </span><span class="o">[</span>--private<span class="o">]</span><span class="w"> </span><span class="o">[</span>--guide-file<span class="w"> </span>&lt;path&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--quiz-enabled<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-quiz<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-feedback<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-submission<span class="o">]</span>
+</span></code></pre></div>
+<h3 id="oc-codelab-update"><code>oc codelab update</code><a class="headerlink" href="#oc-codelab-update" title="Permanent link">&para;</a></h3>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-22-1"><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>oc<span class="w"> </span>codelab<span class="w"> </span>update<span class="w"> </span>--id<span class="w"> </span>&lt;id&gt;<span class="w"> </span>--title<span class="w"> </span>&lt;title&gt;<span class="w"> </span>--description<span class="w"> </span>&lt;desc&gt;<span class="w"> </span>--author<span class="w"> </span>&lt;author&gt;<span class="w"> </span><span class="o">[</span>--private<span class="o">]</span><span class="w"> </span><span class="o">[</span>--guide-file<span class="w"> </span>&lt;path&gt;<span class="o">]</span><span class="w"> </span><span class="o">[</span>--quiz-enabled<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-quiz<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-feedback<span class="o">]</span><span class="w"> </span><span class="o">[</span>--require-submission<span class="o">]</span>
+</span></code></pre></div>
+<p>공통 옵션 의미:</p>
+<table>
+<thead>
+<tr>
+<th>옵션</th>
+<th><code>create</code></th>
+<th><code>update</code></th>
+<th>의미</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--id &lt;id&gt;</code></td>
+<td>아니오</td>
+<td>예</td>
+<td>수정할 코드랩 ID입니다.</td>
+</tr>
+<tr>
+<td><code>--title &lt;title&gt;</code></td>
+<td>예</td>
+<td>예</td>
+<td>코드랩 제목입니다.</td>
+</tr>
+<tr>
+<td><code>--description &lt;desc&gt;</code></td>
+<td>예</td>
+<td>예</td>
+<td>목록과 상세에서 보이는 설명입니다.</td>
+</tr>
+<tr>
+<td><code>--author &lt;author&gt;</code></td>
+<td>예</td>
+<td>예</td>
+<td>작성자 이름입니다.</td>
+</tr>
+<tr>
+<td><code>--private</code></td>
+<td>선택</td>
+<td>선택</td>
+<td>public 기본값을 뒤집어 private으로 만듭니다.</td>
+</tr>
+<tr>
+<td><code>--guide-file &lt;path&gt;</code></td>
+<td>선택</td>
+<td>선택</td>
+<td>guide markdown 파일을 읽어 guide 본문으로 저장합니다.</td>
+</tr>
+<tr>
+<td><code>--quiz-enabled</code></td>
+<td>선택</td>
+<td>선택</td>
+<td>퀴즈 기능 자체를 켭니다.</td>
+</tr>
+<tr>
+<td><code>--require-quiz</code></td>
+<td>선택</td>
+<td>선택</td>
+<td>수료 조건에 퀴즈 제출/통과를 요구합니다.</td>
+</tr>
+<tr>
+<td><code>--require-feedback</code></td>
+<td>선택</td>
+<td>선택</td>
+<td>수료 조건에 피드백 제출을 요구합니다.</td>
+</tr>
+<tr>
+<td><code>--require-submission</code></td>
+<td>선택</td>
+<td>선택</td>
+<td>수료 조건에 제출물을 요구합니다.</td>
+</tr>
+</tbody>
+</table>
+<p>주의할 점:</p>
+<ul>
+<li><code>update</code>는 부분 patch가 아니라 전달한 값 기준으로 메타데이터를 다시 씁니다.</li>
+<li><code>update</code>에서 <code>--private</code>, <code>--quiz-enabled</code>, <code>--require-*</code>를 생략하면 해당 값이 기본값으로 돌아갈 수 있으므로 현재 설정을 유지하려면 필요한 플래그를 다시 명시하는 것이 안전합니다.</li>
+</ul>
+<h3 id="_15">기타 코드랩 명령<a class="headerlink" href="#_15" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc codelab delete --id &lt;id&gt;</code></td>
+<td>코드랩과 관련 데이터를 삭제합니다.</td>
+<td><code>--id</code>: 삭제할 코드랩 ID</td>
+</tr>
+<tr>
+<td><code>oc codelab copy --id &lt;id&gt;</code></td>
+<td>기존 코드랩과 step 구성을 복제합니다.</td>
+<td><code>--id</code>: 복제 원본 코드랩 ID</td>
+</tr>
+<tr>
+<td><code>oc codelab export --id &lt;id&gt; [--output &lt;path&gt;]</code></td>
+<td>코드랩 ZIP 백업을 만듭니다.</td>
+<td><code>--output</code> 생략 시 <code>codelab_&lt;id&gt;.zip</code></td>
+</tr>
+<tr>
+<td><code>oc codelab import --file &lt;zip&gt;</code></td>
+<td>export로 만든 ZIP에서 코드랩을 가져옵니다.</td>
+<td><code>--file</code>: 가져올 ZIP 경로</td>
+</tr>
+<tr>
+<td><code>oc codelab pull --id &lt;id&gt; [--output &lt;dir&gt;] [--format &lt;yaml|json&gt;]</code></td>
+<td>코드랩 메타데이터, guide, steps, quizzes, materials를 로컬 manifest 번들로 내려받습니다.</td>
+<td><code>--output</code> 생략 시 <code>codelab-&lt;id&gt;</code> 디렉터리, <code>--format</code>은 <code>codelab.yaml</code> 또는 <code>codelab.json</code> 형식을 고릅니다.</td>
+</tr>
+<tr>
+<td><code>oc codelab push --manifest &lt;path&gt; [--id &lt;id&gt;]</code></td>
+<td>manifest 번들의 메타데이터, guide, steps, quizzes, materials를 서버에 동기화합니다.</td>
+<td><code>--manifest</code>: manifest 파일 또는 manifest가 들어 있는 디렉터리, <code>--id</code>: manifest 안의 ID 대신 강제로 대상 코드랩 지정</td>
+</tr>
+<tr>
+<td><code>oc codelab push-steps --id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>코드랩의 step 목록 전체를 JSON으로 교체합니다.</td>
+<td><code>--file</code>: <code>UpdateStepsPayload</code> JSON 경로</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_16">백업과 감사 로그<a class="headerlink" href="#_16" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc backup export [--output &lt;path&gt;]</code></td>
+<td>전체 플랫폼 백업 ZIP을 생성합니다.</td>
+<td><code>--output</code> 생략 시 <code>backup_full.zip</code></td>
+</tr>
+<tr>
+<td><code>oc backup inspect --file &lt;zip&gt;</code></td>
+<td>ZIP을 복구하지 않고 내부 개수 요약만 확인합니다.</td>
+<td><code>--file</code>: 검사할 backup ZIP</td>
+</tr>
+<tr>
+<td><code>oc backup restore --file &lt;zip&gt;</code></td>
+<td>backup ZIP을 현재 backend에 복구합니다.</td>
+<td><code>--file</code>: 복구할 backup ZIP</td>
+</tr>
+<tr>
+<td><code>oc audit logs [--limit &lt;n&gt;] [--offset &lt;n&gt;] [--action &lt;name&gt;] [--codelab-id &lt;id&gt;]</code></td>
+<td>관리자 감사 로그를 필터링해 조회합니다.</td>
+<td><code>--limit</code>: 개수 제한, <code>--offset</code>: 페이지 오프셋, <code>--action</code>: 액션 이름 필터, <code>--codelab-id</code>: 특정 코드랩 관련 로그만 조회</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_17">워크스페이스<a class="headerlink" href="#_17" title="Permanent link">&para;</a></h2>
+<p>워크스페이스 명령은 code-server 기반 파일 구조를 관리할 때 사용합니다.</p>
+<h3 id="_18">생성과 조회<a class="headerlink" href="#_18" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc workspace create --codelab-id &lt;id&gt; [--structure-type &lt;branch|folder&gt;] [--files-json &lt;path&gt;]</code></td>
+<td>코드랩용 워크스페이스를 생성합니다.</td>
+<td><code>--structure-type</code>: snapshot 전략 선택, <code>--files-json</code>: 초기 파일 목록 JSON</td>
+</tr>
+<tr>
+<td><code>oc workspace info --codelab-id &lt;id&gt;</code></td>
+<td>워크스페이스 메타데이터를 조회합니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+<tr>
+<td><code>oc workspace download --codelab-id &lt;id&gt; [--output &lt;path&gt;]</code></td>
+<td>워크스페이스를 tar.gz로 다운로드합니다.</td>
+<td><code>--output</code> 생략 시 <code>workspace_&lt;id&gt;.tar.gz</code></td>
+</tr>
+<tr>
+<td><code>oc workspace delete --codelab-id &lt;id&gt;</code></td>
+<td>워크스페이스를 삭제합니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+</tbody>
+</table>
+<h3 id="snapshot">브랜치 snapshot<a class="headerlink" href="#snapshot" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc workspace branches --codelab-id &lt;id&gt;</code></td>
+<td>저장된 branch snapshot 이름 목록을 봅니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+<tr>
+<td><code>oc workspace branch-create --codelab-id &lt;id&gt; --step-number &lt;n&gt; [--branch-type &lt;start|end&gt;]</code></td>
+<td>step 시작 시점 또는 종료 시점 branch snapshot을 만듭니다.</td>
+<td><code>--step-number</code>: step 번호, <code>--branch-type</code>: <code>start</code> 또는 <code>end</code>, 기본값 <code>start</code></td>
+</tr>
+<tr>
+<td><code>oc workspace branch-files --codelab-id &lt;id&gt; --branch &lt;name&gt;</code></td>
+<td>branch 안의 파일 경로 목록을 조회합니다.</td>
+<td><code>--branch</code>: 읽을 branch 이름</td>
+</tr>
+<tr>
+<td><code>oc workspace branch-read --codelab-id &lt;id&gt; --branch &lt;name&gt; --file &lt;path&gt;</code></td>
+<td>branch 안의 파일 내용을 읽습니다.</td>
+<td><code>--file</code>: 읽을 파일 경로</td>
+</tr>
+<tr>
+<td><code>oc workspace branch-update --codelab-id &lt;id&gt; --branch &lt;name&gt; --files-json &lt;path&gt; [--delete-json &lt;path&gt;] [--commit-message &lt;message&gt;]</code></td>
+<td>branch 안 파일을 쓰거나 삭제합니다.</td>
+<td><code>--files-json</code>: 쓸 파일 목록 또는 update payload, <code>--delete-json</code>: 삭제 파일 경로 목록, <code>--commit-message</code>: 변경 설명</td>
+</tr>
+</tbody>
+</table>
+<h3 id="snapshot_1">폴더 snapshot<a class="headerlink" href="#snapshot_1" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc workspace folders --codelab-id &lt;id&gt;</code></td>
+<td>저장된 folder snapshot 이름 목록을 봅니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+<tr>
+<td><code>oc workspace folder-create --codelab-id &lt;id&gt; --step-number &lt;n&gt; --files-json &lt;path&gt; [--folder-type &lt;start|end&gt;]</code></td>
+<td>step 시작/종료 시점 folder snapshot을 만듭니다.</td>
+<td><code>--files-json</code>: snapshot에 들어갈 파일 목록</td>
+</tr>
+<tr>
+<td><code>oc workspace folder-files --codelab-id &lt;id&gt; --folder &lt;name&gt;</code></td>
+<td>folder snapshot 안의 파일 목록을 조회합니다.</td>
+<td><code>--folder</code>: 읽을 folder 이름</td>
+</tr>
+<tr>
+<td><code>oc workspace folder-read --codelab-id &lt;id&gt; --folder &lt;name&gt; --file &lt;path&gt;</code></td>
+<td>folder snapshot 안 파일 내용을 읽습니다.</td>
+<td><code>--file</code>: 읽을 파일 경로</td>
+</tr>
+<tr>
+<td><code>oc workspace folder-update --codelab-id &lt;id&gt; --folder &lt;name&gt; --files-json &lt;path&gt; [--delete-json &lt;path&gt;]</code></td>
+<td>folder snapshot 안 파일을 갱신합니다.</td>
+<td><code>--files-json</code>: 쓸 파일 목록 또는 update payload, <code>--delete-json</code>: 삭제할 파일 경로 목록</td>
+</tr>
+</tbody>
+</table>
+<p>실무 팁:</p>
+<ul>
+<li><code>branch</code> 모드는 Git branch처럼 단계별 상태를 나눠 관리할 때 적합합니다.</li>
+<li><code>folder</code> 모드는 각 step 결과물을 독립 디렉터리처럼 저장할 때 적합합니다.</li>
+</ul>
+<h2 id="_19">참석자와 라이브 운영<a class="headerlink" href="#_19" title="Permanent link">&para;</a></h2>
+<h3 id="_20">참석자 세션<a class="headerlink" href="#_20" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc attendee join --codelab-id &lt;id&gt; --name &lt;name&gt; --code &lt;code&gt; [--email &lt;email&gt;]</code></td>
+<td>참석자로 등록하거나 재입장합니다. 성공 시 attendee 세션을 저장합니다.</td>
+<td><code>--code</code>: 참가 코드, <code>--email</code>: 선택 메타데이터</td>
+</tr>
+<tr>
+<td><code>oc attendee list --codelab-id &lt;id&gt;</code></td>
+<td>코드랩 참석자 목록을 조회합니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+<tr>
+<td><code>oc attendee complete --codelab-id &lt;id&gt;</code></td>
+<td>현재 attendee 세션을 완료 상태로 표시합니다.</td>
+<td><code>--codelab-id</code>: 완료 처리할 코드랩</td>
+</tr>
+<tr>
+<td><code>oc attendee certificate [--attendee-id &lt;id&gt;]</code></td>
+<td>수료증 정보를 조회합니다.</td>
+<td><code>--attendee-id</code>가 없으면 현재 attendee 세션의 subject를 사용합니다.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_21">도움 요청<a class="headerlink" href="#_21" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc help request --codelab-id &lt;id&gt; --step-number &lt;n&gt;</code></td>
+<td>현재 attendee가 특정 step에서 도움 요청을 생성합니다.</td>
+<td><code>--step-number</code>: 막힌 step 번호</td>
+</tr>
+<tr>
+<td><code>oc help list --codelab-id &lt;id&gt;</code></td>
+<td>코드랩의 도움 요청 목록을 조회합니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+<tr>
+<td><code>oc help resolve --codelab-id &lt;id&gt; --help-id &lt;id&gt;</code></td>
+<td>도움 요청을 해결 상태로 바꿉니다.</td>
+<td><code>--help-id</code>: resolve할 요청 ID</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_22">피드백<a class="headerlink" href="#_22" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc feedback submit --codelab-id &lt;id&gt; --difficulty &lt;1-5&gt; --satisfaction &lt;1-5&gt; [--comment &lt;text&gt;]</code></td>
+<td>attendee 피드백을 제출합니다.</td>
+<td><code>--difficulty</code>, <code>--satisfaction</code>: 일반적으로 1-5 점수 문자열, <code>--comment</code>: 자유 의견</td>
+</tr>
+<tr>
+<td><code>oc feedback list --codelab-id &lt;id&gt;</code></td>
+<td>코드랩 피드백 목록을 조회합니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_23">자료, 퀴즈, 제출물<a class="headerlink" href="#_23" title="Permanent link">&para;</a></h2>
+<h3 id="_24">자료<a class="headerlink" href="#_24" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc materials list --codelab-id &lt;id&gt;</code></td>
+<td>코드랩 자료 목록을 조회합니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+<tr>
+<td><code>oc materials upload --file &lt;path&gt;</code></td>
+<td>자료 파일을 업로드하고 나중에 <code>materials add</code>에 넣을 file path/URL을 얻습니다.</td>
+<td><code>--file</code>: 업로드할 로컬 파일</td>
+</tr>
+<tr>
+<td><code>oc materials add --codelab-id &lt;id&gt; --title &lt;title&gt; --type &lt;link|file&gt; [--url &lt;url&gt;] [--file-path &lt;path&gt;]</code></td>
+<td>자료 레코드를 추가합니다.</td>
+<td><code>--type link</code>이면 <code>--url</code>, <code>--type file</code>이면 <code>--file-path</code>를 주는 것이 일반적입니다.</td>
+</tr>
+<tr>
+<td><code>oc materials delete --codelab-id &lt;id&gt; --material-id &lt;id&gt;</code></td>
+<td>자료 레코드를 삭제합니다.</td>
+<td><code>--material-id</code>: 삭제 대상 자료 ID</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_25">퀴즈<a class="headerlink" href="#_25" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc quiz list --codelab-id &lt;id&gt;</code></td>
+<td>현재 퀴즈 정의를 조회합니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+<tr>
+<td><code>oc quiz update --codelab-id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>코드랩의 퀴즈 전체를 JSON으로 교체합니다.</td>
+<td><code>--file</code>: <code>CreateQuiz[]</code> JSON 파일</td>
+</tr>
+<tr>
+<td><code>oc quiz submit --codelab-id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>현재 attendee 답안을 제출합니다.</td>
+<td><code>--file</code>: <code>QuizSubmissionPayload</code> JSON 파일</td>
+</tr>
+<tr>
+<td><code>oc quiz submissions --codelab-id &lt;id&gt;</code></td>
+<td>관리자 관점의 퀴즈 제출 목록을 봅니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_26">제출물<a class="headerlink" href="#_26" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc submission list --codelab-id &lt;id&gt;</code></td>
+<td>현재 역할이 볼 수 있는 제출물 목록을 봅니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+<tr>
+<td><code>oc submission file --codelab-id &lt;id&gt; [--attendee-id &lt;id&gt;] --file &lt;path&gt;</code></td>
+<td>파일 제출물을 업로드합니다.</td>
+<td><code>--attendee-id</code>가 없으면 현재 attendee 세션을 사용합니다.</td>
+</tr>
+<tr>
+<td><code>oc submission link --codelab-id &lt;id&gt; [--attendee-id &lt;id&gt;] --url &lt;url&gt; [--title &lt;title&gt;]</code></td>
+<td>링크 제출물을 생성합니다.</td>
+<td><code>--title</code>은 표시용 제목입니다.</td>
+</tr>
+<tr>
+<td><code>oc submission delete --codelab-id &lt;id&gt; [--attendee-id &lt;id&gt;] --submission-id &lt;id&gt;</code></td>
+<td>제출물을 삭제합니다.</td>
+<td><code>--attendee-id</code>가 없으면 현재 attendee 세션에서 subject를 추론합니다.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_27">채팅, 업로드, 인라인 댓글<a class="headerlink" href="#_27" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc chat history --codelab-id &lt;id&gt;</code></td>
+<td>코드랩 채팅 히스토리를 조회합니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+<tr>
+<td><code>oc upload image --file &lt;path&gt;</code></td>
+<td>이미지 에셋을 업로드하고 URL을 반환합니다.</td>
+<td><code>--file</code>: 업로드할 이미지 파일</td>
+</tr>
+<tr>
+<td><code>oc inline list --codelab-id &lt;id&gt; [--target-type &lt;guide|step&gt;] [--target-step-id &lt;id&gt;]</code></td>
+<td>인라인 댓글 thread 목록을 조회합니다.</td>
+<td><code>--target-type step</code>일 때 <code>--target-step-id</code>를 함께 주는 것이 일반적입니다.</td>
+</tr>
+<tr>
+<td><code>oc inline create --codelab-id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>새 인라인 댓글 thread를 만듭니다.</td>
+<td><code>--file</code>: <code>CreateInlineCommentPayload</code> JSON 파일</td>
+</tr>
+<tr>
+<td><code>oc inline reply --codelab-id &lt;id&gt; --thread-id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>기존 thread에 댓글을 답글로 추가합니다.</td>
+<td><code>--file</code>: <code>ReplyInlineCommentPayload</code> JSON 파일</td>
+</tr>
+<tr>
+<td><code>oc inline delete --codelab-id &lt;id&gt; --thread-id &lt;id&gt; --comment-id &lt;id&gt;</code></td>
+<td>특정 댓글 메시지를 삭제합니다.</td>
+<td><code>--thread-id</code>: thread ID, <code>--comment-id</code>: 삭제할 댓글 ID</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ai">AI 명령<a class="headerlink" href="#ai" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>명령</th>
+<th>의미</th>
+<th>옵션 설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>oc ai conversations --codelab-id &lt;id&gt;</code></td>
+<td>코드랩에 저장된 AI 대화 이력을 조회합니다.</td>
+<td><code>--codelab-id</code>: 대상 코드랩</td>
+</tr>
+<tr>
+<td><code>oc ai stream --file &lt;json&gt;</code></td>
+<td>AI 요청 JSON을 보내고 최종 SSE 텍스트를 출력합니다.</td>
+<td><code>--file</code>: <code>AiRequest</code> JSON</td>
+</tr>
+<tr>
+<td><code>oc ai save --file &lt;json&gt;</code></td>
+<td>한 번의 AI 대화 교환을 영속 저장합니다.</td>
+<td><code>--file</code>: <code>SaveAiConversationPayload</code> JSON</td>
+</tr>
+<tr>
+<td><code>oc ai threads</code></td>
+<td>현재 관리자 소유 AI thread 목록을 조회합니다.</td>
+<td>없음</td>
+</tr>
+<tr>
+<td><code>oc ai thread-create --title &lt;title&gt; [--codelab-id &lt;id&gt;]</code></td>
+<td>새 AI thread를 만듭니다.</td>
+<td><code>--codelab-id</code>: thread를 특정 코드랩에 연결할 때 사용합니다.</td>
+</tr>
+<tr>
+<td><code>oc ai thread-delete --thread-id &lt;id&gt;</code></td>
+<td>AI thread를 삭제합니다.</td>
+<td><code>--thread-id</code>: 삭제 대상 thread ID</td>
+</tr>
+<tr>
+<td><code>oc ai messages --thread-id &lt;id&gt;</code></td>
+<td>특정 thread의 메시지를 조회합니다.</td>
+<td><code>--thread-id</code>: 조회 대상 thread ID</td>
+</tr>
+<tr>
+<td><code>oc ai message-add --thread-id &lt;id&gt; --file &lt;json&gt;</code></td>
+<td>특정 thread에 메시지를 추가합니다.</td>
+<td><code>--file</code>: <code>AddAiMessagePayload</code> JSON</td>
+</tr>
+</tbody>
+</table>
+<h2 id="json">JSON 입력 파일 치트시트<a class="headerlink" href="#json" title="Permanent link">&para;</a></h2>
+<p>파일 플래그는 단순 “아무 JSON”이 아니라 특정 payload를 기대합니다.</p>
+<table>
+<thead>
+<tr>
+<th>명령 옵션</th>
+<th>기대하는 내용</th>
+<th>설명</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>codelab create/update --guide-file</code></td>
+<td>Markdown 텍스트 파일</td>
+<td>파일 내용을 그대로 guide markdown으로 읽습니다.</td>
+</tr>
+<tr>
+<td><code>codelab push --manifest</code></td>
+<td><code>CodelabManifest</code> YAML/JSON</td>
+<td>메타데이터, guide 상대 경로, <code>steps[]</code>, <code>quizzes[]</code>, <code>materials[]</code>를 담는 manifest입니다. file material은 manifest 기준 상대 경로를 사용합니다.</td>
+</tr>
+<tr>
+<td><code>codelab push-steps --file</code></td>
+<td><code>UpdateStepsPayload</code> JSON</td>
+<td>보통 <code>steps</code> 배열 전체를 담습니다. 기존 step 목록을 통째로 교체합니다.</td>
+</tr>
+<tr>
+<td><code>workspace create --files-json</code></td>
+<td><code>WorkspaceFile[]</code> JSON</td>
+<td>초기 워크스페이스 파일 목록입니다.</td>
+</tr>
+<tr>
+<td><code>workspace branch-update --files-json</code></td>
+<td><code>UpdateWorkspaceFilesRequest</code> 또는 <code>WorkspaceFile[]</code> JSON</td>
+<td>간단한 배열을 주면 write 목록으로 처리합니다.</td>
+</tr>
+<tr>
+<td><code>workspace branch-update --delete-json</code></td>
+<td><code>string[]</code> JSON</td>
+<td>삭제할 파일 경로 목록입니다.</td>
+</tr>
+<tr>
+<td><code>workspace folder-create --files-json</code></td>
+<td><code>WorkspaceFile[]</code> JSON</td>
+<td>folder snapshot 생성 시 포함할 파일 목록입니다.</td>
+</tr>
+<tr>
+<td><code>workspace folder-update --files-json</code></td>
+<td><code>UpdateWorkspaceFilesRequest</code> 또는 <code>WorkspaceFile[]</code> JSON</td>
+<td>folder snapshot에 쓸 파일 목록입니다.</td>
+</tr>
+<tr>
+<td><code>workspace folder-update --delete-json</code></td>
+<td><code>string[]</code> JSON</td>
+<td>folder snapshot에서 삭제할 파일 경로 목록입니다.</td>
+</tr>
+<tr>
+<td><code>quiz update --file</code></td>
+<td><code>CreateQuiz[]</code> JSON</td>
+<td>전체 퀴즈 집합을 교체합니다.</td>
+</tr>
+<tr>
+<td><code>quiz submit --file</code></td>
+<td><code>QuizSubmissionPayload</code> JSON</td>
+<td>attendee가 제출할 답안 payload입니다.</td>
+</tr>
+<tr>
+<td><code>inline create --file</code></td>
+<td><code>CreateInlineCommentPayload</code> JSON</td>
+<td>새 thread의 본문, target 정보 등을 담습니다.</td>
+</tr>
+<tr>
+<td><code>inline reply --file</code></td>
+<td><code>ReplyInlineCommentPayload</code> JSON</td>
+<td>기존 thread에 추가할 답글 내용입니다.</td>
+</tr>
+<tr>
+<td><code>ai stream --file</code></td>
+<td><code>AiRequest</code> JSON</td>
+<td>모델, 메시지, 컨텍스트 등 AI 호출 입력입니다.</td>
+</tr>
+<tr>
+<td><code>ai save --file</code></td>
+<td><code>SaveAiConversationPayload</code> JSON</td>
+<td>코드랩에 저장할 AI 대화 단위입니다.</td>
+</tr>
+<tr>
+<td><code>ai message-add --file</code></td>
+<td><code>AddAiMessagePayload</code> JSON</td>
+<td>thread에 추가할 메시지 payload입니다.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_28">운영 팁<a class="headerlink" href="#_28" title="Permanent link">&para;</a></h2>
+<ul>
+<li>서버를 아직 모른다면 <code>oc init</code>으로 시작하는 것이 가장 안전합니다.</li>
+<li>자동화에서는 <code>--json</code>을 기본으로 두고, 사람이 직접 보는 명령만 텍스트 출력을 쓰는 편이 좋습니다.</li>
+<li>관리자와 attendee 세션을 동시에 다룬다면 <code>--session-file</code>을 분리하거나 profile별 session 경로를 쓰는 것이 안전합니다.</li>
+<li><code>firebase</code>/<code>supabase</code> profile은 <code>connect status</code>에서 capability가 제한적으로 보일 수 있습니다. 이 경우 관리자 명령보다는 공개 읽기/참석자 명령 위주로 접근하는 편이 낫습니다.</li>
+<li>실제 현재 usage는 언제든 <code>oc &lt;명령군&gt; --help</code>로 다시 확인할 수 있습니다.</li>
+</ul>
+
+
+
+
+
+
+
+  
+    
+  
+  
+    
+  
+
+
+  <aside class="md-source-file">
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="마지막 업데이트">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M21 13.1c-.1 0-.3.1-.4.2l-1 1 2.1 2.1 1-1c.2-.2.2-.6 0-.8l-1.3-1.3c-.1-.1-.2-.2-.4-.2m-1.9 1.8-6.1 6V23h2.1l6.1-6.1zM12.5 7v5.2l4 2.4-1 1L11 13V7zM11 21.9c-5.1-.5-9-4.8-9-9.9C2 6.5 6.5 2 12 2c5.3 0 9.6 4.1 10 9.3-.3-.1-.6-.2-1-.2s-.7.1-1 .2C19.6 7.2 16.2 4 12 4c-4.4 0-8 3.6-8 8 0 4.1 3.1 7.5 7.1 7.9l-.1.2z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="2026년 4월 6일 13:22:05 UTC">2026년 4월 6일</span>
+  </span>
+
+    
+    
+      
+  <span class="md-source-file__fact">
+    <span class="md-icon" title="작성일">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14.47 15.08 11 13V7h1.5v5.25l3.08 1.83c-.41.28-.79.62-1.11 1m-1.39 4.84c-.36.05-.71.08-1.08.08-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8c0 .37-.03.72-.08 1.08.69.1 1.33.32 1.92.64.1-.56.16-1.13.16-1.72 0-5.5-4.5-10-10-10S2 6.5 2 12s4.47 10 10 10c.59 0 1.16-.06 1.72-.16-.32-.59-.54-1.23-.64-1.92M18 15v3h-3v2h3v3h2v-3h3v-2h-3v-3z"/></svg>
+    </span>
+    <span class="git-revision-date-localized-plugin git-revision-date-localized-plugin-date" title="2026년 4월 6일 13:22:05 UTC">2026년 4월 6일</span>
+  </span>
+
+    
+    
+    
+  </aside>
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  맨위로
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/JAICHANGPARK/open-codelabs" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\ud074\ub9bd\ubcf4\ub4dc\uc5d0 \ubcf5\uc0ac\ub428", "clipboard.copy": "\ud074\ub9bd\ubcf4\ub4dc\ub85c \ubcf5\uc0ac", "search.result.more.one": "\uc774 \ubb38\uc11c\uc5d0\uc11c 1\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.more.other": "\uc774 \ubb38\uc11c\uc5d0\uc11c #\uac1c\uc758 \uac80\uc0c9 \uacb0\uacfc \ub354 \ubcf4\uae30", "search.result.none": "\uac80\uc0c9\uc5b4\uc640 \uc77c\uce58\ud558\ub294 \ubb38\uc11c\uac00 \uc5c6\uc2b5\ub2c8\ub2e4", "search.result.one": "1\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.other": "#\uac1c\uc758 \uc77c\uce58\ud558\ub294 \ubb38\uc11c", "search.result.placeholder": "\uac80\uc0c9\uc5b4\ub97c \uc785\ub825\ud558\uc138\uc694", "search.result.term.missing": "\ud3ec\ud568\ub418\uc9c0 \uc54a\uc740 \uac80\uc0c9\uc5b4", "select.version": "\ubc84\uc804 \uc120\ud0dd"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
