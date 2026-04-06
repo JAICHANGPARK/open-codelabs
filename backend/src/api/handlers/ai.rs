@@ -153,13 +153,31 @@ pub async fn proxy_gemini_stream(
     }
 
     if let Some(tools) = payload.tools.clone() {
-        body["tools"] = tools;
+        body["tools"] = normalize_provider_tools(tools);
     }
 
     let response = match client.post(&url).json(&body).send().await {
         Ok(res) => res,
         Err(e) => return internal_error(e).into_response(),
     };
+
+    let upstream_status = response.status();
+    if !upstream_status.is_success() {
+        let upstream_content_type = response
+            .headers()
+            .get(header::CONTENT_TYPE)
+            .cloned();
+        let error_body = response
+            .text()
+            .await
+            .unwrap_or_else(|_| "Gemini API request failed".to_string());
+
+        let mut builder = Response::builder().status(upstream_status);
+        if let Some(content_type) = upstream_content_type {
+            builder = builder.header(header::CONTENT_TYPE, content_type);
+        }
+        return builder.body(Body::from(error_body)).unwrap();
+    }
 
     let stream = response.bytes_stream();
 
@@ -416,12 +434,37 @@ fn is_valid_model(model: &str) -> bool {
     }
     model
         .chars()
-        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-')
+        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '-' || c == '.')
+}
+
+fn normalize_provider_tools(tools: serde_json::Value) -> serde_json::Value {
+    match tools {
+        serde_json::Value::Array(items) => serde_json::Value::Array(
+            items.into_iter().map(normalize_provider_tool).collect(),
+        ),
+        other => other,
+    }
+}
+
+fn normalize_provider_tool(tool: serde_json::Value) -> serde_json::Value {
+    match tool {
+        serde_json::Value::Object(mut map) => {
+            if let Some(value) = map.remove("googleSearch") {
+                map.insert("google_search".to_string(), value);
+            }
+            if let Some(value) = map.remove("urlContext") {
+                map.insert("url_context".to_string(), value);
+            }
+            serde_json::Value::Object(map)
+        }
+        other => other,
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::json;
     use std::sync::{LazyLock, Mutex};
 
     struct EnvRestore {
@@ -457,6 +500,7 @@ mod tests {
         std::env::remove_var("ALLOWED_GEMINI_MODELS");
 
         assert!(is_valid_model("gemini-3-flash-preview"));
+        assert!(is_valid_model("gemini-3.1-flash-lite-preview"));
         assert!(!is_valid_model(""));
         assert!(!is_valid_model(&"a".repeat(65)));
         assert!(!is_valid_model("Model-With-Uppercase"));
@@ -469,10 +513,11 @@ mod tests {
         let _guard = EnvRestore::new("ALLOWED_GEMINI_MODELS");
         std::env::set_var(
             "ALLOWED_GEMINI_MODELS",
-            "gemini-3-flash-preview, custom-model",
+            "gemini-3-flash-preview, gemini-3.1-flash-lite-preview, custom-model",
         );
 
         assert!(is_valid_model("custom-model"));
+        assert!(is_valid_model("gemini-3.1-flash-lite-preview"));
         assert!(!is_valid_model("gemini-2.0"));
     }
 
@@ -489,5 +534,37 @@ mod tests {
             Ok("before")
         );
         std::env::remove_var("ALLOWED_GEMINI_MODELS");
+    }
+
+    #[test]
+    fn normalize_provider_tools_converts_camel_case_keys() {
+        let normalized = normalize_provider_tools(json!([
+            { "googleSearch": {} },
+            { "urlContext": {} }
+        ]));
+
+        assert_eq!(
+            normalized,
+            json!([
+                { "google_search": {} },
+                { "url_context": {} }
+            ])
+        );
+    }
+
+    #[test]
+    fn normalize_provider_tools_preserves_snake_case_keys() {
+        let normalized = normalize_provider_tools(json!([
+            { "google_search": {} },
+            { "url_context": {} }
+        ]));
+
+        assert_eq!(
+            normalized,
+            json!([
+                { "google_search": {} },
+                { "url_context": {} }
+            ])
+        );
     }
 }

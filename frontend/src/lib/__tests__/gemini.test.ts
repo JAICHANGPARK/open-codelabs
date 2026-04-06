@@ -221,6 +221,7 @@ describe("gemini helpers", () => {
         expect(body.prompt).toContain("Context:\nCTX\n\nQuestion:\nQ?");
         expect(body.api_key.startsWith("v1:")).toBe(true);
         expect(body.model).toBe("gemini-test");
+        expect(body.tools).toEqual([{ google_search: {} }]);
     });
 
     test("handles backend/serverless mode validation and request routing", async () => {
@@ -267,6 +268,7 @@ describe("gemini helpers", () => {
         expect(serverless.items).toEqual([{ text: "serverless" }]);
         expect(calls[calls.length - 1]?.url).toContain("generativelanguage.googleapis.com");
         expect(calls[calls.length - 1]?.url).toContain("key=k1");
+        expect(parseRequestBody(calls.length - 1)?.tools).toEqual([{ url_context: {} }]);
 
         await expect(
             collectStream(
@@ -336,6 +338,32 @@ describe("gemini helpers", () => {
                 gemini.streamGeminiChat([{ role: "user", content: "hi" }], "sys", { apiKey: "" }),
             ),
         ).rejects.toThrow("API Key is required");
+    });
+
+    test("surfaces backend error details instead of silently accepting empty streams", async () => {
+        enqueue(
+            new Response(
+                JSON.stringify({
+                    error: {
+                        message: "Unknown name \"googleSearch\" at 'tools[0]'",
+                    },
+                }),
+                {
+                    status: 400,
+                    headers: { "Content-Type": "application/json" },
+                },
+            ),
+        );
+
+        await expect(
+            collectStream(
+                gemini.streamGeminiResponseRobust("Q?", "CTX", {
+                    apiKey: "raw-key",
+                    model: "gemini-test",
+                    tools: [{ googleSearch: {} }],
+                }),
+            ),
+        ).rejects.toThrow("Unknown name");
     });
 
     test("streams structured output in backend/serverless modes", async () => {
