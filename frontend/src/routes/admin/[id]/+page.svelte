@@ -183,6 +183,8 @@
     let selectionRange = $state<{ start: number; end: number } | null>(null);
     let aiLoading = $state(false);
 
+    const EDITOR_IMPROVEMENT_MODEL = "gemini-3.1-flash-lite-preview";
+
     // Drag & Drop State
     let draggedStepIndex = $state<number | null>(null);
     let dragOverIndex = $state<number | null>(null);
@@ -616,17 +618,22 @@
         const { start, end } = targetRange;
 
         const instruction = instructionOverride || aiInstruction;
-        let prompt = `Improve the following technical writing/markdown content. Make it clearer, correct grammar, and better formatted. Maintain the original meaning. Only return the improved content, no explanations.\n\nContent:\n${targetText}`;
+        let prompt = `Improve the following technical writing/markdown content for a developer codelab. Make it clearer, correct grammar, and better formatted. Maintain the original meaning. If the text includes product names, versions, commands, links, dates, or other factual claims, use Google Search when it would help verify them before revising. Only return the improved markdown content. Do not add explanations, citations, footnotes, or a source list.\n\nContent:\n${targetText}`;
         if (instruction.trim()) {
-            prompt = `Improve the following technical writing/markdown content based on this instruction: "${instruction}".\nMake it clearer, correct grammar, and better formatted. Maintain the original meaning where possible. Only return the improved content, no explanations.\n\nContent:\n${targetText}`;
+            prompt = `Improve the following technical writing/markdown content based on this instruction: "${instruction}".\nMake it clearer, correct grammar, and better formatted. Maintain the original meaning where possible. If the text includes product names, versions, commands, links, dates, or other factual claims, use Google Search when it would help verify them before revising. Only return the improved markdown content. Do not add explanations, citations, footnotes, or a source list.\n\nContent:\n${targetText}`;
         }
-        const systemPrompt = "You are a helpful technical editor.";
+        const systemPrompt =
+            "You are a careful technical editor for developer codelabs. " +
+            "Use Google Search when needed to verify factual details such as versions, commands, links, dates, product names, and recent changes before correcting the text. " +
+            "Preserve the author's intent and return only the revised markdown.";
 
         try {
             let fullImprovedContent = "";
 
             const stream = streamGeminiResponseRobust(prompt, systemPrompt, {
                 apiKey: geminiApiKey,
+                model: EDITOR_IMPROVEMENT_MODEL,
+                tools: [{ googleSearch: {} }],
             });
 
             for await (const chunk of stream) {
@@ -634,6 +641,12 @@
                     fullImprovedContent += chunk.text;
                 }
                 // We don't update the text visually during streaming for "tada" effect
+            }
+
+            if (!fullImprovedContent.trim()) {
+                throw new Error(
+                    "AI returned no revised content. Please try again.",
+                );
             }
 
             // All finished, apply "tada"
@@ -666,16 +679,27 @@
 
             // Provide specific error messages
             let errorMessage = "AI Improvement failed: ";
+            const rawMessage =
+                typeof e?.message === "string" ? e.message : String(e || "");
+            const normalizedMessage = rawMessage.toLowerCase();
+            const isExplicit429 = /\b429\b/.test(rawMessage);
+            const isQuotaStyleMessage =
+                normalizedMessage.includes("resource_exhausted") ||
+                normalizedMessage.includes("quota") ||
+                normalizedMessage.includes("rate limit") ||
+                normalizedMessage.includes("free tier");
 
-            if (
-                e.message &&
-                (e.message.includes("429") ||
-                    e.message.includes("API Error: 429"))
-            ) {
+            if (isExplicit429 && isQuotaStyleMessage) {
                 errorMessage =
                     "⏱️ Rate limit exceeded.\n\nPlease wait a moment and try again.\nThe free tier has limited requests per minute.";
-            } else if (e.message) {
-                errorMessage += e.message;
+            } else if (
+                isExplicit429 ||
+                normalizedMessage.includes("too many requests")
+            ) {
+                errorMessage =
+                    "⏱️ Request limit reached.\n\nThe request was rejected with HTTP 429. Please wait a moment and try again.\nIf this keeps happening, check the backend rate limit settings or the provider response in DevTools.";
+            } else if (rawMessage) {
+                errorMessage += rawMessage;
             } else {
                 errorMessage += "Unknown error occurred.";
             }
