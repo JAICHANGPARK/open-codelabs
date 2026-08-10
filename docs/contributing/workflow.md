@@ -332,28 +332,28 @@ git push --force-with-lease
 [Calendar Versioning](https://calver.org/) 사용:
 
 - `YYYY.M.D`
-- 예: `2026.3.7`
+- 예: `2026.8.11`
 
 ### 릴리스 준비
 
 ```bash
 # 공통 버전 업데이트 및 동기화
-node ./scripts/set-version.mjs 2026.3.7
+node ./scripts/set-version.mjs 2026.8.11
 
 # 태그 생성
-git tag -a v2026.3.7 -m "Release version 2026.3.7"
-git push origin v2026.3.7
+git tag -a v2026.8.11 -m "Release version 2026.8.11"
+git push origin v2026.8.11
 ```
 
 ### GitHub Release
 
 1. GitHub에서 "Releases" 클릭
 2. "Draft a new release" 클릭
-3. 태그 선택: `v2026.3.7`
+3. 태그 선택: `v2026.8.11`
 4. 릴리스 노트 작성:
 
 ```markdown
-## What's New in v2026.3.7
+## What's New in v2026.8.11
 
 ### Features
 - Add feedback export API (#123)

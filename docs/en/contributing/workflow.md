@@ -332,28 +332,28 @@ git push --force-with-lease
 Use [Calendar Versioning](https://calver.org/):
 
 - `YYYY.M.D`
-- e.g., `2026.3.7`
+- e.g., `2026.8.11`
 
 ### Preparing a Release
 
 ```bash
 # Update and sync the shared version
-node ./scripts/set-version.mjs 2026.3.7
+node ./scripts/set-version.mjs 2026.8.11
 
 # Create tag
-git tag -a v2026.3.7 -m "Release version 2026.3.7"
-git push origin v2026.3.7
+git tag -a v2026.8.11 -m "Release version 2026.8.11"
+git push origin v2026.8.11
 ```
 
 ### GitHub Release
 
 1. Click "Releases" on GitHub.
 2. Click "Draft a new release".
-3. Select tag: `v2026.3.7`.
+3. Select tag: `v2026.8.11`.
 4. Write release notes:
 
 ```markdown
-## What's New in v2026.3.7
+## What's New in v2026.8.11
 
 ### Features
 - Add feedback export API (#123)
