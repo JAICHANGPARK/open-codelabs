@@ -541,7 +541,7 @@ https://your-domain.com/api
   "prompt": "질문",
   "system_instruction": "Optional system",
   "api_key": "ENCRYPTED_KEY",
-  "model": "gemini-3-flash-preview",
+  "model": "gemini-2.5-flash",
   "generation_config": {},
   "tools": {},
   "codelab_id": "codelab_xxx",
@@ -562,7 +562,7 @@ https://your-domain.com/api
   "step_number": 2,
   "question": "질문",
   "answer": "답변",
-  "model": "gemini-3-flash-preview"
+  "model": "gemini-2.5-flash"
 }
 ```
 

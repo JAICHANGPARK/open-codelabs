@@ -541,7 +541,7 @@ When the last message in a thread is deleted, the thread is deleted too.
   "prompt": "Question",
   "system_instruction": "Optional system",
   "api_key": "ENCRYPTED_KEY",
-  "model": "gemini-3-flash-preview",
+  "model": "gemini-2.5-flash",
   "generation_config": {},
   "tools": {},
   "codelab_id": "codelab_xxx",
@@ -562,7 +562,7 @@ When the last message in a thread is deleted, the thread is deleted too.
   "step_number": 2,
   "question": "Question",
   "answer": "Answer",
-  "model": "gemini-3-flash-preview"
+  "model": "gemini-2.5-flash"
 }
 ```
 

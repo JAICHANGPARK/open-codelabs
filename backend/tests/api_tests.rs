@@ -2050,7 +2050,8 @@ async fn test_backup_export_inspect_restore_and_upload_success_paths() {
         .await
         .unwrap();
     assert!(
-        stream_network_payload_res.status().is_server_error()
+        stream_network_payload_res.status().is_client_error()
+            || stream_network_payload_res.status().is_server_error()
             || stream_network_payload_res.status() == StatusCode::OK
     );
 

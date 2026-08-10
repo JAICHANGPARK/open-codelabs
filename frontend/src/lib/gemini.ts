@@ -141,7 +141,7 @@ export async function* streamGeminiResponseRobust(
     if (isServerlessMode()) {
         if (!config.apiKey) throw new Error("API Key is required for serverless mode");
         // Direct call for serverless mode
-        const model = config.model || "gemini-3-flash-preview";
+        const model = config.model || "gemini-2.5-flash";
         // alt=sse is required to use parseGoogleStream logic
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
         const tools = normalizeGeminiToolsForRest(config.tools);
@@ -186,7 +186,7 @@ export async function* streamGeminiResponseRobust(
             body: JSON.stringify({
                 prompt: `Context:\n${context}\n\nQuestion:\n${prompt}`,
                 api_key: apiKey || undefined, // Send encrypted if we have it
-                model: config.model || "gemini-3-flash-preview",
+                model: config.model || "gemini-2.5-flash",
                 tools
             }),
         });
@@ -213,7 +213,7 @@ export async function* streamGeminiChat(
 
     if (isServerlessMode()) {
         apiKeyRequired();
-        const model = config.model || "gemini-3-flash-preview";
+        const model = config.model || "gemini-2.5-flash";
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
         const tools = normalizeGeminiToolsForRest(config.tools);
 
@@ -252,7 +252,7 @@ export async function* streamGeminiChat(
                 system_instruction: systemPrompt,
                 contents,
                 api_key: apiKey || undefined,
-                model: config.model || "gemini-3-flash-preview",
+                model: config.model || "gemini-2.5-flash",
                 tools
             }),
         });
@@ -343,7 +343,7 @@ export async function* streamGeminiStructuredOutput(
 
     if (isServerlessMode()) {
         if (!config.apiKey) throw new Error("API Key is required for serverless mode");
-        const model = config.model || "gemini-3-flash-preview";
+        const model = config.model || "gemini-2.5-flash";
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${config.apiKey}`;
         const tools = normalizeGeminiToolsForRest(config.tools);
 
@@ -394,7 +394,7 @@ export async function* streamGeminiStructuredOutput(
                 prompt: prompt,
                 system_instruction: systemPrompt,
                 api_key: apiKey || undefined,
-                model: config.model || "gemini-3-flash-preview",
+                model: config.model || "gemini-2.5-flash",
                 generation_config: generationConfig,
                 tools
             }),

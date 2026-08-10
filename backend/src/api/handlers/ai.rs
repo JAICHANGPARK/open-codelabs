@@ -106,7 +106,7 @@ pub async fn proxy_gemini_stream(
 
     let model = payload
         .model
-        .unwrap_or_else(|| "gemini-3-flash-preview".to_string());
+        .unwrap_or_else(|| "gemini-2.5-flash".to_string());
     if !is_valid_model(&model) {
         return bad_request("Invalid model").into_response();
     }
@@ -499,7 +499,7 @@ mod tests {
         let _guard = EnvRestore::new("ALLOWED_GEMINI_MODELS");
         std::env::remove_var("ALLOWED_GEMINI_MODELS");
 
-        assert!(is_valid_model("gemini-3-flash-preview"));
+        assert!(is_valid_model("gemini-2.5-flash"));
         assert!(is_valid_model("gemini-3.1-flash-lite-preview"));
         assert!(!is_valid_model(""));
         assert!(!is_valid_model(&"a".repeat(65)));
@@ -513,7 +513,7 @@ mod tests {
         let _guard = EnvRestore::new("ALLOWED_GEMINI_MODELS");
         std::env::set_var(
             "ALLOWED_GEMINI_MODELS",
-            "gemini-3-flash-preview, gemini-3.1-flash-lite-preview, custom-model",
+            "gemini-2.5-flash, gemini-3.1-flash-lite-preview, custom-model",
         );
 
         assert!(is_valid_model("custom-model"));
@@ -524,16 +524,17 @@ mod tests {
     #[test]
     fn env_restore_restores_previous_value() {
         let _lock = ENV_TEST_LOCK.lock().expect("env test lock");
-        std::env::set_var("ALLOWED_GEMINI_MODELS", "before");
+        let key = "TEST_ENV_RESTORE_KEY";
+        std::env::set_var(key, "before");
         {
-            let _guard = EnvRestore::new("ALLOWED_GEMINI_MODELS");
-            std::env::set_var("ALLOWED_GEMINI_MODELS", "during");
+            let _guard = EnvRestore::new(key);
+            std::env::set_var(key, "during");
         }
         assert_eq!(
-            std::env::var("ALLOWED_GEMINI_MODELS").as_deref(),
+            std::env::var(key).as_deref(),
             Ok("before")
         );
-        std::env::remove_var("ALLOWED_GEMINI_MODELS");
+        std::env::remove_var(key);
     }
 
     #[test]

@@ -282,7 +282,7 @@
                 SYSTEM_PROMPT,
                 {
                     apiKey,
-                    model: "gemini-3-flash-preview",
+                    model: "gemini-2.5-flash",
                     tools: [{ googleSearch: {} }],
                 },
             );
