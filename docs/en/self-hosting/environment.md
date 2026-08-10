@@ -247,7 +247,7 @@ HSTS_HEADER=max-age=63072000; includeSubDomains; preload
 Allowed Gemini model IDs (comma-separated). Requests not in the list are rejected.
 
 ```bash
-ALLOWED_GEMINI_MODELS=gemini-2.5-flash,gemini-1.5-pro
+ALLOWED_GEMINI_MODELS=gemini-3.6-flash,gemini-1.5-pro
 ```
 
 #### GEMINI_API_KEY

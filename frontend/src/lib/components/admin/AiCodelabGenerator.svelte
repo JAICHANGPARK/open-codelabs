@@ -823,7 +823,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                 codelabSchema,
                 {
                     apiKey,
-                    model: "gemini-2.5-flash",
+                    model: "gemini-3.6-flash",
                     tools: tools.length > 0 ? tools : undefined,
                     thinkingConfig: { thinkingLevel: "high" },
                 },
@@ -1234,7 +1234,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                 planSchema,
                 {
                     apiKey,
-                    model: "gemini-2.5-flash",
+                    model: "gemini-3.6-flash",
                     thinkingConfig: { thinkingLevel: "high" },
                 },
             );
@@ -1322,7 +1322,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                 buildCodelabSchema(advancedTargetLanguage),
                 {
                     apiKey,
-                    model: "gemini-2.5-flash",
+                    model: "gemini-3.6-flash",
                     tools: tools.length > 0 ? tools : undefined,
                     thinkingConfig: { thinkingLevel: "high" },
                 },
@@ -1440,7 +1440,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                 reviewSchema,
                 {
                     apiKey,
-                    model: "gemini-2.5-flash",
+                    model: "gemini-3.6-flash",
                     thinkingConfig: { thinkingLevel: "high" },
                 },
             );
@@ -1518,7 +1518,7 @@ Provide actionable improvements for every issue found (e.g., "Step 3 lacks a fil
                 buildCodelabSchema(advancedTargetLanguage),
                 {
                     apiKey,
-                    model: "gemini-2.5-flash",
+                    model: "gemini-3.6-flash",
                     tools: tools.length > 0 ? tools : undefined,
                     thinkingConfig: { thinkingLevel: "high" },
                 },

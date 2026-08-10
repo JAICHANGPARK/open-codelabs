@@ -1240,7 +1240,7 @@
 
             const stream = streamGeminiResponseRobust(prompt, systemPrompt, {
                 apiKey: geminiApiKey,
-                model: "gemini-2.5-flash",
+                model: "gemini-3.6-flash",
             });
 
             let responseText = "";
@@ -1308,7 +1308,7 @@
                 buildGuidePlanSchema(targetLanguage),
                 {
                     apiKey: geminiApiKey,
-                    model: "gemini-2.5-flash",
+                    model: "gemini-3.6-flash",
                     thinkingConfig: { thinkingLevel: "high" },
                 },
             );
@@ -1357,7 +1357,7 @@
                 buildGuideDraftSchema(targetLanguage),
                 {
                     apiKey: geminiApiKey,
-                    model: "gemini-2.5-flash",
+                    model: "gemini-3.6-flash",
                     tools: [{ googleSearch: {} }],
                     thinkingConfig: { thinkingLevel: "high" },
                 },
@@ -1399,7 +1399,7 @@
                 buildGuideReviewSchema(targetLanguage),
                 {
                     apiKey: geminiApiKey,
-                    model: "gemini-2.5-flash",
+                    model: "gemini-3.6-flash",
                     thinkingConfig: { thinkingLevel: "high" },
                 },
             );
@@ -1450,7 +1450,7 @@
                 buildGuideDraftSchema(targetLanguage),
                 {
                     apiKey: geminiApiKey,
-                    model: "gemini-2.5-flash",
+                    model: "gemini-3.6-flash",
                     tools: [{ googleSearch: {} }],
                     thinkingConfig: { thinkingLevel: "high" },
                 },

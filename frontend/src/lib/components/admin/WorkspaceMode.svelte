@@ -265,7 +265,7 @@
 
         const config: GeminiStructuredConfig = {
             apiKey: geminiApiKey,
-            model: "gemini-2.5-flash"
+            model: "gemini-3.6-flash"
         };
 
         let responseText = "";

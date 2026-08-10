@@ -91,7 +91,7 @@
                         step_number: stepNumber,
                         question: fullQuestion,
                         answer: response,
-                        model: "gemini-2.5-flash", // Default model
+                        model: "gemini-3.6-flash", // Default model
                     });
                 } catch (saveError) {
                     console.error("Failed to save AI conversation:", saveError);
