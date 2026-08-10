@@ -2041,7 +2041,7 @@ async fn test_backup_export_inspect_restore_and_upload_success_paths() {
                 .header("x-csrf-token", admin_csrf.clone())
                 .body(Body::from(
                     serde_json::to_vec(
-                        &json!({ "prompt": "hello", "model": "gemini-3-flash-preview" }),
+                        &json!({ "prompt": "hello", "model": "gemini-3.6-flash" }),
                     )
                     .unwrap(),
                 ))
@@ -2071,7 +2071,7 @@ async fn test_backup_export_inspect_restore_and_upload_success_paths() {
                         "step_number": 1,
                         "question": "Q?",
                         "answer": "A!",
-                        "model": "gemini-3-flash-preview"
+                        "model": "gemini-3.6-flash"
                     }))
                     .unwrap(),
                 ))
@@ -3331,7 +3331,7 @@ async fn test_ai_edge_paths_and_thread_guards() {
                         serde_json::to_vec(&json!({
                             "prompt": "hello",
                             "api_key": "not-encrypted",
-                            "model": "gemini-3-flash-preview"
+                            "model": "gemini-3.6-flash"
                         }))
                         .unwrap(),
                     ))
@@ -3353,7 +3353,7 @@ async fn test_ai_edge_paths_and_thread_guards() {
                     .header("x-csrf-token", admin_csrf.clone())
                     .body(Body::from(
                         serde_json::to_vec(
-                            &json!({ "prompt": "hello", "model": "gemini-3-flash-preview" }),
+                            &json!({ "prompt": "hello", "model": "gemini-3.6-flash" }),
                         )
                         .unwrap(),
                     ))
@@ -3399,7 +3399,7 @@ async fn test_ai_edge_paths_and_thread_guards() {
                     .body(Body::from(
                         serde_json::to_vec(&json!({
                             "prompt": "hello",
-                            "model": "gemini-3-flash-preview",
+                            "model": "gemini-3.6-flash",
                             "codelab_id": codelab.id
                         }))
                         .unwrap(),
@@ -3430,7 +3430,7 @@ async fn test_ai_edge_paths_and_thread_guards() {
                         serde_json::to_vec(&json!({
                             "prompt": "hello",
                             "api_key": encrypted_payload_key,
-                            "model": "gemini-3-flash-preview",
+                            "model": "gemini-3.6-flash",
                             "codelab_id": codelab.id
                         }))
                         .unwrap(),
@@ -3456,7 +3456,7 @@ async fn test_ai_edge_paths_and_thread_guards() {
                     .header("x-csrf-token", admin_csrf.clone())
                     .body(Body::from(
                         serde_json::to_vec(&json!({
-                            "model": "gemini-3-flash-preview",
+                            "model": "gemini-3.6-flash",
                             "contents": [{
                                 "role": "user",
                                 "parts": [{ "text": "hello" }]
@@ -4259,7 +4259,7 @@ async fn test_backup_custom_restore_and_empty_upload_errors() {
                 "step_number": 1,
                 "question": "q",
                 "answer": "a",
-                "model": "gemini-3-flash-preview",
+                "model": "gemini-3.6-flash",
                 "usage_metadata": "{}",
                 "created_at": timestamp
             }],
