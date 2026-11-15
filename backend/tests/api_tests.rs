@@ -1521,7 +1521,7 @@ async fn test_codelab_management_inline_comments_and_ai_endpoints() {
         let mut has_guide = false;
         for i in 0..archive.len() {
             let file = archive.by_index(i).expect("zip entry");
-            if file.name() == "preparation_guide.md" {
+            if file.name().expect("zip entry name") == "preparation_guide.md" {
                 has_guide = true;
                 break;
             }
@@ -1614,7 +1614,7 @@ async fn test_codelab_management_inline_comments_and_ai_endpoints() {
         let mut has_guide = false;
         for i in 0..archive.len() {
             let file = archive.by_index(i).expect("zip entry");
-            if file.name() == "preparation_guide.md" {
+            if file.name().expect("zip entry name") == "preparation_guide.md" {
                 has_guide = true;
                 break;
             }
@@ -2040,10 +2040,8 @@ async fn test_backup_export_inspect_restore_and_upload_success_paths() {
                 .header(header::COOKIE, admin_cookie.clone())
                 .header("x-csrf-token", admin_csrf.clone())
                 .body(Body::from(
-                    serde_json::to_vec(
-                        &json!({ "prompt": "hello", "model": "gemini-3.6-flash" }),
-                    )
-                    .unwrap(),
+                    serde_json::to_vec(&json!({ "prompt": "hello", "model": "gemini-3.6-flash" }))
+                        .unwrap(),
                 ))
                 .unwrap(),
         )

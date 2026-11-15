@@ -4,11 +4,10 @@ use aes::Aes256;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
 use cbc::{Decryptor, Encryptor};
-use cipher::{block_padding::Pkcs7, BlockDecryptMut, BlockEncryptMut, KeyIvInit};
-use hmac::{Hmac, Mac};
+use cipher::{block_padding::Pkcs7, BlockModeDecrypt, BlockModeEncrypt, KeyIvInit};
+use hmac::{Hmac, KeyInit, Mac};
 use pbkdf2::pbkdf2_hmac;
-use rand::rngs::OsRng;
-use rand::RngCore;
+use rand::{rngs::SysRng, TryRng};
 use sha2::Sha256;
 use subtle::ConstantTimeEq;
 
@@ -30,8 +29,12 @@ pub fn encrypt_with_password(plaintext: &str, password: &str) -> Result<String, 
 
     let mut salt = [0u8; SALT_LEN];
     let mut iv = [0u8; IV_LEN];
-    OsRng.fill_bytes(&mut salt);
-    OsRng.fill_bytes(&mut iv);
+    SysRng
+        .try_fill_bytes(&mut salt)
+        .map_err(|_| "rng failed".to_string())?;
+    SysRng
+        .try_fill_bytes(&mut iv)
+        .map_err(|_| "rng failed".to_string())?;
 
     let mut derived = [0u8; DERIVED_LEN];
     pbkdf2_hmac::<Sha256>(password.as_bytes(), &salt, PBKDF2_ITERS, &mut derived);
@@ -44,7 +47,7 @@ pub fn encrypt_with_password(plaintext: &str, password: &str) -> Result<String, 
     let pad_len = block_size - (pos % block_size);
     buffer.resize(pos + pad_len, 0);
     let ciphertext = cipher
-        .encrypt_padded_mut::<Pkcs7>(&mut buffer, pos)
+        .encrypt_padded::<Pkcs7>(&mut buffer, pos)
         .map_err(|_| "encryption failed")?
         .to_vec();
 
@@ -90,14 +93,14 @@ pub fn decrypt_with_password(value: &str, password: &str) -> Result<String, Stri
     let mut mac = Hmac::<Sha256>::new_from_slice(mac_key).map_err(|_| "invalid mac key")?;
     mac.update(payload);
     let expected = mac.finalize().into_bytes();
-    if expected.ct_eq(tag).unwrap_u8() != 1 {
+    if expected.as_slice().ct_eq(tag).unwrap_u8() != 1 {
         return Err("invalid ciphertext".to_string());
     }
 
     let cipher = Decryptor::<Aes256>::new_from_slices(enc_key, iv).map_err(|_| "invalid key")?;
     let mut buffer = ciphertext.to_vec();
     let plaintext = cipher
-        .decrypt_padded_mut::<Pkcs7>(&mut buffer)
+        .decrypt_padded::<Pkcs7>(&mut buffer)
         .map_err(|_| "decryption failed".to_string())?
         .to_vec();
     String::from_utf8(plaintext).map_err(|_| "invalid plaintext".to_string())

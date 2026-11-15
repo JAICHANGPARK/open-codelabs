@@ -17,7 +17,7 @@ use axum::{
     Json,
 };
 use axum_extra::extract::cookie::CookieJar;
-use rand::{distributions::Alphanumeric, Rng};
+use rand::distr::{Alphanumeric, SampleString};
 use sha2::{Digest, Sha256};
 use std::sync::Arc;
 use uuid::Uuid;
@@ -302,17 +302,17 @@ fn build_cli_runtime_info() -> CliRuntimeInfo {
 }
 
 fn generate_poll_token() -> String {
-    rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(48)
-        .map(char::from)
-        .collect()
+    Alphanumeric.sample_string(&mut rand::rng(), 48)
 }
 
 fn hash_poll_token(token: &str) -> String {
     let mut hasher = Sha256::new();
     hasher.update(token.as_bytes());
-    format!("{:x}", hasher.finalize())
+    hasher
+        .finalize()
+        .iter()
+        .map(|b| format!("{b:02x}"))
+        .collect()
 }
 
 async fn cleanup_cli_auth_requests(state: &AppState) -> Result<(), sqlx::Error> {

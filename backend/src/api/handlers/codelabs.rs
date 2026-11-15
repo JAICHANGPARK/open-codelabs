@@ -455,7 +455,10 @@ pub async fn import_codelab(
         let mut file = archive
             .by_index(i)
             .map_err(|e| bad_request(&e.to_string()))?;
-        let name = file.name().to_string();
+        let name = file
+            .name()
+            .map_err(|e| bad_request(&e.to_string()))?
+            .into_owned();
 
         if name == "codelab.json" {
             let mut contents = String::new();

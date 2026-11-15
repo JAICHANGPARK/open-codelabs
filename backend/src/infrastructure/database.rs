@@ -23,6 +23,60 @@ pub enum DbKind {
     Sqlite,
 }
 
+/// SQL query string translated for the active database dialect and marked safe for SQLx execution.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SafeSql(String);
+
+impl std::ops::Deref for SafeSql {
+    type Target = str;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl AsRef<str> for SafeSql {
+    fn as_ref(&self) -> &str {
+        &self.0
+    }
+}
+
+impl std::fmt::Display for SafeSql {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl PartialEq<&str> for SafeSql {
+    fn eq(&self, other: &&str) -> bool {
+        self.0 == *other
+    }
+}
+
+impl PartialEq<str> for SafeSql {
+    fn eq(&self, other: &str) -> bool {
+        self.0 == other
+    }
+}
+
+impl PartialEq<String> for SafeSql {
+    fn eq(&self, other: &String) -> bool {
+        &self.0 == other
+    }
+}
+
+impl sqlx::SqlSafeStr for SafeSql {
+    fn into_sql_str(self) -> sqlx::SqlStr {
+        sqlx::AssertSqlSafe(self.0).into_sql_str()
+    }
+}
+
+impl sqlx::SqlSafeStr for &SafeSql {
+    fn into_sql_str(self) -> sqlx::SqlStr {
+        sqlx::AssertSqlSafe(self.0.as_str()).into_sql_str()
+    }
+}
+
 static SQLITE_MIGRATOR: Migrator = sqlx::migrate!("./migrations");
 static POSTGRES_MIGRATOR: Migrator = sqlx::migrate!("./migrations-postgres");
 
@@ -104,7 +158,7 @@ impl AppState {
     ///
     /// PostgreSQL requires numbered placeholders such as `$1` and `$2`, while
     /// SQLite and MySQL accept raw `?`. Quoted string literals are left intact.
-    pub fn q(&self, sql: &str) -> String {
+    pub fn q(&self, sql: &str) -> SafeSql {
         if self.db_kind == DbKind::Postgres {
             let mut result = String::new();
             let mut count = 1;
@@ -133,9 +187,9 @@ impl AppState {
                     result.push(c);
                 }
             }
-            result
+            SafeSql(result)
         } else {
-            sql.to_string()
+            SafeSql(sql.to_string())
         }
     }
 }

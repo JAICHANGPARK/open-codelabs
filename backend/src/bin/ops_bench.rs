@@ -3,7 +3,7 @@ use chrono::Utc;
 use futures_util::{stream, StreamExt};
 use image::codecs::png::PngEncoder;
 use image::{ExtendedColorType, ImageEncoder};
-use rand::RngCore;
+use rand::Rng;
 use reqwest::{header, multipart, Client, Method, StatusCode};
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -1070,7 +1070,7 @@ fn percentile(sorted: &[f64], p: f64) -> f64 {
 fn generate_png_noise(mut width: usize, mut height: usize, max_bytes: usize) -> Result<Vec<u8>> {
     loop {
         let mut pixels = vec![0u8; width * height * 3];
-        rand::thread_rng().fill_bytes(&mut pixels);
+        rand::rng().fill_bytes(&mut pixels);
         let mut out = Vec::new();
         {
             let encoder = PngEncoder::new(&mut out);

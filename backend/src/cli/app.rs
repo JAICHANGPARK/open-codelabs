@@ -1684,7 +1684,7 @@ async fn load_codelab_manifest(path: &Path) -> Result<CodelabManifest> {
     let manifest = match path.extension().and_then(|value| value.to_str()) {
         Some("json") => serde_json::from_str(&raw)
             .with_context(|| format!("Failed to parse JSON from {}", path.display()))?,
-        Some("yaml") | Some("yml") => serde_yaml::from_str(&raw)
+        Some("yaml") | Some("yml") => serde_norway::from_str(&raw)
             .with_context(|| format!("Failed to parse YAML from {}", path.display()))?,
         _ => bail!(
             "Unsupported manifest format for {}. Use .yaml, .yml, or .json.",
@@ -1848,7 +1848,7 @@ async fn write_codelab_manifest(path: &Path, manifest: &CodelabManifest) -> Resu
     let raw = match path.extension().and_then(|value| value.to_str()) {
         Some("json") => serde_json::to_string_pretty(manifest)
             .context("Failed to serialize codelab manifest as JSON")?,
-        Some("yaml") | Some("yml") => serde_yaml::to_string(manifest)
+        Some("yaml") | Some("yml") => serde_norway::to_string(manifest)
             .context("Failed to serialize codelab manifest as YAML")?,
         _ => bail!(
             "Unsupported manifest format for {}. Use .yaml, .yml, or .json.",

@@ -145,7 +145,7 @@ fn restore_dir_from_zip(
 ) -> Result<(), (StatusCode, String)> {
     for i in 0..archive.len() {
         let mut file = archive.by_index(i).map_err(internal_error)?;
-        let name = file.name().to_string();
+        let name = file.name().map_err(internal_error)?.into_owned();
         if !name.starts_with(prefix) {
             continue;
         }
@@ -424,7 +424,7 @@ pub async fn restore_backup(
     let mut backup_json = None;
     for i in 0..archive.len() {
         let mut file = archive.by_index(i).map_err(internal_error)?;
-        if file.name() != "backup.json" {
+        if file.name().map_err(internal_error)?.as_ref() != "backup.json" {
             continue;
         }
         let mut contents = String::new();
@@ -827,7 +827,7 @@ pub async fn inspect_backup(
 
     for i in 0..archive.len() {
         let mut file = archive.by_index(i).map_err(internal_error)?;
-        let name = file.name().to_string();
+        let name = file.name().map_err(internal_error)?.into_owned();
 
         if name == "backup.json" {
             let mut contents = String::new();
@@ -911,7 +911,7 @@ mod tests {
         let mut names = Vec::new();
         for i in 0..archive.len() {
             let file = archive.by_index(i).expect("entry");
-            names.push(file.name().to_string());
+            names.push(file.name().expect("entry name").into_owned());
         }
 
         assert!(names.iter().any(|n| n == "uploads/a.txt"));

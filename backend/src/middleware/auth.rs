@@ -6,7 +6,7 @@ use axum::http::StatusCode;
 use axum_extra::extract::cookie::{Cookie, CookieJar, SameSite};
 use cookie::time::Duration as CookieDuration;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
-use rand::{distributions::Alphanumeric, Rng};
+use rand::distr::{Alphanumeric, SampleString};
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -169,11 +169,8 @@ impl AuthConfig {
         claims: &SessionClaims,
     ) -> Result<String, jsonwebtoken::errors::Error> {
         let header = Header::new(Algorithm::HS256);
-        encode(
-            &header,
-            claims,
-            &EncodingKey::from_secret(self.secrets[0].as_bytes()),
-        )
+        let key = EncodingKey::from_secret(self.secrets[0].as_bytes())?;
+        encode(&header, claims, &key)
     }
 
     /// Verifies a JWT against all configured secrets in order.
@@ -185,7 +182,9 @@ impl AuthConfig {
         validation.leeway = 30;
 
         for secret in &self.secrets {
-            let key = DecodingKey::from_secret(secret.as_bytes());
+            let Ok(key) = DecodingKey::from_secret(secret.as_bytes()) else {
+                continue;
+            };
             if let Ok(data) = decode::<SessionClaims>(token, &key, &validation) {
                 return Some(data.claims);
             }
@@ -335,11 +334,7 @@ pub fn clear_cookie(name: &str) -> Cookie<'static> {
 
 /// Generates a random CSRF token suitable for storage in a cookie/header pair.
 pub fn generate_csrf_token() -> String {
-    rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(32)
-        .map(char::from)
-        .collect()
+    Alphanumeric.sample_string(&mut rand::rng(), 32)
 }
 
 /// Returns the current Unix time in seconds for claim construction.

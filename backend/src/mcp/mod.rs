@@ -9,10 +9,10 @@ use rmcp::{
         wrapper::Parameters,
     },
     model::{
-        Annotated, GetPromptRequestParams, GetPromptResult, ListPromptsResult, ListResourcesResult,
-        PaginatedRequestParams, PromptMessage, PromptMessageRole, RawResource,
-        ReadResourceRequestParams, ReadResourceResult, Resource, ResourceContents,
-        ServerCapabilities, ServerInfo,
+        GetPromptRequestParams, GetPromptResponse, GetPromptResult, Implementation,
+        ListPromptsResult, ListResourcesResult, PaginatedRequestParams, PromptMessage,
+        ReadResourceRequestParams, ReadResourceResponse, ReadResourceResult, Resource,
+        ResourceContents, Role, ServerCapabilities, ServerConfig,
     },
     prompt, prompt_router,
     service::RequestContext,
@@ -772,7 +772,7 @@ impl OpenCodelabsMcpServer {
         };
 
         PromptMessage::new_resource_link(
-            PromptMessageRole::User,
+            Role::User,
             resource(uri, name, Some(title), Some(description), mime_type),
         )
     }
@@ -791,7 +791,7 @@ impl OpenCodelabsMcpServer {
         let input = params.0;
         let mut messages = vec![
             PromptMessage::new_text(
-                PromptMessageRole::User,
+                Role::User,
                 format!(
                     "Prepare a facilitator briefing for codelab `{}`. Summarize the learning goals, recommended pacing, likely sticking points, and what the facilitator should watch for during the session.{}",
                     input.codelab_id,
@@ -809,13 +809,9 @@ impl OpenCodelabsMcpServer {
             messages.push(self.codelab_prompt_link(&input.codelab_id, "help"));
         }
 
-        GetPromptResult {
-            description: Some(
-                "Guide the model to create a facilitator-oriented briefing from the codelab context."
-                    .to_string(),
-            ),
-            messages,
-        }
+        GetPromptResult::new(messages).with_description(
+            "Guide the model to create a facilitator-oriented briefing from the codelab context.",
+        )
     }
 
     #[prompt(
@@ -828,7 +824,7 @@ impl OpenCodelabsMcpServer {
     ) -> GetPromptResult {
         let input = params.0;
         let mut messages = vec![PromptMessage::new_text(
-            PromptMessageRole::User,
+            Role::User,
             format!(
                 "Review codelab `{}` and turn this change request into a concrete update plan: {}. Read the current content first, call out which metadata, steps, materials, or quizzes should change, and only apply write tools after you can explain the intended edits clearly.",
                 input.codelab_id, input.request
@@ -842,18 +838,14 @@ impl OpenCodelabsMcpServer {
             messages.push(self.codelab_prompt_link(&input.codelab_id, "guide"));
             messages.push(self.codelab_prompt_link(&input.codelab_id, "steps"));
             messages.push(PromptMessage::new_text(
-                PromptMessageRole::User,
+                Role::User,
                 "The current MCP session is not an admin session, so write tools may fail until `oc auth login` is refreshed.".to_string(),
             ));
         }
 
-        GetPromptResult {
-            description: Some(
-                "Guide the model through a safe codelab authoring workflow grounded in the current content."
-                    .to_string(),
-            ),
-            messages,
-        }
+        GetPromptResult::new(messages).with_description(
+            "Guide the model through a safe codelab authoring workflow grounded in the current content.",
+        )
     }
 
     #[prompt(
@@ -866,7 +858,7 @@ impl OpenCodelabsMcpServer {
     ) -> GetPromptResult {
         let input = params.0;
         let mut messages = vec![PromptMessage::new_text(
-            PromptMessageRole::User,
+            Role::User,
             format!(
                 "Triage the active help queue for codelab `{}`. Group similar issues, identify which requests are blocked or urgent, and recommend the next facilitator actions.{}",
                 input.codelab_id,
@@ -880,7 +872,7 @@ impl OpenCodelabsMcpServer {
             messages.push(self.codelab_prompt_link(&input.codelab_id, "chat"));
         } else {
             messages.push(PromptMessage::new_text(
-                PromptMessageRole::User,
+                Role::User,
                 "The current MCP session does not have admin access, so help-queue resources are unavailable until the operator refreshes the session with `oc auth login`.".to_string(),
             ));
         }
@@ -888,13 +880,9 @@ impl OpenCodelabsMcpServer {
         messages.push(self.codelab_prompt_link(&input.codelab_id, "guide"));
         messages.push(self.codelab_prompt_link(&input.codelab_id, "steps"));
 
-        GetPromptResult {
-            description: Some(
-                "Use help requests, learner activity, and codelab context to produce a facilitator triage summary."
-                    .to_string(),
-            ),
-            messages,
-        }
+        GetPromptResult::new(messages).with_description(
+            "Use help requests, learner activity, and codelab context to produce a facilitator triage summary.",
+        )
     }
 
     #[prompt(
@@ -907,7 +895,7 @@ impl OpenCodelabsMcpServer {
     ) -> GetPromptResult {
         let input = params.0;
         let mut messages = vec![PromptMessage::new_text(
-            PromptMessageRole::User,
+            Role::User,
             format!(
                 "Review learner progress for codelab `{}`. Explain who is blocked, who looks complete, and which follow-ups the facilitator should take next.{}",
                 input.codelab_id,
@@ -923,20 +911,16 @@ impl OpenCodelabsMcpServer {
             messages.push(self.codelab_prompt_link(&input.codelab_id, "quizzes"));
         } else {
             messages.push(PromptMessage::new_text(
-                PromptMessageRole::User,
+                Role::User,
                 "The current MCP session does not have admin access, so learner operations data is unavailable until the operator refreshes the session with `oc auth login`.".to_string(),
             ));
         }
 
         messages.push(self.codelab_prompt_link(&input.codelab_id, "steps"));
 
-        GetPromptResult {
-            description: Some(
-                "Help the model review learner progress and facilitator follow-up actions using attendee and submission context."
-                    .to_string(),
-            ),
-            messages,
-        }
+        GetPromptResult::new(messages).with_description(
+            "Help the model review learner progress and facilitator follow-up actions using attendee and submission context.",
+        )
     }
 }
 
@@ -1469,36 +1453,32 @@ impl OpenCodelabsMcpServer {
 
 #[tool_handler(router = self.tool_router)]
 impl ServerHandler for OpenCodelabsMcpServer {
-    fn get_info(&self) -> ServerInfo {
-        ServerInfo {
-            instructions: Some(
-                "Use the Open Codelabs MCP server to inspect connection state, read full codelab bundles, materials, quizzes, submissions, workspace metadata, reuse prompt templates for facilitator and authoring workflows, and perform focused admin actions when the oc session is authenticated."
-                    .to_string(),
-            ),
-            capabilities: ServerCapabilities::builder()
+    fn get_info(&self) -> ServerConfig {
+        ServerConfig::new(
+            ServerCapabilities::builder()
                 .enable_tools()
                 .enable_resources()
                 .enable_prompts()
                 .build(),
-            server_info: rmcp::model::Implementation {
-                name: "open-codelabs-mcp".to_string(),
-                title: Some("Open Codelabs MCP".to_string()),
-                version: env!("CARGO_PKG_VERSION").to_string(),
-                description: Some(
-                    "MCP bridge for Open Codelabs, reusing oc connect/auth state.".to_string(),
-                ),
-                icons: None,
-                website_url: Some("https://github.com/JAICHANGPARK/open-codelabs".to_string()),
-            },
-            ..Default::default()
-        }
+        )
+        .with_instructions(
+            "Use the Open Codelabs MCP server to inspect connection state, read full codelab bundles, materials, quizzes, submissions, workspace metadata, reuse prompt templates for facilitator and authoring workflows, and perform focused admin actions when the oc session is authenticated.",
+        )
+        .with_server_info(
+            Implementation::new("open-codelabs-mcp", env!("CARGO_PKG_VERSION"))
+                .with_title("Open Codelabs MCP")
+                .with_description(
+                    "MCP bridge for Open Codelabs, reusing oc connect/auth state.",
+                )
+                .with_website_url("https://github.com/JAICHANGPARK/open-codelabs"),
+        )
     }
 
     fn get_prompt(
         &self,
         request: GetPromptRequestParams,
         context: RequestContext<RoleServer>,
-    ) -> impl std::future::Future<Output = Result<GetPromptResult, McpError>> + Send + '_ {
+    ) -> impl std::future::Future<Output = Result<GetPromptResponse, McpError>> + Send + '_ {
         async move {
             let prompt_context = rmcp::handler::server::prompt::PromptContext::new(
                 self,
@@ -1515,11 +1495,9 @@ impl ServerHandler for OpenCodelabsMcpServer {
         _request: Option<PaginatedRequestParams>,
         _context: RequestContext<RoleServer>,
     ) -> impl std::future::Future<Output = Result<ListPromptsResult, McpError>> + Send + '_ {
-        std::future::ready(Ok(ListPromptsResult {
-            prompts: self.prompt_router.list_all(),
-            next_cursor: None,
-            meta: None,
-        }))
+        std::future::ready(Ok(ListPromptsResult::with_all_items(
+            self.prompt_router.list_all(),
+        )))
     }
 
     fn list_resources(
@@ -1538,7 +1516,7 @@ impl ServerHandler for OpenCodelabsMcpServer {
         &self,
         request: ReadResourceRequestParams,
         _context: RequestContext<RoleServer>,
-    ) -> impl std::future::Future<Output = Result<ReadResourceResult, McpError>> + Send + '_ {
+    ) -> impl std::future::Future<Output = Result<ReadResourceResponse, McpError>> + Send + '_ {
         async move {
             match parse_resource_target(&request.uri)? {
                 ResourceTarget::Connection => {
@@ -1728,42 +1706,44 @@ where
     T: Into<String>,
     D: Into<String>,
 {
-    let mut raw = RawResource::new(uri, name);
-    raw.title = title.map(Into::into);
-    raw.description = description.map(Into::into);
-    raw.mime_type = mime_type.map(str::to_string);
-    Annotated::new(raw, None)
+    let mut res = Resource::new(uri, name);
+    if let Some(title) = title {
+        res = res.with_title(title);
+    }
+    if let Some(description) = description {
+        res = res.with_description(description);
+    }
+    if let Some(mime_type) = mime_type {
+        res = res.with_mime_type(mime_type);
+    }
+    res
 }
 
-fn json_resource(uri: &str, value: Value) -> Result<ReadResourceResult, McpError> {
+fn json_resource(uri: &str, value: Value) -> Result<ReadResourceResponse, McpError> {
     let text = serde_json::to_string_pretty(&value).map_err(internal_error)?;
-    Ok(ReadResourceResult {
-        contents: vec![ResourceContents::TextResourceContents {
-            uri: uri.to_string(),
-            mime_type: Some("application/json".to_string()),
-            text,
-            meta: None,
-        }],
-    })
+    Ok(ReadResourceResult::new(vec![
+        ResourceContents::text(text, uri).with_mime_type("application/json")
+    ])
+    .into())
 }
 
 fn tool_payload(value: Value) -> Json<McpToolPayload> {
     Json(McpToolPayload { data: value })
 }
 
-fn markdown_resource(uri: &str, markdown: String) -> Result<ReadResourceResult, McpError> {
+fn markdown_resource(uri: &str, markdown: String) -> Result<ReadResourceResponse, McpError> {
     text_resource(uri, "text/markdown", markdown)
 }
 
-fn text_resource(uri: &str, mime_type: &str, text: String) -> Result<ReadResourceResult, McpError> {
-    Ok(ReadResourceResult {
-        contents: vec![ResourceContents::TextResourceContents {
-            uri: uri.to_string(),
-            mime_type: Some(mime_type.to_string()),
-            text,
-            meta: None,
-        }],
-    })
+fn text_resource(
+    uri: &str,
+    mime_type: &str,
+    text: String,
+) -> Result<ReadResourceResponse, McpError> {
+    Ok(ReadResourceResult::new(vec![
+        ResourceContents::text(text, uri).with_mime_type(mime_type)
+    ])
+    .into())
 }
 
 fn internal_error(error: impl std::fmt::Display) -> McpError {
@@ -1778,7 +1758,7 @@ mod tests {
     };
     use crate::cli::client::ApiClient;
     use rmcp::handler::server::wrapper::Parameters;
-    use rmcp::model::PromptMessageContent;
+    use rmcp::model::ContentBlock;
     use std::path::PathBuf;
 
     fn test_server(is_admin: bool) -> OpenCodelabsMcpServer {
@@ -1916,7 +1896,7 @@ mod tests {
             .messages
             .iter()
             .filter_map(|message| match &message.content {
-                PromptMessageContent::ResourceLink { link } => Some(link.uri.as_str()),
+                ContentBlock::ResourceLink(link) => Some(link.uri.as_str()),
                 _ => None,
             })
             .collect::<Vec<_>>();
