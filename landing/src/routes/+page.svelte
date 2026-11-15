@@ -7,7 +7,6 @@
 		Globe,
 		Users,
 		Zap,
-		Github,
 		ChevronRight,
 		BookOpen,
 		BarChart3,
@@ -23,8 +22,9 @@
 		Sparkles,
 		Sun,
 		Moon,
-	} from "lucide-svelte";
-	import LetterGlitch from "$lib/components/LetterGlitch.svelte";
+	} from "@lucide/svelte";
+	import Github from "#lib/Github.svelte";
+	import LetterGlitch from "#lib/components/LetterGlitch.svelte";
 
 	let lang = $state("ko");
 	let isDark = $state(true); // Default to dark mode
