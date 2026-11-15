@@ -1,11 +1,11 @@
 <script lang="ts">
-  import { Award, Download, Mail, Calendar, User } from "lucide-svelte";
+  import { Award, Download, Mail, Calendar, User } from "@lucide/svelte";
   import { t } from "svelte-i18n";
-  import type { Attendee } from "$lib/api";
+  import type { Attendee } from "#lib/api.ts";
 
-  let { attendees } = $props<{
+  let { attendees }: {
     attendees: Attendee[];
-  }>();
+  } = $props();
 
   let completed = $derived(attendees.filter((a: Attendee) => a.is_completed));
   let searchQuery = $state("");

@@ -3,7 +3,7 @@
     import { fade, slide, fly } from "svelte/transition";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
-    import { browser } from "$app/environment";
+    import { browser } from '$app/env';
     import {
         getCodelab,
         getMaterials,
@@ -35,13 +35,13 @@
         type Material,
         type InlineCommentThread,
         type CreateInlineCommentPayload,
-    } from "$lib/api";
-    import { loadProgress, saveProgress } from "$lib/Progress";
+    } from "#lib/api.ts";
+    import { loadProgress, saveProgress } from "#lib/Progress.ts";
     import {
         attendeeMarked as marked,
         transformEmbeddableLinks,
-    } from "$lib/markdown";
-    import { extractPlaygrounds, type PlaygroundBlock } from "$lib/playground";
+    } from "#lib/markdown.ts";
+    import { extractPlaygrounds, type PlaygroundBlock } from "#lib/playground.ts";
     import DOMPurify from "dompurify";
     import {
         ChevronLeft,
@@ -63,7 +63,6 @@
         Star,
         Users,
         Sparkles,
-        Github,
         Volume2,
         Square,
         Paperclip,
@@ -75,19 +74,20 @@
         Trash2,
         FileUp,
         Loader2,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
+    import Github from "#lib/components/icons/Github.svelte";
     import { t, locale, locales } from "svelte-i18n";
-    import AskGemini from "$lib/components/codelabs/AskGemini.svelte";
-    import PlaygroundPanel from "$lib/components/codelabs/PlaygroundPanel.svelte";
-    import SubmissionPanel from "$lib/components/codelabs/SubmissionPanel.svelte";
-    import ScreenShareAttendee from "$lib/components/codelabs/ScreenShareAttendee.svelte";
-    import { createTtsPlayer } from "$lib/tts";
-    import { themeState } from "$lib/theme.svelte";
+    import AskGemini from "#lib/components/codelabs/AskGemini.svelte";
+    import PlaygroundPanel from "#lib/components/codelabs/PlaygroundPanel.svelte";
+    import SubmissionPanel from "#lib/components/codelabs/SubmissionPanel.svelte";
+    import ScreenShareAttendee from "#lib/components/codelabs/ScreenShareAttendee.svelte";
+    import { createTtsPlayer } from "#lib/tts.ts";
+    import { themeState } from "#lib/theme.svelte.ts";
     import {
         submitFile,
         getSubmissions,
         deleteSubmission as apiDeleteSubmission,
-    } from "$lib/api";
+    } from "#lib/api.ts";
 
     let id = page.params.id as string;
     let codelab = $state<Codelab | null>(null);
@@ -225,12 +225,8 @@
     let stepMarkdownRef = $state<HTMLDivElement | null>(null);
     let guideMarkdownRef = $state<HTMLDivElement | null>(null);
     let inlineSelection = $state<
-        | ({
-              top: number;
-              left: number;
-          } & CreateInlineCommentPayload)
-        | null
-    >(null);
+        ({ top: number; left: number } & CreateInlineCommentPayload) |
+        null>(null);
 
     // TTS State
     const tts = createTtsPlayer();
@@ -238,16 +234,8 @@
 
     let filteredMessages = $derived(
         chatTab === "public"
-            ? messages.filter((m) => m.type === "chat")
-            : messages.filter(
-                  (m) =>
-                      m.type === "dm" &&
-                      ((m.sender_id === attendee?.id &&
-                          m.target_id === selectedParticipantId) ||
-                          (m.sender_id === selectedParticipantId &&
-                              m.target_id === attendee?.id)),
-              ),
-    );
+        ? messages.filter((m) => m.type === "chat")
+        : messages.filter((m) => m.type === "dm" && (m.sender_id === attendee?.id && m.target_id === selectedParticipantId || m.sender_id === selectedParticipantId && m.target_id === attendee?.id)));
 
     let conversations = $derived.by(() => {
         const groups = new Map<string, any>();
@@ -296,16 +284,13 @@
         if (!canGetCertificate) {
             e.preventDefault();
             let missing = [];
-            if (codelab?.require_quiz && !isQuizPassed)
-                missing.push($t("certificate.quiz_required"));
-            if (codelab?.require_feedback && !feedbackSubmitted)
-                missing.push($t("certificate.feedback_required"));
-            if (codelab?.require_submission && mySubmissions.length === 0)
-                missing.push($t("certificate.submission_required"));
 
-            alert(
-                `${$t("certificate.not_earned")}\n\n${$t("certificate.requirements_guide")}\n- ${missing.join("\n- ")}`,
-            );
+            if (codelab?.require_quiz && !isQuizPassed) missing.push($t("certificate.quiz_required"));
+            if (codelab?.require_feedback && !feedbackSubmitted) missing.push($t("certificate.feedback_required"));
+            if (codelab?.require_submission && mySubmissions.length === 0) missing.push($t("certificate.submission_required"));
+
+            alert(`${$t("certificate.not_earned")}\n\n${$t("certificate.requirements_guide")}\n- ${missing.join("\n- ")}`);
+
             return;
         }
 
@@ -685,13 +670,10 @@
             await refreshInlineComments();
         } catch (e: any) {
             const msg = e?.message || "";
-            inlineReplyError =
-                msg.includes("STALE_THREAD") ||
-                msg.toLowerCase().includes("stale")
-                    ? ($t("inline_comment.stale_reply_blocked") ||
-                      "This thread is stale and cannot be replied to.")
-                    : ($t("inline_comment.reply_failed") ||
-                      "Failed to reply to inline comment.");
+
+            inlineReplyError = msg.includes("STALE_THREAD") || msg.toLowerCase().includes("stale")
+                ? $t("inline_comment.stale_reply_blocked") || "This thread is stale and cannot be replied to."
+                : $t("inline_comment.reply_failed") || "Failed to reply to inline comment.";
         } finally {
             inlineReplyLoading = false;
         }
@@ -769,19 +751,19 @@
             // Load Quizzes
             getQuizzes(id)
                 .then((q) => {
-                    quizzes = q.map((i) => ({
-                        ...i,
-                        quiz_type: i.quiz_type || "multiple_choice",
+                quizzes = q.map((i) => ({
+                    ...i,
+                    quiz_type: i.quiz_type || "multiple_choice",
                         options:
                             typeof i.options === "string"
                                 ? JSON.parse(i.options)
                                 : i.options,
-                    }));
-                    quizAnswers = quizzes.map((i) => {
-                        if (i.quiz_type === "descriptive") return "";
-                        if (i.quiz_type === "multiple_selection") return [];
-                        return -1;
-                    });
+                }));
+                quizAnswers = quizzes.map((i) => {
+                    if (i.quiz_type === "descriptive") return "";
+                    if (i.quiz_type === "multiple_selection") return [];
+                    return -1;
+                });
                 })
                 .catch((e) => console.error("Failed to load quizzes", e));
 
@@ -824,51 +806,46 @@
     function handleSelection(_e: MouseEvent) {
         // Debounce or just wait a tick
         setTimeout(() => {
-            const selection = window.getSelection();
-            if (selection && selection.toString().trim().length > 0) {
-                // Check if selection is inside markdown-body
-                if (!selection.rangeCount) return;
-                const range = selection.getRangeAt(0);
-                const container = range.commonAncestorContainer;
-                const element =
-                    container.nodeType === 1
-                        ? (container as Element)
-                        : container.parentElement;
+                const selection = window.getSelection();
+                if (selection && selection.toString().trim().length > 0) {
+                    // Check if selection is inside markdown-body
+                    if (!selection.rangeCount) return;
+                    const range = selection.getRangeAt(0);
+                    const container = range.commonAncestorContainer;
+                    const element = container.nodeType === 1 ? container as Element : container.parentElement;
+                    const markdownRoot = element?.closest(".markdown-body") as HTMLElement | null;
 
-                const markdownRoot = element?.closest(".markdown-body") as
-                    | HTMLElement
-                    | null;
-                if (markdownRoot) {
+                    if (markdownRoot) {
                     const targetType =
                         markdownRoot.dataset.commentTarget === "guide"
                             ? "guide"
                             : "step";
-                    const targetStepId = markdownRoot.dataset.stepId || null;
-                    const offsets = getOffsetsFromRange(markdownRoot, range);
-                    if (!offsets || offsets.end <= offsets.start) {
-                        return;
-                    }
+                        const targetStepId = markdownRoot.dataset.stepId || null;
+                        const offsets = getOffsetsFromRange(markdownRoot, range);
+                        if (!offsets || offsets.end <= offsets.start) {
+                            return;
+                        }
                     const contentHash = getCurrentContentHash(
                         targetType,
                         targetType === "step" ? targetStepId : null,
                     );
-                    if (!contentHash) {
-                        return;
-                    }
-                    const rect = range.getBoundingClientRect();
-                    const selectedText = selection.toString().trim();
-                    selectedContext = selectedText;
-                    geminiButtonPos = {
-                        x: rect.right + 10, // Show to the right of selection
-                        y: rect.top - 40, // Show slightly above
-                    };
-                    // Ensure it stays on screen
-                    if (geminiButtonPos.x + 150 > window.innerWidth) {
-                        geminiButtonPos.x = window.innerWidth - 160;
-                    }
-                    if (geminiButtonPos.y < 0) geminiButtonPos.y = 10;
+                        if (!contentHash) {
+                            return;
+                        }
+                        const rect = range.getBoundingClientRect();
+                        const selectedText = selection.toString().trim();
+                        selectedContext = selectedText;
+                        geminiButtonPos = {
+                            x: rect.right + 10, // Show to the right of selection
+                            y: rect.top - 40 // Show slightly above
+                        };
+                        // Ensure it stays on screen
+                        if (geminiButtonPos.x + 150 > window.innerWidth) {
+                            geminiButtonPos.x = window.innerWidth - 160;
+                        }
+                        if (geminiButtonPos.y < 0) geminiButtonPos.y = 10;
 
-                    inlineSelection = {
+                        inlineSelection = {
                         anchor_key: buildInlineAnchorKey(
                             targetType,
                             targetType === "step" ? targetStepId : null,
@@ -876,30 +853,30 @@
                             offsets.start,
                             offsets.end,
                         ),
-                        target_type: targetType,
+                            target_type: targetType,
                         target_step_id:
                             targetType === "step" ? targetStepId : null,
-                        start_offset: offsets.start,
-                        end_offset: offsets.end,
-                        selected_text: selectedText,
-                        content_hash: contentHash,
-                        message: "",
-                        top: geminiButtonPos.y + 44,
+                            start_offset: offsets.start,
+                            end_offset: offsets.end,
+                            selected_text: selectedText,
+                            content_hash: contentHash,
+                            message: "",
+                            top: geminiButtonPos.y + 44,
                         left: Math.max(
                             12,
                             Math.min(geminiButtonPos.x, window.innerWidth - 380),
                         ),
-                    };
-                    showGeminiButton = true;
-                    showInlineThreadPopover = false;
-                    return;
+                        };
+                        showGeminiButton = true;
+                        showInlineThreadPopover = false;
+                        return;
+                    }
                 }
-            }
-            // If we click outside or empty selection, hide button
-            if (!showGeminiModal && !showInlineCommentComposer) {
-                showGeminiButton = false;
-                inlineSelection = null;
-            }
+                // If we click outside or empty selection, hide button
+                if (!showGeminiModal && !showInlineCommentComposer) {
+                    showGeminiButton = false;
+                    inlineSelection = null;
+                }
         }, 10);
     }
 
@@ -915,43 +892,43 @@
                         msg.sender_name === attendee?.name,
                 )
                 .map((msg) => {
-                    const timeStr = msg.created_at
+                const timeStr = msg.created_at
                         ? new Date(msg.created_at).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
                           })
-                        : "";
+                    : "";
 
-                    if (msg.msg_type === "chat") {
-                        return {
-                            sender: msg.sender_name,
-                            text: msg.message,
-                            time: timeStr,
-                            self: msg.sender_name === attendee?.name,
-                            type: "chat",
+                if (msg.msg_type === "chat") {
+                    return {
+                        sender: msg.sender_name,
+                        text: msg.message,
+                        time: timeStr,
+                        self: msg.sender_name === attendee?.name,
+                        type: "chat",
                             timestamp: msg.created_at
                                 ? new Date(msg.created_at).getTime()
                                 : Date.now(),
-                        };
-                    } else {
-                        // DM for or from me
-                        const isSelf = msg.sender_name === attendee?.name;
-                        return {
-                            sender: isSelf
+                    };
+                } else {
+                    // DM for or from me
+                    const isSelf = msg.sender_name === attendee?.name;
+                    return {
+                        sender: isSelf
                                 ? `${$t("common.to")}: ${msg.target_id === "facilitator" ? $t("common.facilitator") : allAttendees.find((a) => a.id === msg.target_id)?.name || msg.target_id}`
-                                : `[DM] ${msg.sender_name}`,
-                            text: msg.message,
-                            time: timeStr,
-                            self: isSelf,
-                            type: "dm",
-                            sender_id: msg.sender_id,
-                            target_id: msg.target_id,
+                            : `[DM] ${msg.sender_name}`,
+                        text: msg.message,
+                        time: timeStr,
+                        self: isSelf,
+                        type: "dm",
+                        sender_id: msg.sender_id,
+                        target_id: msg.target_id,
                             timestamp: msg.created_at
                                 ? new Date(msg.created_at).getTime()
                                 : Date.now(),
-                        };
-                    }
-                });
+                    };
+                }
+            });
 
             // Scroll to bottom
             setTimeout(() => {
@@ -1096,14 +1073,11 @@
                     if (idx === -1) {
                         allAttendees = [data.attendee, ...allAttendees].sort(
                             (a, b) => {
-                                if (a.id === attendee?.id) return -1;
-                                if (b.id === attendee?.id) return 1;
-                                return (
-                                    new Date(b.created_at).getTime() -
-                                    new Date(a.created_at).getTime()
-                                );
-                            },
-                        );
+                            if (a.id === attendee?.id) return -1;
+                            if (b.id === attendee?.id) return 1;
+
+                            return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+                        });
                     }
                 } else if (data.type === "attendee_left") {
                     // Optional: Remove from list or mark offline
@@ -1355,7 +1329,7 @@
         try {
             await requestHelp(id, currentStepIndex + 1);
             helpSent = true;
-            setTimeout(() => (helpSent = false), 30000); // Prevent spamming
+            setTimeout(() => helpSent = false, 30000); // Prevent spamming
             alert($t("help.sent"));
         } catch (e) {
             console.error("Help request failed:", e);
@@ -1445,7 +1419,7 @@
         if (quizSubmitted) return;
         const q = quizzes[qIndex];
         if (q.quiz_type === "multiple_selection") {
-            const current = (quizAnswers[qIndex] as number[]) || [];
+            const current = quizAnswers[qIndex] as number[] || [];
             if (current.includes(oIndex)) {
                 quizAnswers[qIndex] = current.filter((i) => i !== oIndex);
             } else {
@@ -1461,7 +1435,7 @@
     function isAnswerSelected(qIndex: number, oIndex: number) {
         const q = quizzes[qIndex];
         if (q.quiz_type === "multiple_selection") {
-            const current = (quizAnswers[qIndex] as number[]) || [];
+            const current = quizAnswers[qIndex] as number[] || [];
             return current.includes(oIndex);
         }
         return quizAnswers[qIndex] === oIndex;
@@ -1479,7 +1453,7 @@
                     correct++;
                 }
             } else if (q.quiz_type === "multiple_selection") {
-                const selected = (quizAnswers[i] as number[]) || [];
+                const selected = quizAnswers[i] as number[] || [];
                 answer = JSON.stringify(selected);
 
                 // Parse correct_answers from JSON if needed
@@ -1512,11 +1486,8 @@
                     correct++;
                 }
             }
-            return {
-                quiz_id: q.id,
-                answer: answer,
-                is_correct: is_correct,
-            };
+
+            return { quiz_id: q.id, answer, is_correct };
         });
 
         quizCorrectCount = correct;
@@ -1525,10 +1496,8 @@
         // Send to backend
         if (attendee) {
             try {
-                await submitQuiz(id, {
-                    submissions: submissions,
-                });
-            } catch (e) {
+                await submitQuiz(id, { submissions });
+            } catch(e) {
                 console.error("Failed to submit quiz results", e);
             }
         }
@@ -1668,9 +1637,8 @@
         activeInlineThreadId;
         void applyInlineHighlights();
     });
-    let progressPercent = $derived(
-        steps.length > 0 ? ((currentStepIndex + 1) / steps.length) * 100 : 0,
-    );
+
+    let progressPercent = $derived(steps.length > 0 ? (currentStepIndex + 1) / steps.length * 100 : 0);
 </script>
 
 <a
@@ -1689,7 +1657,7 @@
     >
         <div class="flex items-center gap-4">
             <button
-                onclick={() => (showSidebar = !showSidebar)}
+                onclick={() => showSidebar = !showSidebar}
                 class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full lg:hidden transition-colors"
                 aria-label="Toggle sidebar"
             >
@@ -1706,10 +1674,9 @@
                 </div>
                 <h1
                     class="font-bold text-lg hidden sm:block text-muted-foreground dark:text-dark-text-muted"
-                >
-                    Open-Codelabs
-                </h1>
-                <ScreenShareAttendee {ws} codelabId={id} />
+                >Open-Codelabs</h1>
+
+                <ScreenShareAttendee ws={ws} codelabId={id} />
             </div>
         </div>
 
@@ -1724,7 +1691,7 @@
         <div class="flex items-center gap-2 sm:gap-4">
             {#if codelab?.guide_markdown}
                 <button
-                    onclick={() => (showGuide = !showGuide)}
+                    onclick={() => showGuide = !showGuide}
                     class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full transition-all {showGuide
                         ? 'text-primary bg-accent/80 dark:bg-primary/20'
                         : 'text-muted-foreground dark:text-dark-text-muted'}"
@@ -1735,7 +1702,7 @@
                 </button>
             {/if}
             <button
-                onclick={() => (showPlayground = !showPlayground)}
+                onclick={() => showPlayground = !showPlayground}
                 class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full transition-all relative {showPlayground
                     ? 'text-primary bg-accent/80 dark:bg-primary/20'
                     : 'text-muted-foreground dark:text-dark-text-muted'}"
@@ -1793,7 +1760,7 @@
             </div>
 
             <button
-                onclick={() => (showChat = !showChat)}
+                onclick={() => showChat = !showChat}
                 class="p-2 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full relative transition-colors"
                 title={$t("editor.public_chat")}
                 aria-label={$t("editor.public_chat")}
@@ -1818,10 +1785,8 @@
                     title={attendee?.name || $t("profile.title")}
                     aria-label={$t("profile.title")}
                     aria-expanded={showProfile}
-                    onclick={() => (showProfile = !showProfile)}
-                >
-                    <User size={18} />
-                </button>
+                    onclick={() => showProfile = !showProfile}
+                ><User size={18} /></button>
 
                 {#if showProfile}
                     <div
@@ -2126,7 +2091,7 @@
 
         {#if showSidebar}
             <button
-                onclick={() => (showSidebar = false)}
+                onclick={() => showSidebar = false}
                 aria-label="Close sidebar"
                 class="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-[2px] z-10 lg:hidden transition-opacity"
                 transition:fade={{ duration: 200 }}
@@ -2156,7 +2121,7 @@
                             </div>
                             <button
                                 type="button"
-                                onclick={() => (showGuide = false)}
+                                onclick={() => showGuide = false}
                                 class="hover:bg-white/20 p-1 rounded-full transition-colors"
                                 aria-label={$t("common.close")}
                             >
@@ -2180,7 +2145,7 @@
                             class="bg-accent/60 dark:bg-dark-bg/50 px-8 py-4 flex justify-end"
                         >
                             <button
-                                onclick={() => (showGuide = false)}
+                                onclick={() => showGuide = false}
                                 class="bg-primary text-primary-foreground px-6 py-2 rounded-full font-bold text-sm shadow-md hover:bg-primary/90 transition-all"
                             >
                                 {$t("common.close")}
@@ -2592,9 +2557,7 @@
                                         <div class="flex gap-2">
                                             {#each [1, 2, 3, 4, 5] as s}
                                                 <button
-                                                    onclick={() =>
-                                                        (feedbackSatisfaction =
-                                                            s)}
+                                                    onclick={() => feedbackSatisfaction = s}
                                                     class="p-1 rounded-lg transition-all hover:bg-yellow-50 dark:hover:bg-yellow-500/10 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                                                     aria-label={$t(
                                                         "feedback.satisfaction",
@@ -3156,10 +3119,8 @@
                         <button
                             type="button"
                             class="text-xs text-muted-foreground hover:text-foreground dark:hover:text-dark-text"
-                            onclick={() => (showInlineThreadPopover = false)}
-                        >
-                            {$t("common.close")}
-                        </button>
+                            onclick={() => showInlineThreadPopover = false}
+                        >{$t("common.close")}</button>
                     </div>
                     <blockquote
                         class="text-sm border-l-2 border-primary/50 pl-3 mb-3 text-foreground dark:text-dark-text"
@@ -3235,7 +3196,7 @@
                     context={selectedContext}
                     codelabId={id}
                     stepNumber={currentStepIndex + 1}
-                    onClose={() => (showGeminiModal = false)}
+                    onClose={() => showGeminiModal = false}
                 />
             {/if}
         </main>
@@ -3266,7 +3227,7 @@
                             </span>
                         </h3>
                         <button
-                            onclick={() => (showChat = false)}
+                            onclick={() => showChat = false}
                             class="p-1 hover:bg-accent/60 dark:hover:bg-white/10 rounded-full dark:text-dark-text shrink-0"
                             aria-label="Close chat"
                         >
@@ -3279,7 +3240,7 @@
                         role="tablist"
                     >
                         <button
-                            onclick={() => (chatTab = "participants")}
+                            onclick={() => chatTab = "participants"}
                             role="tab"
                             aria-selected={chatTab === "participants"}
                             class="pb-2 text-sm font-bold transition-all whitespace-nowrap relative {chatTab ===
@@ -3290,7 +3251,7 @@
                             {$t("editor.participants")}
                         </button>
                         <button
-                            onclick={() => (chatTab = "public")}
+                            onclick={() => chatTab = "public"}
                             role="tab"
                             aria-selected={chatTab === "public"}
                             class="pb-2 text-sm font-bold transition-all whitespace-nowrap relative {chatTab ===
@@ -3414,8 +3375,7 @@
                         <div class="space-y-1">
                             {#each conversations as conv}
                                 <button
-                                    onclick={() =>
-                                        (selectedParticipantId = conv.id)}
+                                    onclick={() => selectedParticipantId = conv.id}
                                     class="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-accent/60 dark:hover:bg-white/5 transition-colors text-left border border-transparent"
                                 >
                                     <div
@@ -3431,14 +3391,9 @@
                                         {/if}
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <div
-                                            class="flex justify-between items-baseline gap-2"
-                                        >
-                                            <div
-                                                class="font-bold text-sm truncate"
-                                            >
-                                                {conv.name}
-                                            </div>
+                                        <div class="flex justify-between items-baseline gap-2">
+                                            <div class="font-bold text-sm truncate">{conv.name}</div>
+
                                             <div
                                                 class="text-[10px] text-muted-foreground whitespace-nowrap"
                                             >
@@ -3468,8 +3423,7 @@
                                         {$t("editor.no_conversations")}
                                     </p>
                                     <button
-                                        onclick={() =>
-                                            (chatTab = "participants")}
+                                        onclick={() => chatTab = "participants"}
                                         class="mt-4 text-xs text-primary font-bold hover:underline"
                                     >
                                         {$t("editor.start_new_chat")}
@@ -3482,7 +3436,7 @@
                         {#if chatTab === "direct"}
                             <div class="flex items-center gap-2 mb-4">
                                 <button
-                                    onclick={() => (selectedParticipantId = "")}
+                                    onclick={() => selectedParticipantId = ""}
                                     class="p-1 hover:bg-accent/60 dark:hover:bg-white/10 rounded-lg text-muted-foreground"
                                 >
                                     <ChevronLeft size={18} />
@@ -3501,13 +3455,9 @@
                                     : 'items-start'}"
                             >
                                 <span
-                                    class="text-[10px] text-muted-foreground dark:text-dark-text-muted font-bold mb-1 ml-1 mr-1 uppercase tracking-tight {msg.self ||
-                                    msg.type === 'chat'
-                                        ? ''
-                                        : 'text-red-600'}"
-                                >
-                                    {msg.sender} &bull; {msg.time}
-                                </span>
+                                    class="text-[10px] text-muted-foreground dark:text-dark-text-muted font-bold mb-1 ml-1 mr-1 uppercase tracking-tight {msg.self || msg.type === 'chat' ? '' : 'text-red-600'}"
+                                >{msg.sender} • {msg.time}</span>
+
                                 <div
                                     class="max-w-[90%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm {msg.self
                                         ? 'bg-primary text-primary-foreground rounded-tr-none'
@@ -3602,9 +3552,7 @@
                             type="button"
                             class="absolute left-2 top-1/2 -translate-y-1/2 p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all disabled:opacity-50"
                             aria-label={$t("chat.upload_image")}
-                            disabled={chatImageUploading ||
-                                (chatTab === "direct" &&
-                                    !selectedParticipantId)}
+                            disabled={chatImageUploading || chatTab === "direct" && !selectedParticipantId}
                             onclick={() => chatImageInput?.click()}
                         >
                             {#if chatImageUploading}

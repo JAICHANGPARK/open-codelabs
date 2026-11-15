@@ -5,7 +5,7 @@
         type QualityPreset,
         type NetworkStats,
         QUALITY_PRESETS,
-    } from "$lib/ScreenShareService";
+    } from "#lib/ScreenShareService.ts";
     import {
         Maximize2,
         Minimize2,
@@ -15,14 +15,14 @@
         Laptop,
         Signal,
         ChevronDown,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { t } from "svelte-i18n";
     import { fade } from "svelte/transition";
 
-    let { ws, codelabId } = $props<{
+    let { ws, codelabId }: {
         ws: WebSocket | null;
         codelabId: string;
-    }>();
+    } = $props();
 
     let isFacilitatorSharing = $state(false);
     let remoteStream = $state<MediaStream | null>(null);

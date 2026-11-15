@@ -6,11 +6,11 @@
         Settings,
         Key,
         FileEdit
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { t } from "svelte-i18n";
-    import { saveAdminSettings, type Codelab } from "$lib/api";
+    import { saveAdminSettings, type Codelab } from "#lib/api.ts";
     import { onMount } from "svelte";
-    import { decrypt, encrypt } from "$lib/crypto";
+    import { decrypt, encrypt } from "#lib/crypto.ts";
     import { fade } from "svelte/transition";
 
     let {
@@ -18,12 +18,12 @@
         isSaving,
         saveSuccess,
         handleSave
-    } = $props<{
+    }: {
         codelab: Codelab | null;
         isSaving: boolean;
         saveSuccess: boolean;
         handleSave: () => void;
-    }>();
+    } = $props();
 
     let geminiApiKey = $state("");
     let isSavingAdminSettings = $state(false);

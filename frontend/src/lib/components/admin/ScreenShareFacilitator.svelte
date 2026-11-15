@@ -6,20 +6,20 @@
         Loader2,
         Signal,
         ChevronDown,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import {
         ScreenShareService,
         type WebRTCSignal,
         type QualityPreset,
         type NetworkStats,
         QUALITY_PRESETS,
-    } from "$lib/ScreenShareService";
+    } from "#lib/ScreenShareService.ts";
     import { t } from "svelte-i18n";
 
-    let { ws, codelabId } = $props<{
+    let { ws, codelabId }: {
         ws: WebSocket | null;
         codelabId: string;
-    }>();
+    } = $props();
 
     let isSharing = $state(false);
     let isLoading = $state(false);

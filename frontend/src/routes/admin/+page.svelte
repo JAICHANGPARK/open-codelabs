@@ -11,7 +11,7 @@
         deleteCodelab,
         getUpdateStatus,
         type Codelab,
-    } from "$lib/api";
+    } from "#lib/api.ts";
     import {
         Plus,
         BookOpen,
@@ -27,24 +27,24 @@
         Eye,
         Settings,
         Sparkles,
-        Github,
         ShieldCheck,
         FileText,
         X,
         Copy,
         Loader2,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
+    import Github from "#lib/components/icons/Github.svelte";
     import { t, locale } from "svelte-i18n";
-    import { encrypt, decrypt } from "$lib/crypto";
-    import AiCodelabGenerator from "$lib/components/admin/AiCodelabGenerator.svelte";
-    import FacilitatorConsultant from "$lib/components/admin/FacilitatorConsultant.svelte";
+    import { encrypt, decrypt } from "#lib/crypto.ts";
+    import AiCodelabGenerator from "#lib/components/admin/AiCodelabGenerator.svelte";
+    import FacilitatorConsultant from "#lib/components/admin/FacilitatorConsultant.svelte";
     import {
         copyCodelab as apiCopyCodelab,
         exportBackup,
         inspectBackup,
         restoreBackup,
         saveAdminSettings,
-    } from "$lib/api";
+    } from "#lib/api.ts";
 
     let codelabs: Codelab[] = $state([]);
     let loading = $state(true);

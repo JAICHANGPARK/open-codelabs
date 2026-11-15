@@ -1,3 +1,5 @@
+import adapter from "@sveltejs/adapter-bun";
+import { vitePreprocess } from "@sveltejs/vite-plugin-svelte";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { sveltekit } from "@sveltejs/kit/vite";
@@ -25,7 +27,12 @@ export default defineConfig(({ mode }) => {
 				name: "select-api-runtime",
 				enforce: "pre",
 				resolveId(source) {
-					if (source === "$lib/api") {
+					if (
+						source === "#lib/api.ts" ||
+						source === "#lib/api.js" ||
+						source === "#lib/api" ||
+						source === "$lib/api"
+					) {
 						return apiRuntime;
 					}
 
@@ -48,7 +55,20 @@ export default defineConfig(({ mode }) => {
 				}
 			},
 			tailwindcss(),
-			sveltekit()
+			sveltekit({
+				preprocess: vitePreprocess(),
+				csrf: {
+					trustedOrigins: [
+						"http://localhost:5173",
+						"http://127.0.0.1:5173"
+					]
+				},
+				adapter: adapter({
+					serverOptions: {
+						maxRequestBodySize: 1024 * 1024 * 100
+					}
+				})
+			})
 		],
 		build: {
 			reportCompressedSize: false

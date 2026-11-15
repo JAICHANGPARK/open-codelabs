@@ -9,14 +9,14 @@
         Grid3X3,
         LayoutGrid,
         X,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { t } from "svelte-i18n";
-    import { ASSET_URL, type SubmissionWithAttendee } from "$lib/api";
+    import { ASSET_URL, type SubmissionWithAttendee } from "#lib/api.ts";
     import { fade, fly } from "svelte/transition";
 
-    let { submissions = [] } = $props<{
+    let { submissions = [] }: {
         submissions: SubmissionWithAttendee[];
-    }>();
+    } = $props();
 
     let searchTerm = $state("");
     let selectedImage = $state<SubmissionWithAttendee | null>(null);

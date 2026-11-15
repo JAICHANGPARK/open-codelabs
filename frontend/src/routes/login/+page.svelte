@@ -6,18 +6,18 @@
         isSupabaseMode,
         isServerlessMode,
         getSession,
-    } from "$lib/api";
+    } from "#lib/api.ts";
     import { goto } from "$app/navigation";
     import {
         Lock,
         User,
         LogIn,
         AlertCircle,
-        Github,
         FileText as FileIcon,
-        Chrome,
         X,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
+    import Github from "#lib/components/icons/Github.svelte";
+    import Chrome from "#lib/components/icons/Chrome.svelte";
     import { fade, fly } from "svelte/transition";
     import { t } from "svelte-i18n";
 
@@ -36,7 +36,7 @@
             const redirectTo = sessionStorage.getItem(supabaseRedirectKey);
             if (redirectTo) {
                 sessionStorage.removeItem(supabaseRedirectKey);
-                goto(redirectTo);
+                await goto(redirectTo).catch(() => goto("/admin"));
                 return;
             }
             goto("/admin");

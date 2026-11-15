@@ -21,10 +21,10 @@
         Info,
         Loader2,
         Send,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { tick } from "svelte";
     import { t } from "svelte-i18n";
-    import type { Step } from "$lib/api";
+    import type { Step } from "#lib/api.ts";
     import hljs from "highlight.js";
 
     let {
@@ -50,7 +50,7 @@
         openAiMenuForFullDoc,
         syncEditorScroll,
         syncPreviewScroll,
-    } = $props<{
+    }: {
         step: Step;
         isSplitView: boolean;
         aiLoading: boolean;
@@ -76,7 +76,7 @@
         openAiMenuForFullDoc: (pos: { x: number; y: number }) => void;
         syncEditorScroll: () => void;
         syncPreviewScroll: () => void;
-    }>();
+    } = $props();
 
     const languageOptions = hljs
         .listLanguages()
@@ -679,6 +679,9 @@
         );
         background-size: 220% 220%;
         -webkit-mask:
+            linear-gradient(#000 0 0) content-box,
+            linear-gradient(#000 0 0);
+        mask:
             linear-gradient(#000 0 0) content-box,
             linear-gradient(#000 0 0);
         -webkit-mask-composite: xor;

@@ -1,10 +1,10 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { page } from "$app/state";
-    import { getCertificate, type CertificateInfo } from "$lib/api";
+    import { getCertificate, type CertificateInfo } from "#lib/api.ts";
     import { t } from "svelte-i18n";
     import { fade, scale } from "svelte/transition";
-    import { ShieldCheck, XCircle, CheckCircle2, User, Calendar, Bookmark, FileText } from "lucide-svelte";
+    import { ShieldCheck, XCircle, CheckCircle2, User, Calendar, Bookmark, FileText } from "@lucide/svelte";
 
     let id = page.params.id as string;
     let info = $state<CertificateInfo | null>(null);

@@ -1,9 +1,9 @@
 <script lang="ts">
     import type { Snippet } from "svelte";
-    let { active = true, children } = $props<{
+    let { active = true, children }: {
         active?: boolean;
         children: Snippet;
-    }>();
+    } = $props();
     let container: HTMLElement;
 
     function handleKeydown(event: KeyboardEvent) {

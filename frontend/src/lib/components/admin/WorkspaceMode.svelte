@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { FileUp, FolderGit2, Download, AlertCircle, CheckCircle2, Loader2, Sparkles, Copy, GitCompare } from 'lucide-svelte';
+    import { FileUp, FolderGit2, Download, AlertCircle, CheckCircle2, Loader2, Sparkles, Copy, GitCompare } from '@lucide/svelte';
     import {
         getCodeServerInfo,
         createCodeServer,
@@ -14,10 +14,10 @@
         updateWorkspaceFolderFiles,
         type WorkspaceFile,
         type CodeServerInfo,
-    } from '$lib/api-backend';
-    import WorkspaceBrowser from '$lib/components/admin/WorkspaceBrowser.svelte';
-    import { streamGeminiStructuredOutput, type GeminiStructuredConfig } from '$lib/gemini';
-    import type { Step } from '$lib/api';
+    } from '#lib/api-backend.ts';
+    import WorkspaceBrowser from '#lib/components/admin/WorkspaceBrowser.svelte';
+    import { streamGeminiStructuredOutput, type GeminiStructuredConfig } from '#lib/gemini.ts';
+    import type { Step } from '#lib/api.ts';
     import { fade } from 'svelte/transition';
     import { t } from 'svelte-i18n';
 

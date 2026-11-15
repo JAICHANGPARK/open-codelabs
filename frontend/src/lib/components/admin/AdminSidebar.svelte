@@ -1,9 +1,9 @@
 <script lang="ts">
-    import { Plus, X, Trash2, Copy, Check } from "lucide-svelte";
+    import { Plus, X, Trash2, Copy, Check } from "@lucide/svelte";
     import { t } from "svelte-i18n";
     // @ts-ignore
     import QRCode from "svelte-qrcode";
-    import type { Step } from "$lib/api";
+    import type { Step } from "#lib/api.ts";
 
     let {
         steps = $bindable(),
@@ -14,7 +14,7 @@
         addStep,
         removeStep,
         handleCopyUrl,
-    } = $props<{
+    }: {
         steps: Step[];
         activeStepIndex: number;
         isSidebarOpen: boolean;
@@ -23,7 +23,7 @@
         addStep: () => void;
         removeStep: (index: number) => void;
         handleCopyUrl: () => void;
-    }>();
+    } = $props();
 
     let draggedStepIndex = $state<number | null>(null);
     let dragOverIndex = $state<number | null>(null);

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen } from 'lucide-svelte';
+    import { ChevronRight, ChevronDown, FileText, Folder, FolderOpen } from '@lucide/svelte';
     import type { TreeNode } from './workspace-tree';
     import WorkspaceFileTree from './WorkspaceFileTree.svelte';
 
@@ -9,13 +9,13 @@
         expandedFolders,
         onToggleFolder,
         onFileSelect
-    } = $props<{
+    }: {
         nodes: TreeNode[];
         selectedFile: string;
         expandedFolders: Set<string>;
         onToggleFolder: (path: string) => void;
         onFileSelect: (path: string) => void;
-    }>();
+    } = $props();
 
     const isExpanded = (path: string) => expandedFolders.has(path);
 </script>

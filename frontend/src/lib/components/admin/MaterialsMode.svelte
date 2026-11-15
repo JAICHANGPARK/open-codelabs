@@ -5,9 +5,9 @@
         ExternalLink, 
         Download, 
         CheckCircle2 
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { t } from "svelte-i18n";
-    import type { Material } from "$lib/api";
+    import type { Material } from "#lib/api.ts";
 
     let {
         materials,
@@ -16,7 +16,7 @@
         handleMaterialFileSelect,
         handleAddMaterial,
         handleDeleteMaterial
-    } = $props<{
+    }: {
         materials: Material[];
         newMaterial: {
             title: string;
@@ -28,7 +28,7 @@
         handleMaterialFileSelect: (e: Event) => void;
         handleAddMaterial: () => void;
         handleDeleteMaterial: (id: string) => void;
-    }>();
+    } = $props();
 </script>
 
 <div

@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { fade, fly } from "svelte/transition";
     import { page } from "$app/state";
-    import { browser } from "$app/environment";
+    import { browser } from '$app/env';
     import {
         getCodelab,
         updateCodelab,
@@ -32,47 +32,47 @@
         type Feedback,
         type Material,
         type Quiz,
-    } from "$lib/api";
+    } from "#lib/api.ts";
     import {
         streamGeminiResponseRobust,
         streamGeminiStructuredOutput,
         type GeminiStructuredConfig,
-    } from "$lib/gemini";
+    } from "#lib/gemini.ts";
     import {
         adminMarked as marked,
         transformEmbeddableLinks,
-    } from "$lib/markdown";
+    } from "#lib/markdown.ts";
     import DOMPurify from "dompurify";
-    import { decrypt } from "$lib/crypto";
-    import { getQuizzes, updateQuizzes, getQuizSubmissions } from "$lib/api";
+    import { decrypt } from "#lib/crypto.ts";
+    import { getQuizzes, updateQuizzes, getQuizSubmissions } from "#lib/api.ts";
     // ... icons imports ...
-    import { Plus } from "lucide-svelte";
+    import { Plus } from "@lucide/svelte";
     import { t, locale } from "svelte-i18n";
 
     // Components
-    import AdminHeader from "$lib/components/admin/AdminHeader.svelte";
-    import AdminSidebar from "$lib/components/admin/AdminSidebar.svelte";
-    import EditMode from "$lib/components/admin/EditMode.svelte";
-    import PreviewMode from "$lib/components/admin/PreviewMode.svelte";
-    import LiveMode from "$lib/components/admin/LiveMode.svelte";
-    import FeedbackMode from "$lib/components/admin/FeedbackMode.svelte";
-    import MaterialsMode from "$lib/components/admin/MaterialsMode.svelte";
-    import QuizMode from "$lib/components/admin/QuizMode.svelte";
-    import SettingsMode from "$lib/components/admin/SettingsMode.svelte";
-    import GuideMode from "$lib/components/admin/GuideMode.svelte";
-    import SubmissionsMode from "$lib/components/admin/SubmissionsMode.svelte";
-    import ImageGalleryMode from "$lib/components/admin/ImageGalleryMode.svelte";
-    import RaffleMode from "$lib/components/admin/RaffleMode.svelte";
-    import CertificateMode from "$lib/components/admin/CertificateMode.svelte";
-    import AiConversationsMode from "$lib/components/admin/AiConversationsMode.svelte";
-    import WorkspaceBrowser from "$lib/components/admin/WorkspaceBrowser.svelte";
-    import WorkspaceMode from "$lib/components/admin/WorkspaceMode.svelte";
-    import MonitoringDashboard from "$lib/components/admin/MonitoringDashboard.svelte";
+    import AdminHeader from "#lib/components/admin/AdminHeader.svelte";
+    import AdminSidebar from "#lib/components/admin/AdminSidebar.svelte";
+    import EditMode from "#lib/components/admin/EditMode.svelte";
+    import PreviewMode from "#lib/components/admin/PreviewMode.svelte";
+    import LiveMode from "#lib/components/admin/LiveMode.svelte";
+    import FeedbackMode from "#lib/components/admin/FeedbackMode.svelte";
+    import MaterialsMode from "#lib/components/admin/MaterialsMode.svelte";
+    import QuizMode from "#lib/components/admin/QuizMode.svelte";
+    import SettingsMode from "#lib/components/admin/SettingsMode.svelte";
+    import GuideMode from "#lib/components/admin/GuideMode.svelte";
+    import SubmissionsMode from "#lib/components/admin/SubmissionsMode.svelte";
+    import ImageGalleryMode from "#lib/components/admin/ImageGalleryMode.svelte";
+    import RaffleMode from "#lib/components/admin/RaffleMode.svelte";
+    import CertificateMode from "#lib/components/admin/CertificateMode.svelte";
+    import AiConversationsMode from "#lib/components/admin/AiConversationsMode.svelte";
+    import WorkspaceBrowser from "#lib/components/admin/WorkspaceBrowser.svelte";
+    import WorkspaceMode from "#lib/components/admin/WorkspaceMode.svelte";
+    import MonitoringDashboard from "#lib/components/admin/MonitoringDashboard.svelte";
 
     import {
         getSubmissions,
         deleteSubmission as apiDeleteSubmission,
-    } from "$lib/api";
+    } from "#lib/api.ts";
 
     let id = page.params.id as string;
     let activeStepIndex = $state(0);
@@ -80,39 +80,21 @@
     // Initialize mode from URL or default to 'edit'
     let initialMode = page.url.searchParams.get("mode");
     let mode = $state<
-        | "edit"
-        | "preview"
-        | "guide"
-        | "live"
-        | "feedback"
-        | "materials"
-        | "quiz"
-        | "submissions"
-        | "gallery"
-        | "settings"
-        | "workspace"
-        | "raffle"
-        | "certificate"
-        | "ai"
-        | "monitoring"
-    >(
-        initialMode === "preview" ||
-            initialMode === "guide" ||
-            initialMode === "live" ||
-            initialMode === "feedback" ||
-            initialMode === "materials" ||
-            initialMode === "quiz" ||
-            initialMode === "submissions" ||
-            initialMode === "gallery" ||
-            initialMode === "settings" ||
-            initialMode === "workspace" ||
-            initialMode === "raffle" ||
-            initialMode === "certificate" ||
-            initialMode === "ai" ||
-            initialMode === "monitoring"
-            ? (initialMode as any)
-            : "edit",
-    );
+        "edit" |
+        "preview" |
+        "guide" |
+        "live" |
+        "feedback" |
+        "materials" |
+        "quiz" |
+        "submissions" |
+        "gallery" |
+        "settings" |
+        "workspace" |
+        "raffle" |
+        "certificate" |
+        "ai" |
+        "monitoring">(initialMode === "preview" || initialMode === "guide" || initialMode === "live" || initialMode === "feedback" || initialMode === "materials" || initialMode === "quiz" || initialMode === "submissions" || initialMode === "gallery" || initialMode === "settings" || initialMode === "workspace" || initialMode === "raffle" || initialMode === "certificate" || initialMode === "ai" || initialMode === "monitoring" ? initialMode as any : "edit");
 
     let isSaving = $state(false);
     type AdminCodelab = Codelab & { guide_markdown: string };
@@ -215,7 +197,7 @@
         }
 
         // Debounce to prevent feedback loop
-        setTimeout(() => (isScrollingEditor = false), 50);
+        setTimeout(() => isScrollingEditor = false, 50);
     }
 
     function syncPreviewScroll() {
@@ -230,7 +212,7 @@
         }
 
         // Debounce to prevent feedback loop
-        setTimeout(() => (isScrollingPreview = false), 50);
+        setTimeout(() => isScrollingPreview = false, 50);
     }
 
     function hashText(content: string): string {
@@ -567,13 +549,13 @@
     function handleMouseUp(e: MouseEvent) {
         if (mode !== "edit") return;
         setTimeout(() => {
-            if (suppressAiMenuClose) return;
-            if (!aiLoading && showAiMenu) {
-                const target = e.target as HTMLElement;
-                if (!target.closest(".ai-menu-container")) {
-                    showAiMenu = false;
+                if (suppressAiMenuClose) return;
+                if (!aiLoading && showAiMenu) {
+                    const target = e.target as HTMLElement;
+                    if (!target.closest(".ai-menu-container")) {
+                        showAiMenu = false;
+                    }
                 }
-            }
         }, 10);
     }
 
@@ -658,10 +640,8 @@
 
             // Update selection to the new content
             const newEnd = start + fullImprovedContent.length;
-            selectionRange = {
-                start: start,
-                end: newEnd,
-            };
+
+            selectionRange = { start, end: newEnd };
 
             if (editorEl) {
                 setTimeout(() => {
@@ -682,12 +662,8 @@
             const rawMessage =
                 typeof e?.message === "string" ? e.message : String(e || "");
             const normalizedMessage = rawMessage.toLowerCase();
-            const isExplicit429 = /\b429\b/.test(rawMessage);
-            const isQuotaStyleMessage =
-                normalizedMessage.includes("resource_exhausted") ||
-                normalizedMessage.includes("quota") ||
-                normalizedMessage.includes("rate limit") ||
-                normalizedMessage.includes("free tier");
+            const isExplicit429 = (/\b429\b/).test(rawMessage);
+            const isQuotaStyleMessage = normalizedMessage.includes("resource_exhausted") || normalizedMessage.includes("quota") || normalizedMessage.includes("rate limit") || normalizedMessage.includes("free tier");
 
             if (isExplicit429 && isQuotaStyleMessage) {
                 errorMessage =
@@ -779,8 +755,8 @@
                 })),
             );
             saveSuccess = true;
-            setTimeout(() => (saveSuccess = false), 3000);
-        } catch (e) {
+            setTimeout(() => saveSuccess = false, 3000);
+        } catch(e) {
             console.error("Failed to save quizzes:", e);
             alert("Failed to save quizzes");
         } finally {
@@ -852,12 +828,10 @@
 
     const MAX_GUIDE_PROMPT_CHARS = 30_000;
     const MAX_GUIDE_STEP_CHARS = 2000;
-    const GUIDE_CONTEXT_TRUNCATION_NOTE =
-        "Note: The codelab content was truncated to fit the model's input limit.";
-    const GUIDE_SECTION_TRUNCATION_NOTE =
-        "Note: The following section was truncated to fit the model's input limit.";
-    const PROMPT_CONTEXT_PREFIX_LEN = "Context:\n".length;
-    const PROMPT_QUESTION_PREFIX_LEN = "\n\nQuestion:\n".length;
+    const GUIDE_CONTEXT_TRUNCATION_NOTE = "Note: The codelab content was truncated to fit the model's input limit.";
+    const GUIDE_SECTION_TRUNCATION_NOTE = "Note: The following section was truncated to fit the model's input limit.";
+    const PROMPT_CONTEXT_PREFIX_LEN = ("Context:\n").length;
+    const PROMPT_QUESTION_PREFIX_LEN = ("\n\nQuestion:\n").length;
 
     const normalizeGuideContent = (content: string, maxChars: number) => {
         const compact = content
@@ -983,18 +957,11 @@
         search_terms: string[];
     };
 
-    type GuideDraft = {
-        markdown: string;
-    };
+    type GuideDraft = { markdown: string };
+    type GuideReviewIssue = { severity: string; issue: string; recommendation: string };
 
-    type GuideReviewIssue = {
-        severity: string;
-        issue: string;
-        recommendation: string;
-    };
-
-    type GuideReview = {
-        expert: {
+    type GuideReview = { 
+        expert: { 
             summary: string;
             issues: GuideReviewIssue[];
             missing: string[];
@@ -1229,20 +1196,10 @@
             
             Codelab Content:
             `;
-            const promptBudget = Math.max(
-                0,
-                MAX_GUIDE_PROMPT_CHARS -
-                    systemPrompt.length -
-                    PROMPT_CONTEXT_PREFIX_LEN -
-                    PROMPT_QUESTION_PREFIX_LEN,
-            );
+
+            const promptBudget = Math.max(0, MAX_GUIDE_PROMPT_CHARS - systemPrompt.length - PROMPT_CONTEXT_PREFIX_LEN - PROMPT_QUESTION_PREFIX_LEN);
             const { prompt } = buildGuidePrompt(promptHeader, promptBudget);
-
-            const stream = streamGeminiResponseRobust(prompt, systemPrompt, {
-                apiKey: geminiApiKey,
-                model: "gemini-3.6-flash",
-            });
-
+            const stream = streamGeminiResponseRobust(prompt, systemPrompt, { apiKey: geminiApiKey, model: "gemini-3.6-flash" });
             let responseText = "";
             codelab.guide_markdown = "";
             for await (const chunk of stream) {
@@ -1280,40 +1237,17 @@
 
         try {
             const targetLanguage = resolveTargetLanguage();
-            const systemPrompt =
-                `You are a senior developer advocate and technical writer. ` +
-                `You MUST write everything in ${targetLanguage}.`;
+            const systemPrompt = `You are a senior developer advocate and technical writer. ` + `You MUST write everything in ${targetLanguage}.`;
+            const planHeader = `Create a professional plan for a "Preparation & Setup Guide" for attendees. ` + `Include prerequisites, setup flow, environment checks, and common pitfalls. ` + `Add a dedicated section for language/framework installation (download location, install steps, version check). ` + `Add a dedicated section for environment variables/PATH setup and verification. ` + `Provide a clear outline, checklist, and search_terms for latest info. ` + `Include a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab. ` + `Include a "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions. ` + `For search_terms, use short English queries. ` + `Write ALL content in ${targetLanguage}.\n\n` + `Codelab Title: ${codelab.title}\n` + `Description: ${codelab.description}\n\n` + `Codelab Content:\n`;
+            const { prompt: planPrompt } = buildGuidePrompt(planHeader, MAX_GUIDE_PROMPT_CHARS);
 
-            const planHeader =
-                `Create a professional plan for a "Preparation & Setup Guide" for attendees. ` +
-                `Include prerequisites, setup flow, environment checks, and common pitfalls. ` +
-                `Add a dedicated section for language/framework installation (download location, install steps, version check). ` +
-                `Add a dedicated section for environment variables/PATH setup and verification. ` +
-                `Provide a clear outline, checklist, and search_terms for latest info. ` +
-                `Include a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab. ` +
-                `Include a "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions. ` +
-                `For search_terms, use short English queries. ` +
-                `Write ALL content in ${targetLanguage}.\n\n` +
-                `Codelab Title: ${codelab.title}\n` +
-                `Description: ${codelab.description}\n\n` +
-                `Codelab Content:\n`;
-            const { prompt: planPrompt } = buildGuidePrompt(
-                planHeader,
-                MAX_GUIDE_PROMPT_CHARS,
-            );
+            const planData = await streamStructuredJson<GuidePlan>(planPrompt, systemPrompt, buildGuidePlanSchema(targetLanguage), {
+                apiKey: geminiApiKey,
+                model: "gemini-3.6-flash",
+                thinkingConfig: { thinkingLevel: "high" }
+            });
 
-            const planData = await streamStructuredJson<GuidePlan>(
-                planPrompt,
-                systemPrompt,
-                buildGuidePlanSchema(targetLanguage),
-                {
-                    apiKey: geminiApiKey,
-                    model: "gemini-3.6-flash",
-                    thinkingConfig: { thinkingLevel: "high" },
-                },
-            );
             guideProPlanOutput = JSON.stringify(planData, null, 2);
-
             guideProStage = "draft";
 
             const searchTerms = planData.search_terms || [];
@@ -1324,41 +1258,15 @@
                 : "Use the Google Search tool if any versions, commands, or APIs need verification.";
 
             const planJson = JSON.stringify(planData, null, 2);
-            const planBudget = Math.min(
-                8000,
-                Math.floor(MAX_GUIDE_PROMPT_CHARS * 0.3),
-            );
-            const planBlock = formatPromptSection(
-                "Plan JSON:",
-                planJson,
-                planBudget,
-            );
+            const planBudget = Math.min(8000, Math.floor(MAX_GUIDE_PROMPT_CHARS * 0.3));
+            const planBlock = formatPromptSection("Plan JSON:", planJson, planBudget);
+            const draftHeader = `Write the full preparation guide using the plan. ` + `${searchHint} Write ALL content in ${targetLanguage}. ` + `Use clear headings, checklists, and code blocks when needed. ` + `Include explicit language/framework installation steps (download link location, installation commands/steps, version verification). ` + `Include environment variable/PATH setup steps and verification commands. ` + `Include a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab, and explain that the test must pass to confirm readiness. ` + `Include a "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions.\n\n` + `${planBlock}\n\n` + `Codelab Title: ${codelab.title}\n` + `Description: ${codelab.description}\n\n` + `Codelab Content:\n`;
+            const { prompt: draftPrompt } = buildGuidePrompt(draftHeader, MAX_GUIDE_PROMPT_CHARS);
 
-            const draftHeader =
-                `Write the full preparation guide using the plan. ` +
-                `${searchHint} Write ALL content in ${targetLanguage}. ` +
-                `Use clear headings, checklists, and code blocks when needed. ` +
-                `Include explicit language/framework installation steps (download link location, installation commands/steps, version verification). ` +
-                `Include environment variable/PATH setup steps and verification commands. ` +
-                `Include a "Local Environment Smoke Test" section with minimal runnable code and commands for the primary language in the codelab, and explain that the test must pass to confirm readiness. ` +
-                `Include a "Glossary" section that lists programming languages, tools, and key terms from the codelab with brief definitions.\n\n` +
-                `${planBlock}\n\n` +
-                `Codelab Title: ${codelab.title}\n` +
-                `Description: ${codelab.description}\n\n` +
-                `Codelab Content:\n`;
-            const { prompt: draftPrompt } = buildGuidePrompt(
-                draftHeader,
-                MAX_GUIDE_PROMPT_CHARS,
-            );
-
-            const draftData = await streamStructuredJson<GuideDraft>(
-                draftPrompt,
-                systemPrompt,
-                buildGuideDraftSchema(targetLanguage),
-                {
-                    apiKey: geminiApiKey,
-                    model: "gemini-3.6-flash",
-                    tools: [{ googleSearch: {} }],
+            const draftData = await streamStructuredJson<GuideDraft>(draftPrompt, systemPrompt, buildGuideDraftSchema(targetLanguage), {
+                apiKey: geminiApiKey,
+                model: "gemini-3.6-flash",
+                tools: [{ googleSearch: {} }],
                     thinkingConfig: { thinkingLevel: "high" },
                 },
             );
@@ -1398,13 +1306,12 @@
                 systemPrompt,
                 buildGuideReviewSchema(targetLanguage),
                 {
-                    apiKey: geminiApiKey,
-                    model: "gemini-3.6-flash",
-                    thinkingConfig: { thinkingLevel: "high" },
-                },
-            );
-            guideProReviewOutput = JSON.stringify(reviewData, null, 2);
+                apiKey: geminiApiKey,
+                model: "gemini-3.6-flash",
+                thinkingConfig: { thinkingLevel: "high" }
+            });
 
+            guideProReviewOutput = JSON.stringify(reviewData, null, 2);
             guideProStage = "revise";
 
             const revisePlanBudget = Math.min(
@@ -1909,12 +1816,11 @@
         ) {
             return crypto.randomUUID();
         }
-        return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
-            /[xy]/g,
-            (char) => {
-                const random = Math.floor(Math.random() * 16);
-                const value = char === "x" ? random : (random & 0x3) | 0x8;
-                return value.toString(16);
+
+        return ("xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx").replace(/[xy]/g, (char) => {
+            const random = Math.floor(Math.random() * 16);
+            const value = char === "x" ? random : random & 0x3 | 0x8;
+            return value.toString(16);
             },
         );
     }
@@ -2055,8 +1961,8 @@
             captureSavedContentSnapshot();
             closeInlineStaleWarningModal();
             saveSuccess = true;
-            setTimeout(() => (saveSuccess = false), 3000);
-        } catch (e) {
+            setTimeout(() => saveSuccess = false, 3000);
+        } catch(e) {
             alert("Save failed: " + e);
         } finally {
             isSaving = false;
@@ -2102,7 +2008,7 @@
 
     async function handleDownloadWorkspace() {
         try {
-            const { downloadCodeServerWorkspace } = await import("$lib/api");
+            const { downloadCodeServerWorkspace } = await import("#lib/api.ts");
             await downloadCodeServerWorkspace(id);
         } catch (e) {
             if (e instanceof Error) {
@@ -2233,127 +2139,127 @@
                 break;
             case "code":
             case "code_block": {
-                const placeholder = selected || "// code here";
-                const prefix = language ? `\n\`\`\`${language}\n` : "\n```\n";
-                replacement = `${prefix}${placeholder}\n\`\`\`\n`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
-                    setSelection(prefix.length, placeholder.length);
+                    const placeholder = selected || "// code here";
+                    const prefix = language ? `\n\`\`\`${language}\n` : "\n```\n";
+                    replacement = `${prefix}${placeholder}\n\`\`\`\n`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
+                        setSelection(prefix.length, placeholder.length);
+                    }
+                    break;
                 }
-                break;
-            }
             case "h1":
             case "h2":
             case "h3": {
                 const level =
                     type === "h1" ? "#" : type === "h2" ? "##" : "###";
-                const placeholder = "Heading";
-                const content = selected || placeholder;
-                replacement = `${level} ${content}`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
-                    setSelection(level.length + 1, placeholder.length);
+                    const placeholder = "Heading";
+                    const content = selected || placeholder;
+                    replacement = `${level} ${content}`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
+                        setSelection(level.length + 1, placeholder.length);
+                    }
+                    break;
                 }
-                break;
-            }
             case "list": {
-                const placeholder = "list item";
-                const lines = selected ? selected.split("\n") : [""];
+                    const placeholder = "list item";
+                    const lines = selected ? selected.split("\n") : [""];
                 const listText = lines
                     .map((line) => `- ${line || placeholder}`)
                     .join("\n");
-                replacement = selected ? listText : `\n${listText}`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
+                    replacement = selected ? listText : `\n${listText}`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
                     setSelection(
                         replacement.length - placeholder.length,
                         placeholder.length,
                     );
+                    }
+                    break;
                 }
-                break;
-            }
             case "ordered_list": {
-                const placeholder = "list item";
-                const lines = selected ? selected.split("\n") : [""];
+                    const placeholder = "list item";
+                    const lines = selected ? selected.split("\n") : [""];
                 const listText = lines
                     .map(
                         (line, index) => `${index + 1}. ${line || placeholder}`,
                     )
                     .join("\n");
-                replacement = selected ? listText : `\n${listText}`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
+                    replacement = selected ? listText : `\n${listText}`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
                     setSelection(
                         replacement.length - placeholder.length,
                         placeholder.length,
                     );
+                    }
+                    break;
                 }
-                break;
-            }
             case "task_list": {
-                const placeholder = "task";
-                const lines = selected ? selected.split("\n") : [""];
+                    const placeholder = "task";
+                    const lines = selected ? selected.split("\n") : [""];
                 const listText = lines
                     .map((line) => `- [ ] ${line || placeholder}`)
                     .join("\n");
-                replacement = selected ? listText : `\n${listText}`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
+                    replacement = selected ? listText : `\n${listText}`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
                     setSelection(
                         replacement.length - placeholder.length,
                         placeholder.length,
                     );
+                    }
+                    break;
                 }
-                break;
-            }
             case "quote": {
-                const placeholder = "Quote";
-                const lines = selected ? selected.split("\n") : [""];
+                    const placeholder = "Quote";
+                    const lines = selected ? selected.split("\n") : [""];
                 const quoteText = lines
                     .map((line) => `> ${line || placeholder}`)
                     .join("\n");
-                replacement = selected ? quoteText : `\n${quoteText}`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
+                    replacement = selected ? quoteText : `\n${quoteText}`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
                     setSelection(
                         replacement.length - placeholder.length,
                         placeholder.length,
                     );
+                    }
+                    break;
                 }
-                break;
-            }
             case "link": {
-                const linkText = selected || "link text";
-                const url = options.url || "https://";
-                const prefix = `[${linkText}](`;
-                replacement = `${prefix}${url})`;
-                setSelection(prefix.length, url.length);
-                break;
-            }
+                    const linkText = selected || "link text";
+                    const url = options.url || "https://";
+                    const prefix = `[${linkText}](`;
+                    replacement = `${prefix}${url})`;
+                    setSelection(prefix.length, url.length);
+                    break;
+                }
             case "table": {
-                const header = "| Column | Column | Column |";
-                const divider = "| --- | --- | --- |";
-                const row = "| Cell | Cell | Cell |";
-                const prefix = "\n| ";
-                replacement = `\n${header}\n${divider}\n${row}\n`;
-                setSelection(prefix.length, "Column".length);
-                break;
-            }
+                    const header = "| Column | Column | Column |";
+                    const divider = "| --- | --- | --- |";
+                    const row = "| Cell | Cell | Cell |";
+                    const prefix = "\n| ";
+                    replacement = `\n${header}\n${divider}\n${row}\n`;
+                    setSelection(prefix.length, ("Column").length);
+                    break;
+                }
             case "snippet": {
-                const snippet = options.snippet?.trimEnd();
-                if (!snippet) return;
-                const needsPrefix = start > 0 && text[start - 1] !== "\n";
-                const needsSuffix = end < text.length && text[end] !== "\n";
-                replacement = `${needsPrefix ? "\n" : ""}${snippet}${needsSuffix ? "\n" : ""}`;
-                setCursorToEnd();
-                break;
-            }
+                    const snippet = options.snippet?.trimEnd();
+                    if (!snippet) return;
+                    const needsPrefix = start > 0 && text[start - 1] !== "\n";
+                    const needsSuffix = end < text.length && text[end] !== "\n";
+                    replacement = `${needsPrefix ? "\n" : ""}${snippet}${needsSuffix ? "\n" : ""}`;
+                    setCursorToEnd();
+                    break;
+                }
             default:
                 return;
         }
@@ -2494,7 +2400,7 @@
         }
 
         if (copySuccess) {
-            setTimeout(() => (copySuccess = false), 2000);
+            setTimeout(() => copySuccess = false, 2000);
         }
     }
 
@@ -2526,24 +2432,24 @@
             handleUniversalSave();
         }
     }}
-/>
+></svelte:window>
 
 <div
     class="min-h-screen bg-background dark:bg-dark-bg flex flex-col font-sans text-foreground dark:text-dark-text transition-colors"
 >
     <AdminHeader
-        {id}
-        {codelab}
-        {loading}
+        id={id}
+        codelab={codelab}
+        loading={loading}
         bind:mode
-        {isSaving}
-        {saveSuccess}
-        {toggleVisibility}
-        {handleExport}
+        isSaving={isSaving}
+        saveSuccess={saveSuccess}
+        toggleVisibility={toggleVisibility}
+        handleExport={handleExport}
         handleSave={handleUniversalSave}
-        {handleDownloadWorkspace}
-        {handleBrowseWorkspace}
-        {ws}
+        handleDownloadWorkspace={handleDownloadWorkspace}
+        handleBrowseWorkspace={handleBrowseWorkspace}
+        ws={ws}
     />
 
     {#if loading}
@@ -2562,10 +2468,10 @@
                     bind:steps
                     bind:activeStepIndex
                     bind:isSidebarOpen
-                    {attendeeUrl}
+                    attendeeUrl={attendeeUrl}
                     bind:copySuccess
-                    {addStep}
-                    {removeStep}
+                    addStep={addStep}
+                    removeStep={removeStep}
                     handleCopyUrl={copyUrl}
                 />
             {/if}
@@ -2609,119 +2515,116 @@
                                 <EditMode
                                     bind:step={steps[activeStepIndex]}
                                     bind:isSplitView
-                                    {aiLoading}
+                                    aiLoading={aiLoading}
                                     bind:editorEl
                                     bind:previewEl
                                     bind:fileInput
                                     bind:aiInstruction
                                     bind:showAiMenu
-                                    {menuPos}
-                                    {selectedText}
-                                    {renderedContent}
-                                    {geminiApiKey}
-                                    {insertMarkdown}
-                                    {handleFileSelect}
-                                    {handleKeydown}
-                                    {handlePaste}
-                                    {handleMouseUp}
-                                    {handleContextMenu}
-                                    {improveWithAi}
-                                    {openAiMenuForFullDoc}
-                                    {syncEditorScroll}
-                                    {syncPreviewScroll}
+                                    menuPos={menuPos}
+                                    selectedText={selectedText}
+                                    renderedContent={renderedContent}
+                                    geminiApiKey={geminiApiKey}
+                                    insertMarkdown={insertMarkdown}
+                                    handleFileSelect={handleFileSelect}
+                                    handleKeydown={handleKeydown}
+                                    handlePaste={handlePaste}
+                                    handleMouseUp={handleMouseUp}
+                                    handleContextMenu={handleContextMenu}
+                                    improveWithAi={improveWithAi}
+                                    openAiMenuForFullDoc={openAiMenuForFullDoc}
+                                    syncEditorScroll={syncEditorScroll}
+                                    syncPreviewScroll={syncPreviewScroll}
                                 />
                             {:else if mode === "preview"}
-                                <PreviewMode {renderedContent} />
+                                <PreviewMode renderedContent={renderedContent} />
                             {:else if mode === "live"}
                                 <LiveMode
-                                    {attendees}
-                                    {helpRequests}
+                                    attendees={attendees}
+                                    helpRequests={helpRequests}
                                     totalSteps={steps.length}
                                     bind:chatTab
                                     bind:dmTarget
                                     bind:dmMessage
                                     bind:chatMessage
-                                    {messages}
-                                    {handleResolveHelp}
+                                    messages={messages}
+                                    handleResolveHelp={handleResolveHelp}
                                     sendChat={sendBroadcast}
-                                    {sendDM}
+                                    sendDM={sendDM}
                                     attachImage={sendChatImage}
                                 />
                             {:else if mode === "feedback"}
-                                <FeedbackMode {feedbacks} />
+                                <FeedbackMode feedbacks={feedbacks} />
                             {:else if mode === "settings"}
                                 <SettingsMode
                                     bind:codelab
-                                    {isSaving}
-                                    {saveSuccess}
+                                    isSaving={isSaving}
+                                    saveSuccess={saveSuccess}
                                     handleSave={handleUniversalSave}
                                 />
                             {:else if mode === "workspace"}
                                 <WorkspaceMode
                                     codelabId={id}
-                                    {steps}
-                                    {geminiApiKey}
+                                    steps={steps}
+                                    geminiApiKey={geminiApiKey}
                                 />
                             {:else if mode === "raffle"}
-                                <RaffleMode
-                                    {attendees}
-                                    onRefresh={refreshLiveData}
-                                />
+                                <RaffleMode attendees={attendees} onRefresh={refreshLiveData} />
                             {:else if mode === "certificate"}
-                                <CertificateMode {attendees} />
+                                <CertificateMode attendees={attendees} />
                             {/if}
 
                             {#if mode === "guide" && codelab}
                                 <GuideMode
                                     bind:guide_markdown={codelab.guide_markdown}
                                     codelab_title={codelab.title}
-                                    {isSaving}
-                                    {handleSave}
-                                    {generateGuideWithAi}
-                                    {generateGuideWithAiPro}
+                                    isSaving={isSaving}
+                                    handleSave={handleSave}
+                                    generateGuideWithAi={generateGuideWithAi}
+                                    generateGuideWithAiPro={generateGuideWithAiPro}
                                     isGenerating={isGuideGenerating}
-                                    {isGuideProGenerating}
-                                    {guideProStage}
-                                    {guideProPlanOutput}
-                                    {guideProDraftOutput}
-                                    {guideProReviewOutput}
-                                    {guideProRevisedOutput}
+                                    isGuideProGenerating={isGuideProGenerating}
+                                    guideProStage={guideProStage}
+                                    guideProPlanOutput={guideProPlanOutput}
+                                    guideProDraftOutput={guideProDraftOutput}
+                                    guideProReviewOutput={guideProReviewOutput}
+                                    guideProRevisedOutput={guideProRevisedOutput}
                                 />
                             {/if}
 
                             {#if mode === "materials"}
                                 <MaterialsMode
-                                    {materials}
+                                    materials={materials}
                                     bind:newMaterial
                                     bind:materialFileInput
-                                    {handleMaterialFileSelect}
-                                    {handleAddMaterial}
-                                    {handleDeleteMaterial}
+                                    handleMaterialFileSelect={handleMaterialFileSelect}
+                                    handleAddMaterial={handleAddMaterial}
+                                    handleDeleteMaterial={handleDeleteMaterial}
                                 />
                             {:else if mode === "submissions"}
                                 <SubmissionsMode
-                                    {submissions}
+                                    submissions={submissions}
                                     onDelete={handleDeleteSubmission}
                                 />
                             {:else if mode === "gallery"}
-                                <ImageGalleryMode {submissions} />
+                                <ImageGalleryMode submissions={submissions} />
                             {:else if mode === "quiz"}
                                 <QuizMode
                                     bind:quizzes
-                                    {quizSubmissions}
+                                    quizSubmissions={quizSubmissions}
                                     bind:numQuizToGenerate
-                                    {isQuizGenerating}
-                                    {isSaving}
-                                    {saveSuccess}
-                                    {generateQuizWithAi}
-                                    {addEmptyQuiz}
-                                    {removeQuiz}
-                                    {handleQuizSave}
+                                    isQuizGenerating={isQuizGenerating}
+                                    isSaving={isSaving}
+                                    saveSuccess={saveSuccess}
+                                    generateQuizWithAi={generateQuizWithAi}
+                                    addEmptyQuiz={addEmptyQuiz}
+                                    removeQuiz={removeQuiz}
+                                    handleQuizSave={handleQuizSave}
                                 />
                             {:else if mode === "ai"}
                                 <AiConversationsMode codelabId={id} />
                             {:else if mode === "monitoring"}
-                                <MonitoringDashboard {ws} {attendees} />
+                                <MonitoringDashboard ws={ws} attendees={attendees} />
                             {/if}
                         </div>
                     </div>
@@ -2765,7 +2668,7 @@
 {#if showWorkspaceBrowser}
     <div
         class="modal-overlay"
-        onclick={() => (showWorkspaceBrowser = false)}
+        onclick={() => showWorkspaceBrowser = false}
         onkeydown={(e) => e.key === "Escape" && (showWorkspaceBrowser = false)}
         role="button"
         tabindex="-1"
@@ -2778,7 +2681,7 @@
         >
             <WorkspaceBrowser
                 codelabId={id}
-                onClose={() => (showWorkspaceBrowser = false)}
+                onClose={() => showWorkspaceBrowser = false}
             />
         </div>
     </div>
@@ -2825,17 +2728,14 @@
                     <div
                         class="rounded-lg border border-border dark:border-dark-border bg-accent/50 dark:bg-white/5 px-3 py-2 text-sm"
                     >
-                        <p class="font-semibold text-foreground dark:text-dark-text">
-                            {item.label}
-                        </p>
-                        <p class="text-xs text-muted-foreground dark:text-dark-text-muted">
-                            {item.thread_count} {$t(
-                                "inline_comment.admin_stale_threads",
-                            ) || "threads"}
-                            ·
-                            {item.message_count} {$t(
-                                "inline_comment.admin_stale_messages",
-                            ) || "messages"}
+                        <p
+                            class="font-semibold text-foreground dark:text-dark-text"
+                        >{item.label}</p>
+
+                        <p
+                            class="text-xs text-muted-foreground dark:text-dark-text-muted"
+                        >
+                            {item.thread_count} {$t("inline_comment.admin_stale_threads") || "threads"} · {item.message_count} {$t("inline_comment.admin_stale_messages") || "messages"}
                         </p>
                     </div>
                 {/each}

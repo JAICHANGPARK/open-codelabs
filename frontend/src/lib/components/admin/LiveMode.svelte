@@ -7,12 +7,12 @@
         X,
         Image,
         ChevronLeft,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { slide } from "svelte/transition";
     import { t } from "svelte-i18n";
-    import { browser } from "$app/environment";
-    import { ASSET_URL } from "$lib/api";
-    import type { Attendee, HelpRequest } from "$lib/api";
+    import { browser } from '$app/env';
+    import { ASSET_URL } from "#lib/api.ts";
+    import type { Attendee, HelpRequest } from "#lib/api.ts";
 
     let {
         attendees,
@@ -27,7 +27,7 @@
         sendChat,
         sendDM,
         attachImage,
-    } = $props<{
+    }: {
         attendees: Attendee[];
         helpRequests: HelpRequest[];
         totalSteps: number;
@@ -40,7 +40,7 @@
         sendChat: () => void;
         sendDM: () => void;
         attachImage: (file: File) => void;
-    }>();
+    } = $props();
 
     let imageInput = $state<HTMLInputElement | null>(null);
     let chatImageLightboxUrl = $state<string | null>(null);
@@ -70,16 +70,9 @@
     );
 
     // Filter messages for the selected attendee
-    let filteredDmMessages = $derived(
-        selectedDmAttendee
-            ? messages.filter(
-                  (m: any) =>
-                      m.type === "dm" &&
-                      (m.senderId === selectedDmAttendee?.id ||
-                          (m.self && m.senderId === selectedDmAttendee?.id)),
-              )
-            : [],
-    );
+    let filteredDmMessages = $derived(selectedDmAttendee
+        ? messages.filter((m: any) => m.type === "dm" && (m.senderId === selectedDmAttendee?.id || m.self && m.senderId === selectedDmAttendee?.id))
+        : []);
 
     // Track previous dmTarget to detect changes
     let prevDmTargetId = $state<string | null>(null);
@@ -302,9 +295,8 @@
                 <Users size={16} /> Public Chat
             </button>
             <button
-                onclick={() => (chatTab = "direct")}
-                class="flex-1 py-3 text-sm font-bold transition-all flex justify-center items-center gap-2 {chatTab ===
-                'direct'
+                onclick={() => chatTab = "direct"}
+                class="flex-1 py-3 text-sm font-bold transition-all flex justify-center items-center gap-2 {chatTab === 'direct'
                     ? 'text-primary border-b-2 border-primary bg-muted dark:bg-white/5'
                     : 'text-muted-foreground dark:text-dark-text-muted hover:bg-accent/60 dark:hover:bg-white/5'}"
             >
@@ -333,9 +325,8 @@
                     >
                         <span
                             class="text-[10px] text-muted-foreground dark:text-dark-text-muted font-bold mb-1 mx-1 uppercase"
-                        >
-                            {msg.sender} &bull; {msg.time}
-                        </span>
+                        >{msg.sender} • {msg.time}</span>
+
                         <div
                             class="max-w-[85%] p-3 rounded-2xl text-sm shadow-sm {msg.self
                                 ? 'bg-primary text-white rounded-tr-none'
@@ -524,9 +515,8 @@
                             >
                                 <span
                                     class="text-[10px] text-muted-foreground dark:text-dark-text-muted font-bold mb-1 mx-1 uppercase"
-                                >
-                                    {msg.sender} &bull; {msg.time}
-                                </span>
+                                >{msg.sender} • {msg.time}</span>
+
                                 <div
                                     class="max-w-[85%] p-3 rounded-2xl text-sm shadow-sm {msg.self
                                         ? 'bg-primary text-white rounded-tr-none'

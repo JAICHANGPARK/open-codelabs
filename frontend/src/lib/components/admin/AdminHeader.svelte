@@ -2,7 +2,6 @@
     import {
         ChevronLeft,
         ExternalLink,
-        Github,
         FileText,
         Eye,
         X,
@@ -23,11 +22,12 @@
         Award,
         Images,
         Monitor,
-    } from "lucide-svelte";
-    import * as NavigationMenu from "$lib/components/ui/navigation-menu/index.js";
+    } from "@lucide/svelte";
+    import Github from "#lib/components/icons/Github.svelte";
+    import * as NavigationMenu from "#lib/components/ui/navigation-menu/index.js";
     import ScreenShareFacilitator from "./ScreenShareFacilitator.svelte";
     import { t } from "svelte-i18n";
-    import type { Codelab } from "$lib/api";
+    import type { Codelab } from "#lib/api.ts";
 
     let {
         id,
@@ -42,7 +42,7 @@
         handleDownloadWorkspace,
         handleBrowseWorkspace,
         ws,
-    } = $props<{
+    }: {
         id: string;
         codelab: Codelab | null;
         loading: boolean;
@@ -55,7 +55,7 @@
         ws?: WebSocket | null;
         handleDownloadWorkspace?: () => void;
         handleBrowseWorkspace?: () => void;
-    }>();
+    } = $props();
 
     const tabGroups = [
         {
@@ -248,7 +248,7 @@
                         ? 'bg-emerald-500'
                         : 'bg-gray-200 dark:bg-dark-border'}"
                     role="switch"
-                    aria-checked={codelab?.is_public != 0}
+                    aria-checked={Boolean(codelab?.is_public)}
                     aria-label={$t("common.visibility")}
                     title={codelab?.is_public
                         ? $t("common.public")
@@ -320,7 +320,7 @@
                     </button>
                 {/if}
 
-                <ScreenShareFacilitator {ws} codelabId={id} />
+                <ScreenShareFacilitator ws={ws ?? null} codelabId={id} />
 
                 <button
                     onclick={handleSave}

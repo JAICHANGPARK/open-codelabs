@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { Award, RefreshCcw, Shuffle, Trophy, Users, Download } from "lucide-svelte";
+  import { Award, RefreshCcw, Shuffle, Trophy, Users, Download } from "@lucide/svelte";
   import { t } from "svelte-i18n";
-  import type { Attendee } from "$lib/api";
+  import type { Attendee } from "#lib/api.ts";
 
-  let { attendees, onRefresh } = $props<{
+  let { attendees, onRefresh }: {
     attendees: Attendee[];
     onRefresh: () => void;
-  }>();
+  } = $props();
 
   const segmentColors = [
     "var(--color-chart-1)",

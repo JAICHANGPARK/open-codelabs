@@ -1,19 +1,19 @@
 <script lang="ts">
     import { onMount } from 'svelte';
-    import { browser } from '$app/environment';
+    import { browser } from '$app/env';
     import DOMPurify from 'dompurify';
     import hljs from 'highlight.js';
-    import { getWorkspaceBranches, getWorkspaceFiles, getWorkspaceFileContent, getCodeServerInfo } from '$lib/api-backend';
-    import { adminMarked } from '$lib/markdown';
-    import WorkspaceFileTree from '$lib/components/admin/WorkspaceFileTree.svelte';
+    import { getWorkspaceBranches, getWorkspaceFiles, getWorkspaceFileContent, getCodeServerInfo } from '#lib/api-backend.ts';
+    import { adminMarked } from '#lib/markdown.ts';
+    import WorkspaceFileTree from '#lib/components/admin/WorkspaceFileTree.svelte';
     import { t } from 'svelte-i18n';
-    import type { TreeNode } from '$lib/components/admin/workspace-tree';
+    import type { TreeNode } from '#lib/components/admin/workspace-tree.ts';
 
-    let { codelabId, onClose = null, embedded = false } = $props<{
+    let { codelabId, onClose = null, embedded = false }: {
         codelabId: string;
         onClose?: (() => void) | null;
         embedded?: boolean;
-    }>();
+    } = $props();
 
     type NotebookCell = {
         kind: 'markdown' | 'code';
@@ -53,7 +53,7 @@
             if (structureType === 'branch') {
                 items = await getWorkspaceBranches(codelabId);
             } else {
-                const { getWorkspaceFolders } = await import('$lib/api-backend');
+                const { getWorkspaceFolders } = await import('#lib/api-backend.ts');
                 items = await getWorkspaceFolders(codelabId);
             }
 
@@ -88,7 +88,7 @@
             if (structureType === 'branch') {
                 files = await getWorkspaceFiles(codelabId, selectedItem);
             } else {
-                const { getWorkspaceFolderFiles } = await import('$lib/api-backend');
+                const { getWorkspaceFolderFiles } = await import('#lib/api-backend.ts');
                 files = await getWorkspaceFolderFiles(codelabId, selectedItem);
             }
 
@@ -261,7 +261,7 @@
             if (structureType === 'branch') {
                 fileContent = await getWorkspaceFileContent(codelabId, selectedItem, file);
             } else {
-                const { getWorkspaceFolderFileContent } = await import('$lib/api-backend');
+                const { getWorkspaceFolderFileContent } = await import('#lib/api-backend.ts');
                 fileContent = await getWorkspaceFolderFileContent(codelabId, selectedItem, file);
             }
 
@@ -291,7 +291,7 @@
     }
 </script>
 
-<div class="workspace-browser" class:embedded={embedded}>
+<div class="workspace-browser" class:embedded>
     <div class="header">
         <h2>{$t('workspace.browser_title')}</h2>
         {#if !embedded && onClose}

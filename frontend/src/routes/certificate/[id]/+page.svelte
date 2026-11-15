@@ -1,10 +1,10 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { page } from "$app/state";
-    import { getCertificate, type CertificateInfo } from "$lib/api";
+    import { getCertificate, type CertificateInfo } from "#lib/api.ts";
     import { t } from "svelte-i18n";
     import { fade } from "svelte/transition";
-    import { CheckCircle2, Download, Printer, ShieldCheck, ExternalLink } from "lucide-svelte";
+    import { CheckCircle2, Download, Printer, ShieldCheck, ExternalLink } from "@lucide/svelte";
     // @ts-ignore
     import QRCode from "svelte-qrcode";
 

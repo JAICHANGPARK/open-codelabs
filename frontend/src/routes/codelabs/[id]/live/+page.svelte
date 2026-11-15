@@ -10,7 +10,7 @@
         type Step,
         type Attendee,
         type ChatMessage,
-    } from "$lib/api";
+    } from "#lib/api.ts";
     import {
         Home,
         MessageSquare,
@@ -18,7 +18,7 @@
         Users,
         Clock,
         CheckCircle2,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { t } from "svelte-i18n";
     import { goto } from "$app/navigation";
 

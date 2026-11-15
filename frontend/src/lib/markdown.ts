@@ -15,7 +15,7 @@ export function createMarkdownParser(options: { highlight?: boolean } = {}) {
             markedHighlight({
                 emptyLangClass: "hljs",
                 langPrefix: "hljs language-",
-                highlight(code, lang) {
+                highlight(code: string, lang: string) {
                     const normalized = (lang || "").trim().toLowerCase();
                     if (normalized && hljs.getLanguage(normalized)) {
                         return hljs.highlight(code, { language: normalized }).value;

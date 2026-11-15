@@ -1,26 +1,26 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { browser } from "$app/environment";
-    import { streamGeminiResponseRobust } from "$lib/gemini";
-    import { saveAiConversation } from "$lib/api";
-    import { X, Send, Key, Sparkles, Loader2 } from "lucide-svelte";
-    import { attendeeMarked as marked } from "$lib/markdown";
+    import { browser } from '$app/env';
+    import { streamGeminiResponseRobust } from "#lib/gemini.ts";
+    import { saveAiConversation } from "#lib/api.ts";
+    import { X, Send, Key, Sparkles, Loader2 } from "@lucide/svelte";
+    import { attendeeMarked as marked } from "#lib/markdown.ts";
     import DOMPurify from "dompurify";
     import { fly, fade } from "svelte/transition";
     import { t } from "svelte-i18n";
-    import FocusTrap from "$lib/components/FocusTrap.svelte";
+    import FocusTrap from "#lib/components/FocusTrap.svelte";
 
     let {
         context = "",
         codelabId = "",
         stepNumber,
         onClose,
-    } = $props<{
+    }: {
         context: string;
         codelabId?: string;
         stepNumber?: number;
         onClose: () => void;
-    }>();
+    } = $props();
 
     let apiKey = $state("");
     let prompt = $state("");
@@ -91,7 +91,7 @@
                         step_number: stepNumber,
                         question: fullQuestion,
                         answer: response,
-                        model: "gemini-3.6-flash", // Default model
+                        model: "gemini-3.6-flash" // Default model
                     });
                 } catch (saveError) {
                     console.error("Failed to save AI conversation:", saveError);

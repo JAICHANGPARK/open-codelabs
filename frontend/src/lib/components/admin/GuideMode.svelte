@@ -27,14 +27,14 @@
         BookOpen,
         Terminal,
         X,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { t } from "svelte-i18n";
     import {
         adminMarked as marked,
         transformEmbeddableLinks,
-    } from "$lib/markdown";
+    } from "#lib/markdown.ts";
     import DOMPurify from "dompurify";
-    import { browser } from "$app/environment";
+    import { browser } from '$app/env';
     import html2pdf from "html2pdf.js";
     import hljs from "highlight.js";
     // @ts-ignore
@@ -58,7 +58,7 @@
         guideProDraftOutput,
         guideProReviewOutput,
         guideProRevisedOutput,
-    } = $props<{
+    }: {
         guide_markdown: string;
         codelab_title?: string;
         isSaving: boolean;
@@ -72,7 +72,7 @@
         guideProDraftOutput: string;
         guideProReviewOutput: string;
         guideProRevisedOutput: string;
-    }>();
+    } = $props();
 
     let showExportMenu = $state(false);
     let showGuideProModal = $state(false);
@@ -126,13 +126,15 @@
         revise: "editor.guide_pro_stage.revise",
     };
 
-    let guideProLastOutputStage = $derived.by(() => {
-        if (guideProRevisedOutput) return "revise";
-        if (guideProReviewOutput) return "review";
-        if (guideProDraftOutput) return "draft";
-        if (guideProPlanOutput) return "plan";
-        return null;
-    });
+    let guideProLastOutputStage = $derived.by(
+        (): "plan" | "draft" | "review" | "revise" | null => {
+            if (guideProRevisedOutput) return "revise";
+            if (guideProReviewOutput) return "review";
+            if (guideProDraftOutput) return "draft";
+            if (guideProPlanOutput) return "plan";
+            return null;
+        },
+    );
 
     let guideProStageIndex = $derived.by(() => {
         const stage = guideProStage || guideProLastOutputStage;
@@ -319,7 +321,7 @@
             previewEl.scrollTop = percentage * maxPreview;
         }
 
-        setTimeout(() => (isScrollingEditor = false), 50);
+        setTimeout(() => isScrollingEditor = false, 50);
     }
 
     function syncPreviewScroll() {
@@ -333,7 +335,7 @@
             editorEl.scrollTop = percentage * maxEditor;
         }
 
-        setTimeout(() => (isScrollingPreview = false), 50);
+        setTimeout(() => isScrollingPreview = false, 50);
     }
 
     function handleProGenerate() {
@@ -407,135 +409,135 @@
                 break;
             case "code":
             case "code_block": {
-                const placeholder = selected || "// code here";
-                const prefix = language ? `\n\`\`\`${language}\n` : "\n```\n";
-                replacement = `${prefix}${placeholder}\n\`\`\`\n`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
-                    setSelection(prefix.length, placeholder.length);
+                    const placeholder = selected || "// code here";
+                    const prefix = language ? `\n\`\`\`${language}\n` : "\n```\n";
+                    replacement = `${prefix}${placeholder}\n\`\`\`\n`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
+                        setSelection(prefix.length, placeholder.length);
+                    }
+                    break;
                 }
-                break;
-            }
             case "h1":
             case "h2":
             case "h3": {
                 const level =
                     type === "h1" ? "#" : type === "h2" ? "##" : "###";
-                const placeholder = "Heading";
-                const content = selected || placeholder;
-                replacement = `${level} ${content}`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
-                    setSelection(level.length + 1, placeholder.length);
+                    const placeholder = "Heading";
+                    const content = selected || placeholder;
+                    replacement = `${level} ${content}`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
+                        setSelection(level.length + 1, placeholder.length);
+                    }
+                    break;
                 }
-                break;
-            }
             case "list": {
-                const placeholder = "list item";
-                const lines = selected ? selected.split("\n") : [""];
+                    const placeholder = "list item";
+                    const lines = selected ? selected.split("\n") : [""];
                 const listText = lines
                     .map((line) => `- ${line || placeholder}`)
                     .join("\n");
-                replacement = selected ? listText : `\n${listText}`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
+                    replacement = selected ? listText : `\n${listText}`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
                     setSelection(
                         replacement.length - placeholder.length,
                         placeholder.length,
                     );
+                    }
+                    break;
                 }
-                break;
-            }
             case "ordered_list": {
-                const placeholder = "list item";
-                const lines = selected ? selected.split("\n") : [""];
+                    const placeholder = "list item";
+                    const lines = selected ? selected.split("\n") : [""];
                 const listText = lines
                     .map(
                         (line, index) => `${index + 1}. ${line || placeholder}`,
                     )
                     .join("\n");
-                replacement = selected ? listText : `\n${listText}`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
+                    replacement = selected ? listText : `\n${listText}`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
                     setSelection(
                         replacement.length - placeholder.length,
                         placeholder.length,
                     );
+                    }
+                    break;
                 }
-                break;
-            }
             case "task_list": {
-                const placeholder = "task";
-                const lines = selected ? selected.split("\n") : [""];
+                    const placeholder = "task";
+                    const lines = selected ? selected.split("\n") : [""];
                 const listText = lines
                     .map((line) => `- [ ] ${line || placeholder}`)
                     .join("\n");
-                replacement = selected ? listText : `\n${listText}`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
+                    replacement = selected ? listText : `\n${listText}`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
                     setSelection(
                         replacement.length - placeholder.length,
                         placeholder.length,
                     );
+                    }
+                    break;
                 }
-                break;
-            }
             case "quote": {
-                const placeholder = "Quote";
-                const lines = selected ? selected.split("\n") : [""];
+                    const placeholder = "Quote";
+                    const lines = selected ? selected.split("\n") : [""];
                 const quoteText = lines
                     .map((line) => `> ${line || placeholder}`)
                     .join("\n");
-                replacement = selected ? quoteText : `\n${quoteText}`;
-                if (selected) {
-                    setCursorToEnd();
-                } else {
+                    replacement = selected ? quoteText : `\n${quoteText}`;
+                    if (selected) {
+                        setCursorToEnd();
+                    } else {
                     setSelection(
                         replacement.length - placeholder.length,
                         placeholder.length,
                     );
+                    }
+                    break;
                 }
-                break;
-            }
             case "link": {
-                const linkText = selected || "link text";
-                const url = options.url || "https://";
-                const prefix = `[${linkText}](`;
-                replacement = `${prefix}${url})`;
-                setSelection(prefix.length, url.length);
-                break;
-            }
+                    const linkText = selected || "link text";
+                    const url = options.url || "https://";
+                    const prefix = `[${linkText}](`;
+                    replacement = `${prefix}${url})`;
+                    setSelection(prefix.length, url.length);
+                    break;
+                }
             case "image": {
-                const altText = selected || "image";
-                const url = options.url || "https://";
-                const prefix = `![${altText}](`;
-                replacement = `${prefix}${url})`;
-                setSelection(prefix.length, url.length);
-                break;
-            }
+                    const altText = selected || "image";
+                    const url = options.url || "https://";
+                    const prefix = `![${altText}](`;
+                    replacement = `${prefix}${url})`;
+                    setSelection(prefix.length, url.length);
+                    break;
+                }
             case "table": {
-                const header = "| Column | Column | Column |";
-                const divider = "| --- | --- | --- |";
-                const row = "| Cell | Cell | Cell |";
-                const prefix = "\n| ";
-                replacement = `\n${header}\n${divider}\n${row}\n`;
-                setSelection(prefix.length, "Column".length);
-                break;
-            }
+                    const header = "| Column | Column | Column |";
+                    const divider = "| --- | --- | --- |";
+                    const row = "| Cell | Cell | Cell |";
+                    const prefix = "\n| ";
+                    replacement = `\n${header}\n${divider}\n${row}\n`;
+                    setSelection(prefix.length, ("Column").length);
+                    break;
+                }
             case "snippet": {
-                const snippet = options.snippet?.trimEnd();
-                if (!snippet) return;
-                const needsPrefix = start > 0 && text[start - 1] !== "\n";
-                const needsSuffix = end < text.length && text[end] !== "\n";
-                replacement = `${needsPrefix ? "\n" : ""}${snippet}${needsSuffix ? "\n" : ""}`;
-                setCursorToEnd();
-                break;
-            }
+                    const snippet = options.snippet?.trimEnd();
+                    if (!snippet) return;
+                    const needsPrefix = start > 0 && text[start - 1] !== "\n";
+                    const needsSuffix = end < text.length && text[end] !== "\n";
+                    replacement = `${needsPrefix ? "\n" : ""}${snippet}${needsSuffix ? "\n" : ""}`;
+                    setCursorToEnd();
+                    break;
+                }
             default:
                 return;
         }
@@ -705,7 +707,7 @@
             <div class="flex flex-wrap items-center gap-2">
                 <div class="relative">
                     <button
-                        onclick={() => (showExportMenu = !showExportMenu)}
+                        onclick={() => showExportMenu = !showExportMenu}
                         class="bg-white dark:bg-dark-surface hover:bg-muted dark:hover:bg-white/5 text-muted-foreground dark:text-dark-text-muted px-4 py-2.5 rounded-full flex items-center gap-2 transition-all border border-border dark:border-dark-border font-bold text-sm shadow-sm"
                     >
                         <FileDown size={18} />
@@ -808,8 +810,7 @@
                         {#if index < guideProStages.length - 1}
                             <span
                                 class="text-muted-foreground/40 dark:text-dark-border"
-                                >&gt;</span
-                            >
+                            >></span>
                         {/if}
                     {/each}
                 </div>
@@ -824,7 +825,7 @@
             tabindex="-1"
             aria-modal="true"
             aria-labelledby="guide-pro-modal-title"
-            onclick={() => (showGuideProModal = false)}
+            onclick={() => showGuideProModal = false}
             onkeydown={(e) => e.key === "Escape" && (showGuideProModal = false)}
             in:fade
         >
@@ -849,7 +850,7 @@
                         </p>
                     </div>
                     <button
-                        onclick={() => (showGuideProModal = false)}
+                        onclick={() => showGuideProModal = false}
                         class="p-2 hover:bg-white/10 rounded-full transition-colors"
                         aria-label={$t("common.close") || "Close"}
                     >
@@ -876,8 +877,7 @@
                             {#if index < guideProStages.length - 1}
                                 <span
                                     class="text-muted-foreground/40 dark:text-dark-border"
-                                    >&gt;</span
-                                >
+                                >></span>
                             {/if}
                         {/each}
                     </div>
@@ -954,11 +954,8 @@
                                         class="flex items-center justify-end gap-1 mb-3"
                                     >
                                         <button
-                                            onclick={() =>
-                                                (guideProDraftView =
-                                                    "markdown")}
-                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDraftView ===
-                                            'markdown'
+                                            onclick={() => guideProDraftView = "markdown"}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDraftView === 'markdown'
                                                 ? 'bg-primary text-white border-primary'
                                                 : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                         >
@@ -967,10 +964,8 @@
                                             )}
                                         </button>
                                         <button
-                                            onclick={() =>
-                                                (guideProDraftView = "raw")}
-                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDraftView ===
-                                            'raw'
+                                            onclick={() => guideProDraftView = "raw"}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDraftView === 'raw'
                                                 ? 'bg-primary text-white border-primary'
                                                 : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                         >
@@ -1043,11 +1038,8 @@
                                         class="flex items-center justify-end gap-1 mb-3"
                                     >
                                         <button
-                                            onclick={() =>
-                                                (guideProRevisedView =
-                                                    "markdown")}
-                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProRevisedView ===
-                                            'markdown'
+                                            onclick={() => guideProRevisedView = "markdown"}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProRevisedView === 'markdown'
                                                 ? 'bg-primary text-white border-primary'
                                                 : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                         >
@@ -1056,10 +1048,8 @@
                                             )}
                                         </button>
                                         <button
-                                            onclick={() =>
-                                                (guideProRevisedView = "raw")}
-                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProRevisedView ===
-                                            'raw'
+                                            onclick={() => guideProRevisedView = "raw"}
+                                            class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProRevisedView === 'raw'
                                                 ? 'bg-primary text-white border-primary'
                                                 : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                         >
@@ -1109,19 +1099,16 @@
                             </div>
                             <div class="flex items-center gap-1">
                                 <button
-                                    onclick={() =>
-                                        (guideProDiffView = "unified")}
-                                    class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDiffView ===
-                                    'unified'
+                                    onclick={() => guideProDiffView = "unified"}
+                                    class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDiffView === 'unified'
                                         ? 'bg-primary text-white border-primary'
                                         : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                 >
                                     {$t("editor.guide_pro_diff_view_unified")}
                                 </button>
                                 <button
-                                    onclick={() => (guideProDiffView = "split")}
-                                    class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDiffView ===
-                                    'split'
+                                    onclick={() => guideProDiffView = "split"}
+                                    class="px-2 py-1 rounded-full text-[10px] font-bold border {guideProDiffView === 'split'
                                         ? 'bg-primary text-white border-primary'
                                         : 'bg-white dark:bg-dark-surface text-muted-foreground dark:text-dark-text-muted border-border dark:border-dark-border'}"
                                 >
@@ -1394,7 +1381,7 @@
             </div>
             <div class="ml-auto flex items-center gap-2">
                 <button
-                    onclick={() => (isSplitView = !isSplitView)}
+                    onclick={() => isSplitView = !isSplitView}
                     class="flex items-center gap-2 px-3 py-2 rounded-full transition-colors border border-border dark:border-dark-border {isSplitView
                         ? 'text-primary bg-white dark:bg-white/10 shadow-sm'
                         : 'text-muted-foreground dark:text-dark-text-muted hover:text-primary hover:bg-white dark:hover:bg-white/10'}"
@@ -1435,9 +1422,9 @@
 - {$t("editor.toolbar.bullet_list")}
 1. {$t("editor.toolbar.numbered_list")}
 > {$t("editor.toolbar.quote")}
-&#96;&#96;&#96;ts
+```ts
 {$t("editor.toolbar.code_block")}
-&#96;&#96;&#96;</pre>
+```</pre>
                     </div>
                 </details>
             </div>

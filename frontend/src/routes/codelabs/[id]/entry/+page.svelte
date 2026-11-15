@@ -3,8 +3,9 @@
     import { fly, fade } from "svelte/transition";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
-    import { getCodelab, registerAttendee, loginWithGoogle, onAuthChange, isSupabaseMode, isServerlessMode, type Codelab } from "$lib/api";
-    import { User, KeyRound, ArrowRight, Loader2, Chrome, Lock, X } from "lucide-svelte";
+    import { getCodelab, registerAttendee, loginWithGoogle, onAuthChange, isSupabaseMode, isServerlessMode, type Codelab } from "#lib/api.ts";
+    import { User, KeyRound, ArrowRight, Loader2, Lock, X } from "@lucide/svelte";
+    import Chrome from "#lib/components/icons/Chrome.svelte";
     import { t } from "svelte-i18n";
 
     let id = page.params.id as string;

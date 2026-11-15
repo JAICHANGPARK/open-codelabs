@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
-    import { ScreenShareService } from "$lib/ScreenShareService";
+    import { ScreenShareService } from "#lib/ScreenShareService.ts";
     import ScreenShareFacilitator from "./ScreenShareFacilitator.svelte";
     import {
         Loader2,
@@ -10,14 +10,14 @@
         X as XIcon,
         LayoutGrid,
         Grid2x2,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { t } from "svelte-i18n";
     import { fade } from "svelte/transition";
 
-    let { ws, attendees } = $props<{
+    let { ws, attendees }: {
         ws: WebSocket | null;
         attendees: any[];
-    }>();
+    } = $props();
 
     let activeStreams = $state<Map<string, MediaStream>>(new Map());
     let gridMode = $state<"large" | "compact">("large");

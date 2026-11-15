@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { MessageSquare } from "lucide-svelte";
+    import { MessageSquare } from "@lucide/svelte";
     import { fade } from "svelte/transition";
     import { t } from "svelte-i18n";
-    import type { Feedback } from "$lib/api";
+    import type { Feedback } from "#lib/api.ts";
 
-    let { feedbacks } = $props<{ feedbacks: Feedback[] }>();
+    let { feedbacks }: { feedbacks: Feedback[] } = $props();
 
     let avgSatisfaction = $derived(
         feedbacks.length > 0

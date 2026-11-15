@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { fade, fly } from "svelte/transition";
-    import { listCodelabs, getJoinedCodelabs, onAuthChange, type Codelab, isServerlessMode } from "$lib/api";
+    import { listCodelabs, getJoinedCodelabs, onAuthChange, type Codelab, isServerlessMode } from "#lib/api.ts";
     import {
         BookOpen,
         User,
@@ -10,7 +10,7 @@
         ArrowRight,
         Loader2,
         Star,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { t, locale } from "svelte-i18n";
 
     let codelabs: Codelab[] = $state([]);

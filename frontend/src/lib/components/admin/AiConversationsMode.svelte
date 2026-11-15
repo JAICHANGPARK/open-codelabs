@@ -1,10 +1,10 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { getAiConversations, type AiConversation } from "$lib/api";
-    import { MessageSquare, User, Clock, Hash } from "lucide-svelte";
+    import { getAiConversations, type AiConversation } from "#lib/api.ts";
+    import { MessageSquare, User, Clock, Hash } from "@lucide/svelte";
     import { t } from "svelte-i18n";
 
-    let { codelabId } = $props<{ codelabId: string }>();
+    let { codelabId }: { codelabId: string } = $props();
 
     let conversations = $state<AiConversation[]>([]);
     let loading = $state(true);

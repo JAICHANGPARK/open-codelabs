@@ -1,10 +1,10 @@
 <script lang="ts">
-    import { FileCode, Trash2 } from "lucide-svelte";
+    import { FileCode, Trash2 } from "@lucide/svelte";
     import { t } from "svelte-i18n";
-    let { files, onRemove } = $props<{
+    let { files, onRemove }: {
         files: { name: string; content: string }[];
         onRemove: (index: number) => void;
-    }>();
+    } = $props();
 </script>
 
 {#if files.length > 0}

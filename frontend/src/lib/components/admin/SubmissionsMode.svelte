@@ -9,18 +9,18 @@
         Trash2,
         FileUp,
         HardDrive
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { t } from "svelte-i18n";
-    import { ASSET_URL, type SubmissionWithAttendee } from "$lib/api";
+    import { ASSET_URL, type SubmissionWithAttendee } from "#lib/api.ts";
     import { fade, fly } from "svelte/transition";
 
     let { 
         submissions = [], 
         onDelete
-    } = $props<{
+    }: {
         submissions: SubmissionWithAttendee[];
         onDelete: (attendeeId: string, submissionId: string) => void;
-    }>();
+    } = $props();
 
     $effect(() => {
         console.log("SubmissionsMode received submissions:", submissions);

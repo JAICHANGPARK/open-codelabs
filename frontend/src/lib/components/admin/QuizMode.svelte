@@ -15,10 +15,10 @@
         Trophy,
         Clock,
         Settings2,
-    } from "lucide-svelte";
+    } from "@lucide/svelte";
     import { fade } from "svelte/transition";
     import { t } from "svelte-i18n";
-    import type { Quiz, QuizSubmissionWithAttendee } from "$lib/api";
+    import type { Quiz, QuizSubmissionWithAttendee } from "#lib/api.ts";
 
     let {
         quizzes = $bindable(),
@@ -31,7 +31,7 @@
         addEmptyQuiz,
         removeQuiz,
         handleQuizSave,
-    } = $props<{
+    }: {
         quizzes: Quiz[];
         quizSubmissions: QuizSubmissionWithAttendee[];
         numQuizToGenerate: number;
@@ -42,7 +42,7 @@
         addEmptyQuiz: () => void;
         removeQuiz: (index: number) => void;
         handleQuizSave: () => void;
-    }>();
+    } = $props();
 
     let activeTab = $state<"edit" | "results">("edit");
 

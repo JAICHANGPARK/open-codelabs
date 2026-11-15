@@ -1,11 +1,8 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { browser } from "$app/environment";
-    import {
-        streamGeminiChat,
-        type GeminiResponseChunk,
-        withCsrf,
-    } from "$lib/gemini";
+    import { browser } from '$app/env';
+    import { streamGeminiChat, type GeminiResponseChunk, withCsrf } from "#lib/gemini.ts";
+
     import {
         X,
         Send,
@@ -21,19 +18,19 @@
         Plus,
         ChevronRight,
         MessageSquare,
-    } from "lucide-svelte";
-    import { adminMarked as marked } from "$lib/markdown";
+    } from "@lucide/svelte";
+    import { adminMarked as marked } from "#lib/markdown.ts";
     import DOMPurify from "dompurify";
     import { fly, fade } from "svelte/transition";
     import { t, locale } from "svelte-i18n";
-    import { encrypt, decrypt } from "$lib/crypto";
-    import FocusTrap from "$lib/components/FocusTrap.svelte";
-    import referenceCodelabs from "$lib/data/codelabs.csv?raw";
+    import { encrypt, decrypt } from "#lib/crypto.ts";
+    import FocusTrap from "#lib/components/FocusTrap.svelte";
+    import referenceCodelabs from "#lib/data/codelabs.csv?raw";
 
-    let { onClose, onGenerateCodelab } = $props<{
+    let { onClose, onGenerateCodelab }: {
         onClose: () => void;
         onGenerateCodelab?: (transcript: string) => void;
-    }>();
+    } = $props();
 
     type Message = {
         role: "user" | "assistant";

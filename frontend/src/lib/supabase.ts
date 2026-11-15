@@ -26,7 +26,7 @@ export function createSupabaseClient(
     anonKey: string | undefined = supabaseAnonKey,
     deps: SupabaseDeps = defaultDeps,
 ): SupabaseClient | undefined {
-    if (!isSupabaseConfigValid(url, anonKey)) return undefined;
+    if (!url || !anonKey || !isSupabaseConfigValid(url, anonKey)) return undefined;
 
     return deps.createClient(url, anonKey, {
         auth: defaultAuthOptions,

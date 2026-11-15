@@ -2,21 +2,20 @@
     import { onMount } from "svelte";
     import { page } from "$app/state";
     import { goto } from "$app/navigation";
-    import { browser } from "$app/environment";
+    import { browser } from '$app/env';
     import { locale, waitLocale, t } from "svelte-i18n";
-    import "$lib/i18n";
+    import "#lib/i18n/index.ts";
     import "../app.css";
     import {
         Languages,
         LogOut,
         Sun,
         Moon,
-        Github,
         FileText as FileIcon,
         Accessibility,
         Palette,
-    } from "lucide-svelte";
-    import { themeState } from "$lib/theme.svelte";
+    } from "@lucide/svelte";
+    import { themeState } from "#lib/theme.svelte.ts";
     import {
         logout,
         onAuthChange,
@@ -24,7 +23,7 @@
         isSupabaseMode,
         isServerlessMode,
         getSession,
-    } from "$lib/api";
+    } from "#lib/api.ts";
 
     let { children } = $props();
     let i18nLoaded = $state(false);
@@ -222,14 +221,14 @@
     }
 
     function selectThemePreset(
-        presetId:
-            | "default"
-            | "mint"
-            | "ocean"
-            | "sunset"
-            | "forest"
-            | "berry"
-            | "slate",
+        presetId: 
+            "default" |
+            "mint" |
+            "ocean" |
+            "sunset" |
+            "forest" |
+            "berry" |
+            "slate"
     ) {
         themeState.setPreset(presetId);
         themeMenuOpen = false;
@@ -237,7 +236,11 @@
 </script>
 
 <svelte:head>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        rel="preconnect"
+        href="https://fonts.googleapis.com"
+    />
+
     <link
         rel="preconnect"
         href="https://fonts.gstatic.com"
@@ -282,7 +285,7 @@
 
         <div class="relative">
             <button
-                onclick={() => (langMenuOpen = !langMenuOpen)}
+                onclick={() => langMenuOpen = !langMenuOpen}
                 class="w-12 h-12 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
                 title={$t("common.change_language")}
                 aria-label={$t("common.change_language")}
@@ -312,7 +315,7 @@
 
         <div class="relative">
             <button
-                onclick={() => (themeMenuOpen = !themeMenuOpen)}
+                onclick={() => themeMenuOpen = !themeMenuOpen}
                 class="w-12 h-12 bg-white dark:bg-dark-surface border border-border dark:border-dark-border rounded-full shadow-lg flex items-center justify-center text-muted-foreground dark:text-dark-text-muted hover:text-primary transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:focus-visible:ring-offset-dark-bg"
                 title={$t("theme.menu_label")}
                 aria-label={$t("theme.menu_label")}

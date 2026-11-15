@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { browser } from "$app/environment";
+    import { browser } from '$app/env';
     import { t } from "svelte-i18n";
     import {
         Check,
@@ -8,8 +8,8 @@
         Code,
         Copy,
         ExternalLink,
-    } from "lucide-svelte";
-    import type { PlaygroundBlock, PlaygroundLanguage } from "$lib/playground";
+    } from "@lucide/svelte";
+    import type { PlaygroundBlock, PlaygroundLanguage } from "#lib/playground.ts";
 
     const PLAYGROUND_CONFIG: Record<
         PlaygroundLanguage,
@@ -41,9 +41,9 @@
         },
     };
 
-    let { playgrounds } = $props<{
+    let { playgrounds }: {
         playgrounds: PlaygroundBlock[];
-    }>();
+    } = $props();
 
     let isOpen = $state(true);
     let copied = $state(false);
@@ -98,7 +98,7 @@
         }
 
         if (copied) {
-            setTimeout(() => (copied = false), 2000);
+            setTimeout(() => copied = false, 2000);
         }
     }
 </script>
@@ -129,7 +129,7 @@
             </div>
             <button
                 type="button"
-                onclick={() => (isOpen = !isOpen)}
+                onclick={() => isOpen = !isOpen}
                 class="p-2 rounded-full hover:bg-white/80 dark:hover:bg-white/10 transition-colors text-muted-foreground dark:text-dark-text-muted"
                 aria-label={isOpen ? $t("playground.toggle_close") : $t("playground.toggle_open")}
             >
@@ -148,7 +148,7 @@
                         {@const playgroundLang = lang as PlaygroundLanguage}
                         <button
                             type="button"
-                            onclick={() => (activeLanguage = playgroundLang)}
+                            onclick={() => activeLanguage = playgroundLang}
                             class="px-4 py-2 rounded-full text-xs font-bold transition-all border {activeLanguage === playgroundLang
                                 ? 'bg-primary border-primary text-primary-foreground shadow-sm'
                                 : 'bg-white dark:bg-dark-bg border-border dark:border-dark-border text-muted-foreground dark:text-dark-text-muted hover:border-primary hover:text-primary'}"

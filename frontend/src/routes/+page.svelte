@@ -1,7 +1,7 @@
 <script>
     import { onMount } from "svelte";
     import { fade, fly } from "svelte/transition";
-    import { LayoutDashboard, BookOpen } from "lucide-svelte";
+    import { LayoutDashboard, BookOpen } from "@lucide/svelte";
     import { t } from "svelte-i18n";
 
     let visible = $state(false);

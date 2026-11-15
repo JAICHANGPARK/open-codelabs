@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { getAuditLogs, type AuditLog } from "$lib/api-backend";
+    import { getAuditLogs, type AuditLog } from "#lib/api-backend.ts";
     import { goto } from "$app/navigation";
     import { t } from "svelte-i18n";
 

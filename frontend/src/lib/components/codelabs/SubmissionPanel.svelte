@@ -1,6 +1,6 @@
 <script lang="ts">
     import { t } from "svelte-i18n";
-    import { FileUp, FileText, Trash2, Upload, Link2, ExternalLink } from "lucide-svelte";
+    import { FileUp, FileText, Trash2, Upload, Link2, ExternalLink } from "@lucide/svelte";
 
     let {
         submissions,
@@ -10,7 +10,7 @@
         onDelete,
         onLinkSubmit,
         linkSubmitting = false
-    } = $props<{
+    }: {
         submissions: { id: string; file_name: string; submission_type?: string; link_url?: string | null }[];
         submitting: boolean;
         totalSize: number;
@@ -18,7 +18,7 @@
         onDelete: (submissionId: string) => void;
         onLinkSubmit: (url: string) => void;
         linkSubmitting?: boolean;
-    }>();
+    } = $props();
     let linkUrl = $state("");
     function handleLinkSubmit() {
         const trimmed = linkUrl.trim();

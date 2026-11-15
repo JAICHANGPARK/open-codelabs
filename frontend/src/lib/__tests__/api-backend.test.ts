@@ -142,7 +142,7 @@ describe("api-backend", () => {
 
         (globalThis as any).sessionStorage = makeSessionStorage({ adminPassword: "admin-pw" });
 
-        globalThis.fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
+        (globalThis as any).fetch = async (input: RequestInfo | URL, init: RequestInit = {}) => {
             calls.push({ url: String(input), init });
             const next = queue.shift();
             if (!next) {
