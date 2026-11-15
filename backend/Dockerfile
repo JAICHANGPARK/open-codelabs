@@ -1,19 +1,20 @@
 FROM rust:1-slim-bookworm AS builder
 
 WORKDIR /app
-RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y pkg-config libssl-dev cmake build-essential && rm -rf /var/lib/apt/lists/*
 
 COPY Cargo.toml Cargo.lock ./
-# Create dummy bin targets so Cargo can resolve every declared binary while
+# Create dummy lib/bin targets so Cargo can resolve every declared target while
 # priming the dependency cache before the real source tree is copied in.
 RUN mkdir -p src/bin && \
+    touch src/lib.rs && \
     echo "fn main() {}" > src/main.rs && \
     echo "fn main() {}" > src/bin/local_bench.rs && \
     echo "fn main() {}" > src/bin/oc.rs && \
     echo "fn main() {}" > src/bin/ops_bench.rs && \
     echo "fn main() {}" > src/bin/ws_bench.rs
 RUN cargo build --release
-RUN rm -f target/release/deps/backend*
+RUN rm -rf src target/release/deps/libbackend* target/release/deps/backend* target/release/deps/oc* target/release/deps/local_bench* target/release/deps/ops_bench* target/release/deps/ws_bench*
 
 COPY src ./src
 COPY migrations ./migrations

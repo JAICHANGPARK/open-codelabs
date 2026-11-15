@@ -29,5 +29,7 @@ services:
       - VITE_ADMIN_ENCRYPTION_PASSWORD=${ADMIN_PW}
       - PORT=${FRONTEND_PORT}
       - HOST=${FRONTEND_HOST}
+      - PROTOCOL_HEADER=x-forwarded-proto
+      - HOST_HEADER=x-forwarded-host
     depends_on:
       - backend
